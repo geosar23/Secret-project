@@ -5,6 +5,7 @@
 	"main": "dist/server.ts",
 	"scripts": {
 		"dev": "npx ts-node src/server.ts",
+		"dev:watch": "npx nodemon src/server.ts",
 		"build": "tsc",
 		"start": "node dist/server.ts"
 	},

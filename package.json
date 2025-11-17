@@ -6,14 +6,8 @@
 		"packages/*"
 	],
 	"scripts": {
-		"dev:server": "cd server && npx ts-node src/server.ts",
-		"dev:client": "cd client && ng serve",
-		"dev": "echo 'Start backend first'",
-		"start:server": "npm run -w server dev",
-		"start:client": "npm run -w client start",
-		"start:all": "echo 'Use concurrently or start services separately'"
 	},
 	"doc": {
-		"how_to_run": "\n1) Install dependencies: `npm install` at repo root.\n2) Start backend (dev): `npm run dev:server` OR `npm run start:server`.\n3) Start frontend (dev): `npm run dev:client` OR `npm run start:client`.\n4) Build backend for production: `cd server && npm run build && npm start`.\n5) Use workspaces: run `npm run -w server dev` to run server from root.\n\nNotes: JSON does not support comments; this 'doc' field contains run instructions for contributors."
+		"how_to_run": "pray to god "
 	}
 }
