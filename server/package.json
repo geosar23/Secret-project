@@ -4,7 +4,7 @@
 	"description": "HRMS backend using Node, Express, TypeScript, MongoDB",
 	"main": "dist/server.ts",
 	"scripts": {
-		"dev": "ts-node src/server.ts",
+		"dev": "npx ts-node src/server.ts",
 		"build": "tsc",
 		"start": "node dist/server.ts"
 	},
