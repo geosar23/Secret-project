@@ -1,0 +1,7 @@
+{
+	"scripts": {
+		"dev:server": "cd server && npx ts-node src/server.ts",
+		"dev:client": "cd client && ng serve",
+		"dev": "echo 'Start backend first'"
+	}
+}
