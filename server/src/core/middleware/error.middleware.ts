@@ -1,6 +1,6 @@
-import { Request, Response } from 'express'
+import { Request, Response } from 'express';
 
-type ErrorWithStatus = { statusCode?: number; message?: string }
+type ErrorWithStatus = { statusCode?: number; message?: string };
 
 export default function errorMiddleware(
     err: ErrorWithStatus | unknown,
@@ -8,17 +8,17 @@ export default function errorMiddleware(
     res: Response,
 ) {
     if (process.env.NODE_ENV !== 'production') {
-        console.error('💥 Error:', err)
+        console.error('💥 Error:', err);
     }
-    let status = 500
-    let message = 'Unexpected error'
+    let status = 500;
+    let message = 'Unexpected error';
     if (typeof err === 'object' && err !== null) {
         if ('statusCode' in err && typeof (err as ErrorWithStatus).statusCode === 'number') {
-            status = (err as ErrorWithStatus).statusCode!
+            status = (err as ErrorWithStatus).statusCode!;
         }
         if ('message' in err && typeof (err as ErrorWithStatus).message === 'string') {
-            message = (err as ErrorWithStatus).message!
+            message = (err as ErrorWithStatus).message!;
         }
     }
-    res.status(status).json({ message })
+    res.status(status).json({ message });
 }
