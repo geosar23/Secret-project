@@ -1,8 +1,8 @@
-import { config } from './config/env';
-import app from './app';
+import { config } from './config/env'
+import app from './app'
 
-const PORT = config.PORT || 3000;
+const PORT = config.PORT || 3000
 
 app.listen(PORT, () => {
-  console.log(`🚀 HRMS backend running on port ${PORT}`);
-});
+    console.log(`🚀 HRMS backend running on port ${PORT}`)
+})
