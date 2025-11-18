@@ -6,7 +6,7 @@
         "packages/*"
     ],
     "scripts": {
-        "format": "prettier --write \"**/*.{ts,js,json,css,scss,md}\" && eslint --fix \"server/src/**/*.{ts,js}\" \"client/src/**/*.{ts,js}\" \"packages/**/*.{ts,js}\" --ext .ts,.js",
+        "format": "prettier --write \"**/*.{ts,js,json,css,scss,md}\" && eslint --fix \"server/src/**/*.{ts,js}\" \"packages/**/*.{ts,js}\" --ext .ts,.js",
         "lint": "eslint \"server/src/**/*.ts\" \"packages/**/*.ts\" --fix",
         "prepare": "husky"
     },
