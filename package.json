@@ -6,6 +6,9 @@
         "packages/*"
     ],
     "scripts": {
+        "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+        "dev:server": "npm run dev:watch -w server",
+        "dev:client": "npm start -w client",
         "format": "prettier --write \"**/*.{ts,js,json,css,scss,md}\" && eslint --fix \"server/src/**/*.{ts,js}\" \"packages/**/*.{ts,js}\" --ext .ts,.js",
         "lint": "eslint \"server/src/**/*.ts\" \"packages/**/*.ts\" --fix",
         "prepare": "husky"
