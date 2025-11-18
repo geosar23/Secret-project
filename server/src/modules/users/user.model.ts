@@ -5,8 +5,8 @@ const UserSchema = new Schema<IUser>({
   id: { type: String, required: true, unique: true },
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  role: { type: String, default: "employee" },
-  password: { type: String, required: true }
+  role: { type: String, default: 'employee' },
+  password: { type: String, required: true },
 });
 
-export const UserModel = model<IUser>("User", UserSchema);
+export const UserModel = model<IUser>('User', UserSchema);

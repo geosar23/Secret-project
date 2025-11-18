@@ -5,9 +5,20 @@
 		"server",
 		"packages/*"
 	],
-	"scripts": {
-	},
+	"scripts": {},
 	"doc": {
 		"how_to_run": "pray to god "
-	}
+	},
+	"devDependencies": {
+		"@typescript-eslint/eslint-plugin": "^8.47.0",
+		"@typescript-eslint/parser": "^8.47.0",
+		"concurrently": "^9.2.1",
+		"eslint": "^9.39.1",
+		"eslint-config-prettier": "^10.1.8",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.2.6",
+		"prettier": "^3.6.2",
+		"typescript-eslint": "^8.47.0"
+	},
+	"type": "module"
 }
