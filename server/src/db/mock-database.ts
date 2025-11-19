@@ -4,37 +4,37 @@
  * Enable by setting USE_MOCK_DB=true in .env
  */
 
-import { IUser, ISession } from '../interfaces';
+import { IUser, ISession } from "../interfaces";
 
 // Mock Users Collection
 // Test credentials: john@example.com / password123, jane@example.com / password456, bob@example.com / password789
 export const mockUsers: IUser[] = [
     {
-        id: '1',
-        name: 'John Doe',
-        email: 'john@example.com',
-        role: 'admin',
-        password: '$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e', // password123
+        id: "1",
+        name: "John Doe",
+        email: "john@example.com",
+        role: "admin",
+        password: "$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e", // password123
         isActive: true,
-        createdAt: new Date('2024-01-01'),
+        createdAt: new Date("2024-01-01"),
     },
     {
-        id: '2',
-        name: 'Jane Smith',
-        email: 'jane@example.com',
-        role: 'employee',
-        password: '$2a$10$vpPTr7qHXMz5azBrN8kZbOMgL2w.Pgz6YkbR9i.fryJYncT3847l.', // password456
+        id: "2",
+        name: "Jane Smith",
+        email: "jane@example.com",
+        role: "employee",
+        password: "$2a$10$vpPTr7qHXMz5azBrN8kZbOMgL2w.Pgz6YkbR9i.fryJYncT3847l.", // password456
         isActive: true,
-        createdAt: new Date('2024-01-15'),
+        createdAt: new Date("2024-01-15"),
     },
     {
-        id: '3',
-        name: 'Bob Wilson',
-        email: 'bob@example.com',
-        role: 'employee',
-        password: '$2a$10$vpPTr7qHXMz5azBrN8kZbOMgL2w.Pgz6YkbR9i.fryJYncT3847l.', // password789
+        id: "3",
+        name: "Bob Wilson",
+        email: "bob@example.com",
+        role: "employee",
+        password: "$2a$10$vpPTr7qHXMz5azBrN8kZbOMgL2w.Pgz6YkbR9i.fryJYncT3847l.", // password789
         isActive: true,
-        createdAt: new Date('2024-02-01'),
+        createdAt: new Date("2024-02-01"),
     },
 ];
 
@@ -63,7 +63,7 @@ export class MockDatabase {
         return mockUsers.find(user => user.email === email);
     }
 
-    static createUser(userData: Omit<IUser, 'id'>): IUser {
+    static createUser(userData: Omit<IUser, "id">): IUser {
         const newUser: IUser = {
             id: String(mockUsers.length + 1),
             ...userData,
@@ -104,7 +104,7 @@ export class MockDatabase {
         return mockSessions.filter(session => session.userId === userId);
     }
 
-    static createSession(sessionData: Omit<ISession, 'id' | 'createdAt'>): ISession {
+    static createSession(sessionData: Omit<ISession, "id" | "createdAt">): ISession {
         const newSession: ISession = {
             id: String(mockSessions.length + 1),
             ...sessionData,
