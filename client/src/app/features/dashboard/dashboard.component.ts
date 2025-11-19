@@ -1,8 +1,8 @@
-import { Component, inject } from '@angular/core';
-import { AuthService } from '../../core/services/auth.service';
+import { Component, inject } from "@angular/core";
+import { AuthService } from "../../core/services/auth.service";
 
 @Component({
-    selector: 'app-dashboard',
+    selector: "app-dashboard",
     standalone: true,
     template: `
         <div class="dashboard">

@@ -15,10 +15,10 @@
                 />
                 @if (email?.invalid && email?.touched) {
                     <span class="error-message">
-                        @if (email?.errors?.['required']) {
+                        @if (email?.errors?.["required"]) {
                             Email is required
                         }
-                        @if (email?.errors?.['email']) {
+                        @if (email?.errors?.["email"]) {
                             Please enter a valid email
                         }
                     </span>
@@ -36,10 +36,10 @@
                 />
                 @if (password?.invalid && password?.touched) {
                     <span class="error-message">
-                        @if (password?.errors?.['required']) {
+                        @if (password?.errors?.["required"]) {
                             Password is required
                         }
-                        @if (password?.errors?.['minlength']) {
+                        @if (password?.errors?.["minlength"]) {
                             Password must be at least 6 characters
                         }
                     </span>
