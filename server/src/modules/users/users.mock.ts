@@ -1,8 +1,8 @@
-import { IUser } from './user.interface';
+import { IUser } from "./user.interface";
 
 const users: IUser[] = [
-    { id: '1', email: 'alice@example.com', name: 'Alice Example', role: 'user' } as IUser,
-    { id: '2', email: 'bob@example.com', name: 'Bob Example', role: 'admin' } as IUser,
+    { id: "1", email: "alice@example.com", name: "Alice Example", role: "user" } as IUser,
+    { id: "2", email: "bob@example.com", name: "Bob Example", role: "admin" } as IUser,
 ];
 
 export const getAllMock = (): IUser[] => users;

@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { Router } from '@angular/router';
-import { Observable, BehaviorSubject, tap } from 'rxjs';
-import { ApiService } from './api.service';
+import { Injectable } from "@angular/core";
+import { Router } from "@angular/router";
+import { Observable, BehaviorSubject, tap } from "rxjs";
+import { ApiService } from "./api.service";
 
 export interface LoginRequest {
     email: string;
@@ -24,10 +24,10 @@ export interface AuthResponse {
 }
 
 @Injectable({
-    providedIn: 'root',
+    providedIn: "root",
 })
 export class AuthService {
-    private currentUserSubject = new BehaviorSubject<AuthResponse['user'] | null>(null);
+    private currentUserSubject = new BehaviorSubject<AuthResponse["user"] | null>(null);
     public currentUser$ = this.currentUserSubject.asObservable();
 
     constructor(
@@ -42,7 +42,7 @@ export class AuthService {
     }
 
     login(credentials: LoginRequest): Observable<AuthResponse> {
-        return this.api.post<AuthResponse>('auth/login', credentials).pipe(
+        return this.api.post<AuthResponse>("auth/login", credentials).pipe(
             tap(response => {
                 this.setToken(response.token);
                 this.currentUserSubject.next(response.user);
@@ -51,7 +51,7 @@ export class AuthService {
     }
 
     register(data: RegisterRequest): Observable<AuthResponse> {
-        return this.api.post<AuthResponse>('auth/register', data).pipe(
+        return this.api.post<AuthResponse>("auth/register", data).pipe(
             tap(response => {
                 this.setToken(response.token);
                 this.currentUserSubject.next(response.user);
@@ -60,13 +60,13 @@ export class AuthService {
     }
 
     logout(): void {
-        localStorage.removeItem('token');
+        localStorage.removeItem("token");
         this.currentUserSubject.next(null);
-        this.router.navigate(['/login']);
+        this.router.navigate(["/login"]);
     }
 
     getToken(): string | null {
-        return localStorage.getItem('token');
+        return localStorage.getItem("token");
     }
 
     isAuthenticated(): boolean {
@@ -74,6 +74,6 @@ export class AuthService {
     }
 
     private setToken(token: string): void {
-        localStorage.setItem('token', token);
+        localStorage.setItem("token", token);
     }
 }

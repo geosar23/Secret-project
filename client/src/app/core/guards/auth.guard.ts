@@ -1,6 +1,6 @@
-import { inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { AuthService } from '../services/auth.service';
+import { inject } from "@angular/core";
+import { Router } from "@angular/router";
+import { AuthService } from "../services/auth.service";
 
 export const authGuard = () => {
     const authService = inject(AuthService);
@@ -10,6 +10,6 @@ export const authGuard = () => {
         return true;
     }
 
-    router.navigate(['/login']);
+    router.navigate(["/login"]);
     return false;
 };

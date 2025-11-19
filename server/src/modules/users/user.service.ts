@@ -1,9 +1,9 @@
-import { UserModel } from './user.model';
-import { IUser } from './user.interface';
-import { getAllMock, getByIdMock, createMock } from './users.mock';
+import { UserModel } from "./user.model";
+import { IUser } from "./user.interface";
+import { getAllMock, getByIdMock, createMock } from "./users.mock";
 
-const USE_MOCK = process.env.USE_MOCK_DB === 'true';
-console.log('USE_MOCK_DB:', USE_MOCK, process.env.USE_MOCK_DB);
+const USE_MOCK = process.env.USE_MOCK_DB === "true";
+console.log("USE_MOCK_DB:", USE_MOCK, process.env.USE_MOCK_DB);
 
 export const UserService = {
     getAll: () => (USE_MOCK ? Promise.resolve(getAllMock()) : UserModel.find()),
