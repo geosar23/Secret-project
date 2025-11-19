@@ -46,7 +46,7 @@ export const AuthService = {
         // Generate JWT token
         const token = jwt.sign(
             {
-                id: user.id,
+                id: user._id,
                 email: user.email,
                 role: user.role,
             },
@@ -57,7 +57,7 @@ export const AuthService = {
         return {
             token,
             user: {
-                id: user.id,
+                id: user._id || "",
                 email: user.email,
                 name: user.name,
                 role: user.role,
@@ -90,7 +90,7 @@ export const AuthService = {
         // Generate JWT token
         const token = jwt.sign(
             {
-                id: newUser.id,
+                id: newUser._id,
                 email: newUser.email,
                 role: newUser.role,
             },
@@ -101,7 +101,7 @@ export const AuthService = {
         return {
             token,
             user: {
-                id: newUser.id,
+                id: newUser._id || "",
                 email: newUser.email,
                 name: newUser.name,
                 role: newUser.role,

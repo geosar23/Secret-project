@@ -12,7 +12,7 @@ export const UserService = {
         USE_MOCK
             ? Promise.resolve(MockDatabase.getUserByEmail(email))
             : UserModel.findOne({ email }),
-    create: (data: Omit<IUser, "id">) =>
+    create: (data: Omit<IUser, "_id">) =>
         USE_MOCK ? Promise.resolve(MockDatabase.createUser(data)) : UserModel.create(data),
     update: (id: string, data: Partial<IUser>) =>
         USE_MOCK

@@ -10,7 +10,7 @@ import { IUser, ISession } from "../interfaces";
 // Test credentials: john@example.com / password123, jane@example.com / password456, bob@example.com / password789
 export const mockUsers: IUser[] = [
     {
-        id: "1",
+        _id: "1",
         name: "John Doe",
         email: "john@example.com",
         role: "admin",
@@ -19,7 +19,7 @@ export const mockUsers: IUser[] = [
         createdAt: new Date("2024-01-01"),
     },
     {
-        id: "2",
+        _id: "2",
         name: "Jane Smith",
         email: "jane@example.com",
         role: "employee",
@@ -28,7 +28,7 @@ export const mockUsers: IUser[] = [
         createdAt: new Date("2024-01-15"),
     },
     {
-        id: "3",
+        _id: "3",
         name: "Bob Wilson",
         email: "bob@example.com",
         role: "employee",
@@ -56,16 +56,16 @@ export class MockDatabase {
     }
 
     static getUserById(id: string): IUser | undefined {
-        return mockUsers.find(user => user.id === id);
+        return mockUsers.find(user => user._id === id);
     }
 
     static getUserByEmail(email: string): IUser | undefined {
         return mockUsers.find(user => user.email === email);
     }
 
-    static createUser(userData: Omit<IUser, "id">): IUser {
+    static createUser(userData: Omit<IUser, "_id">): IUser {
         const newUser: IUser = {
-            id: String(mockUsers.length + 1),
+            _id: String(mockUsers.length + 1),
             ...userData,
         };
         mockUsers.push(newUser);
@@ -73,7 +73,7 @@ export class MockDatabase {
     }
 
     static updateUser(id: string, updates: Partial<IUser>): IUser | null {
-        const index = mockUsers.findIndex(user => user.id === id);
+        const index = mockUsers.findIndex(user => user._id === id);
         if (index === -1) return null;
 
         mockUsers[index] = {
@@ -84,7 +84,7 @@ export class MockDatabase {
     }
 
     static deleteUser(id: string): boolean {
-        const index = mockUsers.findIndex(user => user.id === id);
+        const index = mockUsers.findIndex(user => user._id === id);
         if (index === -1) return false;
 
         mockUsers.splice(index, 1);
@@ -104,9 +104,9 @@ export class MockDatabase {
         return mockSessions.filter(session => session.userId === userId);
     }
 
-    static createSession(sessionData: Omit<ISession, "id" | "createdAt">): ISession {
+    static createSession(sessionData: Omit<ISession, "_id" | "createdAt">): ISession {
         const newSession: ISession = {
-            id: String(mockSessions.length + 1),
+            _id: String(mockSessions.length + 1),
             ...sessionData,
             createdAt: new Date(),
         };
