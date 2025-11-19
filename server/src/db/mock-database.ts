@@ -4,7 +4,7 @@
  * Enable by setting USE_MOCK_DB=true in .env
  */
 
-import { IUser } from "../modules/users/user.interface";
+import { IUser, ISession } from "../interfaces";
 
 // Mock Users Collection
 export const mockUsers: IUser[] = [
@@ -30,6 +30,9 @@ export const mockUsers: IUser[] = [
         password: "$2a$10$zyxwvutsrqponmlkjihgfedcba1234567890",
     },
 ];
+
+// Mock Sessions Collection
+export const mockSessions: ISession[] = [];
 
 // Add more collections as needed
 // export const mockProducts: Product[] = [];
@@ -79,6 +82,73 @@ export class MockDatabase {
 
         mockUsers.splice(index, 1);
         return true;
+    }
+
+    // Session operations
+    static getAllSessions(): ISession[] {
+        return mockSessions;
+    }
+
+    static getSessionByToken(sessionToken: string): ISession | undefined {
+        return mockSessions.find(session => session.sessionToken === sessionToken);
+    }
+
+    static getSessionsByUserId(userId: string): ISession[] {
+        return mockSessions.filter(session => session.userId === userId && session.isActive);
+    }
+
+    static createSession(
+        sessionData: Omit<ISession, "id" | "createdAt" | "lastActivityAt">,
+    ): ISession {
+        const newSession: ISession = {
+            id: String(mockSessions.length + 1),
+            ...sessionData,
+            createdAt: new Date(),
+            lastActivityAt: new Date(),
+        };
+        mockSessions.push(newSession);
+        return newSession;
+    }
+
+    static updateSession(sessionToken: string, updates: Partial<ISession>): ISession | null {
+        const index = mockSessions.findIndex(session => session.sessionToken === sessionToken);
+        if (index === -1) return null;
+
+        mockSessions[index] = {
+            ...mockSessions[index],
+            ...updates,
+            lastActivityAt: new Date(),
+        };
+        return mockSessions[index];
+    }
+
+    static deleteSession(sessionToken: string): boolean {
+        const index = mockSessions.findIndex(session => session.sessionToken === sessionToken);
+        if (index === -1) return false;
+
+        mockSessions.splice(index, 1);
+        return true;
+    }
+
+    static expireSession(sessionToken: string): boolean {
+        const session = this.getSessionByToken(sessionToken);
+        if (!session) return false;
+
+        this.updateSession(sessionToken, { isActive: false });
+        return true;
+    }
+
+    static cleanExpiredSessions(): number {
+        const now = new Date();
+        const initialLength = mockSessions.length;
+
+        for (let i = mockSessions.length - 1; i >= 0; i--) {
+            if (mockSessions[i].expiresAt < now) {
+                mockSessions.splice(i, 1);
+            }
+        }
+
+        return initialLength - mockSessions.length;
     }
 
     // Add more entity operations as needed
