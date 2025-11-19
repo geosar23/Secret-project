@@ -1,9 +1,9 @@
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import { UserService } from '../users/user.service';
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import { UserService } from "../users/user.service";
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 
 export interface LoginDto {
     email: string;
@@ -34,13 +34,13 @@ export const AuthService = {
         // Find user by email
         const user = await UserService.getByEmail(email);
         if (!user) {
-            throw new Error('Invalid credentials');
+            throw new Error("Invalid credentials");
         }
 
         // Verify password
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
-            throw new Error('Invalid credentials');
+            throw new Error("Invalid credentials");
         }
 
         // Generate JWT token
@@ -66,12 +66,12 @@ export const AuthService = {
     },
 
     async register(data: RegisterDto): Promise<AuthResponse> {
-        const { name, email, password, role = 'employee' } = data;
+        const { name, email, password, role = "employee" } = data;
 
         // Check if user already exists
         const existingUser = await UserService.getByEmail(email);
         if (existingUser) {
-            throw new Error('User already exists');
+            throw new Error("User already exists");
         }
 
         // Hash password
@@ -113,7 +113,7 @@ export const AuthService = {
         try {
             return jwt.verify(token, JWT_SECRET);
         } catch {
-            throw new Error('Invalid token');
+            throw new Error("Invalid token");
         }
     },
 };
