@@ -1,8 +1,8 @@
-import { UserModel } from './user.model';
-import { IUser } from './user.interface';
-import { MockDatabase } from '../../db/mock-database';
+import { UserModel } from "./user.model";
+import { IUser } from "./user.interface";
+import { MockDatabase } from "../../db/mock-database";
 
-const USE_MOCK = process.env.USE_MOCK_DB === 'true';
+const USE_MOCK = process.env.USE_MOCK_DB === "true";
 
 export const UserService = {
     getAll: () => (USE_MOCK ? Promise.resolve(MockDatabase.getAllUsers()) : UserModel.find()),
