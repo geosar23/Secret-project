@@ -94,17 +94,14 @@ export class MockDatabase {
     }
 
     static getSessionsByUserId(userId: string): ISession[] {
-        return mockSessions.filter(session => session.userId === userId && session.isActive);
+        return mockSessions.filter(session => session.userId === userId);
     }
 
-    static createSession(
-        sessionData: Omit<ISession, "id" | "createdAt" | "lastActivityAt">,
-    ): ISession {
+    static createSession(sessionData: Omit<ISession, "id" | "createdAt">): ISession {
         const newSession: ISession = {
             id: String(mockSessions.length + 1),
             ...sessionData,
             createdAt: new Date(),
-            lastActivityAt: new Date(),
         };
         mockSessions.push(newSession);
         return newSession;
@@ -117,7 +114,6 @@ export class MockDatabase {
         mockSessions[index] = {
             ...mockSessions[index],
             ...updates,
-            lastActivityAt: new Date(),
         };
         return mockSessions[index];
     }
@@ -127,14 +123,6 @@ export class MockDatabase {
         if (index === -1) return false;
 
         mockSessions.splice(index, 1);
-        return true;
-    }
-
-    static expireSession(sessionToken: string): boolean {
-        const session = this.getSessionByToken(sessionToken);
-        if (!session) return false;
-
-        this.updateSession(sessionToken, { isActive: false });
         return true;
     }
 
