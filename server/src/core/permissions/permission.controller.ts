@@ -1,6 +1,6 @@
 import { Response } from "express";
 import { PermissionService } from "./permission.service";
-import { AuthenticatedRequest } from "../middleware/authorize.middleware";
+import { AuthenticatedRequest } from "../middleware/permission.middleware";
 
 /**
  * Controller for permission management endpoints

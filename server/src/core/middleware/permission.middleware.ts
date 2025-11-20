@@ -21,7 +21,7 @@ export interface AuthenticatedRequest extends Request {
  * @param permission Permission string to check (e.g., "employees:edit:managed")
  * @param resourceLoader Optional function to load resource from request
  */
-export function authorize(
+export function userhasPermission(
     permission: string,
     resourceLoader?: (req: AuthenticatedRequest) => Promise<Record<string, unknown> | null>,
 ) {
@@ -69,7 +69,7 @@ export function authorize(
 /**
  * Middleware to check if user has ANY of the specified permissions
  */
-export function authorizeAny(
+export function userHasAnyPermission(
     permissions: string[],
     resourceLoader?: (req: AuthenticatedRequest) => Promise<Record<string, unknown> | null>,
 ) {
@@ -113,7 +113,7 @@ export function authorizeAny(
 /**
  * Middleware to check if user has ALL of the specified permissions
  */
-export function authorizeAll(
+export function userHasAllPermissions(
     permissions: string[],
     resourceLoader?: (req: AuthenticatedRequest) => Promise<Record<string, unknown> | null>,
 ) {
