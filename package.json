@@ -17,6 +17,7 @@
         "how_to_run": "pray to god "
     },
     "devDependencies": {
+        "@eslint-community/eslint-utils": "^4.9.0",
         "@typescript-eslint/eslint-plugin": "^8.47.0",
         "@typescript-eslint/parser": "^8.47.0",
         "concurrently": "^9.2.1",
