@@ -33,11 +33,10 @@ export const PermissionController = {
                     expiresAt: expiresAt ? new Date(expiresAt) : undefined,
                     reason,
                     scope,
-                }
+                },
             );
 
-            const effectivePermissions =
-                await PermissionService.getEffectivePermissions(userId);
+            const effectivePermissions = await PermissionService.getEffectivePermissions(userId);
 
             res.status(200).json({
                 message: "Permission granted successfully",
@@ -47,8 +46,7 @@ export const PermissionController = {
         } catch (error) {
             console.error("Grant permission error:", error);
             res.status(500).json({
-                error:
-                    error instanceof Error ? error.message : "Failed to grant permission",
+                error: error instanceof Error ? error.message : "Failed to grant permission",
             });
         }
     },
@@ -63,11 +61,10 @@ export const PermissionController = {
 
             const updatedUser = await PermissionService.revokeGrantedPermission(
                 userId,
-                decodeURIComponent(permission)
+                decodeURIComponent(permission),
             );
 
-            const effectivePermissions =
-                await PermissionService.getEffectivePermissions(userId);
+            const effectivePermissions = await PermissionService.getEffectivePermissions(userId);
 
             res.status(200).json({
                 message: "Granted permission revoked successfully",
@@ -78,9 +75,7 @@ export const PermissionController = {
             console.error("Revoke granted permission error:", error);
             res.status(500).json({
                 error:
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to revoke granted permission",
+                    error instanceof Error ? error.message : "Failed to revoke granted permission",
             });
         }
     },
@@ -98,13 +93,9 @@ export const PermissionController = {
                 return res.status(400).json({ error: "Permission is required" });
             }
 
-            const updatedUser = await PermissionService.revokeRolePermission(
-                userId,
-                permission
-            );
+            const updatedUser = await PermissionService.revokeRolePermission(userId, permission);
 
-            const effectivePermissions =
-                await PermissionService.getEffectivePermissions(userId);
+            const effectivePermissions = await PermissionService.getEffectivePermissions(userId);
 
             res.status(200).json({
                 message: "Role permission revoked successfully",
@@ -114,10 +105,7 @@ export const PermissionController = {
         } catch (error) {
             console.error("Revoke role permission error:", error);
             res.status(500).json({
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to revoke role permission",
+                error: error instanceof Error ? error.message : "Failed to revoke role permission",
             });
         }
     },
@@ -135,13 +123,9 @@ export const PermissionController = {
                 return res.status(400).json({ error: "Permission is required" });
             }
 
-            const updatedUser = await PermissionService.restoreRolePermission(
-                userId,
-                permission
-            );
+            const updatedUser = await PermissionService.restoreRolePermission(userId, permission);
 
-            const effectivePermissions =
-                await PermissionService.getEffectivePermissions(userId);
+            const effectivePermissions = await PermissionService.getEffectivePermissions(userId);
 
             res.status(200).json({
                 message: "Role permission restored successfully",
@@ -151,10 +135,7 @@ export const PermissionController = {
         } catch (error) {
             console.error("Restore role permission error:", error);
             res.status(500).json({
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to restore role permission",
+                error: error instanceof Error ? error.message : "Failed to restore role permission",
             });
         }
     },
@@ -177,9 +158,7 @@ export const PermissionController = {
             console.error("Get effective permissions error:", error);
             res.status(500).json({
                 error:
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to get effective permissions",
+                    error instanceof Error ? error.message : "Failed to get effective permissions",
             });
         }
     },
@@ -201,10 +180,7 @@ export const PermissionController = {
         } catch (error) {
             console.error("Get permission history error:", error);
             res.status(500).json({
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to get permission history",
+                error: error instanceof Error ? error.message : "Failed to get permission history",
             });
         }
     },
@@ -217,9 +193,7 @@ export const PermissionController = {
         try {
             const { userId } = req.params;
 
-            const updatedUser = await PermissionService.cleanupExpiredPermissions(
-                userId
-            );
+            const updatedUser = await PermissionService.cleanupExpiredPermissions(userId);
 
             res.status(200).json({
                 message: "Expired permissions cleaned up successfully",
@@ -266,7 +240,7 @@ export const PermissionController = {
                     expiresAt: expiresAt ? new Date(expiresAt) : undefined,
                     reason,
                     scope,
-                }
+                },
             );
 
             res.status(200).json({
@@ -276,10 +250,7 @@ export const PermissionController = {
         } catch (error) {
             console.error("Bulk grant permission error:", error);
             res.status(500).json({
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to bulk grant permission",
+                error: error instanceof Error ? error.message : "Failed to bulk grant permission",
             });
         }
     },
@@ -302,7 +273,7 @@ export const PermissionController = {
 
             const updatedUsers = await PermissionService.bulkRevokeGrantedPermission(
                 userIds,
-                permission
+                permission,
             );
 
             res.status(200).json({

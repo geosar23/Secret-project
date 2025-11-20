@@ -17,7 +17,7 @@ export const PermissionService = {
             expiresAt?: Date;
             reason?: string;
             scope?: string;
-        }
+        },
     ): Promise<IUser> {
         const user = await UserService.getById(userId);
         if (!user) {
@@ -31,7 +31,7 @@ export const PermissionService = {
 
         // Check if permission already granted
         const existingGrant = user.grantedPermissions.find(
-            (g: GrantedPermission) => g.permission === permission
+            (g: GrantedPermission) => g.permission === permission,
         );
 
         if (existingGrant) {
@@ -65,10 +65,7 @@ export const PermissionService = {
     /**
      * Revoke a custom granted permission from a user
      */
-    async revokeGrantedPermission(
-        userId: string,
-        permission: string
-    ): Promise<IUser> {
+    async revokeGrantedPermission(userId: string, permission: string): Promise<IUser> {
         const user = await UserService.getById(userId);
         if (!user) {
             throw new Error("User not found");
@@ -76,7 +73,7 @@ export const PermissionService = {
 
         if (user.grantedPermissions) {
             user.grantedPermissions = user.grantedPermissions.filter(
-                (g: GrantedPermission) => g.permission !== permission
+                (g: GrantedPermission) => g.permission !== permission,
             );
         }
 
@@ -91,10 +88,7 @@ export const PermissionService = {
      * Revoke a role permission for a user (blacklist)
      * This removes a permission that the user would normally have through their role
      */
-    async revokeRolePermission(
-        userId: string,
-        permission: string
-    ): Promise<IUser> {
+    async revokeRolePermission(userId: string, permission: string): Promise<IUser> {
         const user = await UserService.getById(userId);
         if (!user) {
             throw new Error("User not found");
@@ -120,10 +114,7 @@ export const PermissionService = {
     /**
      * Restore a previously revoked role permission
      */
-    async restoreRolePermission(
-        userId: string,
-        permission: string
-    ): Promise<IUser> {
+    async restoreRolePermission(userId: string, permission: string): Promise<IUser> {
         const user = await UserService.getById(userId);
         if (!user) {
             throw new Error("User not found");
@@ -131,7 +122,7 @@ export const PermissionService = {
 
         if (user.revokedPermissions) {
             user.revokedPermissions = user.revokedPermissions.filter(
-                (p: string) => p !== permission
+                (p: string) => p !== permission,
             );
         }
 
@@ -158,9 +149,7 @@ export const PermissionService = {
     /**
      * Get permission audit history for a user
      */
-    async getPermissionHistory(
-        userId: string
-    ): Promise<{
+    async getPermissionHistory(userId: string): Promise<{
         granted: GrantedPermission[];
         revoked: string[];
     }> {
@@ -187,7 +176,7 @@ export const PermissionService = {
         if (user.grantedPermissions) {
             const now = new Date();
             user.grantedPermissions = user.grantedPermissions.filter(
-                (g: GrantedPermission) => !g.expiresAt || new Date(g.expiresAt) > now
+                (g: GrantedPermission) => !g.expiresAt || new Date(g.expiresAt) > now,
             );
         }
 
@@ -209,10 +198,10 @@ export const PermissionService = {
             expiresAt?: Date;
             reason?: string;
             scope?: string;
-        }
+        },
     ): Promise<IUser[]> {
-        const promises = userIds.map((userId) =>
-            this.grantPermission(userId, permission, grantedBy, options)
+        const promises = userIds.map(userId =>
+            this.grantPermission(userId, permission, grantedBy, options),
         );
         return Promise.all(promises);
     },
@@ -220,13 +209,8 @@ export const PermissionService = {
     /**
      * Bulk revoke permissions from multiple users
      */
-    async bulkRevokeGrantedPermission(
-        userIds: string[],
-        permission: string
-    ): Promise<IUser[]> {
-        const promises = userIds.map((userId) =>
-            this.revokeGrantedPermission(userId, permission)
-        );
+    async bulkRevokeGrantedPermission(userIds: string[], permission: string): Promise<IUser[]> {
+        const promises = userIds.map(userId => this.revokeGrantedPermission(userId, permission));
         return Promise.all(promises);
     },
 };

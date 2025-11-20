@@ -17,7 +17,7 @@ export interface AuthenticatedRequest extends Request {
  */
 export function authorize(
     permission: string,
-    resourceLoader?: (req: AuthenticatedRequest) => Promise<Record<string, unknown> | null>
+    resourceLoader?: (req: AuthenticatedRequest) => Promise<Record<string, unknown> | null>,
 ) {
     return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         try {
@@ -65,7 +65,7 @@ export function authorize(
  */
 export function authorizeAny(
     permissions: string[],
-    resourceLoader?: (req: AuthenticatedRequest) => Promise<Record<string, unknown> | null>
+    resourceLoader?: (req: AuthenticatedRequest) => Promise<Record<string, unknown> | null>,
 ) {
     return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         try {
@@ -85,11 +85,7 @@ export function authorizeAny(
                 }
             }
 
-            const hasAccess = PermissionChecker.hasAnyPermission(
-                user,
-                permissions,
-                resource
-            );
+            const hasAccess = PermissionChecker.hasAnyPermission(user, permissions, resource);
 
             if (!hasAccess) {
                 return res.status(403).json({
@@ -113,7 +109,7 @@ export function authorizeAny(
  */
 export function authorizeAll(
     permissions: string[],
-    resourceLoader?: (req: AuthenticatedRequest) => Promise<Record<string, unknown> | null>
+    resourceLoader?: (req: AuthenticatedRequest) => Promise<Record<string, unknown> | null>,
 ) {
     return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         try {
@@ -133,11 +129,7 @@ export function authorizeAll(
                 }
             }
 
-            const hasAccess = PermissionChecker.hasAllPermissions(
-                user,
-                permissions,
-                resource
-            );
+            const hasAccess = PermissionChecker.hasAllPermissions(user, permissions, resource);
 
             if (!hasAccess) {
                 return res.status(403).json({

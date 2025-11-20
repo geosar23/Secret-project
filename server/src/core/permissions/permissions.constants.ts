@@ -1,6 +1,6 @@
 /**
  * Permission structure: entity:action:scope
- * 
+ *
  * Examples:
  * - employees:view:all - View all employees
  * - employees:edit:managed - Edit employees you manage

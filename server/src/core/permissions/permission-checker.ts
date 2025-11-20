@@ -15,11 +15,7 @@ export class PermissionChecker {
      * @param resource Optional resource being accessed (for ABAC)
      * @returns true if access is granted, false otherwise
      */
-    static canAccess(
-        user: IUser,
-        permission: string,
-        resource?: Record<string, unknown>
-    ): boolean {
+    static canAccess(user: IUser, permission: string, resource?: Record<string, unknown>): boolean {
         // 1. GOD role bypasses all checks
         if (user.role === UserRole.GOD) {
             return true;
@@ -32,9 +28,7 @@ export class PermissionChecker {
 
         // 3. Check custom granted permissions (with expiration)
         if (user.grantedPermissions) {
-            const grant = user.grantedPermissions.find(
-                (g) => g.permission === permission
-            );
+            const grant = user.grantedPermissions.find(g => g.permission === permission);
             if (grant) {
                 // Check if grant has expired
                 if (grant.expiresAt && new Date(grant.expiresAt) < new Date()) {
@@ -61,11 +55,7 @@ export class PermissionChecker {
             if (this.matchesPermission(permission, rolePermission)) {
                 // If resource provided and permission has scope, check attribute rules
                 if (resource) {
-                    return this.checkAttributeBasedAccess(
-                        user,
-                        permission,
-                        resource
-                    );
+                    return this.checkAttributeBasedAccess(user, permission, resource);
                 }
                 return true;
             }
@@ -87,10 +77,7 @@ export class PermissionChecker {
      * Check if permission pattern matches role permission
      * Supports wildcards like "employees:*" or "employees:view:*"
      */
-    private static matchesPermission(
-        permission: string,
-        rolePermission: string
-    ): boolean {
+    private static matchesPermission(permission: string, rolePermission: string): boolean {
         if (rolePermission === "*") return true;
         if (permission === rolePermission) return true;
 
@@ -102,9 +89,7 @@ export class PermissionChecker {
             return false;
         }
 
-        return roleParts.every(
-            (part, index) => part === "*" || part === permParts[index]
-        );
+        return roleParts.every((part, index) => part === "*" || part === permParts[index]);
     }
 
     /**
@@ -113,7 +98,7 @@ export class PermissionChecker {
     private static checkAttributeBasedAccess(
         user: IUser,
         permission: string,
-        resource: Record<string, unknown>
+        resource: Record<string, unknown>,
     ): boolean {
         // Extract scope from permission (e.g., "employees:edit:managed" -> "managed")
         const parts = permission.split(":");
@@ -134,7 +119,7 @@ export class PermissionChecker {
     private static checkScope(
         user: IUser,
         resource: Record<string, unknown>,
-        scope: string
+        scope: string,
     ): boolean {
         const scopeHandler = SCOPE_HANDLERS[scope];
         if (!scopeHandler) {
@@ -157,11 +142,9 @@ export class PermissionChecker {
     static filterAccessibleResources<T extends Record<string, unknown>>(
         user: IUser,
         resources: T[],
-        permission: string
+        permission: string,
     ): T[] {
-        return resources.filter((resource) =>
-            this.canAccess(user, permission, resource)
-        );
+        return resources.filter(resource => this.canAccess(user, permission, resource));
     }
 
     /**
@@ -172,12 +155,12 @@ export class PermissionChecker {
 
         // Add role permissions
         const rolePermissions = ROLE_PERMISSIONS[user.role] || [];
-        rolePermissions.forEach((p) => permissions.add(p));
+        rolePermissions.forEach(p => permissions.add(p));
 
         // Add granted permissions (if not expired)
         if (user.grantedPermissions) {
             const now = new Date();
-            user.grantedPermissions.forEach((grant) => {
+            user.grantedPermissions.forEach(grant => {
                 if (!grant.expiresAt || new Date(grant.expiresAt) > now) {
                     permissions.add(grant.permission);
                 }
@@ -186,7 +169,7 @@ export class PermissionChecker {
 
         // Remove revoked permissions
         if (user.revokedPermissions) {
-            user.revokedPermissions.forEach((p) => permissions.delete(p));
+            user.revokedPermissions.forEach(p => permissions.delete(p));
         }
 
         return Array.from(permissions);
@@ -198,11 +181,9 @@ export class PermissionChecker {
     static hasAnyPermission(
         user: IUser,
         permissions: string[],
-        resource?: Record<string, unknown>
+        resource?: Record<string, unknown>,
     ): boolean {
-        return permissions.some((permission) =>
-            this.canAccess(user, permission, resource)
-        );
+        return permissions.some(permission => this.canAccess(user, permission, resource));
     }
 
     /**
@@ -211,10 +192,8 @@ export class PermissionChecker {
     static hasAllPermissions(
         user: IUser,
         permissions: string[],
-        resource?: Record<string, unknown>
+        resource?: Record<string, unknown>,
     ): boolean {
-        return permissions.every((permission) =>
-            this.canAccess(user, permission, resource)
-        );
+        return permissions.every(permission => this.canAccess(user, permission, resource));
     }
 }

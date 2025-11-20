@@ -18,9 +18,7 @@ export const ATTRIBUTE_RULES = {
      * User is the resource owner (viewing/editing own profile)
      */
     isSelf: (ctx: AccessContext): boolean => {
-        return (
-            ctx.user._id === ctx.resource._id || ctx.user._id === ctx.resource.userId
-        );
+        return ctx.user._id === ctx.resource._id || ctx.user._id === ctx.resource.userId;
     },
 
     /**
@@ -37,19 +35,14 @@ export const ATTRIBUTE_RULES = {
         if (!ctx.user.managedDepartments || !ctx.resource.departmentId) {
             return false;
         }
-        return ctx.user.managedDepartments.includes(
-            ctx.resource.departmentId as string
-        );
+        return ctx.user.managedDepartments.includes(ctx.resource.departmentId as string);
     },
 
     /**
      * Resource is in the same department as the user
      */
     sameDepartment: (ctx: AccessContext): boolean => {
-        return (
-            !!ctx.user.departmentId &&
-            ctx.user.departmentId === ctx.resource.departmentId
-        );
+        return !!ctx.user.departmentId && ctx.user.departmentId === ctx.resource.departmentId;
     },
 
     /**
@@ -73,9 +66,7 @@ export const ATTRIBUTE_RULES = {
 
         // Check if user manages the department
         const managesDept =
-            ctx.user.managedDepartments?.includes(
-                ctx.resource.departmentId as string
-            ) || false;
+            ctx.user.managedDepartments?.includes(ctx.resource.departmentId as string) || false;
 
         return isDirectManager || managesDept;
     },
