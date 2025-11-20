@@ -20,6 +20,7 @@ export interface AuthResponse {
         id: string;
         email: string;
         name: string;
+        role?: string;
     };
 }
 
@@ -57,6 +58,7 @@ export class AuthService {
                         id: payload.id,
                         email: payload.email,
                         name: payload.name || "",
+                        role: payload.role,
                     });
                 } else {
                     // Token expired or invalid

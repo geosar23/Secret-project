@@ -1,0 +1,59 @@
+<div class="permissions-container">
+    @if (currentUser$ | async; as user) {
+        <div class="header">
+            <h1>Your Permissions</h1>
+            <div class="user-info">
+                <span class="user-name">{{ user.name }}</span>
+                <span class="user-role" [style.background]="getRoleColor(user.role || '')">
+                    {{ user.role }}
+                </span>
+            </div>
+        </div>
+
+        <div class="permissions-grid">
+            @for (category of permissionCategories; track category.name) {
+                <div class="category-card">
+                    <h2 class="category-title">{{ category.name }}</h2>
+                    <div class="permissions-list">
+                        @for (item of category.permissions; track item.permission) {
+                            <div class="permission-item" [class.has-permission]="item.hasPermission">
+                                <div class="permission-status">
+                                    @if (item.hasPermission) {
+                                        <svg class="icon check" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    } @else {
+                                        <svg class="icon cross" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    }
+                                </div>
+                                <div class="permission-details">
+                                    <div class="permission-name">{{ item.description }}</div>
+                                    <div class="permission-code">{{ item.permission }}</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="legend">
+            <h3>Role Hierarchy</h3>
+            <div class="roles">
+                <span class="role-badge" style="background: purple">GOD</span>
+                <span class="arrow">→</span>
+                <span class="role-badge" style="background: red">SUPER_ADMIN</span>
+                <span class="arrow">→</span>
+                <span class="role-badge" style="background: orange">ADMIN</span>
+                <span class="arrow">→</span>
+                <span class="role-badge" style="background: blue">HR</span>
+                <span class="arrow">→</span>
+                <span class="role-badge" style="background: green">MANAGER</span>
+                <span class="arrow">→</span>
+                <span class="role-badge" style="background: gray">EMPLOYEE</span>
+            </div>
+        </div>
+    }
+</div>

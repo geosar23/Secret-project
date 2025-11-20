@@ -7,6 +7,12 @@ import { IUser } from "../../interfaces/user.interface";
  */
 export interface AuthenticatedRequest extends Request {
     user?: IUser;
+    decoded?: {
+        id: string;
+        email: string;
+        name?: string;
+        role?: string;
+    };
 }
 
 /**
