@@ -42,8 +42,7 @@ export class AuthService {
         private api: ApiService,
         private router: Router,
     ) {
-        // Restore user session if token exists
-        this.initializeAuth();
+        this.initializeAuth(); // Restore user session if token exists
     }
 
     private initializeAuth(): void {

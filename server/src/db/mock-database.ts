@@ -5,34 +5,129 @@
  */
 
 import { IUser, ISession } from "../interfaces";
+import { UserRole } from "../core/permissions/roles.enum";
 
 // Mock Users Collection
-// Test credentials: john@example.com / password123, jane@example.com / password456, bob@example.com / password789
+// Test credentials: password123 for all users
+// Company structure: Company A (companyId: "company-a"), Company B (companyId: "company-b")
+// Departments: dept-eng (Engineering), dept-hr (HR), dept-sales (Sales)
 export const mockUsers: IUser[] = [
     {
         _id: "1",
-        name: "John Doe",
-        email: "john@example.com",
-        role: "admin",
+        name: "God User",
+        email: "god@system.com",
+        role: UserRole.GOD,
+        password: "$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e", // password123
+        isActive: true,
+        createdAt: new Date("2024-01-01"),
+        // GOD has no company restriction
+    },
+    {
+        _id: "2",
+        name: "Super Admin A",
+        email: "superadmin@companya.com",
+        role: UserRole.SUPER_ADMIN,
+        companyId: "company-a",
         password: "$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e", // password123
         isActive: true,
         createdAt: new Date("2024-01-01"),
     },
     {
-        _id: "2",
-        name: "Jane Smith",
-        email: "jane@example.com",
-        role: "employee",
-        password: "$2a$10$vpPTr7qHXMz5azBrN8kZbOMgL2w.Pgz6YkbR9i.fryJYncT3847l.", // password456
+        _id: "3",
+        name: "Admin A",
+        email: "admin@companya.com",
+        role: UserRole.ADMIN,
+        companyId: "company-a",
+        password: "$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e", // password123
+        isActive: true,
+        createdAt: new Date("2024-01-02"),
+    },
+    {
+        _id: "4",
+        name: "HR Manager A",
+        email: "hr@companya.com",
+        role: UserRole.HR,
+        companyId: "company-a",
+        departmentId: "dept-hr",
+        password: "$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e", // password123
+        isActive: true,
+        createdAt: new Date("2024-01-05"),
+    },
+    {
+        _id: "5",
+        name: "Engineering Manager",
+        email: "eng-manager@companya.com",
+        role: UserRole.MANAGER,
+        companyId: "company-a",
+        departmentId: "dept-eng",
+        managedDepartments: ["dept-eng"],
+        password: "$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e", // password123
+        isActive: true,
+        createdAt: new Date("2024-01-10"),
+    },
+    {
+        _id: "6",
+        name: "John Developer",
+        email: "john@companya.com",
+        role: UserRole.EMPLOYEE,
+        companyId: "company-a",
+        departmentId: "dept-eng",
+        managerId: "5", // Managed by Engineering Manager
+        password: "$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e", // password123
         isActive: true,
         createdAt: new Date("2024-01-15"),
     },
     {
-        _id: "3",
-        name: "Bob Wilson",
-        email: "bob@example.com",
-        role: "employee",
-        password: "$2a$10$vpPTr7qHXMz5azBrN8kZbOMgL2w.Pgz6YkbR9i.fryJYncT3847l.", // password789
+        _id: "7",
+        name: "Jane Developer",
+        email: "jane@companya.com",
+        role: UserRole.EMPLOYEE,
+        companyId: "company-a",
+        departmentId: "dept-eng",
+        managerId: "5", // Managed by Engineering Manager
+        password: "$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e", // password123
+        isActive: true,
+        createdAt: new Date("2024-01-20"),
+        // Example: Jane has extra permission granted
+        grantedPermissions: [
+            {
+                permission: "reports:view:all",
+                grantedBy: "2", // Granted by Super Admin
+                grantedAt: new Date("2024-02-01"),
+                expiresAt: new Date("2024-12-31"),
+                reason: "Needs access for team reporting",
+                scope: "company",
+            },
+        ],
+    },
+    {
+        _id: "8",
+        name: "Bob Sales",
+        email: "bob@companya.com",
+        role: UserRole.EMPLOYEE,
+        companyId: "company-a",
+        departmentId: "dept-sales",
+        password: "$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e", // password123
+        isActive: true,
+        createdAt: new Date("2024-02-01"),
+    },
+    {
+        _id: "9",
+        name: "Super Admin B",
+        email: "superadmin@companyb.com",
+        role: UserRole.SUPER_ADMIN,
+        companyId: "company-b",
+        password: "$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e", // password123
+        isActive: true,
+        createdAt: new Date("2024-01-01"),
+    },
+    {
+        _id: "10",
+        name: "Alice Employee B",
+        email: "alice@companyb.com",
+        role: UserRole.EMPLOYEE,
+        companyId: "company-b",
+        password: "$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e", // password123
         isActive: true,
         createdAt: new Date("2024-02-01"),
     },

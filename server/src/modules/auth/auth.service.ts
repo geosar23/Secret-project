@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { UserService } from "../users/user.service";
+import { UserRole } from "../../core/permissions/roles.enum";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
@@ -14,7 +15,7 @@ export interface RegisterDto {
     name: string;
     email: string;
     password: string;
-    role?: string;
+    role?: UserRole;
 }
 
 export interface AuthResponse {
@@ -23,7 +24,7 @@ export interface AuthResponse {
         id: string;
         email: string;
         name: string;
-        role: string;
+        role: UserRole;
     };
 }
 
@@ -67,7 +68,7 @@ export const AuthService = {
     },
 
     async register(data: RegisterDto): Promise<AuthResponse> {
-        const { name, email, password, role = "employee" } = data;
+        const { name, email, password, role = UserRole.EMPLOYEE } = data;
 
         // Check if user already exists
         const existingUser = await UserService.getByEmail(email);
