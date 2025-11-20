@@ -23,6 +23,14 @@ export interface AuthResponse {
     };
 }
 
+interface JwtPayload {
+    id: string;
+    email: string;
+    name?: string;
+    role?: string;
+    exp?: number;
+}
+
 @Injectable({
     providedIn: "root",
 })
@@ -34,11 +42,56 @@ export class AuthService {
         private api: ApiService,
         private router: Router,
     ) {
-        // Check if user is already logged in
+        // Restore user session if token exists
+        this.initializeAuth();
+    }
+
+    private initializeAuth(): void {
         const token = this.getToken();
         if (token) {
-            // TODO: Optionally decode token and validate with backend
+            // Decode JWT token to get user info (without verification - server will verify)
+            try {
+                const payload = this.decodeToken(token);
+                if (payload && this.isTokenValid(payload)) {
+                    // Set user from token payload
+                    this.currentUserSubject.next({
+                        id: payload.id,
+                        email: payload.email,
+                        name: payload.name || "",
+                    });
+                } else {
+                    // Token expired or invalid
+                    this.logout();
+                }
+            } catch {
+                // Invalid token format
+                this.logout();
+            }
         }
+    }
+
+    private decodeToken(token: string): JwtPayload | null {
+        try {
+            const base64Url = token.split(".")[1];
+            const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+            const jsonPayload = decodeURIComponent(
+                atob(base64)
+                    .split("")
+                    .map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+                    .join(""),
+            );
+            return JSON.parse(jsonPayload) as JwtPayload;
+        } catch {
+            return null;
+        }
+    }
+
+    private isTokenValid(payload: JwtPayload): boolean {
+        if (!payload || !payload.exp) {
+            return false;
+        }
+        // Check if token is expired (exp is in seconds, Date.now() is in milliseconds)
+        return payload.exp * 1000 > Date.now();
     }
 
     login(credentials: LoginRequest): Observable<AuthResponse> {

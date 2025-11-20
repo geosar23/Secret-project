@@ -48,6 +48,7 @@ export const AuthService = {
             {
                 id: user._id,
                 email: user.email,
+                name: user.name,
                 role: user.role,
             },
             JWT_SECRET,
@@ -92,6 +93,7 @@ export const AuthService = {
             {
                 id: newUser._id,
                 email: newUser.email,
+                name: newUser.name,
                 role: newUser.role,
             },
             JWT_SECRET,
