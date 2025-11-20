@@ -46,10 +46,7 @@ router.post(
 );
 
 // Bulk operations
-router.post(
-    "/permissions/bulk/grant",
-    PermissionController.bulkGrantPermission as RequestHandler,
-);
+router.post("/permissions/bulk/grant", PermissionController.bulkGrantPermission as RequestHandler);
 router.post(
     "/permissions/bulk/revoke",
     PermissionController.bulkRevokeGrantedPermission as RequestHandler,
