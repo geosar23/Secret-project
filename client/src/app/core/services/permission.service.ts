@@ -28,19 +28,19 @@ export class PermissionService {
      */
     hasPermission(permission: string): Observable<boolean> {
         return this.effectivePermissions$.pipe(
-            map((permissions) => {
+            map(permissions => {
                 // Check for wildcard
                 if (permissions.includes("*")) {
                     return true;
                 }
-                
+
                 // Exact match
                 if (permissions.includes(permission)) {
                     return true;
                 }
-                
+
                 // Check for wildcard patterns (e.g., "employees:*")
-                return permissions.some((p) => {
+                return permissions.some(p => {
                     if (!p.includes("*")) return false;
                     const pattern = p.replace(/\*/g, ".*");
                     return new RegExp(`^${pattern}$`).test(permission);
@@ -54,9 +54,9 @@ export class PermissionService {
      */
     hasAnyPermission(permissions: string[]): Observable<boolean> {
         return this.effectivePermissions$.pipe(
-            map((userPerms) => {
+            map(userPerms => {
                 if (userPerms.includes("*")) return true;
-                return permissions.some((p) => userPerms.includes(p));
+                return permissions.some(p => userPerms.includes(p));
             }),
         );
     }
@@ -66,9 +66,9 @@ export class PermissionService {
      */
     hasAllPermissions(permissions: string[]): Observable<boolean> {
         return this.effectivePermissions$.pipe(
-            map((userPerms) => {
+            map(userPerms => {
                 if (userPerms.includes("*")) return true;
-                return permissions.every((p) => userPerms.includes(p));
+                return permissions.every(p => userPerms.includes(p));
             }),
         );
     }

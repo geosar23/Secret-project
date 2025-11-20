@@ -112,9 +112,9 @@ export class PermissionsComponent implements OnInit {
             },
         ];
 
-        this.permissionCategories = allPermissions.map((cat) => ({
+        this.permissionCategories = allPermissions.map(cat => ({
             name: cat.category,
-            permissions: cat.items.map((item) => ({
+            permissions: cat.items.map(item => ({
                 permission: item.perm,
                 description: item.desc,
                 hasPermission: this.checkPermission(item.perm),
@@ -134,7 +134,7 @@ export class PermissionsComponent implements OnInit {
         }
 
         // Check for wildcard patterns (e.g., "employees:*:all")
-        return this.effectivePermissions.some((p) => {
+        return this.effectivePermissions.some(p => {
             if (!p.includes("*")) return false;
             const pattern = p.replace(/\*/g, ".*");
             return new RegExp(`^${pattern}$`).test(permission);
