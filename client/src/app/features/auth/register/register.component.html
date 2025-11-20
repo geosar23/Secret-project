@@ -1,0 +1,98 @@
+<div class="register-container">
+    <div class="register-card">
+        <h1>Create Account</h1>
+        <p class="subtitle">Sign up to get started</p>
+
+        @if (errorMessage) {
+            <div class="error-alert">
+                {{ errorMessage }}
+            </div>
+        }
+
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input
+                    type="text"
+                    id="name"
+                    formControlName="name"
+                    placeholder="Enter your full name"
+                    [class.invalid]="
+                        registerForm.get('name')?.invalid && registerForm.get('name')?.touched
+                    "
+                />
+                @if (registerForm.get("name")?.invalid && registerForm.get("name")?.touched) {
+                    <span class="error-message">{{ getErrorMessage("name") }}</span>
+                }
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    formControlName="email"
+                    placeholder="Enter your email"
+                    [class.invalid]="
+                        registerForm.get('email')?.invalid && registerForm.get('email')?.touched
+                    "
+                />
+                @if (registerForm.get("email")?.invalid && registerForm.get("email")?.touched) {
+                    <span class="error-message">{{ getErrorMessage("email") }}</span>
+                }
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    formControlName="password"
+                    placeholder="Create a password"
+                    [class.invalid]="
+                        registerForm.get('password')?.invalid &&
+                        registerForm.get('password')?.touched
+                    "
+                />
+                @if (
+                    registerForm.get("password")?.invalid && registerForm.get("password")?.touched
+                ) {
+                    <span class="error-message">{{ getErrorMessage("password") }}</span>
+                }
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input
+                    type="password"
+                    id="confirmPassword"
+                    formControlName="confirmPassword"
+                    placeholder="Confirm your password"
+                    [class.invalid]="
+                        registerForm.get('confirmPassword')?.invalid &&
+                        registerForm.get('confirmPassword')?.touched
+                    "
+                />
+                @if (
+                    registerForm.get("confirmPassword")?.invalid &&
+                    registerForm.get("confirmPassword")?.touched
+                ) {
+                    <span class="error-message">{{ getErrorMessage("confirmPassword") }}</span>
+                }
+            </div>
+
+            <button type="submit" class="btn-primary" [disabled]="isLoading">
+                @if (isLoading) {
+                    <span>Creating Account...</span>
+                } @else {
+                    <span>Sign Up</span>
+                }
+            </button>
+        </form>
+
+        <div class="footer-text">
+            Already have an account?
+            <a routerLink="/login">Sign in</a>
+        </div>
+    </div>
+</div>
