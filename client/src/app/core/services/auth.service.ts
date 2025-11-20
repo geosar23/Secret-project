@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { Router } from "@angular/router";
 import { Observable, BehaviorSubject, tap } from "rxjs";
 import { ApiService } from "./api.service";
+import { decodeToken, isTokenValid } from "../utils/token.util";
 
 export interface LoginRequest {
     email: string;
@@ -24,14 +25,6 @@ export interface AuthResponse {
     };
 }
 
-interface JwtPayload {
-    id: string;
-    email: string;
-    name?: string;
-    role?: string;
-    exp?: number;
-}
-
 @Injectable({
     providedIn: "root",
 })
@@ -51,8 +44,8 @@ export class AuthService {
         if (token) {
             // Decode JWT token to get user info (without verification - server will verify)
             try {
-                const payload = this.decodeToken(token);
-                if (payload && this.isTokenValid(payload)) {
+                const payload = decodeToken(token);
+                if (payload && isTokenValid(payload)) {
                     // Set user from token payload
                     this.currentUserSubject.next({
                         id: payload.id,
@@ -69,30 +62,6 @@ export class AuthService {
                 this.logout();
             }
         }
-    }
-
-    private decodeToken(token: string): JwtPayload | null {
-        try {
-            const base64Url = token.split(".")[1];
-            const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-            const jsonPayload = decodeURIComponent(
-                atob(base64)
-                    .split("")
-                    .map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-                    .join(""),
-            );
-            return JSON.parse(jsonPayload) as JwtPayload;
-        } catch {
-            return null;
-        }
-    }
-
-    private isTokenValid(payload: JwtPayload): boolean {
-        if (!payload || !payload.exp) {
-            return false;
-        }
-        // Check if token is expired (exp is in seconds, Date.now() is in milliseconds)
-        return payload.exp * 1000 > Date.now();
     }
 
     login(credentials: LoginRequest): Observable<AuthResponse> {

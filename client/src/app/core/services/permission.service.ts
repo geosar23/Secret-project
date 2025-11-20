@@ -1,6 +1,7 @@
 import { Injectable, inject } from "@angular/core";
-import { BehaviorSubject, Observable, map } from "rxjs";
-import { AuthService } from "./auth.service";
+import { BehaviorSubject, Observable, map, catchError, of, tap } from "rxjs";
+import { ApiService } from "./api.service";
+import { decodeToken } from "../utils/token.util";
 
 export interface GrantedPermission {
     permission: string;
@@ -20,7 +21,7 @@ export interface PermissionHistory {
     providedIn: "root",
 })
 export class PermissionService {
-    private authService = inject(AuthService);
+    private apiService = inject(ApiService);
     private effectivePermissions$ = new BehaviorSubject<string[]>([]);
 
     /**
@@ -74,78 +75,42 @@ export class PermissionService {
     }
 
     /**
-     * Get effective permissions from the decoded JWT token
+     * Fetch effective permissions from server
      */
-    getEffectivePermissionsFromToken(): string[] {
+    fetchEffectivePermissions(): Observable<string[]> {
         const token = localStorage.getItem("token");
-        if (!token) return [];
+        if (!token) {
+            this.effectivePermissions$.next([]);
+            return of([]);
+        }
 
-        // Decode JWT token to get role
-        const payload = this.decodeToken(token);
-        if (!payload || !payload.role) return [];
+        const payload = decodeToken(token);
+        if (!payload || !payload.id) {
+            this.effectivePermissions$.next([]);
+            return of([]);
+        }
 
-        // For now, return basic role-based permissions
-        // In a real app, you'd fetch this from the server or include it in the JWT
-        const rolePermissions: Record<string, string[]> = {
-            GOD: ["*"],
-            SUPER_ADMIN: [
-                "company:settings:*",
-                "employees:*:all",
-                "leaves:*:all",
-                "departments:*:all",
-                "reports:*:all",
-                "users:*:all",
-            ],
-            ADMIN: [
-                "company:settings:view",
-                "company:settings:edit",
-                "employees:view:all",
-                "employees:create:all",
-                "employees:edit:all",
-                "leaves:*:all",
-                "departments:view:all",
-                "departments:create:all",
-                "departments:edit:all",
-                "reports:*:all",
-                "users:view:all",
-            ],
-            HR: [
-                "employees:*:all",
-                "leaves:*:all",
-                "departments:view:all",
-                "reports:view:all",
-                "users:view:all",
-            ],
-            MANAGER: [
-                "employees:view:managed",
-                "employees:edit:managed",
-                "leaves:view:managed",
-                "leaves:approve:managed",
-                "departments:view:all",
-                "reports:view:department",
-            ],
-            EMPLOYEE: [
-                "employees:view:self",
-                "employees:edit:self",
-                "leaves:view:self",
-                "leaves:request:self",
-                "leaves:cancel:self",
-                "departments:view:all",
-            ],
-        };
-
-        const permissions = rolePermissions[payload.role] || [];
-        this.effectivePermissions$.next(permissions);
-        return permissions;
+        return this.apiService
+            .get<{ permissions: string[] }>(`permissions/users/${payload.id}/permissions/effective`)
+            .pipe(
+                tap(response => {
+                    this.effectivePermissions$.next(response.permissions);
+                }),
+                map(response => response.permissions),
+                catchError(error => {
+                    console.error("Error fetching permissions:", error);
+                    this.effectivePermissions$.next([]);
+                    return of([]);
+                }),
+            );
     }
 
-    private decodeToken(token: string): { role?: string; id?: string } | null {
-        try {
-            const payload = token.split(".")[1];
-            return JSON.parse(atob(payload));
-        } catch {
-            return null;
-        }
+    /**
+     * Get effective permissions (synchronous, returns cached value)
+     * Use fetchEffectivePermissions() to refresh from server
+     */
+    getEffectivePermissions(): string[] {
+        return this.effectivePermissions$.getValue();
     }
 
     /**
