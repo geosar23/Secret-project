@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { PermissionService } from "./permission.service";
 import { AuthenticatedRequest } from "../middleware/authorize.middleware";
 
@@ -55,7 +55,7 @@ export const PermissionController = {
      * Revoke a granted permission from a user
      * DELETE /users/:userId/permissions/granted/:permission
      */
-    async revokeGrantedPermission(req: Request, res: Response) {
+    async revokeGrantedPermission(req: AuthenticatedRequest, res: Response) {
         try {
             const { userId, permission } = req.params;
 
@@ -84,7 +84,7 @@ export const PermissionController = {
      * Revoke a role permission from a user (blacklist)
      * POST /users/:userId/permissions/revoke
      */
-    async revokeRolePermission(req: Request, res: Response) {
+    async revokeRolePermission(req: AuthenticatedRequest, res: Response) {
         try {
             const { userId } = req.params;
             const { permission } = req.body;
@@ -114,7 +114,7 @@ export const PermissionController = {
      * Restore a previously revoked role permission
      * POST /users/:userId/permissions/restore
      */
-    async restoreRolePermission(req: Request, res: Response) {
+    async restoreRolePermission(req: AuthenticatedRequest, res: Response) {
         try {
             const { userId } = req.params;
             const { permission } = req.body;
@@ -144,7 +144,7 @@ export const PermissionController = {
      * Get effective permissions for a user
      * GET /users/:userId/permissions/effective
      */
-    async getEffectivePermissions(req: Request, res: Response) {
+    async getEffectivePermissions(req: AuthenticatedRequest, res: Response) {
         try {
             const { userId } = req.params;
 
@@ -167,7 +167,7 @@ export const PermissionController = {
      * Get permission history for a user
      * GET /users/:userId/permissions/history
      */
-    async getPermissionHistory(req: Request, res: Response) {
+    async getPermissionHistory(req: AuthenticatedRequest, res: Response) {
         try {
             const { userId } = req.params;
 
@@ -189,7 +189,7 @@ export const PermissionController = {
      * Clean up expired permissions for a user
      * POST /users/:userId/permissions/cleanup
      */
-    async cleanupExpiredPermissions(req: Request, res: Response) {
+    async cleanupExpiredPermissions(req: AuthenticatedRequest, res: Response) {
         try {
             const { userId } = req.params;
 
@@ -259,7 +259,7 @@ export const PermissionController = {
      * Bulk revoke granted permissions from multiple users
      * POST /permissions/bulk/revoke
      */
-    async bulkRevokeGrantedPermission(req: Request, res: Response) {
+    async bulkRevokeGrantedPermission(req: AuthenticatedRequest, res: Response) {
         try {
             const { userIds, permission } = req.body;
 

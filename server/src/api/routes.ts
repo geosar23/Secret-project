@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, RequestHandler } from "express";
 import authRouter from "../modules/auth/auth.routes";
 import usersRouter from "../modules/users/user.routes";
 import permissionRouter from "../core/permissions/permission.routes";
@@ -16,6 +16,6 @@ router.use("/auth", authRouter);
 router.use("/users", usersRouter);
 
 // Permission management (requires authentication)
-router.use("/permissions", authMiddleware, permissionRouter);
+router.use("/permissions", authMiddleware as RequestHandler, permissionRouter);
 
 export default router;
