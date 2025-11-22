@@ -1,66 +1,79 @@
 <div class="login-container">
-    <div class="login-card">
-        <h1>Welcome Back</h1>
-        <p class="subtitle">Sign in to your account</p>
+    <mat-card class="login-card">
+        <mat-card-header>
+            <mat-card-title>Welcome Back</mat-card-title>
+            <mat-card-subtitle>Sign in to your account</mat-card-subtitle>
+        </mat-card-header>
 
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input
-                    type="email"
-                    id="email"
-                    formControlName="email"
-                    placeholder="Enter your email"
-                    [class.error]="email?.invalid && email?.touched"
-                />
-                @if (email?.invalid && email?.touched) {
-                    <span class="error-message">
-                        @if (email?.errors?.["required"]) {
-                            Email is required
-                        }
-                        @if (email?.errors?.["email"]) {
-                            Please enter a valid email
-                        }
-                    </span>
+        <mat-card-content>
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Email</mat-label>
+                    <input
+                        matInput
+                        type="email"
+                        formControlName="email"
+                        placeholder="Enter your email"
+                    />
+                    @if (email?.invalid && email?.touched) {
+                        <mat-error>
+                            @if (email?.errors?.["required"]) {
+                                Email is required
+                            }
+                            @if (email?.errors?.["email"]) {
+                                Please enter a valid email
+                            }
+                        </mat-error>
+                    }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Password</mat-label>
+                    <input
+                        matInput
+                        type="password"
+                        formControlName="password"
+                        placeholder="Enter your password"
+                    />
+                    @if (password?.invalid && password?.touched) {
+                        <mat-error>
+                            @if (password?.errors?.["required"]) {
+                                Password is required
+                            }
+                            @if (password?.errors?.["minlength"]) {
+                                Password must be at least 6 characters
+                            }
+                        </mat-error>
+                    }
+                </mat-form-field>
+
+                @if (errorMessage) {
+                    <mat-error class="error-alert">
+                        {{ errorMessage }}
+                    </mat-error>
                 }
-            </div>
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input
-                    type="password"
-                    id="password"
-                    formControlName="password"
-                    placeholder="Enter your password"
-                    [class.error]="password?.invalid && password?.touched"
-                />
-                @if (password?.invalid && password?.touched) {
-                    <span class="error-message">
-                        @if (password?.errors?.["required"]) {
-                            Password is required
-                        }
-                        @if (password?.errors?.["minlength"]) {
-                            Password must be at least 6 characters
-                        }
-                    </span>
-                }
-            </div>
+                <button
+                    mat-raised-button
+                    color="primary"
+                    type="submit"
+                    [disabled]="loginForm.invalid || loading"
+                    class="full-width submit-button"
+                >
+                    @if (loading) {
+                        <mat-spinner diameter="20"></mat-spinner>
+                        <span>Logging in...</span>
+                    } @else {
+                        <span>Sign In</span>
+                    }
+                </button>
+            </form>
+        </mat-card-content>
 
-            @if (errorMessage) {
-                <div class="alert alert-error">
-                    {{ errorMessage }}
-                </div>
-            }
-
-            <button type="submit" [disabled]="loginForm.invalid || loading" class="btn-primary">
-                @if (loading) {
-                    <span>Logging in...</span>
-                } @else {
-                    <span>Sign In</span>
-                }
-            </button>
-        </form>
-
-        <p class="register-link">Don't have an account? <a routerLink="/register">Sign up</a></p>
-    </div>
+        <mat-card-footer>
+            <p class="register-link">
+                Don't have an account? <a routerLink="/register">Sign up</a>
+            </p>
+        </mat-card-footer>
+    </mat-card>
 </div>
