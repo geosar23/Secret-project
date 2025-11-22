@@ -35,6 +35,7 @@ export class PermissionsComponent implements OnInit {
     currentUser$ = this.authService.currentUser$;
     effectivePermissions: string[] = [];
     permissionCategories: PermissionCategory[] = [];
+    readonly rolesHierarchy = RoleUtils.getAllRolesWithMetadata();
 
     ngOnInit(): void {
         // Fetch both effective permissions and all permission definitions from backend
@@ -77,5 +78,9 @@ export class PermissionsComponent implements OnInit {
 
     getRoleColor(role: string): string {
         return RoleUtils.getRoleColor(role);
+    }
+
+    getRoleName(role: string): string {
+        return RoleUtils.getRoleName(role);
     }
 }

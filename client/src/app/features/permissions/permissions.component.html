@@ -6,7 +6,7 @@
                 <div class="user-info">
                     <span class="user-name">{{ user.name }}</span>
                     <mat-chip [style.background]="getRoleColor(user.role || '')">
-                        {{ user.role }}
+                        {{ getRoleName(user.role || '') }}
                     </mat-chip>
                 </div>
             </mat-card-content>
@@ -51,19 +51,14 @@
             <mat-card-content>
                 <h3>Role Hierarchy</h3>
                 <div class="roles">
-                    <mat-chip [style.background]="getRoleColor('GOD')">GOD</mat-chip>
-                    <span class="arrow">→</span>
-                    <mat-chip [style.background]="getRoleColor('SUPER_ADMIN')"
-                        >SUPER_ADMIN</mat-chip
-                    >
-                    <span class="arrow">→</span>
-                    <mat-chip [style.background]="getRoleColor('ADMIN')">ADMIN</mat-chip>
-                    <span class="arrow">→</span>
-                    <mat-chip [style.background]="getRoleColor('HR')">HR</mat-chip>
-                    <span class="arrow">→</span>
-                    <mat-chip [style.background]="getRoleColor('MANAGER')">MANAGER</mat-chip>
-                    <span class="arrow">→</span>
-                    <mat-chip [style.background]="getRoleColor('EMPLOYEE')">EMPLOYEE</mat-chip>
+                    @for (roleInfo of rolesHierarchy; track roleInfo.role; let isLast = $last) {
+                        <mat-chip [style.background]="roleInfo.color">
+                            {{ roleInfo.name }}
+                        </mat-chip>
+                        @if (!isLast) {
+                            <span class="arrow">→</span>
+                        }
+                    }
                 </div>
             </mat-card-content>
         </mat-card>
