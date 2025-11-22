@@ -1,4 +1,4 @@
-import { UserRole } from "../core/permissions/roles.enum";
+import { UserRole } from "../enums";
 
 export interface GrantedPermission {
     permission: string;

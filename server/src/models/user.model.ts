@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 import { IUser } from "../interfaces/user.interface";
-import { UserRole } from "../core/permissions/roles.enum";
+import { UserRole } from "../enums";
 
 const GrantedPermissionSchema = new Schema(
     {

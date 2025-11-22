@@ -1,7 +1,7 @@
-import { IUser } from "../../interfaces/user.interface";
-import { UserRole } from "./roles.enum";
+import { IUser, AccessContext } from "../../interfaces";
+import { UserRole } from "../../enums";
 import { ROLE_PERMISSIONS } from "./role-permissions";
-import { SCOPE_HANDLERS, AccessContext } from "./attribute-rules";
+import { SCOPE_HANDLERS } from "./attribute-rules";
 
 /**
  * PermissionChecker handles all permission evaluation logic

@@ -1,32 +1,11 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { UserService } from "../users/user.service";
-import { UserRole } from "../../core/permissions/roles.enum";
+import { UserRole } from "../../enums";
+import { LoginDto, RegisterDto, AuthResponse } from "../../interfaces";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
-
-export interface LoginDto {
-    email: string;
-    password: string;
-}
-
-export interface RegisterDto {
-    name: string;
-    email: string;
-    password: string;
-    role?: UserRole;
-}
-
-export interface AuthResponse {
-    token: string;
-    user: {
-        id: string;
-        email: string;
-        name: string;
-        role: UserRole;
-    };
-}
 
 export const AuthService = {
     async login(credentials: LoginDto): Promise<AuthResponse> {

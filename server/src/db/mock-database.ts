@@ -5,7 +5,7 @@
  */
 
 import { IUser, ISession } from "../interfaces";
-import { UserRole } from "../core/permissions/roles.enum";
+import { UserRole } from "../enums";
 
 // Mock Users Collection
 // Test credentials: password123 for all users

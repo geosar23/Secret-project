@@ -1,19 +1,8 @@
-import { Request } from "express";
 // import { PermissionChecker } from "../permissions/permission-checker";
-import { IUser } from "../../interfaces/user.interface";
+import { AuthenticatedRequest } from "../../interfaces";
 
-/**
- * Extended Request interface with user
- */
-export interface AuthenticatedRequest extends Request {
-    user?: IUser;
-    decoded?: {
-        id: string;
-        email: string;
-        name?: string;
-        role?: string;
-    };
-}
+// Re-export for backwards compatibility
+export type { AuthenticatedRequest };
 
 /**
  * Authorization middleware factory

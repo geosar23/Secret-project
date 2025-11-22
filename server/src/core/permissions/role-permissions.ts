@@ -1,4 +1,4 @@
-import { UserRole } from "./roles.enum";
+import { UserRole } from "../../enums";
 
 /**
  * Permission mapping for each role

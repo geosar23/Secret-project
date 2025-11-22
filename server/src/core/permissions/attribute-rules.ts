@@ -1,13 +1,7 @@
-import { IUser } from "../../interfaces/user.interface";
+import { AccessContext } from "../../interfaces";
 
-/**
- * Context for attribute-based access control
- */
-export interface AccessContext {
-    user: IUser;
-    resource: Record<string, unknown>;
-    action: string;
-}
+// Re-export for backwards compatibility
+export type { AccessContext };
 
 /**
  * Attribute rules for ABAC (Attribute-Based Access Control)
