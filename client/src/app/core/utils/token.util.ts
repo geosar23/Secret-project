@@ -1,4 +1,4 @@
-import { JwtPayload } from "../interfaces";
+import { JwtPayload } from "../interfaces/auth.interface";
 
 /**
  * Decode a JWT token without verification

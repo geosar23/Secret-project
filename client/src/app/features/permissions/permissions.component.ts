@@ -7,7 +7,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatListModule } from "@angular/material/list";
 import { PermissionService } from "../../core/services/permission.service";
 import { AuthService } from "../../core/services/auth.service";
-import { PermissionCategory } from "../../core/interfaces";
+import { PermissionCategory } from "../../core/interfaces/permission.interface";
 
 @Component({
     selector: "app-permissions",

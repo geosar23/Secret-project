@@ -3,7 +3,7 @@ import { Router } from "@angular/router";
 import { Observable, BehaviorSubject, tap } from "rxjs";
 import { ApiService } from "./api.service";
 import { decodeToken, isTokenValid } from "../utils/token.util";
-import { LoginRequest, RegisterRequest, AuthResponse } from "../interfaces";
+import { LoginRequest, RegisterRequest, AuthResponse } from "../interfaces/auth.interface";
 
 @Injectable({
     providedIn: "root",
