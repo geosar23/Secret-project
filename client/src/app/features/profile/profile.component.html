@@ -75,7 +75,10 @@
                             <mat-label>Name</mat-label>
                             <input matInput formControlName="name" placeholder="Your name" />
                             <mat-icon matPrefix>person</mat-icon>
-                            @if (profileForm.get("name")?.hasError("required") && profileForm.get("name")?.touched) {
+                            @if (
+                                profileForm.get("name")?.hasError("required") &&
+                                profileForm.get("name")?.touched
+                            ) {
                                 <mat-error>Name is required</mat-error>
                             }
                             @if (profileForm.get("name")?.hasError("minlength")) {
@@ -85,9 +88,17 @@
 
                         <mat-form-field appearance="outline" class="full-width">
                             <mat-label>Email</mat-label>
-                            <input matInput type="email" formControlName="email" placeholder="your@email.com" />
+                            <input
+                                matInput
+                                type="email"
+                                formControlName="email"
+                                placeholder="your@email.com"
+                            />
                             <mat-icon matPrefix>email</mat-icon>
-                            @if (profileForm.get("email")?.hasError("required") && profileForm.get("email")?.touched) {
+                            @if (
+                                profileForm.get("email")?.hasError("required") &&
+                                profileForm.get("email")?.touched
+                            ) {
                                 <mat-error>Email is required</mat-error>
                             }
                             @if (profileForm.get("email")?.hasError("email")) {
@@ -111,7 +122,12 @@
                                 }
                                 Save Changes
                             </button>
-                            <button mat-button type="button" (click)="toggleEditMode()" [disabled]="loading">
+                            <button
+                                mat-button
+                                type="button"
+                                (click)="toggleEditMode()"
+                                [disabled]="loading"
+                            >
                                 Cancel
                             </button>
                         </div>
@@ -136,7 +152,10 @@
                         <mat-label>Current Password</mat-label>
                         <input matInput type="password" formControlName="currentPassword" />
                         <mat-icon matPrefix>lock_open</mat-icon>
-                        @if (passwordForm.get("currentPassword")?.hasError("required") && passwordForm.get("currentPassword")?.touched) {
+                        @if (
+                            passwordForm.get("currentPassword")?.hasError("required") &&
+                            passwordForm.get("currentPassword")?.touched
+                        ) {
                             <mat-error>Current password is required</mat-error>
                         }
                     </mat-form-field>
@@ -145,7 +164,10 @@
                         <mat-label>New Password</mat-label>
                         <input matInput type="password" formControlName="newPassword" />
                         <mat-icon matPrefix>lock</mat-icon>
-                        @if (passwordForm.get("newPassword")?.hasError("required") && passwordForm.get("newPassword")?.touched) {
+                        @if (
+                            passwordForm.get("newPassword")?.hasError("required") &&
+                            passwordForm.get("newPassword")?.touched
+                        ) {
                             <mat-error>New password is required</mat-error>
                         }
                         @if (passwordForm.get("newPassword")?.hasError("minlength")) {
@@ -157,7 +179,10 @@
                         <mat-label>Confirm New Password</mat-label>
                         <input matInput type="password" formControlName="confirmPassword" />
                         <mat-icon matPrefix>lock</mat-icon>
-                        @if (passwordForm.get("confirmPassword")?.hasError("required") && passwordForm.get("confirmPassword")?.touched) {
+                        @if (
+                            passwordForm.get("confirmPassword")?.hasError("required") &&
+                            passwordForm.get("confirmPassword")?.touched
+                        ) {
                             <mat-error>Please confirm your password</mat-error>
                         }
                     </mat-form-field>

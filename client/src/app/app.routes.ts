@@ -12,12 +12,15 @@ export const routes: Routes = [
     {
         path: "permissions",
         loadComponent: () =>
-            import("./features/permissions/permissions.component").then(m => m.PermissionsComponent),
+            import("./features/permissions/permissions.component").then(
+                m => m.PermissionsComponent,
+            ),
         canActivate: [authGuard],
     },
     {
         path: "profile",
-        loadComponent: () => import("./features/profile/profile.component").then(m => m.ProfileComponent),
+        loadComponent: () =>
+            import("./features/profile/profile.component").then(m => m.ProfileComponent),
         canActivate: [authGuard],
     },
     { path: "**", redirectTo: "/dashboard" },

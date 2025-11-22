@@ -134,17 +134,19 @@ export class ProfileComponent implements OnInit {
         this.passwordError = "";
         this.passwordSuccess = "";
 
-        this.profileService.changePassword(this.profile.id, { currentPassword, newPassword }).subscribe({
-            next: () => {
-                this.passwordSuccess = "Password changed successfully";
-                this.passwordForm.reset();
-                this.loading = false;
-            },
-            error: error => {
-                this.passwordError = error.error?.error || "Failed to change password";
-                this.loading = false;
-            },
-        });
+        this.profileService
+            .changePassword(this.profile.id, { currentPassword, newPassword })
+            .subscribe({
+                next: () => {
+                    this.passwordSuccess = "Password changed successfully";
+                    this.passwordForm.reset();
+                    this.loading = false;
+                },
+                error: error => {
+                    this.passwordError = error.error?.error || "Failed to change password";
+                    this.loading = false;
+                },
+            });
     }
 
     getRoleColor(role: string): string {
