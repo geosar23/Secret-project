@@ -2,24 +2,23 @@
     padding: 2rem;
     max-width: 1400px;
     margin: 0 auto;
-    background: #f5f7fa;
     min-height: 100vh;
 }
 
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     margin-bottom: 2rem;
-    background: white;
-    padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
-    h1 {
-        margin: 0;
-        font-size: 2rem;
-        color: #1a1a1a;
+    mat-card-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem !important;
+
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+            color: #1a1a1a;
+        }
     }
 }
 
@@ -33,14 +32,16 @@
         color: #333;
     }
 
-    .user-role {
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        color: white;
+    ::ng-deep mat-chip {
+        color: white !important;
         font-weight: 600;
         font-size: 0.875rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+
+        .mdc-evolution-chip__text-label {
+            color: white !important;
+        }
     }
 }
 
@@ -52,15 +53,15 @@
 }
 
 .category-card {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s;
 
     &:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    mat-card-content {
+        padding: 1.5rem !important;
     }
 
     .category-title {
@@ -89,7 +90,7 @@
     &.has-permission {
         background: #e8f5e9;
 
-        .permission-status {
+        .permission-status mat-icon.granted {
             color: #2e7d32;
         }
 
@@ -103,7 +104,7 @@
         background: #ffebee;
         opacity: 0.6;
 
-        .permission-status {
+        .permission-status mat-icon.denied {
             color: #c62828;
         }
 
@@ -115,20 +116,11 @@
 
 .permission-status {
     flex-shrink: 0;
-    width: 24px;
-    height: 24px;
 
-    .icon {
-        width: 100%;
-        height: 100%;
-
-        &.check {
-            color: #2e7d32;
-        }
-
-        &.cross {
-            color: #c62828;
-        }
+    mat-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 24px;
     }
 }
 
@@ -152,10 +144,9 @@
 }
 
 .legend {
-    background: white;
-    padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    mat-card-content {
+        padding: 1.5rem !important;
+    }
 
     h3 {
         margin: 0 0 1rem 0;
@@ -168,21 +159,23 @@
         align-items: center;
         gap: 0.75rem;
         flex-wrap: wrap;
-    }
 
-    .role-badge {
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        color: white;
-        font-weight: 600;
-        font-size: 0.875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
+        ::ng-deep mat-chip {
+            color: white !important;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
 
-    .arrow {
-        font-size: 1.5rem;
-        color: #999;
+            .mdc-evolution-chip__text-label {
+                color: white !important;
+            }
+        }
+
+        .arrow {
+            font-size: 1.5rem;
+            color: #999;
+        }
     }
 }
 
@@ -191,7 +184,7 @@
         grid-template-columns: 1fr;
     }
 
-    .header {
+    .header mat-card-content {
         flex-direction: column;
         align-items: flex-start;
         gap: 1rem;

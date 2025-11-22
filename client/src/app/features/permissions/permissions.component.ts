@@ -1,5 +1,10 @@
 import { Component, OnInit, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { MatToolbarModule } from "@angular/material/toolbar";
+import { MatCardModule } from "@angular/material/card";
+import { MatChipsModule } from "@angular/material/chips";
+import { MatIconModule } from "@angular/material/icon";
+import { MatListModule } from "@angular/material/list";
 import { PermissionService } from "../../core/services/permission.service";
 import { AuthService } from "../../core/services/auth.service";
 
@@ -17,7 +22,14 @@ interface PermissionItem {
 @Component({
     selector: "app-permissions",
     standalone: true,
-    imports: [CommonModule],
+    imports: [
+        CommonModule,
+        MatToolbarModule,
+        MatCardModule,
+        MatChipsModule,
+        MatIconModule,
+        MatListModule,
+    ],
     templateUrl: "./permissions.component.html",
     styleUrls: ["./permissions.component.scss"],
 })
@@ -144,6 +156,7 @@ export class PermissionsComponent implements OnInit {
     }
 
     getRoleColor(role: string): string {
+        role = role.toUpperCase();
         const colors: Record<string, string> = {
             GOD: "purple",
             SUPER_ADMIN: "red",
