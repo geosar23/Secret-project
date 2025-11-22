@@ -76,6 +76,7 @@ export class PermissionChecker {
     /**
      * Check if permission pattern matches role permission
      * Supports wildcards like "employees:*" or "employees:view:*"
+     * Supports scope hierarchy: "all" includes "department", "managed", "self"
      */
     private static matchesPermission(permission: string, rolePermission: string): boolean {
         if (rolePermission === "*") return true;
@@ -89,7 +90,40 @@ export class PermissionChecker {
             return false;
         }
 
-        return roleParts.every((part, index) => part === "*" || part === permParts[index]);
+        // Check each part
+        for (let i = 0; i < roleParts.length; i++) {
+            const rolePart = roleParts[i];
+            const permPart = permParts[i];
+
+            // Wildcard matches anything
+            if (rolePart === "*") {
+                continue;
+            }
+
+            // Exact match
+            if (rolePart === permPart) {
+                continue;
+            }
+
+            // Scope hierarchy: "all" includes more specific scopes
+            if (i === roleParts.length - 1) {
+                // This is the scope part (last segment)
+                if (rolePart === "all" && ["department", "managed", "self", "own"].includes(permPart)) {
+                    continue;
+                }
+                if (rolePart === "department" && ["managed", "self", "own"].includes(permPart)) {
+                    continue;
+                }
+                if (rolePart === "managed" && ["self", "own"].includes(permPart)) {
+                    continue;
+                }
+            }
+
+            // No match found for this part
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -149,6 +183,7 @@ export class PermissionChecker {
 
     /**
      * Get all effective permissions for a user (including role and granted permissions)
+     * Expands permissions to include inherited scopes (e.g., "all" includes "department", "managed", "self")
      */
     static getEffectivePermissions(user: IUser): string[] {
         const permissions = new Set<string>();
@@ -172,7 +207,51 @@ export class PermissionChecker {
             user.revokedPermissions.forEach(p => permissions.delete(p));
         }
 
-        return Array.from(permissions);
+        // Expand permissions to include inherited scopes
+        const expandedPermissions = new Set<string>(permissions);
+        permissions.forEach(perm => {
+            const expanded = this.expandPermissionScopes(perm);
+            expanded.forEach(p => expandedPermissions.add(p));
+        });
+
+        return Array.from(expandedPermissions);
+    }
+
+    /**
+     * Expand a permission to include all inherited scope variations
+     * e.g., "employees:view:all" -> ["employees:view:all", "employees:view:department", "employees:view:managed", "employees:view:self"]
+     */
+    private static expandPermissionScopes(permission: string): string[] {
+        const expanded: string[] = [permission];
+
+        // Handle wildcards - they already cover everything
+        if (permission === "*" || permission.includes("*")) {
+            return expanded;
+        }
+
+        const parts = permission.split(":");
+        if (parts.length < 3) {
+            return expanded; // Not a scoped permission
+        }
+
+        const [entity, action, scope] = parts;
+
+        // Expand scope hierarchy
+        if (scope === "all") {
+            expanded.push(`${entity}:${action}:department`);
+            expanded.push(`${entity}:${action}:managed`);
+            expanded.push(`${entity}:${action}:self`);
+            expanded.push(`${entity}:${action}:own`);
+        } else if (scope === "department") {
+            expanded.push(`${entity}:${action}:managed`);
+            expanded.push(`${entity}:${action}:self`);
+            expanded.push(`${entity}:${action}:own`);
+        } else if (scope === "managed") {
+            expanded.push(`${entity}:${action}:self`);
+            expanded.push(`${entity}:${action}:own`);
+        }
+
+        return expanded;
     }
 
     /**

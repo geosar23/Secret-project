@@ -14,28 +14,10 @@ export class PermissionService {
 
     /**
      * Check if current user has a specific permission
+     * Backend returns expanded permissions, so just check for inclusion
      */
     hasPermission(permission: string): Observable<boolean> {
-        return this.effectivePermissions$.pipe(
-            map(permissions => {
-                // Check for wildcard
-                if (permissions.includes("*")) {
-                    return true;
-                }
-
-                // Exact match
-                if (permissions.includes(permission)) {
-                    return true;
-                }
-
-                // Check for wildcard patterns (e.g., "employees:*")
-                return permissions.some(p => {
-                    if (!p.includes("*")) return false;
-                    const pattern = p.replace(/\*/g, ".*");
-                    return new RegExp(`^${pattern}$`).test(permission);
-                });
-            }),
-        );
+        return this.effectivePermissions$.pipe(map(permissions => permissions.includes(permission)));
     }
 
     /**

@@ -69,22 +69,9 @@ export class PermissionsComponent implements OnInit {
     }
 
     private checkPermission(permission: string): boolean {
-        // Check for wildcard
-        if (this.effectivePermissions.includes("*")) {
-            return true;
-        }
-
-        // Exact match
-        if (this.effectivePermissions.includes(permission)) {
-            return true;
-        }
-
-        // Check for wildcard patterns (e.g., "employees:*:all")
-        return this.effectivePermissions.some(p => {
-            if (!p.includes("*")) return false;
-            const pattern = p.replace(/\*/g, ".*");
-            return new RegExp(`^${pattern}$`).test(permission);
-        });
+        // Simple check - backend already expanded permissions with scope hierarchy
+        // effectivePermissions contains all computed permissions from backend
+        return this.effectivePermissions.includes(permission);
     }
 
     getRoleColor(role: string): string {
