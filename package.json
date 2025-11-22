@@ -16,6 +16,8 @@
         "how_to_run": "pray to god "
     },
     "devDependencies": {
+        "@commitlint/cli": "^20.1.0",
+        "@commitlint/config-conventional": "^20.0.0",
         "@eslint-community/eslint-utils": "^4.9.0",
         "@typescript-eslint/eslint-plugin": "^8.47.0",
         "@typescript-eslint/parser": "^8.47.0",
