@@ -1,10 +1,4 @@
-export interface JwtPayload {
-    id: string;
-    email: string;
-    name?: string;
-    role?: string;
-    exp?: number;
-}
+import { JwtPayload } from "../interfaces";
 
 /**
  * Decode a JWT token without verification

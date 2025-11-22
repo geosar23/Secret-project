@@ -2,21 +2,6 @@ import { Injectable, inject } from "@angular/core";
 import { BehaviorSubject, Observable, map, catchError, of, tap } from "rxjs";
 import { ApiService } from "./api.service";
 import { AuthService } from "./auth.service";
-
-export interface GrantedPermission {
-    permission: string;
-    grantedBy: string;
-    grantedAt: Date;
-    expiresAt?: Date;
-    reason?: string;
-    scope?: string;
-}
-
-export interface PermissionHistory {
-    granted: GrantedPermission[];
-    revoked: string[];
-}
-
 @Injectable({
     providedIn: "root",
 })

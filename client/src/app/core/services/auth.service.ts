@@ -3,27 +3,7 @@ import { Router } from "@angular/router";
 import { Observable, BehaviorSubject, tap } from "rxjs";
 import { ApiService } from "./api.service";
 import { decodeToken, isTokenValid } from "../utils/token.util";
-
-export interface LoginRequest {
-    email: string;
-    password: string;
-}
-
-export interface RegisterRequest {
-    name: string;
-    email: string;
-    password: string;
-}
-
-export interface AuthResponse {
-    token: string;
-    user: {
-        id: string;
-        email: string;
-        name: string;
-        role?: string;
-    };
-}
+import { LoginRequest, RegisterRequest, AuthResponse } from "../interfaces";
 
 @Injectable({
     providedIn: "root",

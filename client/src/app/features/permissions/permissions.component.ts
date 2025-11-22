@@ -7,17 +7,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatListModule } from "@angular/material/list";
 import { PermissionService } from "../../core/services/permission.service";
 import { AuthService } from "../../core/services/auth.service";
-
-interface PermissionCategory {
-    name: string;
-    permissions: PermissionItem[];
-}
-
-interface PermissionItem {
-    permission: string;
-    description: string;
-    hasPermission: boolean;
-}
+import { PermissionCategory } from "../../core/interfaces";
 
 @Component({
     selector: "app-permissions",
