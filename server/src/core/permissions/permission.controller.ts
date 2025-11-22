@@ -2,6 +2,7 @@ import { Response } from "express";
 import { PermissionService } from "./permission.service";
 import { AuthenticatedRequest } from "../middleware/permission.middleware";
 import { PERMISSIONS } from "./permissions.constants";
+import { RoleUtils } from "../../utils/role.utils";
 
 /**
  * Controller for permission management endpoints
@@ -372,6 +373,28 @@ export const PermissionController = {
                     error instanceof Error
                         ? error.message
                         : "Failed to bulk revoke granted permission",
+            });
+        }
+    },
+
+    /**
+     * Get role metadata (hierarchy, names, levels)
+     * GET /permissions/roles
+     */
+    async getRoles(req: AuthenticatedRequest, res: Response) {
+        try {
+            const roles = RoleUtils.getAllRolesWithMetadata();
+
+            res.status(200).json({
+                success: true,
+                roles,
+                hierarchy: roles.map(r => r.role),
+            });
+        } catch (error) {
+            console.error("Error fetching roles:", error);
+            res.status(500).json({
+                success: false,
+                error: "Failed to fetch role metadata",
             });
         }
     },

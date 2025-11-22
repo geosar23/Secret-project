@@ -1,11 +1,12 @@
 /**
  * Role enumeration
+ * Values match server-side enum (lowercase with underscores)
  */
 export enum UserRole {
-    GOD = "GOD",
-    SUPER_ADMIN = "SUPER_ADMIN",
-    ADMIN = "ADMIN",
-    HR = "HR",
-    MANAGER = "MANAGER",
-    EMPLOYEE = "EMPLOYEE",
+    GOD = "god",
+    SUPER_ADMIN = "super_admin",
+    ADMIN = "admin",
+    HR = "hr",
+    MANAGER = "manager",
+    EMPLOYEE = "employee",
 }

@@ -6,6 +6,9 @@ const router = Router();
 // Get all permission definitions
 router.get("/definitions", PermissionController.getAllPermissions as RequestHandler);
 
+// Get role metadata
+router.get("/roles", PermissionController.getRoles as RequestHandler);
+
 // Grant permission to user
 router.post(
     "/users/:userId/permissions/grant",
