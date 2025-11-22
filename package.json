@@ -2,15 +2,14 @@
     "private": true,
     "workspaces": [
         "client",
-        "server",
-        "packages/*"
+        "server"
     ],
     "scripts": {
         "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
         "dev:server": "npm run dev:watch -w server",
         "dev:client": "npm start -w client",
-        "format": "prettier --write \"**/*.{ts,js,json,css,scss,md,html}\" && eslint --fix \"server/src/**/*.{ts,js}\" \"client/src/**/*.{ts,html}\" \"packages/**/*.{ts,js}\" --ext .ts,.js",
-        "lint": "eslint \"server/src/**/*.ts\" \"client/src/**/*.ts\" \"packages/**/*.ts\" --fix",
+        "format": "prettier --write \"**/*.{ts,js,json,css,scss,md,html}\" && eslint --fix \"server/src/**/*.{ts,js}\" \"client/src/**/*.{ts,html}\"",
+        "lint": "eslint \"server/src/**/*.ts\" \"client/src/**/*.ts\" --fix",
         "prepare": "husky"
     },
     "doc": {
