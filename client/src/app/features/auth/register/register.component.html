@@ -1,98 +1,98 @@
 <div class="register-container">
-    <div class="register-card">
-        <h1>Create Account</h1>
-        <p class="subtitle">Sign up to get started</p>
+    <mat-card class="register-card">
+        <mat-card-header>
+            <mat-card-title>Create Account</mat-card-title>
+            <mat-card-subtitle>Sign up to get started</mat-card-subtitle>
+        </mat-card-header>
 
-        @if (errorMessage) {
-            <div class="error-alert">
-                {{ errorMessage }}
-            </div>
-        }
+        <mat-card-content>
+            @if (errorMessage) {
+                <mat-error class="error-alert">
+                    {{ errorMessage }}
+                </mat-error>
+            }
 
-        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-            <div class="form-group">
-                <label for="name">Full Name</label>
-                <input
-                    type="text"
-                    id="name"
-                    formControlName="name"
-                    placeholder="Enter your full name"
-                    [class.invalid]="
-                        registerForm.get('name')?.invalid && registerForm.get('name')?.touched
-                    "
-                />
-                @if (registerForm.get("name")?.invalid && registerForm.get("name")?.touched) {
-                    <span class="error-message">{{ getErrorMessage("name") }}</span>
-                }
-            </div>
+            <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Full Name</mat-label>
+                    <input
+                        matInput
+                        type="text"
+                        formControlName="name"
+                        placeholder="Enter your full name"
+                    />
+                    @if (registerForm.get("name")?.invalid && registerForm.get("name")?.touched) {
+                        <mat-error>{{ getErrorMessage("name") }}</mat-error>
+                    }
+                </mat-form-field>
 
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input
-                    type="email"
-                    id="email"
-                    formControlName="email"
-                    placeholder="Enter your email"
-                    [class.invalid]="
-                        registerForm.get('email')?.invalid && registerForm.get('email')?.touched
-                    "
-                />
-                @if (registerForm.get("email")?.invalid && registerForm.get("email")?.touched) {
-                    <span class="error-message">{{ getErrorMessage("email") }}</span>
-                }
-            </div>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Email Address</mat-label>
+                    <input
+                        matInput
+                        type="email"
+                        formControlName="email"
+                        placeholder="Enter your email"
+                    />
+                    @if (registerForm.get("email")?.invalid && registerForm.get("email")?.touched) {
+                        <mat-error>{{ getErrorMessage("email") }}</mat-error>
+                    }
+                </mat-form-field>
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input
-                    type="password"
-                    id="password"
-                    formControlName="password"
-                    placeholder="Create a password"
-                    [class.invalid]="
-                        registerForm.get('password')?.invalid &&
-                        registerForm.get('password')?.touched
-                    "
-                />
-                @if (
-                    registerForm.get("password")?.invalid && registerForm.get("password")?.touched
-                ) {
-                    <span class="error-message">{{ getErrorMessage("password") }}</span>
-                }
-            </div>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Password</mat-label>
+                    <input
+                        matInput
+                        type="password"
+                        formControlName="password"
+                        placeholder="Create a password"
+                    />
+                    @if (
+                        registerForm.get("password")?.invalid &&
+                        registerForm.get("password")?.touched
+                    ) {
+                        <mat-error>{{ getErrorMessage("password") }}</mat-error>
+                    }
+                </mat-form-field>
 
-            <div class="form-group">
-                <label for="confirmPassword">Confirm Password</label>
-                <input
-                    type="password"
-                    id="confirmPassword"
-                    formControlName="confirmPassword"
-                    placeholder="Confirm your password"
-                    [class.invalid]="
-                        registerForm.get('confirmPassword')?.invalid &&
-                        registerForm.get('confirmPassword')?.touched
-                    "
-                />
-                @if (
-                    registerForm.get("confirmPassword")?.invalid &&
-                    registerForm.get("confirmPassword")?.touched
-                ) {
-                    <span class="error-message">{{ getErrorMessage("confirmPassword") }}</span>
-                }
-            </div>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Confirm Password</mat-label>
+                    <input
+                        matInput
+                        type="password"
+                        formControlName="confirmPassword"
+                        placeholder="Confirm your password"
+                    />
+                    @if (
+                        registerForm.get("confirmPassword")?.invalid &&
+                        registerForm.get("confirmPassword")?.touched
+                    ) {
+                        <mat-error>{{ getErrorMessage("confirmPassword") }}</mat-error>
+                    }
+                </mat-form-field>
 
-            <button type="submit" class="btn-primary" [disabled]="isLoading">
-                @if (isLoading) {
-                    <span>Creating Account...</span>
-                } @else {
-                    <span>Sign Up</span>
-                }
-            </button>
-        </form>
+                <button
+                    mat-raised-button
+                    color="primary"
+                    type="submit"
+                    [disabled]="isLoading"
+                    class="full-width submit-button"
+                >
+                    @if (isLoading) {
+                        <mat-spinner diameter="20"></mat-spinner>
+                        <span>Creating Account...</span>
+                    } @else {
+                        <span>Sign Up</span>
+                    }
+                </button>
+            </form>
+        </mat-card-content>
 
-        <div class="footer-text">
-            Already have an account?
-            <a routerLink="/login">Sign in</a>
-        </div>
-    </div>
+        <mat-card-footer>
+            <p class="footer-text">
+                Already have an account?
+                <a routerLink="/login">Sign in</a>
+            </p>
+        </mat-card-footer>
+    </mat-card>
 </div>
