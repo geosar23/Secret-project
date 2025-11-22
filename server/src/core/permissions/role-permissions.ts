@@ -28,33 +28,37 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     ],
 
     [UserRole.ADMIN]: [
-        // Company (no delete, read-only billing)
-        "company:settings:view",
-        "company:settings:edit",
-        "company:billing:view",
+        // Company management - everything except delete
+        "company:settings:*",
+        "company:billing:*",
+        "company:view:*",
+        "company:edit:*",
 
-        // Employee management (no delete, no salary edit)
-        "employees:view:all",
-        "employees:create:all",
-        "employees:edit:all",
-        "employees:salary:view",
+        // Employee management - everything except delete
+        "employees:view:*",
+        "employees:create:*",
+        "employees:edit:*",
+        "employees:salary:*",
 
-        // Leave management
-        "leaves:view:all",
-        "leaves:approve:all",
+        // Leave management - everything except delete
+        "leaves:view:*",
+        "leaves:approve:*",
+        "leaves:request:*",
+        "leaves:cancel:*",
 
-        // Department (no delete)
-        "departments:view:all",
-        "departments:create:all",
-        "departments:edit:all",
+        // Department management - everything except delete
+        "departments:view:*",
+        "departments:create:*",
+        "departments:edit:*",
 
-        // Reports
-        "reports:view:all",
-        "reports:export:all",
+        // Reports - full access
+        "reports:view:*",
+        "reports:export:*",
 
-        // User management (no delete, no permission management)
-        "users:view:all",
-        "users:create:all",
+        // User management - everything except delete and permission management
+        "users:view:*",
+        "users:create:*",
+        "users:roles:*",
     ],
 
     [UserRole.HR]: [
