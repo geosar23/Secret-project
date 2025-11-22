@@ -8,41 +8,23 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     [UserRole.GOD]: ["*"], // All permissions across all companies
 
     [UserRole.SUPER_ADMIN]: [
-        // Company management
-        "company:settings:view",
-        "company:settings:edit",
-        "company:delete",
-        "company:billing:view",
+        // Full company permissions
+        "company:*",
 
         // Full employee management
-        "employees:view:all",
-        "employees:create:all",
-        "employees:edit:all",
-        "employees:delete:all",
-        "employees:salary:view",
-        "employees:salary:edit",
+        "employees:*",
 
         // Full leave management
-        "leaves:view:all",
-        "leaves:approve:all",
-        "leaves:cancel:all",
+        "leaves:*",
 
-        // Department management
-        "departments:view:all",
-        "departments:create:all",
-        "departments:edit:all",
-        "departments:delete:all",
+        // Full department management
+        "departments:*",
 
-        // Reports
-        "reports:view:all",
-        "reports:export:all",
+        // Full reports access
+        "reports:*",
 
-        // User management
-        "users:view:all",
-        "users:create:all",
-        "users:roles:edit",
-        "users:delete:all",
-        "users:permissions:manage",
+        // Full user management
+        "users:*",
     ],
 
     [UserRole.ADMIN]: [
