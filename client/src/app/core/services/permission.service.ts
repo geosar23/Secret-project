@@ -1,7 +1,7 @@
 import { Injectable, inject } from "@angular/core";
 import { BehaviorSubject, Observable, map, catchError, of, tap } from "rxjs";
 import { ApiService } from "./api.service";
-import { decodeToken } from "../utils/token.util";
+import { AuthService } from "./auth.service";
 
 export interface GrantedPermission {
     permission: string;
@@ -78,20 +78,16 @@ export class PermissionService {
      * Fetch effective permissions from server
      */
     fetchEffectivePermissions(): Observable<string[]> {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            this.effectivePermissions$.next([]);
-            return of([]);
-        }
+        const authService = inject(AuthService);
+        const currentUser = authService.getCurrentUser();
 
-        const payload = decodeToken(token);
-        if (!payload || !payload.id) {
+        if (!currentUser || !currentUser.id) {
             this.effectivePermissions$.next([]);
             return of([]);
         }
 
         return this.apiService
-            .get<{ permissions: string[] }>(`permissions/users/${payload.id}/permissions/effective`)
+            .get<{ permissions: string[] }>(`permissions/users/${currentUser.id}/permissions/effective`)
             .pipe(
                 tap(response => {
                     this.effectivePermissions$.next(response.permissions);

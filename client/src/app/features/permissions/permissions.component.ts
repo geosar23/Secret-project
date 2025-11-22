@@ -30,7 +30,6 @@ export class PermissionsComponent implements OnInit {
     permissionCategories: PermissionCategory[] = [];
 
     ngOnInit(): void {
-        // Fetch permissions from server
         this.permissionService.fetchEffectivePermissions().subscribe(permissions => {
             this.effectivePermissions = permissions;
             this.buildPermissionCategories();

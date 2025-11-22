@@ -39,6 +39,10 @@ export class AuthService {
         this.initializeAuth(); // Restore user session if token exists
     }
 
+    getCurrentUser(): AuthResponse["user"] | null {
+        return this.currentUserSubject.getValue();
+    }
+
     private initializeAuth(): void {
         const token = this.getToken();
         if (token) {
