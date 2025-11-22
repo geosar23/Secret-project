@@ -22,6 +22,7 @@ export interface PermissionHistory {
 })
 export class PermissionService {
     private apiService = inject(ApiService);
+    private authService = inject(AuthService);
     private effectivePermissions$ = new BehaviorSubject<string[]>([]);
 
     /**
@@ -78,8 +79,7 @@ export class PermissionService {
      * Fetch effective permissions from server
      */
     fetchEffectivePermissions(): Observable<string[]> {
-        const authService = inject(AuthService);
-        const currentUser = authService.getCurrentUser();
+        const currentUser = this.authService.getCurrentUser();
 
         if (!currentUser || !currentUser.id) {
             this.effectivePermissions$.next([]);
