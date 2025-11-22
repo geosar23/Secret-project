@@ -108,7 +108,10 @@ export class PermissionChecker {
             // Scope hierarchy: "all" includes more specific scopes
             if (i === roleParts.length - 1) {
                 // This is the scope part (last segment)
-                if (rolePart === "all" && ["department", "managed", "self", "own"].includes(permPart)) {
+                if (
+                    rolePart === "all" &&
+                    ["department", "managed", "self", "own"].includes(permPart)
+                ) {
                     continue;
                 }
                 if (rolePart === "department" && ["managed", "self", "own"].includes(permPart)) {

@@ -17,7 +17,9 @@ export class PermissionService {
      * Backend returns expanded permissions, so just check for inclusion
      */
     hasPermission(permission: string): Observable<boolean> {
-        return this.effectivePermissions$.pipe(map(permissions => permissions.includes(permission)));
+        return this.effectivePermissions$.pipe(
+            map(permissions => permissions.includes(permission)),
+        );
     }
 
     /**
