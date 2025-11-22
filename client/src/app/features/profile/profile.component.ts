@@ -12,6 +12,7 @@ import { MatDividerModule } from "@angular/material/divider";
 import { ProfileService } from "../../core/services/profile.service";
 import { AuthService } from "../../core/services/auth.service";
 import { UserProfile } from "../../core/interfaces/profile.interface";
+import { RoleUtils } from "../../core/utils/role.utils";
 
 @Component({
     selector: "app-profile",
@@ -150,14 +151,6 @@ export class ProfileComponent implements OnInit {
     }
 
     getRoleColor(role: string): string {
-        const colors: Record<string, string> = {
-            GOD: "purple",
-            SUPER_ADMIN: "red",
-            ADMIN: "orange",
-            HR: "blue",
-            MANAGER: "green",
-            EMPLOYEE: "gray",
-        };
-        return colors[role.toUpperCase()] || "gray";
+        return RoleUtils.getRoleColor(role);
     }
 }

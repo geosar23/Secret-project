@@ -12,6 +12,7 @@ import {
     PermissionDefinition,
 } from "../../core/interfaces/permission.interface";
 import { forkJoin } from "rxjs";
+import { RoleUtils } from "../../core/utils/role.utils";
 
 @Component({
     selector: "app-permissions",
@@ -75,15 +76,6 @@ export class PermissionsComponent implements OnInit {
     }
 
     getRoleColor(role: string): string {
-        role = role.toUpperCase();
-        const colors: Record<string, string> = {
-            GOD: "purple",
-            SUPER_ADMIN: "red",
-            ADMIN: "orange",
-            HR: "blue",
-            MANAGER: "green",
-            EMPLOYEE: "gray",
-        };
-        return colors[role] || "gray";
+        return RoleUtils.getRoleColor(role);
     }
 }
