@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /**
  * User roles in the HR SAAS system
  * Hierarchy: GOD > SUPER_ADMIN > ADMIN > HR > MANAGER > EMPLOYEE

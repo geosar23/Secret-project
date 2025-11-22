@@ -70,6 +70,7 @@ export const ATTRIBUTE_RULES = {
  * Scope handlers map permission scopes to attribute rules
  * Used to evaluate permissions like "employees:view:managed"
  */
+// eslint-disable-next-line no-unused-vars
 export const SCOPE_HANDLERS: Record<string, (ctx: AccessContext) => boolean> = {
     self: ATTRIBUTE_RULES.isSelf,
     managed: ATTRIBUTE_RULES.inManagedTeam,
