@@ -22,3 +22,9 @@ export interface PermissionItem {
     description: string;
     hasPermission: boolean;
 }
+
+export interface PermissionDefinition {
+    permission: string;
+    description: string;
+    category: string;
+}

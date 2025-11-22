@@ -1,11 +1,96 @@
 import { Response } from "express";
 import { PermissionService } from "./permission.service";
 import { AuthenticatedRequest } from "../middleware/permission.middleware";
+import { PERMISSIONS } from "./permissions.constants";
 
 /**
  * Controller for permission management endpoints
  */
 export const PermissionController = {
+    /**
+     * Get all permission definitions
+     * GET /permissions/definitions
+     */
+    async getAllPermissions(req: AuthenticatedRequest, res: Response) {
+        try {
+            // Transform PERMISSIONS constants into a flat array with metadata
+            const permissionDefinitions: Array<{
+                permission: string;
+                description: string;
+                category: string;
+            }> = [];
+
+            // System permissions
+            Object.entries(PERMISSIONS.SYSTEM).forEach(([key, permission]) => {
+                permissionDefinitions.push({
+                    permission,
+                    description: getPermissionDescription(key, permission),
+                    category: "System",
+                });
+            });
+
+            // Company permissions
+            Object.entries(PERMISSIONS.COMPANY).forEach(([key, permission]) => {
+                permissionDefinitions.push({
+                    permission,
+                    description: getPermissionDescription(key, permission),
+                    category: "Company Settings",
+                });
+            });
+
+            // Employee permissions
+            Object.entries(PERMISSIONS.EMPLOYEES).forEach(([key, permission]) => {
+                permissionDefinitions.push({
+                    permission,
+                    description: getPermissionDescription(key, permission),
+                    category: "Employees",
+                });
+            });
+
+            // Leave permissions
+            Object.entries(PERMISSIONS.LEAVES).forEach(([key, permission]) => {
+                permissionDefinitions.push({
+                    permission,
+                    description: getPermissionDescription(key, permission),
+                    category: "Leaves",
+                });
+            });
+
+            // Department permissions
+            Object.entries(PERMISSIONS.DEPARTMENTS).forEach(([key, permission]) => {
+                permissionDefinitions.push({
+                    permission,
+                    description: getPermissionDescription(key, permission),
+                    category: "Departments",
+                });
+            });
+
+            // Report permissions
+            Object.entries(PERMISSIONS.REPORTS).forEach(([key, permission]) => {
+                permissionDefinitions.push({
+                    permission,
+                    description: getPermissionDescription(key, permission),
+                    category: "Reports",
+                });
+            });
+
+            // User permissions
+            Object.entries(PERMISSIONS.USERS).forEach(([key, permission]) => {
+                permissionDefinitions.push({
+                    permission,
+                    description: getPermissionDescription(key, permission),
+                    category: "Users & Permissions",
+                });
+            });
+
+            res.status(200).json({ permissions: permissionDefinitions });
+        } catch (error) {
+            console.error("Get all permissions error:", error);
+            res.status(500).json({
+                error: error instanceof Error ? error.message : "Failed to fetch permissions",
+            });
+        }
+    },
     /**
      * Grant a permission to a user
      * POST /users/:userId/permissions/grant
@@ -291,3 +376,29 @@ export const PermissionController = {
         }
     },
 };
+
+/**
+ * Helper function to convert permission key to human-readable description
+ */
+function getPermissionDescription(key: string, permission: string): string {
+    // Convert key from SCREAMING_SNAKE_CASE to Title Case
+    const words = key.split("_").map(word => word.charAt(0) + word.slice(1).toLowerCase());
+    const action = words.join(" ");
+
+    // Parse permission string to extract scope
+    const parts = permission.split(":");
+    const scope = parts[parts.length - 1];
+
+    // Create description based on action and scope
+    if (scope === "all") {
+        return `${action}`;
+    } else if (scope === "self") {
+        return `${action} (own)`;
+    } else if (scope === "department") {
+        return `${action} (department)`;
+    } else if (scope === "managed") {
+        return `${action} (managed)`;
+    }
+
+    return action;
+}

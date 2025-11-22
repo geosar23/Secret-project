@@ -3,6 +3,9 @@ import { PermissionController } from "./permission.controller";
 
 const router = Router();
 
+// Get all permission definitions
+router.get("/definitions", PermissionController.getAllPermissions as RequestHandler);
+
 // Grant permission to user
 router.post(
     "/users/:userId/permissions/grant",
