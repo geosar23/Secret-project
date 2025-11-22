@@ -1,23 +1,23 @@
 .permissions-container {
-    padding: 2rem;
+    padding: var(--spacing-xl);
     max-width: 1400px;
     margin: 0 auto;
     min-height: 100vh;
 }
 
 .header {
-    margin-bottom: 2rem;
+    margin-bottom: var(--spacing-xl);
 
     mat-card-content {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 1.5rem !important;
+        padding: var(--spacing-lg) !important;
 
         h1 {
             margin: 0;
             font-size: 2rem;
-            color: #1a1a1a;
+            color: var(--color-text-primary);
         }
     }
 }
@@ -25,11 +25,11 @@
 .user-info {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: var(--spacing-md);
 
     .user-name {
         font-weight: 500;
-        color: #333;
+        color: var(--color-text-secondary);
     }
 
     ::ng-deep mat-chip {
@@ -48,68 +48,68 @@
 .permissions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
 }
 
 .category-card {
-    transition: transform 0.2s;
+    transition: transform var(--transition-base);
 
     &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: var(--shadow-lg);
     }
 
     mat-card-content {
-        padding: 1.5rem !important;
+        padding: var(--spacing-lg) !important;
     }
 
     .category-title {
-        margin: 0 0 1rem 0;
+        margin: 0 0 var(--spacing-md) 0;
         font-size: 1.25rem;
-        color: #1a1a1a;
-        border-bottom: 2px solid #e0e0e0;
-        padding-bottom: 0.5rem;
+        color: var(--color-text-primary);
+        border-bottom: 2px solid var(--color-border);
+        padding-bottom: var(--spacing-sm);
     }
 }
 
 .permissions-list {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--spacing-sm);
 }
 
 .permission-item {
     display: flex;
     align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    border-radius: 8px;
-    transition: background 0.2s;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-md);
+    transition: background var(--transition-base);
 
     &.has-permission {
-        background: #e8f5e9;
+        background: var(--color-success-light);
 
         .permission-status mat-icon.granted {
-            color: #2e7d32;
+            color: var(--color-success);
         }
 
         .permission-name {
-            color: #1b5e20;
+            color: var(--color-success);
             font-weight: 500;
         }
     }
 
     &:not(.has-permission) {
-        background: #ffebee;
+        background: var(--color-error-light);
         opacity: 0.6;
 
         .permission-status mat-icon.denied {
-            color: #c62828;
+            color: var(--color-accent-800);
         }
 
         .permission-name {
-            color: #b71c1c;
+            color: var(--color-accent-900);
         }
     }
 }
@@ -134,30 +134,30 @@
 
     .permission-code {
         font-size: 0.75rem;
-        color: #666;
+        color: var(--color-text-secondary);
         font-family: "Courier New", monospace;
-        background: rgba(0, 0, 0, 0.05);
-        padding: 0.125rem 0.375rem;
-        border-radius: 4px;
+        background: var(--color-bg-hover);
+        padding: var(--spacing-xs) var(--spacing-sm);
+        border-radius: var(--radius-sm);
         display: inline-block;
     }
 }
 
 .legend {
     mat-card-content {
-        padding: 1.5rem !important;
+        padding: var(--spacing-lg) !important;
     }
 
     h3 {
-        margin: 0 0 1rem 0;
+        margin: 0 0 var(--spacing-md) 0;
         font-size: 1.125rem;
-        color: #1a1a1a;
+        color: var(--color-text-primary);
     }
 
     .roles {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: var(--spacing-sm);
         flex-wrap: wrap;
 
         ::ng-deep mat-chip {
@@ -174,7 +174,7 @@
 
         .arrow {
             font-size: 1.5rem;
-            color: #999;
+            color: var(--color-gray-500);
         }
     }
 }
@@ -187,7 +187,7 @@
     .header mat-card-content {
         flex-direction: column;
         align-items: flex-start;
-        gap: 1rem;
+        gap: var(--spacing-md);
     }
 
     .legend .roles {
