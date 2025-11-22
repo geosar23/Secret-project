@@ -1,34 +1,37 @@
 <div class="dashboard">
-    <header>
-        <h1>Dashboard</h1>
-        <div class="user-section">
-            @if (currentUser$ | async; as user) {
-                <span class="welcome-text">Welcome, {{ user.name }}!</span>
-            }
-            <button (click)="logout()" class="btn-logout">Logout</button>
-        </div>
-    </header>
+    <mat-toolbar color="primary" class="toolbar">
+        <span class="toolbar-title">Dashboard</span>
+        <span class="spacer"></span>
+        @if (currentUser$ | async; as user) {
+            <span class="welcome-text">Welcome, {{ user.name }}!</span>
+        }
+        <button mat-raised-button color="warn" (click)="logout()">Logout</button>
+    </mat-toolbar>
+
     <div class="content">
         @if (currentUser$ | async; as user) {
-            <div class="user-info">
-                <h3>Your Profile</h3>
-                <p><strong>Name:</strong> {{ user.name }}</p>
-                <p><strong>Email:</strong> {{ user.email }}</p>
-            </div>
+            <mat-card class="user-card">
+                <mat-card-header>
+                    <mat-card-title>Your Profile</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <p><strong>Name:</strong> {{ user.name }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    @if (user.role) {
+                        <p><strong>Role:</strong> {{ user.role }}</p>
+                    }
+                </mat-card-content>
+            </mat-card>
         }
 
         <div class="quick-actions">
-            <a routerLink="/permissions" class="action-card">
-                <svg class="icon" viewBox="0 0 20 20" fill="currentColor">
-                    <path
-                        fill-rule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
-                        clip-rule="evenodd"
-                    />
-                </svg>
-                <h3>View Permissions</h3>
-                <p>See what permissions you have access to</p>
-            </a>
+            <mat-card class="action-card" routerLink="/permissions">
+                <mat-card-content>
+                    <mat-icon color="primary" class="action-icon">admin_panel_settings</mat-icon>
+                    <h3>View Permissions</h3>
+                    <p>See what permissions you have access to</p>
+                </mat-card-content>
+            </mat-card>
         </div>
     </div>
 </div>
