@@ -1,4 +1,4 @@
-import { UserRole } from "../enums";
+import { UserRole } from "../enums/user-role.enum";
 
 /**
  * Role display names

@@ -1,6 +1,7 @@
-import { IUser, AccessContext } from "../interfaces";
-import { UserRole } from "../enums";
-import { ROLE_PERMISSIONS } from "./role-permissions";
+import { IUser } from "../interfaces/user.interface";
+import { AccessContext } from "../interfaces/permission.interface";
+import { UserRole } from "../enums/user-role.enum";
+import { MockDatabase } from "../db/mock-database";
 import { SCOPE_HANDLERS } from "./attribute-rules";
 
 /**
@@ -42,8 +43,8 @@ export class PermissionChecker {
             }
         }
 
-        // 4. Check role-based permissions
-        const rolePermissions = ROLE_PERMISSIONS[user.role] || [];
+        // 4. Check role-based permissions from database
+        const rolePermissions = MockDatabase.getPermissionsForRole(user.role);
 
         // Check for wildcard permission
         if (rolePermissions.includes("*")) {
@@ -191,8 +192,8 @@ export class PermissionChecker {
     static getEffectivePermissions(user: IUser): string[] {
         const permissions = new Set<string>();
 
-        // Add role permissions
-        const rolePermissions = ROLE_PERMISSIONS[user.role] || [];
+        // Add role permissions from database
+        const rolePermissions = MockDatabase.getPermissionsForRole(user.role);
         rolePermissions.forEach(p => permissions.add(p));
 
         // Add granted permissions (if not expired)

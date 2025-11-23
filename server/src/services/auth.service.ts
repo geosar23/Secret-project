@@ -1,8 +1,8 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { UserService } from "./user.service";
-import { UserRole } from "../enums";
-import { LoginDto, RegisterDto, AuthResponse } from "../interfaces";
+import { UserRole } from "../enums/user-role.enum";
+import { LoginDto, RegisterDto, AuthResponse } from "../interfaces/auth.interface";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
