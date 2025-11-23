@@ -33,7 +33,7 @@ body {
     color-scheme: light;
 
     // Material Design system variables
-    background-color: var(--mat-sys-surface);
+    background-color: var(--color-primary-25);
     color: var(--mat-sys-on-surface);
     font: var(--mat-sys-body-medium);
 }
@@ -44,6 +44,7 @@ body {
 
 :root {
     // Primary Colors - Rose Palette
+    --color-primary-25: #fce4ecc0;
     --color-primary-50: #fce4ec;
     --color-primary-100: #f8bbd0;
     --color-primary-200: #f48fb1;
@@ -96,9 +97,9 @@ body {
     --color-text-on-primary: #ffffff;
 
     // Background Colors
-    --color-bg-primary: #ffffff;
-    --color-bg-secondary: #f5f7fa;
-    --color-bg-hover: #f5f5f5;
+    --color-bg-primary: #fafafa;
+    --color-bg-secondary: #f5f5f5;
+    --color-bg-hover: #eeeeee;
 
     // Border & Divider
     --color-border: #e0e0e0;
