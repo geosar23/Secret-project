@@ -42,7 +42,9 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
 
     private destroy$ = new Subject<void>();
 
-    public tableData: MatTableDataSource<IUserTableData> = new MatTableDataSource<IUserTableData>([]);
+    public tableData: MatTableDataSource<IUserTableData> = new MatTableDataSource<IUserTableData>(
+        [],
+    );
     public displayedColumns: string[] = [
         "name",
         "email",
@@ -153,7 +155,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             if (result) {
                 const currentData = this.tableData.data;
                 currentData.unshift(result);
-                this.tableData.data = currentData;  
+                this.tableData.data = currentData;
             }
         });
     }
