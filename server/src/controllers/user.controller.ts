@@ -1,9 +1,18 @@
 import { Request, Response } from "express";
 import { UserService } from "../services/user.service";
+import { AuthenticatedRequest } from "../interfaces/permission.interface";
+import { UserRole } from "../enums/user-role.enum";
 
 export const UserController = {
-    getUsers: async (req: Request, res: Response) => {
+    getUsers: async (req: AuthenticatedRequest, res: Response) => {
         try {
+            // Get requesting user from JWT token (set by auth middleware)
+            const requestingUser = req.decoded;
+
+            if (!requestingUser) {
+                return res.status(401).json({ message: "Unauthorized" });
+            }
+
             // Parse query parameters
             const params = {
                 page: req.query.page ? parseInt(req.query.page as string) : undefined,
@@ -12,6 +21,7 @@ export const UserController = {
                 sortBy: req.query.sortBy as string,
                 sortOrder: req.query.sortOrder as "asc" | "desc",
                 role: req.query.role as string,
+                companyId: req.query.companyId as string,
                 isActive:
                     req.query.isActive === "true"
                         ? true
@@ -19,6 +29,16 @@ export const UserController = {
                           ? false
                           : undefined,
             };
+
+            // Authorization: Enforce company-level data access
+            if (requestingUser.role !== UserRole.GOD) {
+                //Fetch requesting user
+                const user = await UserService.getById(requestingUser.id);
+                if(!user) {
+                    return res.status(404).json({ message: "Requesting user not found" });
+                }
+                params.companyId = user.companyId as string;
+            }
 
             const users = await UserService.getUsers(params);
             res.status(200).json(users);
