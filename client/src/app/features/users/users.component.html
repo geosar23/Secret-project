@@ -9,14 +9,35 @@
 
     <div class="filters-container">
         <h5>Filters & Sorting</h5>
-        <mat-form-field appearance="outline" class="sort-select">
-            <mat-label>Sort By</mat-label>
-            <mat-select [(value)]="selectedSort" (selectionChange)="onSortChange($event.value)">
-                @for (option of sortOptions; track option.value) {
-                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+        <div class="filters-row">
+            <mat-form-field appearance="outline" class="search-field">
+                <mat-label>Search</mat-label>
+                <input
+                    matInput
+                    [formControl]="searchControl"
+                    placeholder="Search by name or email..."
+                />
+                <mat-icon matPrefix>search</mat-icon>
+                @if (searchControl.value) {
+                    <button
+                        matSuffix
+                        mat-icon-button
+                        aria-label="Clear"
+                        (click)="searchControl.setValue('')"
+                    >
+                        <mat-icon>close</mat-icon>
+                    </button>
                 }
-            </mat-select>
-        </mat-form-field>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="sort-select">
+                <mat-label>Sort By</mat-label>
+                <mat-select [(value)]="selectedSort" (selectionChange)="onSortChange($event.value)">
+                    @for (option of sortOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+        </div>
     </div>
 
     @if (userFetchingError) {

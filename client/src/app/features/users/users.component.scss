@@ -11,6 +11,34 @@
     margin-bottom: var(--spacing-xl);
 }
 
+.filters-container {
+    margin-bottom: var(--spacing-lg);
+
+    h5 {
+        margin-bottom: var(--spacing-md);
+        color: var(--color-text-secondary);
+        font-weight: var(--font-weight-medium);
+        font-size: var(--font-size-sm);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .filters-row {
+        display: flex;
+        gap: var(--spacing-md);
+        align-items: center;
+
+        .search-field {
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .sort-select {
+            min-width: 200px;
+        }
+    }
+}
+
 ::ng-deep mat-chip {
     color: white !important;
     font-weight: 600;

@@ -8,9 +8,11 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatPaginatorModule, MatPaginator } from "@angular/material/paginator";
 import { MatSelectModule } from "@angular/material/select";
 import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatInputModule } from "@angular/material/input";
 import { MatDialog } from "@angular/material/dialog";
+import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { Subject } from "rxjs";
-import { takeUntil } from "rxjs/operators";
+import { takeUntil, debounceTime, distinctUntilChanged } from "rxjs/operators";
 import { UsersService } from "../../core/services/users.service";
 import { IUser, IUsersQueryParams } from "../../core/interfaces/user.interface";
 import { CreateUserDialogComponent } from "./create-user-dialog/create-user-dialog.component";
@@ -25,6 +27,7 @@ interface IUserTableData extends IUser {
     standalone: true,
     imports: [
         CommonModule,
+        ReactiveFormsModule,
         MatTableModule,
         MatButtonModule,
         MatIconModule,
@@ -33,6 +36,7 @@ interface IUserTableData extends IUser {
         MatPaginatorModule,
         MatSelectModule,
         MatFormFieldModule,
+        MatInputModule,
     ],
     templateUrl: "./users.component.html",
     styleUrls: ["./users.component.scss"],
@@ -41,6 +45,8 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     @ViewChild("paginator", { static: false }) public paginator!: MatPaginator;
 
     private destroy$ = new Subject<void>();
+
+    searchControl = new FormControl("");
 
     public tableData: MatTableDataSource<IUserTableData> = new MatTableDataSource<IUserTableData>(
         [],
@@ -87,6 +93,18 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngOnInit() {
         this.loadUsers();
+
+        // Listen to search input with debounce
+        this.searchControl.valueChanges
+            .pipe(takeUntil(this.destroy$), debounceTime(500), distinctUntilChanged())
+            .subscribe(searchValue => {
+                this.queryParams.search = searchValue || undefined;
+                this.queryParams.page = 1; // Reset to first page
+                if (this.paginator) {
+                    this.paginator.pageIndex = 0;
+                }
+                this.loadUsers();
+            });
     }
 
     ngAfterViewInit() {
