@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit } from "@angular/core";
+import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatTableModule, MatTableDataSource } from "@angular/material/table";
 import { MatButtonModule } from "@angular/material/button";
@@ -9,6 +9,8 @@ import { MatPaginatorModule, MatPaginator } from "@angular/material/paginator";
 import { MatSelectModule } from "@angular/material/select";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatDialog } from "@angular/material/dialog";
+import { Subject } from "rxjs";
+import { takeUntil } from "rxjs/operators";
 import { UsersService } from "../../core/services/users.service";
 import { IUser, IUsersQueryParams } from "../../core/interfaces/user.interface";
 import { CreateUserDialogComponent } from "./create-user-dialog/create-user-dialog.component";
@@ -30,8 +32,10 @@ import { CreateUserDialogComponent } from "./create-user-dialog/create-user-dial
     templateUrl: "./users.component.html",
     styleUrls: ["./users.component.scss"],
 })
-export class UsersComponent implements OnInit, AfterViewInit {
+export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     @ViewChild("paginator", { static: false }) public paginator!: MatPaginator;
+
+    private destroy$ = new Subject<void>();
 
     public tableData: MatTableDataSource<IUser> = new MatTableDataSource<IUser>([]);
     public displayedColumns: string[] = [
@@ -78,27 +82,37 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
     ngAfterViewInit() {
         if (this.paginator) {
-            this.paginator.pageSizeOptions = [10, 25, 50, 100];
-            this.paginator.pageSize = 10;
             // Listen to paginator changes
-            this.paginator.page.subscribe(() => {
+            this.paginator.page.pipe(takeUntil(this.destroy$)).subscribe(() => {
                 this.queryParams.page = this.paginator.pageIndex + 1;
                 this.queryParams.limit = this.paginator.pageSize;
+                console.log('Paginator changed:', this.queryParams);
                 this.loadUsers();
             });
         }
     }
 
+    ngOnDestroy() {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
+
     loadUsers() {
         this.loading = true;
         this.userFetchingError = "";
+        console.log('Loading users with params:', this.queryParams);
         this.usersService.getUsers(this.queryParams).subscribe({
             next: response => {
                 this.tableData.data = response.users;
-                if (this.paginator) {
-                    this.paginator.length = response.total;
-                }
-                console.log(response);
+                // Update paginator after data is loaded
+                setTimeout(() => {
+                    if (this.paginator) {
+                        this.paginator.length = response.total;
+                        this.paginator.pageSize = this.queryParams.limit || 10;
+                        this.paginator.pageIndex = (this.queryParams.page || 1) - 1;
+                    }
+                });
+                console.log('Users loaded:', response);
                 this.loading = false;
             },
             error: err => {
