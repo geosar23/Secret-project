@@ -1,18 +1,32 @@
 import { Component, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { MatTableModule } from "@angular/material/table";
+import { MatButtonModule } from "@angular/material/button";
+import { MatIconModule } from "@angular/material/icon";
+import { MatChipsModule } from "@angular/material/chips";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { UsersService } from "../../core/services/users.service";
 import { IUser } from "../../core/interfaces/user.interface";
 
 @Component({
     selector: "app-users",
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [
+        CommonModule,
+        FormsModule,
+        MatTableModule,
+        MatButtonModule,
+        MatIconModule,
+        MatChipsModule,
+        MatProgressSpinnerModule,
+    ],
     templateUrl: "./users.component.html",
     styleUrls: ["./users.component.scss"],
 })
 export class UsersComponent implements OnInit {
     users: IUser[] = [];
+    displayedColumns: string[] = ["name", "email", "role", "companyId", "status", "createdAt", "actions"];
     loading = false;
     error = "";
     showCreateModal = false;

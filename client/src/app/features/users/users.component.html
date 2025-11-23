@@ -12,54 +12,84 @@
     }
 
     @if (loading) {
-        <div class="loading-spinner">Loading users...</div>
+        <div class="loading-spinner">
+            <mat-spinner diameter="50"></mat-spinner>
+            <p>Loading users...</p>
+        </div>
     }
 
     <div class="users-table">
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Company ID</th>
-                    <th>Status</th>
-                    <th>Created</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (user of users; track user._id) {
-                    <tr>
-                        <td>{{ user.name }}</td>
-                        <td>{{ user.email }}</td>
-                        <td>
-                            <span class="badge" [ngClass]="getRoleBadgeClass(user.role)">
-                                {{ user.role }}
-                            </span>
-                        </td>
-                        <td>{{ user.companyId || "N/A" }}</td>
-                        <td>
-                            <span
-                                class="status"
-                                [class.active]="user.isActive"
-                                [class.inactive]="!user.isActive"
-                            >
-                                {{ user.isActive ? "Active" : "Inactive" }}
-                            </span>
-                        </td>
-                        <td>{{ user.createdAt }}</td>
-                        <td class="actions">
-                            <button class="btn-icon" title="Edit">✏️</button>
-                            <button class="btn-icon" title="Delete">🗑️</button>
-                        </td>
-                    </tr>
-                } @empty {
-                    <tr>
-                        <td colspan="7" class="empty-state">No users found</td>
-                    </tr>
-                }
-            </tbody>
+        <table mat-table [dataSource]="users" class="mat-elevation-z2">
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell *matCellDef="let user">{{ user.name }}</td>
+            </ng-container>
+
+            <!-- Email Column -->
+            <ng-container matColumnDef="email">
+                <th mat-header-cell *matHeaderCellDef>Email</th>
+                <td mat-cell *matCellDef="let user">{{ user.email }}</td>
+            </ng-container>
+
+            <!-- Role Column -->
+            <ng-container matColumnDef="role">
+                <th mat-header-cell *matHeaderCellDef>Role</th>
+                <td mat-cell *matCellDef="let user">
+                    <mat-chip [ngClass]="getRoleBadgeClass(user.role)">
+                        {{ user.role }}
+                    </mat-chip>
+                </td>
+            </ng-container>
+
+            <!-- Company ID Column -->
+            <ng-container matColumnDef="companyId">
+                <th mat-header-cell *matHeaderCellDef>Company ID</th>
+                <td mat-cell *matCellDef="let user">{{ user.companyId || "N/A" }}</td>
+            </ng-container>
+
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Status</th>
+                <td mat-cell *matCellDef="let user">
+                    <span
+                        class="status"
+                        [class.active]="user.isActive"
+                        [class.inactive]="!user.isActive"
+                    >
+                        {{ user.isActive ? "Active" : "Inactive" }}
+                    </span>
+                </td>
+            </ng-container>
+
+            <!-- Created Column -->
+            <ng-container matColumnDef="createdAt">
+                <th mat-header-cell *matHeaderCellDef>Created</th>
+                <td mat-cell *matCellDef="let user">{{ user.createdAt | date: 'short' }}</td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let user" class="actions">
+                    <button mat-icon-button color="primary" title="Edit">
+                        <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" title="Delete">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </td>
+            </ng-container>
+
+            Empty state
+            <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell empty-state" [attr.colspan]="displayedColumns.length">
+                    No users found
+                </td>
+            </tr>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
     </div>
 
