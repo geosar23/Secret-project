@@ -1,6 +1,5 @@
 import { Component, OnInit, ViewChild, AfterViewInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FormsModule } from "@angular/forms";
 import { MatTableModule, MatTableDataSource } from "@angular/material/table";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
@@ -8,15 +7,16 @@ import { MatChipsModule } from "@angular/material/chips";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatPaginatorModule, MatPaginator } from "@angular/material/paginator";
 import { MatSortModule, MatSort } from "@angular/material/sort";
+import { MatDialog } from "@angular/material/dialog";
 import { UsersService } from "../../core/services/users.service";
 import { IUser } from "../../core/interfaces/user.interface";
+import { CreateUserDialogComponent } from "./create-user-dialog/create-user-dialog.component";
 
 @Component({
     selector: "app-users",
     standalone: true,
     imports: [
         CommonModule,
-        FormsModule,
         MatTableModule,
         MatButtonModule,
         MatIconModule,
@@ -44,29 +44,11 @@ export class UsersComponent implements OnInit, AfterViewInit {
     ];
     loading = false;
     userFetchingError = "";
-    userCreationError = "";
-    showCreateModal = false;
 
-    // New user form
-    newUser = {
-        name: "",
-        email: "",
-        password: "",
-        role: "employee",
-        companyId: "",
-        departmentId: "",
-    };
-
-    roles = [
-        { value: "god", label: "God" },
-        { value: "super_admin", label: "Super Admin" },
-        { value: "admin", label: "Admin" },
-        { value: "hr", label: "HR Manager" },
-        { value: "manager", label: "Manager" },
-        { value: "employee", label: "Employee" },
-    ];
-
-    constructor(private usersService: UsersService) {}
+    constructor(
+        private usersService: UsersService,
+        private dialog: MatDialog,
+    ) {}
 
     ngOnInit() {
         this.loadUsers();
@@ -100,46 +82,17 @@ export class UsersComponent implements OnInit, AfterViewInit {
     }
 
     openCreateModal() {
-        this.showCreateModal = true;
-        this.resetForm();
-    }
+        const dialogRef = this.dialog.open(CreateUserDialogComponent, {
+            width: "500px",
+            disableClose: false,
+        });
 
-    closeCreateModal() {
-        this.showCreateModal = false;
-        this.resetForm();
-    }
-
-    resetForm() {
-        this.newUser = {
-            name: "",
-            email: "",
-            password: "",
-            role: "employee",
-            companyId: "",
-            departmentId: "",
-        };
-    }
-
-    createUser() {
-        if (!this.newUser.name || !this.newUser.email || !this.newUser.password) {
-            this.userCreationError = "Name, email, and password are required";
-            return;
-        }
-
-        this.loading = true;
-        this.userCreationError = "";
-        this.usersService.createUser(this.newUser).subscribe({
-            next: response => {
+        dialogRef.afterClosed().subscribe(result => {
+            if (result) {
                 const currentData = this.tableData.data;
-                currentData.unshift(response.user);
+                currentData.unshift(result);
                 this.tableData.data = currentData;
-                this.closeCreateModal();
-                this.loading = false;
-            },
-            error: err => {
-                this.userCreationError = err.error?.message || "Failed to create user";
-                this.loading = false;
-            },
+            }
         });
     }
 
