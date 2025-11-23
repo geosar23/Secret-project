@@ -49,8 +49,18 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
 
     searchControl = new FormControl("");
 
-    public tableData: MatTableDataSource<IUserTableData> = new MatTableDataSource<IUserTableData>([]);
-    public displayedColumns: string[] = ["name", "email", "role", "companyId", "status", "createdAt", "actions"];
+    public tableData: MatTableDataSource<IUserTableData> = new MatTableDataSource<IUserTableData>(
+        [],
+    );
+    public displayedColumns: string[] = [
+        "name",
+        "email",
+        "role",
+        "companyId",
+        "status",
+        "createdAt",
+        "actions",
+    ];
     loading = false;
     userFetchingError = "";
 

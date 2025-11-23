@@ -57,7 +57,6 @@ export class RoleUtils {
      */
     static getRoleName(role: string): string {
         const normalizedRole = role as UserRole;
-        console.log(role, normalizedRole, ROLE_NAMES[normalizedRole]);
         return ROLE_NAMES[normalizedRole] || role;
     }
 
