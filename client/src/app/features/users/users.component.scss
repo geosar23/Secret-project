@@ -11,48 +11,15 @@
     margin-bottom: var(--spacing-xl);
 }
 
-::ng-deep {
-    .badge-god {
-        background-color: #fef3c7 !important;
-        color: #92400e !important;
-        font-weight: 600 !important;
-    }
+::ng-deep mat-chip {
+    color: white !important;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 
-    .badge-super-admin {
-        background-color: #dbeafe !important;
-        color: #1e40af !important;
-        font-weight: 600 !important;
-    }
-
-    .badge-admin {
-        background-color: #e0e7ff !important;
-        color: #4338ca !important;
-        font-weight: 600 !important;
-    }
-
-    .badge-hr {
-        background-color: #fce7f3 !important;
-        color: #9f1239 !important;
-        font-weight: 600 !important;
-    }
-
-    .badge-manager {
-        background-color: #d1fae5 !important;
-        color: #065f46 !important;
-        font-weight: 600 !important;
-    }
-
-    .badge-employee {
-        background-color: #f1f5f9 !important;
-        color: #475569 !important;
-        font-weight: 600 !important;
-    }
-
-    mat-chip {
-        font-size: 0.75rem !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.025em !important;
-        min-height: 24px !important;
+    .mdc-evolution-chip__text-label {
+        color: white !important;
     }
 }
 

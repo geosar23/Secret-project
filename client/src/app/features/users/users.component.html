@@ -48,7 +48,7 @@
             <ng-container matColumnDef="role">
                 <mat-header-cell *matHeaderCellDef>Role</mat-header-cell>
                 <mat-cell *matCellDef="let user" data-label="Role">
-                    <mat-chip [ngClass]="getRoleBadgeClass(user.role)">
+                    <mat-chip [style.background]="user.roleColor">
                         {{ user.role }}
                     </mat-chip>
                 </mat-cell>

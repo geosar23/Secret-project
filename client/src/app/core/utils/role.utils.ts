@@ -16,12 +16,12 @@ export const ROLE_NAMES: Record<UserRole, string> = {
  * Role colors for UI display
  */
 export const ROLE_COLORS: Record<UserRole, string> = {
-    [UserRole.GOD]: "purple",
-    [UserRole.SUPER_ADMIN]: "red",
-    [UserRole.ADMIN]: "orange",
-    [UserRole.HR]: "blue",
-    [UserRole.MANAGER]: "green",
-    [UserRole.EMPLOYEE]: "gray",
+    [UserRole.GOD]: "#9f46c2ff",
+    [UserRole.SUPER_ADMIN]: "#e74b48ff",
+    [UserRole.ADMIN]: "#eb8d36ff",
+    [UserRole.HR]: "#4ea8e4ff",
+    [UserRole.MANAGER]: "#48db85ff",
+    [UserRole.EMPLOYEE]: "#6b6d6dff",
 } as const;
 
 /**
@@ -55,7 +55,7 @@ export class RoleUtils {
      * Get the color associated with a role
      */
     static getRoleColor(role: string): string {
-        const normalizedRole = role.toUpperCase() as UserRole;
+        const normalizedRole = role as UserRole;
         return ROLE_COLORS[normalizedRole] || "gray";
     }
 

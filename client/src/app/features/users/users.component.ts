@@ -14,6 +14,11 @@ import { takeUntil } from "rxjs/operators";
 import { UsersService } from "../../core/services/users.service";
 import { IUser, IUsersQueryParams } from "../../core/interfaces/user.interface";
 import { CreateUserDialogComponent } from "./create-user-dialog/create-user-dialog.component";
+import { RoleUtils } from "../../core/utils/role.utils";
+
+interface IUserTableData extends IUser {
+    roleColor?: string;
+}
 
 @Component({
     selector: "app-users",
@@ -37,7 +42,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
 
     private destroy$ = new Subject<void>();
 
-    public tableData: MatTableDataSource<IUser> = new MatTableDataSource<IUser>([]);
+    public tableData: MatTableDataSource<IUserTableData> = new MatTableDataSource<IUserTableData>([]);
     public displayedColumns: string[] = [
         "name",
         "email",
@@ -105,7 +110,10 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
         console.log("Loading users with params:", this.queryParams);
         this.usersService.getUsers(this.queryParams).subscribe({
             next: response => {
-                this.tableData.data = response.users;
+                this.tableData.data = response.users.map(user => ({
+                    ...user,
+                    roleColor: RoleUtils.getRoleColor(user.role),
+                }));
                 // Update paginator after data is loaded
                 setTimeout(() => {
                     if (this.paginator) {
@@ -145,20 +153,12 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             if (result) {
                 const currentData = this.tableData.data;
                 currentData.unshift(result);
-                this.tableData.data = currentData;
+                this.tableData.data = currentData;  
             }
         });
     }
 
-    getRoleBadgeClass(role: string): string {
-        const roleMap: Record<string, string> = {
-            god: "badge-god",
-            super_admin: "badge-super-admin",
-            admin: "badge-admin",
-            hr: "badge-hr",
-            manager: "badge-manager",
-            employee: "badge-employee",
-        };
-        return roleMap[role] || "badge-default";
+    getRoleColor(role: string): string {
+        return RoleUtils.getRoleColor(role);
     }
 }
