@@ -1,11 +1,13 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ViewChild, AfterViewInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { MatTableModule } from "@angular/material/table";
+import { MatTableModule, MatTableDataSource } from "@angular/material/table";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { MatPaginatorModule, MatPaginator } from "@angular/material/paginator";
+import { MatSortModule, MatSort } from "@angular/material/sort";
 import { UsersService } from "../../core/services/users.service";
 import { IUser } from "../../core/interfaces/user.interface";
 
@@ -20,13 +22,18 @@ import { IUser } from "../../core/interfaces/user.interface";
         MatIconModule,
         MatChipsModule,
         MatProgressSpinnerModule,
+        MatPaginatorModule,
+        MatSortModule,
     ],
     templateUrl: "./users.component.html",
     styleUrls: ["./users.component.scss"],
 })
-export class UsersComponent implements OnInit {
-    users: IUser[] = [];
-    displayedColumns: string[] = [
+export class UsersComponent implements OnInit, AfterViewInit {
+    @ViewChild("paginator", { static: false }) public paginator!: MatPaginator;
+    @ViewChild(MatSort) sort!: MatSort;
+
+    public tableData: MatTableDataSource<IUser> = new MatTableDataSource<IUser>([]);
+    public displayedColumns: string[] = [
         "name",
         "email",
         "role",
@@ -64,12 +71,23 @@ export class UsersComponent implements OnInit {
         this.loadUsers();
     }
 
+    ngAfterViewInit() {
+        if (this.paginator) {
+            this.paginator.pageSizeOptions = [10, 25, 50, 100];
+            this.paginator.pageSize = 10;
+            this.tableData.paginator = this.paginator;
+        }
+        if (this.sort) {
+            this.tableData.sort = this.sort;
+        }
+    }
+
     loadUsers() {
         this.loading = true;
         this.error = "";
         this.usersService.getUsers().subscribe({
             next: response => {
-                this.users = response.users;
+                this.tableData.data = response.users;
                 console.log(response);
                 this.loading = false;
             },
@@ -111,7 +129,9 @@ export class UsersComponent implements OnInit {
         this.error = "";
         this.usersService.createUser(this.newUser).subscribe({
             next: response => {
-                this.users.push(response.user);
+                const currentData = this.tableData.data;
+                currentData.unshift(response.user);
+                this.tableData.data = currentData;
                 this.closeCreateModal();
                 this.loading = false;
             },

@@ -1,7 +1,7 @@
 <div class="users-container">
     <div class="page-header">
         <h1>User Management</h1>
-        <button class="btn btn-primary" (click)="openCreateModal()">
+        <button class="btn btn-primary" (click)="openCreateModal()" [disabled]="loading">
             <span class="icon">+</span>
             Create User
         </button>
@@ -18,80 +18,86 @@
         </div>
     }
 
-    <div class="users-table">
-        <table mat-table [dataSource]="users" class="mat-elevation-z2">
-            <!-- Name Column -->
-            <ng-container matColumnDef="name">
-                <th mat-header-cell *matHeaderCellDef>Name</th>
-                <td mat-cell *matCellDef="let user">{{ user.name }}</td>
-            </ng-container>
+    <div class="table-container" [ngStyle]="{'visibility':!loading ? 'visible' : 'hidden'}">
+        <table mat-table matSort [dataSource]="tableData">
+                <!-- Name Column -->
+                <ng-container matColumnDef="name">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header>Name</mat-header-cell>
+                    <mat-cell *matCellDef="let user" data-label="Name">{{ user.name }}</mat-cell>
+                </ng-container>
 
-            <!-- Email Column -->
-            <ng-container matColumnDef="email">
-                <th mat-header-cell *matHeaderCellDef>Email</th>
-                <td mat-cell *matCellDef="let user">{{ user.email }}</td>
-            </ng-container>
+                <!-- Email Column -->
+                <ng-container matColumnDef="email">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header>Email</mat-header-cell>
+                    <mat-cell *matCellDef="let user" data-label="Email">{{ user.email }}</mat-cell>
+                </ng-container>
 
-            <!-- Role Column -->
-            <ng-container matColumnDef="role">
-                <th mat-header-cell *matHeaderCellDef>Role</th>
-                <td mat-cell *matCellDef="let user">
-                    <mat-chip [ngClass]="getRoleBadgeClass(user.role)">
-                        {{ user.role }}
-                    </mat-chip>
-                </td>
-            </ng-container>
+                <!-- Role Column -->
+                <ng-container matColumnDef="role">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header>Role</mat-header-cell>
+                    <mat-cell *matCellDef="let user" data-label="Role">
+                        <mat-chip [ngClass]="getRoleBadgeClass(user.role)">
+                            {{ user.role }}
+                        </mat-chip>
+                    </mat-cell>
+                </ng-container>
 
-            <!-- Company ID Column -->
-            <ng-container matColumnDef="companyId">
-                <th mat-header-cell *matHeaderCellDef>Company ID</th>
-                <td mat-cell *matCellDef="let user">{{ user.companyId || "N/A" }}</td>
-            </ng-container>
+                <!-- Company ID Column -->
+                <ng-container matColumnDef="companyId">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header>Company ID</mat-header-cell>
+                    <mat-cell *matCellDef="let user" data-label="Company ID">{{ user.companyId || "N/A" }}</mat-cell>
+                </ng-container>
 
-            <!-- Status Column -->
-            <ng-container matColumnDef="status">
-                <th mat-header-cell *matHeaderCellDef>Status</th>
-                <td mat-cell *matCellDef="let user">
-                    <span
-                        class="status"
-                        [class.active]="user.isActive"
-                        [class.inactive]="!user.isActive"
-                    >
-                        {{ user.isActive ? "Active" : "Inactive" }}
-                    </span>
-                </td>
-            </ng-container>
+                <!-- Status Column -->
+                <ng-container matColumnDef="status">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header>Status</mat-header-cell>
+                    <mat-cell *matCellDef="let user" data-label="Status">
+                        <span
+                            class="status"
+                            [class.active]="user.isActive"
+                            [class.inactive]="!user.isActive"
+                        >
+                            {{ user.isActive ? "Active" : "Inactive" }}
+                        </span>
+                    </mat-cell>
+                </ng-container>
 
-            <!-- Created Column -->
-            <ng-container matColumnDef="createdAt">
-                <th mat-header-cell *matHeaderCellDef>Created</th>
-                <td mat-cell *matCellDef="let user">{{ user.createdAt | date: "short" }}</td>
-            </ng-container>
+                <!-- Created Column -->
+                <ng-container matColumnDef="createdAt">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header>Created</mat-header-cell>
+                    <mat-cell *matCellDef="let user" data-label="Created">{{ user.createdAt | date: "short" }}</mat-cell>
+                </ng-container>
 
-            <!-- Actions Column -->
-            <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef>Actions</th>
-                <td mat-cell *matCellDef="let user" class="actions">
+                <!-- Actions Column -->
+                <ng-container matColumnDef="actions">
+                    <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
+                    <mat-cell *matCellDef="let user" data-label="Actions" class="actions">
                     <button mat-icon-button color="primary" title="Edit">
                         <mat-icon>edit</mat-icon>
                     </button>
                     <button mat-icon-button color="warn" title="Delete">
                         <mat-icon>delete</mat-icon>
                     </button>
-                </td>
-            </ng-container>
+                    </mat-cell>
+                </ng-container>
 
-            Empty state
-            <tr class="mat-row" *matNoDataRow>
-                <td class="mat-cell empty-state" [attr.colspan]="displayedColumns.length">
-                    No users found
-                </td>
-            </tr>
+                <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+                <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
 
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
         </table>
+        <mat-paginator #paginator 
+            [ngStyle]="{'visibility': !loading && tableData.data.length > 0 ? 'visible' : 'hidden' }"
+            [pageSizeOptions]="[10, 25, 50, 100]"
+            showFirstLastButtons>
+        </mat-paginator>
     </div>
+
+    @if (!loading && tableData.data.length === 0 && !error) {
+        <div class="empty-state">
+            <h3>No users found</h3>
+            <p>Try adjusting your filters or create a new user</p>
+        </div>
+    }
 
     <!-- Create User Modal -->
     @if (showCreateModal) {
