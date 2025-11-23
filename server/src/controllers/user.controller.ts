@@ -34,7 +34,7 @@ export const UserController = {
             if (requestingUser.role !== UserRole.GOD) {
                 //Fetch requesting user
                 const user = await UserService.getById(requestingUser.id);
-                if(!user) {
+                if (!user) {
                     return res.status(404).json({ message: "Requesting user not found" });
                 }
                 params.companyId = user.companyId as string;
