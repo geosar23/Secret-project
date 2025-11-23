@@ -1,0 +1,55 @@
+<mat-toolbar class="app-header">
+    <div class="header-container">
+        <div class="header-left">
+            <button mat-icon-button class="menu-button">
+                <mat-icon>menu</mat-icon>
+            </button>
+            <h1 class="app-title" routerLink="/dashboard">HR SAAS</h1>
+        </div>
+
+        <nav class="header-nav">
+            <a mat-button routerLink="/dashboard" routerLinkActive="active">
+                <mat-icon>dashboard</mat-icon>
+                <span>Dashboard</span>
+            </a>
+            <a mat-button routerLink="/users" routerLinkActive="active">
+                <mat-icon>people</mat-icon>
+                <span>Users</span>
+            </a>
+            <a mat-button routerLink="/permissions" routerLinkActive="active">
+                <mat-icon>security</mat-icon>
+                <span>Permissions</span>
+            </a>
+        </nav>
+
+        <div class="header-right">
+            <button mat-icon-button>
+                <mat-icon>notifications</mat-icon>
+            </button>
+
+            <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
+                <mat-icon>account_circle</mat-icon>
+                @if (currentUser$ | async; as user) {
+                    <span class="user-name">{{ user.name }}</span>
+                }
+                <mat-icon>arrow_drop_down</mat-icon>
+            </button>
+
+            <mat-menu #userMenu="matMenu" xPosition="before">
+                <button mat-menu-item routerLink="/profile">
+                    <mat-icon>person</mat-icon>
+                    <span>My Profile</span>
+                </button>
+                <button mat-menu-item>
+                    <mat-icon>settings</mat-icon>
+                    <span>Settings</span>
+                </button>
+                <mat-divider></mat-divider>
+                <button mat-menu-item (click)="logout()">
+                    <mat-icon>logout</mat-icon>
+                    <span>Logout</span>
+                </button>
+            </mat-menu>
+        </div>
+    </div>
+</mat-toolbar>
