@@ -1,7 +1,7 @@
 import { IUser } from "../interfaces/user.interface";
 import { AccessContext } from "../interfaces/permission.interface";
 import { UserRole } from "../enums/user-role.enum";
-import { MockDatabase } from "../db/mock-database";
+import { RoleService } from "../services/role.service";
 import { SCOPE_HANDLERS } from "./attribute-rules";
 
 /**
@@ -16,7 +16,11 @@ export class PermissionChecker {
      * @param resource Optional resource being accessed (for ABAC)
      * @returns true if access is granted, false otherwise
      */
-    static canAccess(user: IUser, permission: string, resource?: Record<string, unknown>): boolean {
+    static async canAccess(
+        user: IUser,
+        permission: string,
+        resource?: Record<string, unknown>,
+    ): Promise<boolean> {
         // 1. GOD role bypasses all checks
         if (user.role === UserRole.GOD) {
             return true;
@@ -44,7 +48,7 @@ export class PermissionChecker {
         }
 
         // 4. Check role-based permissions from database
-        const rolePermissions = MockDatabase.getPermissionsForRole(user.role);
+        const rolePermissions = await RoleService.getPermissions(user.role);
 
         // Check for wildcard permission
         if (rolePermissions.includes("*")) {
@@ -177,23 +181,29 @@ export class PermissionChecker {
      * Filter resources user has access to
      * Useful for list endpoints
      */
-    static filterAccessibleResources<T extends Record<string, unknown>>(
+    static async filterAccessibleResources<T extends Record<string, unknown>>(
         user: IUser,
         resources: T[],
         permission: string,
-    ): T[] {
-        return resources.filter(resource => this.canAccess(user, permission, resource));
+    ): Promise<T[]> {
+        const accessible: T[] = [];
+        for (const resource of resources) {
+            if (await this.canAccess(user, permission, resource)) {
+                accessible.push(resource);
+            }
+        }
+        return accessible;
     }
 
     /**
      * Get all effective permissions for a user (including role and granted permissions)
      * Expands permissions to include inherited scopes (e.g., "all" includes "department", "managed", "self")
      */
-    static getEffectivePermissions(user: IUser): string[] {
+    static async getEffectivePermissions(user: IUser): Promise<string[]> {
         const permissions = new Set<string>();
 
         // Add role permissions from database
-        const rolePermissions = MockDatabase.getPermissionsForRole(user.role);
+        const rolePermissions = await RoleService.getPermissions(user.role);
         rolePermissions.forEach(p => permissions.add(p));
 
         // Add granted permissions (if not expired)
@@ -261,22 +271,32 @@ export class PermissionChecker {
     /**
      * Check if user has ANY of the specified permissions
      */
-    static hasAnyPermission(
+    static async hasAnyPermission(
         user: IUser,
         permissions: string[],
         resource?: Record<string, unknown>,
-    ): boolean {
-        return permissions.some(permission => this.canAccess(user, permission, resource));
+    ): Promise<boolean> {
+        for (const permission of permissions) {
+            if (await this.canAccess(user, permission, resource)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
      * Check if user has ALL of the specified permissions
      */
-    static hasAllPermissions(
+    static async hasAllPermissions(
         user: IUser,
         permissions: string[],
         resource?: Record<string, unknown>,
-    ): boolean {
-        return permissions.every(permission => this.canAccess(user, permission, resource));
+    ): Promise<boolean> {
+        for (const permission of permissions) {
+            if (!(await this.canAccess(user, permission, resource))) {
+                return false;
+            }
+        }
+        return true;
     }
 }

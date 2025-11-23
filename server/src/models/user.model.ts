@@ -33,7 +33,7 @@ const UserSchema = new Schema<IUser>(
 
         isActive: { type: Boolean, default: true },
     },
-    { timestamps: true },
+    { timestamps: true, collection: "Users" },
 );
 
 export const UserModel = model<IUser>("User", UserSchema);

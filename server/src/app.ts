@@ -29,6 +29,4 @@ app.use("/api", apiRouter);
 // Global error handler
 app.use(errorMiddleware);
 
-connectDB();
-
 export default app;

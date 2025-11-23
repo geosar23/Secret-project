@@ -7,6 +7,7 @@
 import { IUser } from "../interfaces/user.interface";
 import { UserRole } from "../enums/user-role.enum";
 import { IRole } from "../interfaces/role.interface";
+import { IPermission } from "../interfaces/permission.interface";
 
 // ============================================================================
 // Mock Roles Collection
@@ -138,18 +139,6 @@ export const mockRoles: IRole[] = [
 // ============================================================================
 // Mock Permissions Collection
 // ============================================================================
-
-export interface IPermission {
-    _id: string;
-    permission: string; // Format: entity:action:scope
-    entity: string; // e.g., "employees", "leaves", "company"
-    action: string; // e.g., "view", "create", "edit", "delete"
-    scope: string; // e.g., "all", "department", "managed", "self"
-    description: string;
-    category: string; // For grouping in UI
-    isActive: boolean;
-    createdAt: Date;
-}
 
 export const mockPermissions: IPermission[] = [
     // System Permissions
@@ -634,6 +623,7 @@ export const mockUsers: IUser[] = [
 export class MockDatabase {
     // User operations
     static getAllUsers(): IUser[] {
+        console.log("MockDatabase.getAllUsers called");
         return mockUsers;
     }
 
