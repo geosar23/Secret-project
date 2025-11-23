@@ -45,19 +45,17 @@ export class UsersComponent implements OnInit {
     loadUsers() {
         this.loading = true;
         this.error = "";
-        this.usersService
-            .getUsers()
-            .subscribe({
-                next: response => {
-                    this.users = response.users;
-                    console.log(response);
-                    this.loading = false;
-                },
-                error: err => {
-                    this.error = err.error?.message || "Failed to load users";
-                    this.loading = false;
-                },
-            });
+        this.usersService.getUsers().subscribe({
+            next: response => {
+                this.users = response.users;
+                console.log(response);
+                this.loading = false;
+            },
+            error: err => {
+                this.error = err.error?.message || "Failed to load users";
+                this.loading = false;
+            },
+        });
     }
 
     openCreateModal() {
@@ -89,19 +87,17 @@ export class UsersComponent implements OnInit {
 
         this.loading = true;
         this.error = "";
-        this.usersService
-            .createUser(this.newUser)
-            .subscribe({
-                next: response => {
-                    this.users.push(response.user);
-                    this.closeCreateModal();
-                    this.loading = false;
-                },
-                error: err => {
-                    this.error = err.error?.message || "Failed to create user";
-                    this.loading = false;
-                },
-            });
+        this.usersService.createUser(this.newUser).subscribe({
+            next: response => {
+                this.users.push(response.user);
+                this.closeCreateModal();
+                this.loading = false;
+            },
+            error: err => {
+                this.error = err.error?.message || "Failed to create user";
+                this.loading = false;
+            },
+        });
     }
 
     getRoleBadgeClass(role: string): string {

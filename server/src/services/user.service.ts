@@ -1,76 +1,83 @@
 import { UserModel } from "../models/user.model";
 import { IUser } from "../interfaces/user.interface";
-import { MockDatabase } from "../db/mock-database";
-import { dbState } from "../config/databases";
-import { AuthResponse, RegisterDto } from "../interfaces/auth.interface";
-import { UserRole } from "../enums/user-role.enum";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import { FilterQuery } from "mongoose";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
+interface GetUsersParams {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+    departmentId?: string;
+    isActive?: boolean;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+}
 
 export const UserService = {
-    getAll: () =>
-        dbState.useMock ? Promise.resolve(MockDatabase.getAllUsers()) : UserModel.find(),
-    getById: (id: string) =>
-        dbState.useMock ? Promise.resolve(MockDatabase.getUserById(id)) : UserModel.findById(id),
-    getByEmail: (email: string) =>
-        dbState.useMock
-            ? Promise.resolve(MockDatabase.getUserByEmail(email))
-            : UserModel.findOne({ email }),
-    create: (data: Omit<IUser, "_id">) =>
-        dbState.useMock ? Promise.resolve(MockDatabase.createUser(data)) : UserModel.create(data),
-    update: (id: string, data: Partial<IUser>) =>
-        dbState.useMock
-            ? Promise.resolve(MockDatabase.updateUser(id, data))
-            : UserModel.findByIdAndUpdate(id, data, { new: true }),
-    delete: (id: string) =>
-        dbState.useMock
-            ? Promise.resolve(MockDatabase.deleteUser(id))
-            : UserModel.findByIdAndDelete(id),
-    async register(data: RegisterDto): Promise<AuthResponse> {
-        const { name, email, password, role = UserRole.EMPLOYEE } = data;
+    getUsers: async (params: GetUsersParams = {}) => {
+        const {
+            page = 1,
+            limit = 10,
+            search,
+            role,
+            departmentId,
+            isActive,
+            sortBy = "createdAt",
+            sortOrder = "desc",
+        } = params;
 
-        // Check if user already exists
-        const existingUser = await UserService.getByEmail(email);
-        if (existingUser) {
-            throw new Error("User already exists");
+        // Build filter query
+        const filter: FilterQuery<IUser> = {};
+
+        if (search) {
+            filter.$or = [
+                { name: { $regex: search, $options: "i" } },
+                { email: { $regex: search, $options: "i" } },
+            ];
         }
 
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
+        if (role) {
+            filter.role = role;
+        }
 
-        // Create user
-        const newUser = await UserService.create({
-            name,
-            email,
-            password: hashedPassword,
-            role,
-            isActive: true,
-            createdAt: new Date(),
-        });
+        if (departmentId) {
+            filter.departmentId = departmentId;
+        }
 
-        // Generate JWT token
-        const token = jwt.sign(
-            {
-                id: newUser._id,
-                email: newUser.email,
-                name: newUser.name,
-                role: newUser.role,
-            },
-            JWT_SECRET,
-            { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions,
-        );
+        if (isActive !== undefined) {
+            filter.isActive = isActive;
+        }
+
+        // Calculate pagination
+        const skip = (page - 1) * limit;
+        const sortOptions: Record<string, 1 | -1> = {
+            [sortBy]: sortOrder === "asc" ? 1 : -1,
+        };
+
+        // Execute query with pagination
+        const [users, total] = await Promise.all([
+            UserModel.find(filter)
+                .sort(sortOptions)
+                .skip(skip)
+                .limit(limit)
+                .select("-password")
+                .lean(),
+            UserModel.countDocuments(filter),
+        ]);
 
         return {
-            token,
-            user: {
-                id: newUser._id || "",
-                email: newUser.email,
-                name: newUser.name,
-                role: newUser.role,
-            },
+            users,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
         };
     },
+
+    getById: (id: string) => UserModel.findById(id),
+    getByEmail: (email: string) => UserModel.findOne({ email }),
+    create: (data: Omit<IUser, "_id">) => UserModel.create(data),
+    update: (id: string, data: Partial<IUser>) =>
+        UserModel.findByIdAndUpdate(id, data, { new: true }),
+    delete: (id: string) => UserModel.findByIdAndDelete(id),
 };

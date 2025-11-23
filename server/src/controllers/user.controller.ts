@@ -2,10 +2,16 @@ import { Request, Response } from "express";
 import { UserService } from "../services/user.service";
 
 export const UserController = {
-    getAll: async (req: Request, res: Response) => {
-        console.log("User   Controller.getAll called");
-        const users = await UserService.getAll();
-        res.json(users);
+    getUsers: async (req: Request, res: Response) => {
+        try {
+            const params = req.query;
+            console.log("UserController.getUsers called with params:", params);
+            const users = await UserService.getUsers(params);
+            res.json(users);
+        } catch (error) {
+            console.log("Error in UserController.getUsers:", error);
+            res.status(500).json({ message: "Internal server error" });
+        }
     },
 
     create: async (req: Request, res: Response) => {
