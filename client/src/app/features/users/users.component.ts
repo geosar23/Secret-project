@@ -86,7 +86,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             this.paginator.page.pipe(takeUntil(this.destroy$)).subscribe(() => {
                 this.queryParams.page = this.paginator.pageIndex + 1;
                 this.queryParams.limit = this.paginator.pageSize;
-                console.log('Paginator changed:', this.queryParams);
+                console.log("Paginator changed:", this.queryParams);
                 this.loadUsers();
             });
         }
@@ -100,7 +100,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     loadUsers() {
         this.loading = true;
         this.userFetchingError = "";
-        console.log('Loading users with params:', this.queryParams);
+        console.log("Loading users with params:", this.queryParams);
         this.usersService.getUsers(this.queryParams).subscribe({
             next: response => {
                 this.tableData.data = response.users;
@@ -112,7 +112,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
                         this.paginator.pageIndex = (this.queryParams.page || 1) - 1;
                     }
                 });
-                console.log('Users loaded:', response);
+                console.log("Users loaded:", response);
                 this.loading = false;
             },
             error: err => {
