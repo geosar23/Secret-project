@@ -2,17 +2,17 @@
     <div class="page-header">
         <h1>User Management</h1>
         <button class="btn btn-primary" (click)="openCreateModal()" [disabled]="loading">
-            <span class="icon">+</span>
+            <mat-icon>add</mat-icon>
             Create User
         </button>
     </div>
 
     @if (error) {
-        <div class="error-message">{{ error }}</div>
+        <div class="error-message badge badge-error">{{ error }}</div>
     }
 
     @if (loading) {
-        <div class="loading-spinner">
+        <div class="loading-container">
             <mat-spinner diameter="50"></mat-spinner>
             <p>Loading users...</p>
         </div>
@@ -55,9 +55,9 @@
                 <mat-header-cell *matHeaderCellDef mat-sort-header>Status</mat-header-cell>
                 <mat-cell *matCellDef="let user" data-label="Status">
                     <span
-                        class="status"
-                        [class.active]="user.isActive"
-                        [class.inactive]="!user.isActive"
+                        class="badge"
+                        [class.badge-success]="user.isActive"
+                        [class.badge-error]="!user.isActive"
                     >
                         {{ user.isActive ? "Active" : "Inactive" }}
                     </span>
@@ -119,6 +119,7 @@
                         <input
                             type="text"
                             id="name"
+                            class="form-control"
                             [(ngModel)]="newUser.name"
                             name="name"
                             required
@@ -131,6 +132,7 @@
                         <input
                             type="email"
                             id="email"
+                            class="form-control"
                             [(ngModel)]="newUser.email"
                             name="email"
                             required
@@ -143,6 +145,7 @@
                         <input
                             type="password"
                             id="password"
+                            class="form-control"
                             [(ngModel)]="newUser.password"
                             name="password"
                             required
@@ -152,7 +155,13 @@
 
                     <div class="form-group">
                         <label for="role">Role *</label>
-                        <select id="role" [(ngModel)]="newUser.role" name="role" required>
+                        <select
+                            id="role"
+                            class="form-control"
+                            [(ngModel)]="newUser.role"
+                            name="role"
+                            required
+                        >
                             @for (role of roles; track role.value) {
                                 <option [value]="role.value">
                                     {{ role.label }}
@@ -166,6 +175,7 @@
                         <input
                             type="text"
                             id="companyId"
+                            class="form-control"
                             [(ngModel)]="newUser.companyId"
                             name="companyId"
                             placeholder="Optional: company-a"
@@ -177,6 +187,7 @@
                         <input
                             type="text"
                             id="departmentId"
+                            class="form-control"
                             [(ngModel)]="newUser.departmentId"
                             name="departmentId"
                             placeholder="Optional: dept-hr"
@@ -184,7 +195,7 @@
                     </div>
 
                     @if (error) {
-                        <div class="error-message">{{ error }}</div>
+                        <div class="form-error">{{ error }}</div>
                     }
 
                     <div class="modal-actions">

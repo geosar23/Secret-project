@@ -18,8 +18,8 @@
         margin-bottom: var(--spacing-lg);
 
         mat-card-title {
-            font-size: 1.75rem;
-            font-weight: 600;
+            font-size: var(--font-size-3xl);
+            font-weight: var(--font-weight-semibold);
             margin-bottom: var(--spacing-sm);
         }
     }
@@ -44,8 +44,8 @@
 .submit-button {
     margin-top: var(--spacing-sm);
     padding: var(--spacing-sm) 0;
-    font-size: 1rem;
-    font-weight: 500;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
 
     mat-spinner {
         display: inline-block;
@@ -55,11 +55,13 @@
 
 .error-alert {
     display: block;
-    padding: var(--spacing-sm);
+    padding: var(--spacing-md);
     margin-bottom: var(--spacing-md);
     background-color: var(--color-error-light);
-    border-radius: var(--radius-sm);
-    color: var(--color-accent-800);
+    border-radius: var(--radius-md);
+    color: var(--color-error);
+    border-left: 4px solid var(--color-error);
+    font-size: var(--font-size-sm);
 }
 
 .register-link {

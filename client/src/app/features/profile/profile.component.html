@@ -46,7 +46,11 @@
                         </div>
                         <div class="info-row">
                             <span class="label">Status:</span>
-                            <span class="value" [class.active]="profile.isActive">
+                            <span
+                                class="badge"
+                                [class.badge-success]="profile.isActive"
+                                [class.badge-error]="!profile.isActive"
+                            >
                                 {{ profile.isActive ? "Active" : "Inactive" }}
                             </span>
                         </div>

@@ -8,102 +8,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
-}
-
-.btn {
-    padding: 0.625rem 1.25rem;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    font-size: 0.9375rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-
-    .icon {
-        font-size: 1.125rem;
-        font-weight: 400;
-    }
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-
-    &:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    }
-
-    &:active {
-        transform: translateY(0);
-    }
-}
-
-.btn-secondary {
-    background-color: #f1f5f9;
-    color: #475569;
-
-    &:hover {
-        background-color: #e2e8f0;
-    }
-}
-
-.error-message {
-    background-color: #fef2f2;
-    color: #991b1b;
-    padding: 0.875rem 1.125rem;
-    border-radius: 0.5rem;
-    margin-bottom: 1rem;
-    border-left: 4px solid #dc2626;
-    font-size: 0.9375rem;
-    font-weight: 500;
-}
-
-.loading-spinner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: var(--spacing-xl) var(--spacing-lg);
-    gap: var(--spacing-md);
-    min-height: 400px;
-
-    p {
-        color: var(--color-gray-600);
-        font-size: var(--font-size-base);
-        margin: 0;
-    }
-}
-
-table {
-    width: 100%;
-
-    mat-header-cell {
-        background-color: #f8fafc;
-        color: #475569;
-        font-weight: 600;
-        font-size: 0.875rem;
-        padding: 1rem 1.5rem;
-        text-align: left;
-        border-bottom: 2px solid #e2e8f0;
-    }
-
-    mat-cell {
-        padding: 1rem 1.5rem;
-        color: #1e293b;
-        font-size: 0.9375rem;
-        border-bottom: 1px solid #f1f5f9;
-    }
-
-    mat-row:hover {
-        background-color: #f8fafc;
-        transition: background-color 0.2s ease;
-    }
+    margin-bottom: var(--spacing-xl);
 }
 
 ::ng-deep {
@@ -151,25 +56,6 @@ table {
     }
 }
 
-.status {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 0.8125rem;
-    font-weight: 600;
-
-    &.active {
-        background-color: #d1fae5;
-        color: #065f46;
-    }
-
-    &.inactive {
-        background-color: #fee2e2;
-        color: #991b1b;
-    }
-}
-
 .actions {
     display: flex;
     gap: 0.25rem;
@@ -182,24 +68,6 @@ table {
 
 .table-container {
     margin-top: 2rem;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 3rem;
-    margin-top: 3rem;
-
-    h3 {
-        color: #64748b;
-        font-size: 1.25rem;
-        margin-bottom: 0.5rem;
-    }
-
-    p {
-        color: #94a3b8;
-        font-size: 0.9375rem;
-        margin: 0;
-    }
 }
 
 // Modal styles
@@ -217,13 +85,13 @@ table {
 }
 
 .modal-content {
-    background: white;
-    border-radius: var(--border-radius-lg);
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-lg);
     width: 90%;
     max-width: 500px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-xl);
 }
 
 .modal-header {
@@ -231,12 +99,13 @@ table {
     justify-content: space-between;
     align-items: center;
     padding: var(--spacing-lg);
-    border-bottom: 1px solid var(--color-gray-200);
+    border-bottom: 1px solid var(--color-border);
 
     h2 {
         margin: 0;
         font-size: var(--font-size-xl);
         font-weight: var(--font-weight-semibold);
+        color: var(--color-text-primary);
     }
 
     .close-btn {
@@ -246,6 +115,7 @@ table {
         cursor: pointer;
         color: var(--color-gray-500);
         line-height: 1;
+        transition: color var(--transition-base);
 
         &:hover {
             color: var(--color-gray-700);
@@ -257,37 +127,11 @@ form {
     padding: var(--spacing-lg);
 }
 
-.form-group {
-    margin-bottom: var(--spacing-md);
-
-    label {
-        display: block;
-        margin-bottom: var(--spacing-xs);
-        font-weight: var(--font-weight-medium);
-        color: var(--color-gray-700);
-        font-size: var(--font-size-sm);
-    }
-
-    input,
-    select {
-        width: 100%;
-        padding: var(--spacing-sm) var(--spacing-md);
-        border: 1px solid var(--color-gray-300);
-        border-radius: var(--border-radius-md);
-        font-size: var(--font-size-base);
-        transition: border-color 0.2s;
-
-        &:focus {
-            outline: none;
-            border-color: var(--color-primary);
-        }
-    }
-}
-
 .modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: var(--spacing-sm);
     padding-top: var(--spacing-md);
-    border-top: 1px solid var(--color-gray-200);
+    border-top: 1px solid var(--color-border);
+    margin-top: var(--spacing-lg);
 }
