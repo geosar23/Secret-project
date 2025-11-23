@@ -56,7 +56,8 @@ export class RoleUtils {
      * Get the display name for a role
      */
     static getRoleName(role: string): string {
-        const normalizedRole = role.toUpperCase() as UserRole;
+        const normalizedRole = role as UserRole;
+        console.log(role, normalizedRole, ROLE_NAMES[normalizedRole]);
         return ROLE_NAMES[normalizedRole] || role;
     }
 

@@ -20,6 +20,7 @@ import { RoleUtils } from "../../core/utils/role.utils";
 
 interface IUserTableData extends IUser {
     roleColor?: string;
+    roleName?: string;
 }
 
 @Component({
@@ -123,6 +124,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.tableData.data = response.users.map(user => ({
                     ...user,
                     roleColor: RoleUtils.getRoleColor(user.role),
+                    roleName: RoleUtils.getRoleName(user.role),
                 }));
                 // Update paginator after data is loaded
                 setTimeout(() => {
