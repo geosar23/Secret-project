@@ -1,19 +1,8 @@
 import { Component, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { HttpClient } from "@angular/common/http";
-import { environment } from "../../../environments/environment";
-
-interface User {
-    _id: string;
-    name: string;
-    email: string;
-    role: string;
-    companyId?: string;
-    departmentId?: string;
-    isActive: boolean;
-    createdAt?: string;
-}
+import { UsersService } from "../../core/services/users.service";
+import { IUser } from "../../core/interfaces/user.interface";
 
 @Component({
     selector: "app-users",
@@ -23,7 +12,7 @@ interface User {
     styleUrls: ["./users.component.scss"],
 })
 export class UsersComponent implements OnInit {
-    users: User[] = [];
+    users: IUser[] = [];
     loading = false;
     error = "";
     showCreateModal = false;
@@ -47,7 +36,7 @@ export class UsersComponent implements OnInit {
         { value: "employee", label: "Employee" },
     ];
 
-    constructor(private http: HttpClient) {}
+    constructor(private usersService: UsersService) {}
 
     ngOnInit() {
         this.loadUsers();
@@ -56,15 +45,12 @@ export class UsersComponent implements OnInit {
     loadUsers() {
         this.loading = true;
         this.error = "";
-
-        const token = localStorage.getItem("token");
-        this.http
-            .get<{ success: boolean; data: User[] }>(`${environment.apiUrl}/users`, {
-                headers: { Authorization: `Bearer ${token}` },
-            })
+        this.usersService
+            .getUsers()
             .subscribe({
                 next: response => {
-                    this.users = response.data;
+                    this.users = response.users;
+                    console.log(response);
                     this.loading = false;
                 },
                 error: err => {
@@ -103,15 +89,11 @@ export class UsersComponent implements OnInit {
 
         this.loading = true;
         this.error = "";
-
-        const token = localStorage.getItem("token");
-        this.http
-            .post<{ success: boolean; data: User }>(`${environment.apiUrl}/users`, this.newUser, {
-                headers: { Authorization: `Bearer ${token}` },
-            })
+        this.usersService
+            .createUser(this.newUser)
             .subscribe({
                 next: response => {
-                    this.users.push(response.data);
+                    this.users.push(response.user);
                     this.closeCreateModal();
                     this.loading = false;
                 },
@@ -132,10 +114,5 @@ export class UsersComponent implements OnInit {
             employee: "badge-employee",
         };
         return roleMap[role] || "badge-default";
-    }
-
-    formatDate(date?: string): string {
-        if (!date) return "N/A";
-        return new Date(date).toLocaleDateString();
     }
 }
