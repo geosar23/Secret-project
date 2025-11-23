@@ -60,6 +60,8 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
         { value: "createdAt:asc", label: "Oldest First" },
         { value: "role:asc", label: "Role (A-Z)" },
         { value: "role:desc", label: "Role (Z-A)" },
+        { value: "companyId:asc", label: "Company ID (A-Z)" },
+        { value: "companyId:desc", label: "Company ID (Z-A)" },
     ];
     selectedSort = "createdAt:desc";
 
