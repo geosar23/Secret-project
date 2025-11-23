@@ -1,10 +1,10 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import { UserService } from "../services/user.service";
 import { AuthenticatedRequest } from "../interfaces/permission.interface";
 import { UserRole } from "../enums/user-role.enum";
 
 export class UserController {
-    async getUsers(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async getUsers(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             // Get requesting user from JWT token (set by auth middleware)
             const requestingUser = req.decoded;
@@ -23,12 +23,7 @@ export class UserController {
                 sortOrder: req.query.sortOrder as "asc" | "desc",
                 role: req.query.role as string,
                 companyId: req.query.companyId as string,
-                isActive:
-                    req.query.isActive === "true"
-                        ? true
-                        : req.query.isActive === "false"
-                          ? false
-                          : undefined,
+                isActive: req.query.isActive === "true" ? true : req.query.isActive === "false" ? false : undefined,
             };
 
             // Authorization: Enforce company-level data access
@@ -51,7 +46,7 @@ export class UserController {
         }
     }
 
-    async create(req: Request, res: Response): Promise<void> {
+    static async create(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             console.log("UserController.create called with body:", req.body);
             const newUser = await UserService.create(req.body);

@@ -9,9 +9,7 @@ export const UserService = {
         const limit = Math.max(1, Math.min(params.limit || 10, 100));
         const search = params.search ? String(params.search).slice(0, 100) : undefined;
         const allowedSortFields = ["name", "email", "createdAt", "role", "companyId"];
-        const sortBy = allowedSortFields.includes(params.sortBy || "")
-            ? params.sortBy!
-            : "createdAt";
+        const sortBy = allowedSortFields.includes(params.sortBy || "") ? params.sortBy! : "createdAt";
         const sortOrder = params.sortOrder === "asc" ? "asc" : "desc";
         const role = params.role;
         const companyId = params.companyId;
@@ -22,10 +20,7 @@ export const UserService = {
         const filter: FilterQuery<IUser> = {};
 
         if (search) {
-            filter.$or = [
-                { name: { $regex: search, $options: "i" } },
-                { email: { $regex: search, $options: "i" } },
-            ];
+            filter.$or = [{ name: { $regex: search, $options: "i" } }, { email: { $regex: search, $options: "i" } }];
         }
 
         if (role) {
@@ -52,12 +47,7 @@ export const UserService = {
 
         // Execute query with pagination
         const [users, total] = await Promise.all([
-            UserModel.find(filter)
-                .sort(sortOptions)
-                .skip(skip)
-                .limit(limit)
-                .select("-password")
-                .lean(),
+            UserModel.find(filter).sort(sortOptions).skip(skip).limit(limit).select("-password").lean(),
             UserModel.countDocuments(filter),
         ]);
 
@@ -73,7 +63,6 @@ export const UserService = {
     getById: (id: string) => UserModel.findById(id),
     getByEmail: (email: string) => UserModel.findOne({ email }),
     create: (data: Omit<IUser, "_id">) => UserModel.create(data),
-    update: (id: string, data: Partial<IUser>) =>
-        UserModel.findByIdAndUpdate(id, data, { new: true }),
+    update: (id: string, data: Partial<IUser>) => UserModel.findByIdAndUpdate(id, data, { new: true }),
     delete: (id: string) => UserModel.findByIdAndDelete(id),
 };

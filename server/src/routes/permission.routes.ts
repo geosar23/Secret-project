@@ -9,10 +9,7 @@ router.get("/definitions", PermissionController.getAllPermissions as RequestHand
 router.get("/roles", PermissionController.getRoles as RequestHandler);
 
 // Grant permission to user
-router.post(
-    "/users/:userId/permissions/grant",
-    PermissionController.grantPermission as RequestHandler,
-);
+router.post("/users/:userId/permissions/grant", PermissionController.grantPermission as RequestHandler);
 
 // Revoke granted permission from user
 router.delete(
@@ -21,40 +18,22 @@ router.delete(
 );
 
 // Revoke role permission from user (blacklist)
-router.post(
-    "/users/:userId/permissions/revoke",
-    PermissionController.revokeRolePermission as RequestHandler,
-);
+router.post("/users/:userId/permissions/revoke", PermissionController.revokeRolePermission as RequestHandler);
 
 // Restore revoked role permission
-router.post(
-    "/users/:userId/permissions/restore",
-    PermissionController.restoreRolePermission as RequestHandler,
-);
+router.post("/users/:userId/permissions/restore", PermissionController.restoreRolePermission as RequestHandler);
 
 // Get effective permissions for user
-router.get(
-    "/users/:userId/permissions/effective",
-    PermissionController.getEffectivePermissions as RequestHandler,
-);
+router.get("/users/:userId/permissions/effective", PermissionController.getEffectivePermissions as RequestHandler);
 
 // Get permission history for user
-router.get(
-    "/users/:userId/permissions/history",
-    PermissionController.getPermissionHistory as RequestHandler,
-);
+router.get("/users/:userId/permissions/history", PermissionController.getPermissionHistory as RequestHandler);
 
 // Cleanup expired permissions
-router.post(
-    "/users/:userId/permissions/cleanup",
-    PermissionController.cleanupExpiredPermissions as RequestHandler,
-);
+router.post("/users/:userId/permissions/cleanup", PermissionController.cleanupExpiredPermissions as RequestHandler);
 
 // Bulk operations
 router.post("/permissions/bulk/grant", PermissionController.bulkGrantPermission as RequestHandler);
-router.post(
-    "/permissions/bulk/revoke",
-    PermissionController.bulkRevokeGrantedPermission as RequestHandler,
-);
+router.post("/permissions/bulk/revoke", PermissionController.bulkRevokeGrantedPermission as RequestHandler);
 
 export default router;

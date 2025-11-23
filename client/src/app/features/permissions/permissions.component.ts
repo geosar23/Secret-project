@@ -7,24 +7,14 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatListModule } from "@angular/material/list";
 import { PermissionService } from "../../core/services/permission.service";
 import { AuthService } from "../../core/services/auth.service";
-import {
-    IPermissionCategory,
-    IPermissionDefinition,
-} from "../../core/interfaces/permission.interface";
+import { IPermissionCategory, IPermissionDefinition } from "../../core/interfaces/permission.interface";
 import { forkJoin } from "rxjs";
 import { RoleUtils } from "../../core/utils/role.utils";
 
 @Component({
     selector: "app-permissions",
     standalone: true,
-    imports: [
-        CommonModule,
-        MatToolbarModule,
-        MatCardModule,
-        MatChipsModule,
-        MatIconModule,
-        MatListModule,
-    ],
+    imports: [CommonModule, MatToolbarModule, MatCardModule, MatChipsModule, MatIconModule, MatListModule],
     templateUrl: "./permissions.component.html",
     styleUrls: ["./permissions.component.scss"],
 })

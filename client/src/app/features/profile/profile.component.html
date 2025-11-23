@@ -79,10 +79,7 @@
                             <mat-label>Name</mat-label>
                             <input matInput formControlName="name" placeholder="Your name" />
                             <mat-icon matPrefix>person</mat-icon>
-                            @if (
-                                profileForm.get("name")?.hasError("required") &&
-                                profileForm.get("name")?.touched
-                            ) {
+                            @if (profileForm.get("name")?.hasError("required") && profileForm.get("name")?.touched) {
                                 <mat-error>Name is required</mat-error>
                             }
                             @if (profileForm.get("name")?.hasError("minlength")) {
@@ -92,17 +89,9 @@
 
                         <mat-form-field appearance="outline" class="full-width">
                             <mat-label>Email</mat-label>
-                            <input
-                                matInput
-                                type="email"
-                                formControlName="email"
-                                placeholder="your@email.com"
-                            />
+                            <input matInput type="email" formControlName="email" placeholder="your@email.com" />
                             <mat-icon matPrefix>email</mat-icon>
-                            @if (
-                                profileForm.get("email")?.hasError("required") &&
-                                profileForm.get("email")?.touched
-                            ) {
+                            @if (profileForm.get("email")?.hasError("required") && profileForm.get("email")?.touched) {
                                 <mat-error>Email is required</mat-error>
                             }
                             @if (profileForm.get("email")?.hasError("email")) {
@@ -126,12 +115,7 @@
                                 }
                                 Save Changes
                             </button>
-                            <button
-                                mat-button
-                                type="button"
-                                (click)="toggleEditMode()"
-                                [disabled]="loading"
-                            >
+                            <button mat-button type="button" (click)="toggleEditMode()" [disabled]="loading">
                                 Cancel
                             </button>
                         </div>

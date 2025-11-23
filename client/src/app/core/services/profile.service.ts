@@ -1,11 +1,7 @@
 import { Injectable, inject } from "@angular/core";
 import { Observable } from "rxjs";
 import { ApiService } from "./api.service";
-import {
-    UserProfile,
-    UpdateProfileRequest,
-    ChangePasswordRequest,
-} from "../interfaces/profile.interface";
+import { UserProfile, UpdateProfileRequest, ChangePasswordRequest } from "../interfaces/profile.interface";
 
 /**
  * ProfileService - Current user's personal profile management

@@ -16,11 +16,7 @@ export class PermissionChecker {
      * @param resource Optional resource being accessed (for ABAC)
      * @returns true if access is granted, false otherwise
      */
-    static async canAccess(
-        user: IUser,
-        permission: string,
-        resource?: Record<string, unknown>,
-    ): Promise<boolean> {
+    static async canAccess(user: IUser, permission: string, resource?: Record<string, unknown>): Promise<boolean> {
         // 1. GOD role bypasses all checks
         if (user.role === UserRole.GOD) {
             return true;
@@ -113,10 +109,7 @@ export class PermissionChecker {
             // Scope hierarchy: "all" includes more specific scopes
             if (i === roleParts.length - 1) {
                 // This is the scope part (last segment)
-                if (
-                    rolePart === "all" &&
-                    ["department", "managed", "self", "own"].includes(permPart)
-                ) {
+                if (rolePart === "all" && ["department", "managed", "self", "own"].includes(permPart)) {
                     continue;
                 }
                 if (rolePart === "department" && ["managed", "self", "own"].includes(permPart)) {
@@ -158,11 +151,7 @@ export class PermissionChecker {
     /**
      * Evaluate scope against attribute rules
      */
-    private static checkScope(
-        user: IUser,
-        resource: Record<string, unknown>,
-        scope: string,
-    ): boolean {
+    private static checkScope(user: IUser, resource: Record<string, unknown>, scope: string): boolean {
         const scopeHandler = SCOPE_HANDLERS[scope];
         if (!scopeHandler) {
             return false; // Unknown scope

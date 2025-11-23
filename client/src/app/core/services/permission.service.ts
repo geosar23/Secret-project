@@ -17,9 +17,7 @@ export class PermissionService {
      * Backend returns expanded permissions, so just check for inclusion
      */
     hasPermission(permission: string): Observable<boolean> {
-        return this.effectivePermissions$.pipe(
-            map(permissions => permissions.includes(permission)),
-        );
+        return this.effectivePermissions$.pipe(map(permissions => permissions.includes(permission)));
     }
 
     /**
@@ -93,14 +91,12 @@ export class PermissionService {
      * Fetch all permission definitions from server
      */
     fetchAllPermissionDefinitions(): Observable<IPermissionDefinition[]> {
-        return this.apiService
-            .get<{ permissions: IPermissionDefinition[] }>("permissions/definitions")
-            .pipe(
-                map(response => response.permissions),
-                catchError(error => {
-                    console.error("Error fetching permission definitions:", error);
-                    return of([]);
-                }),
-            );
+        return this.apiService.get<{ permissions: IPermissionDefinition[] }>("permissions/definitions").pipe(
+            map(response => response.permissions),
+            catchError(error => {
+                console.error("Error fetching permission definitions:", error);
+                return of([]);
+            }),
+        );
     }
 }

@@ -10,14 +10,7 @@ import { AuthService } from "../../core/services/auth.service";
 @Component({
     selector: "app-dashboard",
     standalone: true,
-    imports: [
-        AsyncPipe,
-        RouterLink,
-        MatToolbarModule,
-        MatButtonModule,
-        MatCardModule,
-        MatIconModule,
-    ],
+    imports: [AsyncPipe, RouterLink, MatToolbarModule, MatButtonModule, MatCardModule, MatIconModule],
     templateUrl: "./dashboard.component.html",
     styleUrls: ["./dashboard.component.scss"],
 })

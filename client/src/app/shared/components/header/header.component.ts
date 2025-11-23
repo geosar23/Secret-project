@@ -27,15 +27,7 @@ interface MenuItem {
 @Component({
     selector: "app-header",
     standalone: true,
-    imports: [
-        CommonModule,
-        RouterModule,
-        MatToolbarModule,
-        MatButtonModule,
-        MatIconModule,
-        MatMenuModule,
-        MatDivider,
-    ],
+    imports: [CommonModule, RouterModule, MatToolbarModule, MatButtonModule, MatIconModule, MatMenuModule, MatDivider],
     templateUrl: "./header.component.html",
     styleUrls: ["./header.component.scss"],
 })

@@ -29,14 +29,7 @@ export const ROLE_COLORS: Record<UserRole, string> = {
  * Higher level includes all permissions of lower levels
  */
 export const ROLE_HIERARCHY_CONFIG = {
-    levels: [
-        UserRole.GOD,
-        UserRole.SUPER_ADMIN,
-        UserRole.ADMIN,
-        UserRole.HR,
-        UserRole.MANAGER,
-        UserRole.EMPLOYEE,
-    ],
+    levels: [UserRole.GOD, UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.HR, UserRole.MANAGER, UserRole.EMPLOYEE],
     hierarchy: {
         [UserRole.GOD]: 6, // Highest
         [UserRole.SUPER_ADMIN]: 5,

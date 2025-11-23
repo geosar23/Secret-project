@@ -19,10 +19,7 @@
                         <h2 class="category-title">{{ category.name }}</h2>
                         <div class="permissions-list">
                             @for (item of category.permissions; track item.permission) {
-                                <div
-                                    class="permission-item"
-                                    [class.has-permission]="item.hasPermission"
-                                >
+                                <div class="permission-item" [class.has-permission]="item.hasPermission">
                                     <div class="permission-status">
                                         <mat-icon
                                             [class.granted]="item.hasPermission"

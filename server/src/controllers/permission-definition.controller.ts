@@ -68,10 +68,7 @@ export const PermissionDefinitionController = {
         } catch (error) {
             res.status(500).json({
                 success: false,
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to fetch permissions by category",
+                error: error instanceof Error ? error.message : "Failed to fetch permissions by category",
             });
         }
     },
@@ -92,10 +89,7 @@ export const PermissionDefinitionController = {
         } catch (error) {
             res.status(500).json({
                 success: false,
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to fetch permissions by entity",
+                error: error instanceof Error ? error.message : "Failed to fetch permissions by entity",
             });
         }
     },
@@ -134,8 +128,7 @@ export const PermissionDefinitionController = {
         } catch (error) {
             res.status(500).json({
                 success: false,
-                error:
-                    error instanceof Error ? error.message : "Failed to fetch grouped permissions",
+                error: error instanceof Error ? error.message : "Failed to fetch grouped permissions",
             });
         }
     },

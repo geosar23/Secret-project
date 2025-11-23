@@ -3,15 +3,12 @@ import { UserController } from "../controllers/user.controller";
 import { AuthenticatedRequest } from "../interfaces/permission.interface";
 
 const router = Router();
-const userController = new UserController();
 
 // All routes here require authentication + permissions (set in api/routes.ts)
 // Only admins/HR with proper permissions can create users
 
-router.get("/", (req, res, next) =>
-    userController.getUsers(req as AuthenticatedRequest, res, next),
-); // Get all users
-router.post("/", (req, res) => userController.create(req, res)); // Create new user (admin/HR only)
+router.get("/", (req, res, next) => UserController.getUsers(req as AuthenticatedRequest, res, next)); // Get all users
+router.post("/", (req, res) => UserController.create(req as AuthenticatedRequest, res)); // Create new user (admin/HR only)
 
 // TODO: Add more user management endpoints:
 // router.get("/:id", UserController.getById);

@@ -2,11 +2,7 @@ import { Request, Response } from "express";
 
 type ErrorWithStatus = { statusCode?: number; message?: string };
 
-export default function errorMiddleware(
-    err: ErrorWithStatus | unknown,
-    req: Request,
-    res: Response,
-) {
+export default function errorMiddleware(err: ErrorWithStatus | unknown, req: Request, res: Response) {
     if (process.env.NODE_ENV !== "production") {
         console.error("💥 Error:", err);
     }

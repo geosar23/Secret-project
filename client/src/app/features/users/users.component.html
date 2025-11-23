@@ -12,19 +12,10 @@
         <div class="filters-row">
             <mat-form-field appearance="outline" class="search-field">
                 <mat-label>Search</mat-label>
-                <input
-                    matInput
-                    [formControl]="searchControl"
-                    placeholder="Search by name or email..."
-                />
+                <input matInput [formControl]="searchControl" placeholder="Search by name or email..." />
                 <mat-icon matPrefix>search</mat-icon>
                 @if (searchControl.value) {
-                    <button
-                        matSuffix
-                        mat-icon-button
-                        aria-label="Clear"
-                        (click)="searchControl.setValue('')"
-                    >
+                    <button matSuffix mat-icon-button aria-label="Clear" (click)="searchControl.setValue('')">
                         <mat-icon>close</mat-icon>
                     </button>
                 }
@@ -78,20 +69,14 @@
             <!-- Company ID Column -->
             <ng-container matColumnDef="companyId">
                 <mat-header-cell *matHeaderCellDef>Company ID</mat-header-cell>
-                <mat-cell *matCellDef="let user" data-label="Company ID">{{
-                    user.companyId || "N/A"
-                }}</mat-cell>
+                <mat-cell *matCellDef="let user" data-label="Company ID">{{ user.companyId || "N/A" }}</mat-cell>
             </ng-container>
 
             <!-- Status Column -->
             <ng-container matColumnDef="status">
                 <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
                 <mat-cell *matCellDef="let user" data-label="Status">
-                    <span
-                        class="badge"
-                        [class.badge-success]="user.isActive"
-                        [class.badge-error]="!user.isActive"
-                    >
+                    <span class="badge" [class.badge-success]="user.isActive" [class.badge-error]="!user.isActive">
                         {{ user.isActive ? "Active" : "Inactive" }}
                     </span>
                 </mat-cell>
@@ -100,9 +85,7 @@
             <!-- Created Column -->
             <ng-container matColumnDef="createdAt">
                 <mat-header-cell *matHeaderCellDef>Created</mat-header-cell>
-                <mat-cell *matCellDef="let user" data-label="Created">{{
-                    user.createdAt | date: "short"
-                }}</mat-cell>
+                <mat-cell *matCellDef="let user" data-label="Created">{{ user.createdAt | date: "short" }}</mat-cell>
             </ng-container>
 
             <!-- Actions Column -->

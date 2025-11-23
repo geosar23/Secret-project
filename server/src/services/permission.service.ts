@@ -30,9 +30,7 @@ export const PermissionService = {
         }
 
         // Check if permission already granted
-        const existingGrant = user.grantedPermissions.find(
-            (g: GrantedPermission) => g.permission === permission,
-        );
+        const existingGrant = user.grantedPermissions.find((g: GrantedPermission) => g.permission === permission);
 
         if (existingGrant) {
             // Update existing grant
@@ -121,9 +119,7 @@ export const PermissionService = {
         }
 
         if (user.revokedPermissions) {
-            user.revokedPermissions = user.revokedPermissions.filter(
-                (p: string) => p !== permission,
-            );
+            user.revokedPermissions = user.revokedPermissions.filter((p: string) => p !== permission);
         }
 
         const updated = await UserService.update(userId, user);
@@ -200,9 +196,7 @@ export const PermissionService = {
             scope?: string;
         },
     ): Promise<IUser[]> {
-        const promises = userIds.map(userId =>
-            this.grantPermission(userId, permission, grantedBy, options),
-        );
+        const promises = userIds.map(userId => this.grantPermission(userId, permission, grantedBy, options));
         return Promise.all(promises);
     },
 

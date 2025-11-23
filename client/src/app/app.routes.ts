@@ -13,27 +13,20 @@ export const routes: Routes = [
         children: [
             {
                 path: "dashboard",
-                loadComponent: () =>
-                    import("./features/dashboard/dashboard.component").then(
-                        m => m.DashboardComponent,
-                    ),
+                loadComponent: () => import("./features/dashboard/dashboard.component").then(m => m.DashboardComponent),
             },
             {
                 path: "users",
-                loadComponent: () =>
-                    import("./features/users/users.component").then(m => m.UsersComponent),
+                loadComponent: () => import("./features/users/users.component").then(m => m.UsersComponent),
             },
             {
                 path: "permissions",
                 loadComponent: () =>
-                    import("./features/permissions/permissions.component").then(
-                        m => m.PermissionsComponent,
-                    ),
+                    import("./features/permissions/permissions.component").then(m => m.PermissionsComponent),
             },
             {
                 path: "profile",
-                loadComponent: () =>
-                    import("./features/profile/profile.component").then(m => m.ProfileComponent),
+                loadComponent: () => import("./features/profile/profile.component").then(m => m.ProfileComponent),
             },
         ],
     },

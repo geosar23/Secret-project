@@ -59,8 +59,7 @@ export const ATTRIBUTE_RULES = {
         const isDirectManager = ctx.user._id === ctx.resource.managerId;
 
         // Check if user manages the department
-        const managesDept =
-            ctx.user.managedDepartments?.includes(ctx.resource.departmentId as string) || false;
+        const managesDept = ctx.user.managedDepartments?.includes(ctx.resource.departmentId as string) || false;
 
         return isDirectManager || managesDept;
     },
