@@ -30,3 +30,13 @@ export interface IUser {
     createdAt?: Date;
     updatedAt?: Date;
 }
+export interface IUsersQueryParams {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+    departmentId?: string;
+    isActive?: boolean;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+}

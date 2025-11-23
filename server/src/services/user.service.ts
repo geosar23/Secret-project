@@ -1,20 +1,9 @@
 import { UserModel } from "../models/user.model";
-import { IUser } from "../interfaces/user.interface";
+import { IUser, IUsersQueryParams } from "../interfaces/user.interface";
 import { FilterQuery } from "mongoose";
 
-interface GetUsersParams {
-    page?: number;
-    limit?: number;
-    search?: string;
-    role?: string;
-    departmentId?: string;
-    isActive?: boolean;
-    sortBy?: string;
-    sortOrder?: "asc" | "desc";
-}
-
 export const UserService = {
-    getUsers: async (params: GetUsersParams = {}) => {
+    getUsers: async (params: IUsersQueryParams = {}) => {
         const {
             page = 1,
             limit = 10,
