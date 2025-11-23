@@ -4,17 +4,19 @@ import { FilterQuery } from "mongoose";
 
 export const UserService = {
     getUsers: async (params: IUsersQueryParams = {}) => {
-        const {
-            page = 1,
-            limit = 10,
-            search,
-            role,
-            companyId,
-            departmentId,
-            isActive,
-            sortBy = "createdAt",
-            sortOrder = "desc",
-        } = params;
+        // Validate and sanitize parameters (business rules)
+        const page = Math.max(1, Math.min(params.page || 1, 1000));
+        const limit = Math.max(1, Math.min(params.limit || 10, 100));
+        const search = params.search ? String(params.search).slice(0, 100) : undefined;
+        const allowedSortFields = ["name", "email", "createdAt", "role", "companyId"];
+        const sortBy = allowedSortFields.includes(params.sortBy || "")
+            ? params.sortBy!
+            : "createdAt";
+        const sortOrder = params.sortOrder === "asc" ? "asc" : "desc";
+        const role = params.role;
+        const companyId = params.companyId;
+        const departmentId = params.departmentId;
+        const isActive = params.isActive;
 
         // Build filter query
         const filter: FilterQuery<IUser> = {};
@@ -30,7 +32,7 @@ export const UserService = {
             filter.role = role;
         }
 
-        if(companyId) {
+        if (companyId) {
             filter.companyId = companyId;
         }
 

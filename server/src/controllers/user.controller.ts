@@ -4,8 +4,21 @@ import { UserService } from "../services/user.service";
 export const UserController = {
     getUsers: async (req: Request, res: Response) => {
         try {
-            const params = req.query;
-            console.log("UserController.getUsers called with params:", params);
+            // Parse query parameters
+            const params = {
+                page: req.query.page ? parseInt(req.query.page as string) : undefined,
+                limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+                search: req.query.search as string,
+                sortBy: req.query.sortBy as string,
+                sortOrder: req.query.sortOrder as "asc" | "desc",
+                role: req.query.role as string,
+                isActive:
+                    req.query.isActive === "true"
+                        ? true
+                        : req.query.isActive === "false"
+                          ? false
+                          : undefined,
+            };
 
             const users = await UserService.getUsers(params);
             res.status(200).json(users);
