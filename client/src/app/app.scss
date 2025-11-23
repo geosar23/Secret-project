@@ -1,11 +1,11 @@
 .environment-indicator {
-  position: fixed;
-  bottom: var(--spacing-sm);
-  right: var(--spacing-sm);
-  z-index: var(--z-tooltip);
-  pointer-events: none;
-  color: var(--color-text-secondary);
-  transition: opacity var(--transition-fast);
-  font-size: var(--font-size-xs);
-  opacity: 0.4;
+    position: fixed;
+    bottom: var(--spacing-sm);
+    right: var(--spacing-sm);
+    z-index: var(--z-tooltip);
+    pointer-events: none;
+    color: var(--color-text-secondary);
+    transition: opacity var(--transition-fast);
+    font-size: var(--font-size-xs);
+    opacity: 0.4;
 }
