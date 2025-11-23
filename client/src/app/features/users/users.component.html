@@ -7,8 +7,8 @@
         </button>
     </div>
 
-    @if (error) {
-        <div class="error-message badge badge-error">{{ error }}</div>
+    @if (userFetchingError) {
+        <div class="error-message badge badge-error">{{ userFetchingError }}</div>
     }
 
     @if (loading) {
@@ -97,10 +97,10 @@
         </mat-paginator>
     </div>
 
-    @if (!loading && tableData.data.length === 0 && !error) {
+    @if (!loading && tableData.data.length === 0 && !userFetchingError) {
         <div class="empty-state">
             <h3>No users found</h3>
-            <p>Try adjusting your filters or create a new user</p>
+            <p>Try adjusting your filters</p>
         </div>
     }
 
@@ -194,8 +194,8 @@
                         />
                     </div>
 
-                    @if (error) {
-                        <div class="form-error">{{ error }}</div>
+                    @if (userCreationError) {
+                        <div class="error-message badge badge-error">{{ userCreationError }}</div>
                     }
 
                     <div class="modal-actions">

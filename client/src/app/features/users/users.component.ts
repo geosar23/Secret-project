@@ -43,7 +43,8 @@ export class UsersComponent implements OnInit, AfterViewInit {
         "actions",
     ];
     loading = false;
-    error = "";
+    userFetchingError = "";
+    userCreationError = "";
     showCreateModal = false;
 
     // New user form
@@ -84,7 +85,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
     loadUsers() {
         this.loading = true;
-        this.error = "";
+        this.userFetchingError = "";
         this.usersService.getUsers().subscribe({
             next: response => {
                 this.tableData.data = response.users;
@@ -92,7 +93,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
                 this.loading = false;
             },
             error: err => {
-                this.error = err.error?.message || "Failed to load users";
+                this.userFetchingError = err.error?.message || "Failed to load users";
                 this.loading = false;
             },
         });
@@ -121,12 +122,12 @@ export class UsersComponent implements OnInit, AfterViewInit {
 
     createUser() {
         if (!this.newUser.name || !this.newUser.email || !this.newUser.password) {
-            this.error = "Name, email, and password are required";
+            this.userCreationError = "Name, email, and password are required";
             return;
         }
 
         this.loading = true;
-        this.error = "";
+        this.userCreationError = "";
         this.usersService.createUser(this.newUser).subscribe({
             next: response => {
                 const currentData = this.tableData.data;
@@ -136,7 +137,7 @@ export class UsersComponent implements OnInit, AfterViewInit {
                 this.loading = false;
             },
             error: err => {
-                this.error = err.error?.message || "Failed to create user";
+                this.userCreationError = err.error?.message || "Failed to create user";
                 this.loading = false;
             },
         });
