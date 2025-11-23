@@ -9,6 +9,7 @@ export const UserService = {
             limit = 10,
             search,
             role,
+            companyId,
             departmentId,
             isActive,
             sortBy = "createdAt",
@@ -27,6 +28,10 @@ export const UserService = {
 
         if (role) {
             filter.role = role;
+        }
+
+        if(companyId) {
+            filter.companyId = companyId;
         }
 
         if (departmentId) {
