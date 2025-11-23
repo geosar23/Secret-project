@@ -7,7 +7,7 @@ const router = Router();
 router.post("/login", AuthController.login);
 
 // Protected routes (require authentication)
-router.get("/me", AuthController.me);
+// router.get("/me", AuthController.me);
 
 // TODO: Add these employee-facing endpoints:
 // router.post("/activate-account", AuthController.activateAccount); // Employee sets password after invitation

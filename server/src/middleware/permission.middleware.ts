@@ -1,5 +1,5 @@
-// import { PermissionChecker } from "../permissions/permission-checker";
-import { AuthenticatedRequest } from "../interfaces";
+// import { PermissionChecker } from "../utils/permission-checker";
+import { AuthenticatedRequest } from "../interfaces/permission.interface";
 
 // Re-export for backwards compatibility
 export type { AuthenticatedRequest };
@@ -10,7 +10,7 @@ export type { AuthenticatedRequest };
  * @param permission Permission string to check (e.g., "employees:edit:managed")
  * @param resourceLoader Optional function to load resource from request
  */
-// export function userhasPermission(
+// export function userHasPermission(
 //     permission: string,
 //     resourceLoader?: (req: AuthenticatedRequest) => Promise<Record<string, unknown> | null>,
 // ) {
