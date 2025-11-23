@@ -1,5 +1,5 @@
-import { IUser, AccessContext } from "../../interfaces";
-import { UserRole } from "../../enums";
+import { IUser, AccessContext } from "../interfaces";
+import { UserRole } from "../enums";
 import { ROLE_PERMISSIONS } from "./role-permissions";
 import { SCOPE_HANDLERS } from "./attribute-rules";
 

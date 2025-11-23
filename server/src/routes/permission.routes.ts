@@ -1,6 +1,5 @@
 import { Router, RequestHandler } from "express";
-import { PermissionController } from "./permission.controller";
-
+import { PermissionController } from "../controllers/permission.controller";
 const router = Router();
 
 // Get all permission definitions

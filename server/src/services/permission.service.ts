@@ -1,6 +1,6 @@
-import { IUser, GrantedPermission } from "../../interfaces/user.interface";
-import { UserService } from "../../modules/users/user.service";
-import { PermissionChecker } from "../permissions/permission-checker";
+import { IUser, GrantedPermission } from "../interfaces/user.interface";
+import { UserService } from "./user.service";
+import { PermissionChecker } from "../utils/permission-checker";
 
 /**
  * Service for managing custom permission grants and revocations

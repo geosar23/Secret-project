@@ -1,8 +1,8 @@
 import { Response } from "express";
-import { PermissionService } from "./permission.service";
+import { PermissionService } from "../services/permission.service";
 import { AuthenticatedRequest } from "../middleware/permission.middleware";
-import { PERMISSIONS } from "./permissions.constants";
-import { RoleUtils } from "../roles/role.utils";
+import { PERMISSIONS } from "../utils/permissions.constants";
+import { RoleUtils } from "../utils/role.utils";
 
 /**
  * Controller for permission management endpoints

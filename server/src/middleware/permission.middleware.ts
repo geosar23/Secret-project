@@ -1,5 +1,5 @@
 // import { PermissionChecker } from "../permissions/permission-checker";
-import { AuthenticatedRequest } from "../../interfaces";
+import { AuthenticatedRequest } from "../interfaces";
 
 // Re-export for backwards compatibility
 export type { AuthenticatedRequest };

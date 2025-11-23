@@ -1,4 +1,4 @@
-import { AccessContext } from "../../interfaces";
+import { AccessContext } from "../interfaces";
 
 // Re-export for backwards compatibility
 export type { AccessContext };
