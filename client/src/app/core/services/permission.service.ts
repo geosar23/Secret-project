@@ -2,7 +2,7 @@ import { Injectable, inject } from "@angular/core";
 import { BehaviorSubject, Observable, map, catchError, of, tap } from "rxjs";
 import { ApiService } from "./api.service";
 import { AuthService } from "./auth.service";
-import { PermissionDefinition } from "../interfaces/permission.interface";
+import { IPermissionDefinition } from "../interfaces/permission.interface";
 
 @Injectable({
     providedIn: "root",
@@ -92,9 +92,9 @@ export class PermissionService {
     /**
      * Fetch all permission definitions from server
      */
-    fetchAllPermissionDefinitions(): Observable<PermissionDefinition[]> {
+    fetchAllPermissionDefinitions(): Observable<IPermissionDefinition[]> {
         return this.apiService
-            .get<{ permissions: PermissionDefinition[] }>("permissions/definitions")
+            .get<{ permissions: IPermissionDefinition[] }>("permissions/definitions")
             .pipe(
                 map(response => response.permissions),
                 catchError(error => {

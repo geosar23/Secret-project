@@ -1,0 +1,66 @@
+import { UserRole } from "../enums/user-role.enum";
+import { IGrantedPermission } from "./permission.interface";
+
+export interface IUser {
+    _id?: string;
+    name: string;
+    email: string;
+    password: string;
+
+    // Role & Organization
+    role: UserRole;
+    companyId?: string; // null only for GOD role
+    departmentId?: string;
+    managerId?: string; // Direct manager's user ID
+    managedDepartments?: string[]; // For managers - departments they manage
+
+    // Custom permissions
+    grantedPermissions?: IGrantedPermission[]; // Additional permissions granted
+    revokedPermissions?: string[]; // Role permissions that are revoked
+
+    isActive?: boolean;
+    createdAt?: Date;
+    updatedAt?: Date;
+}
+
+export interface ICreateUserRequest {
+    name: string;
+    email: string;
+    password: string;
+    role: string;
+    companyId?: string;
+    departmentId?: string;
+    managerId?: string;
+}
+
+export interface IUpdateUserRequest {
+    name?: string;
+    email?: string;
+    role?: string;
+    companyId?: string;
+    departmentId?: string;
+    managerId?: string;
+    isActive?: boolean;
+}
+
+export interface IUsersListResponse {
+    users: IUser[];
+    total: number;
+    page: number;
+    limit: number;
+}
+
+export interface UserResponse {
+    user: IUser;
+}
+
+export interface IUsersQueryParams {
+    page?: number;
+    limit?: number;
+    search?: string;
+    role?: string;
+    departmentId?: string;
+    isActive?: boolean;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+}

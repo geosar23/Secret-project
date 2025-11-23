@@ -1,4 +1,4 @@
-export interface GrantedPermission {
+export interface IGrantedPermission {
     permission: string;
     grantedBy: string;
     grantedAt: Date;
@@ -7,23 +7,23 @@ export interface GrantedPermission {
     scope?: string;
 }
 
-export interface PermissionHistory {
-    granted: GrantedPermission[];
+export interface IPermissionHistory {
+    granted: IGrantedPermission[];
     revoked: string[];
 }
 
-export interface PermissionCategory {
+export interface IPermissionCategory {
     name: string;
-    permissions: PermissionItem[];
+    permissions: IPermissionItem[];
 }
 
-export interface PermissionItem {
+export interface IPermissionItem {
     permission: string;
     description: string;
     hasPermission: boolean;
 }
 
-export interface PermissionDefinition {
+export interface IPermissionDefinition {
     permission: string;
     description: string;
     category: string;

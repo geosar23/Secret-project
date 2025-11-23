@@ -8,8 +8,8 @@ import { MatListModule } from "@angular/material/list";
 import { PermissionService } from "../../core/services/permission.service";
 import { AuthService } from "../../core/services/auth.service";
 import {
-    PermissionCategory,
-    PermissionDefinition,
+    IPermissionCategory,
+    IPermissionDefinition,
 } from "../../core/interfaces/permission.interface";
 import { forkJoin } from "rxjs";
 import { RoleUtils } from "../../core/utils/role.utils";
@@ -34,7 +34,7 @@ export class PermissionsComponent implements OnInit {
 
     currentUser$ = this.authService.currentUser$;
     effectivePermissions: string[] = [];
-    permissionCategories: PermissionCategory[] = [];
+    permissionCategories: IPermissionCategory[] = [];
     readonly rolesHierarchy = RoleUtils.getAllRolesWithMetadata();
 
     ngOnInit(): void {
@@ -48,9 +48,9 @@ export class PermissionsComponent implements OnInit {
         });
     }
 
-    private buildPermissionCategoriesFromBackend(definitions: PermissionDefinition[]): void {
+    private buildPermissionCategoriesFromBackend(definitions: IPermissionDefinition[]): void {
         // Group permissions by category
-        const categoryMap = new Map<string, PermissionDefinition[]>();
+        const categoryMap = new Map<string, IPermissionDefinition[]>();
 
         definitions.forEach(def => {
             if (!categoryMap.has(def.category)) {
