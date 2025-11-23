@@ -7,6 +7,18 @@
         </button>
     </div>
 
+    <div class="filters-container">
+        <h5>Filters & Sorting</h5>
+        <mat-form-field appearance="outline" class="sort-select">
+            <mat-label>Sort By</mat-label>
+            <mat-select [(value)]="selectedSort" (selectionChange)="onSortChange($event.value)">
+                @for (option of sortOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+    </div>
+
     @if (userFetchingError) {
         <div class="error-message badge badge-error">{{ userFetchingError }}</div>
     }
@@ -19,22 +31,22 @@
     }
 
     <div class="table-container" [ngStyle]="{ visibility: !loading ? 'visible' : 'hidden' }">
-        <table mat-table matSort [dataSource]="tableData">
+        <table mat-table [dataSource]="tableData">
             <!-- Name Column -->
             <ng-container matColumnDef="name">
-                <mat-header-cell *matHeaderCellDef mat-sort-header>Name</mat-header-cell>
+                <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
                 <mat-cell *matCellDef="let user" data-label="Name">{{ user.name }}</mat-cell>
             </ng-container>
 
             <!-- Email Column -->
             <ng-container matColumnDef="email">
-                <mat-header-cell *matHeaderCellDef mat-sort-header>Email</mat-header-cell>
+                <mat-header-cell *matHeaderCellDef>Email</mat-header-cell>
                 <mat-cell *matCellDef="let user" data-label="Email">{{ user.email }}</mat-cell>
             </ng-container>
 
             <!-- Role Column -->
             <ng-container matColumnDef="role">
-                <mat-header-cell *matHeaderCellDef mat-sort-header>Role</mat-header-cell>
+                <mat-header-cell *matHeaderCellDef>Role</mat-header-cell>
                 <mat-cell *matCellDef="let user" data-label="Role">
                     <mat-chip [ngClass]="getRoleBadgeClass(user.role)">
                         {{ user.role }}
@@ -44,7 +56,7 @@
 
             <!-- Company ID Column -->
             <ng-container matColumnDef="companyId">
-                <mat-header-cell *matHeaderCellDef mat-sort-header>Company ID</mat-header-cell>
+                <mat-header-cell *matHeaderCellDef>Company ID</mat-header-cell>
                 <mat-cell *matCellDef="let user" data-label="Company ID">{{
                     user.companyId || "N/A"
                 }}</mat-cell>
@@ -52,7 +64,7 @@
 
             <!-- Status Column -->
             <ng-container matColumnDef="status">
-                <mat-header-cell *matHeaderCellDef mat-sort-header>Status</mat-header-cell>
+                <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
                 <mat-cell *matCellDef="let user" data-label="Status">
                     <span
                         class="badge"
@@ -66,7 +78,7 @@
 
             <!-- Created Column -->
             <ng-container matColumnDef="createdAt">
-                <mat-header-cell *matHeaderCellDef mat-sort-header>Created</mat-header-cell>
+                <mat-header-cell *matHeaderCellDef>Created</mat-header-cell>
                 <mat-cell *matCellDef="let user" data-label="Created">{{
                     user.createdAt | date: "short"
                 }}</mat-cell>
