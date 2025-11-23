@@ -46,7 +46,7 @@
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
-    
+
     &:active {
         transform: translateY(0);
     }
@@ -80,7 +80,7 @@
     padding: var(--spacing-xl) var(--spacing-lg);
     gap: var(--spacing-md);
     min-height: 400px;
-    
+
     p {
         color: var(--color-gray-600);
         font-size: var(--font-size-base);
@@ -95,7 +95,7 @@
 
     table {
         width: 100%;
-        
+
         th {
             background-color: #f8fafc;
             color: #475569;
@@ -172,7 +172,7 @@
     border-radius: 9999px;
     font-size: 0.8125rem;
     font-weight: 600;
-    
+
     &.active {
         background-color: #d1fae5;
         color: #065f46;
@@ -187,7 +187,7 @@
 .actions {
     display: flex;
     gap: 0.25rem;
-    
+
     button {
         width: 36px;
         height: 36px;

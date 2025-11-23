@@ -26,7 +26,15 @@ import { IUser } from "../../core/interfaces/user.interface";
 })
 export class UsersComponent implements OnInit {
     users: IUser[] = [];
-    displayedColumns: string[] = ["name", "email", "role", "companyId", "status", "createdAt", "actions"];
+    displayedColumns: string[] = [
+        "name",
+        "email",
+        "role",
+        "companyId",
+        "status",
+        "createdAt",
+        "actions",
+    ];
     loading = false;
     error = "";
     showCreateModal = false;
