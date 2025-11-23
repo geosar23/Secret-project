@@ -15,7 +15,7 @@
 mat-dialog-content {
     min-width: 400px;
     padding: var(--spacing-lg);
- 
+
     @media (max-width: 768px) {
         min-width: 280px;
     }
