@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { AuthService } from "../services/auth.service";
+import { UserService } from "../services/user.service";
+import { JwtPayload } from "../interfaces/auth.interface";
 
 export const AuthController = {
     login: async (req: Request, res: Response) => {
@@ -18,22 +20,6 @@ export const AuthController = {
         }
     },
 
-    register: async (req: Request, res: Response) => {
-        try {
-            const { name, email, password, role } = req.body;
-
-            if (!name || !email || !password) {
-                return res.status(400).json({ message: "Name, email and password are required" });
-            }
-
-            const result = await AuthService.register({ name, email, password, role });
-            res.status(201).json(result);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : "Registration failed";
-            res.status(400).json({ message });
-        }
-    },
-
     me: async (req: Request, res: Response) => {
         try {
             const token = req.headers.authorization?.replace("Bearer ", "");
@@ -43,7 +29,14 @@ export const AuthController = {
             }
 
             const decoded = AuthService.verifyToken(token);
-            res.json(decoded);
+            const userId = (decoded as JwtPayload).id;
+            const user = await UserService.getById(userId);
+
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            res.json({ user });
         } catch (error) {
             const message = error instanceof Error ? error.message : "Invalid token";
             res.status(401).json({ message });

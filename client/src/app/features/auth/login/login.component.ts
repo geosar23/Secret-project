@@ -1,6 +1,6 @@
 import { Component, inject } from "@angular/core";
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
-import { Router, RouterLink } from "@angular/router";
+import { Router } from "@angular/router";
 import { CommonModule } from "@angular/common";
 import { MatCardModule } from "@angular/material/card";
 import { MatFormFieldModule } from "@angular/material/form-field";
@@ -15,7 +15,6 @@ import { AuthService } from "../../../core/services/auth.service";
     imports: [
         CommonModule,
         ReactiveFormsModule,
-        RouterLink,
         MatCardModule,
         MatFormFieldModule,
         MatInputModule,

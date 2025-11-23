@@ -3,7 +3,6 @@ import authRouter from "../routes/auth.routes";
 import usersRouter from "../routes/user.routes";
 import permissionRouter from "../routes/permission.routes";
 import roleRouter from "../routes/role.routes";
-import permissionDefinitionRouter from "../routes/permission-definition.routes";
 import { authMiddleware } from "../middleware/auth.middleware";
 
 const router = Router();
@@ -24,8 +23,5 @@ router.use("/permissions", authMiddleware as RequestHandler, permissionRouter);
 
 // Role management (requires authentication)
 router.use("/roles", authMiddleware as RequestHandler, roleRouter);
-
-// Permission definitions (requires authentication)
-router.use("/permission-definitions", authMiddleware as RequestHandler, permissionDefinitionRouter);
 
 export default router;
