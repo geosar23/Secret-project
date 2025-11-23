@@ -35,7 +35,11 @@
                     </td>
                     <td>{{ user.companyId || "N/A" }}</td>
                     <td>
-                        <span class="status" [class.active]="user.isActive" [class.inactive]="!user.isActive">
+                        <span
+                            class="status"
+                            [class.active]="user.isActive"
+                            [class.inactive]="!user.isActive"
+                        >
                             {{ user.isActive ? "Active" : "Inactive" }}
                         </span>
                     </td>

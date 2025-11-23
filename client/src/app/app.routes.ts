@@ -9,8 +9,7 @@ export const routes: Routes = [
     { path: "dashboard", component: DashboardComponent, canActivate: [authGuard] },
     {
         path: "users",
-        loadComponent: () =>
-            import("./features/users/users.component").then(m => m.UsersComponent),
+        loadComponent: () => import("./features/users/users.component").then(m => m.UsersComponent),
         canActivate: [authGuard],
     },
     {

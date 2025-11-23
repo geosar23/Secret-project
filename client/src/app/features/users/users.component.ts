@@ -106,13 +106,9 @@ export class UsersComponent implements OnInit {
 
         const token = localStorage.getItem("token");
         this.http
-            .post<{ success: boolean; data: User }>(
-                `${environment.apiUrl}/users`,
-                this.newUser,
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                },
-            )
+            .post<{ success: boolean; data: User }>(`${environment.apiUrl}/users`, this.newUser, {
+                headers: { Authorization: `Bearer ${token}` },
+            })
             .subscribe({
                 next: response => {
                     this.users.push(response.data);
