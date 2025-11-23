@@ -5,7 +5,7 @@ import errorMiddleware from "./middleware/error.middleware";
 import morgan from "morgan";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import { connectDB } from "./config/databases";
+
 // import swaggerUi from "swagger-ui-express"; //check later
 // import swaggerDocument from "./swagger.json";
 
@@ -28,7 +28,5 @@ app.use("/api", apiRouter);
 
 // Global error handler
 app.use(errorMiddleware);
-
-connectDB();
 
 export default app;
