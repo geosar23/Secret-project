@@ -1,5 +1,10 @@
 import mongoose from "mongoose";
 import { config } from "./env";
+import { Db } from "mongodb";
+
+declare global {
+    var mongoClient: Db | undefined;
+}
 
 /**
  * Database connection state
@@ -43,15 +48,12 @@ export const dbState = DatabaseState.getInstance();
  */
 export const connectDB = async (): Promise<void> => {
     try {
-        const res = await mongoose.connect(config.MONGO_URI);
+        await mongoose.connect(config.MONGO_URI);
+        global.mongoClient = mongoose.connection.db;
 
-        //Query Users collection to ensure connection is valid
-        const test = await res.connection.db.listCollections({ name: "Users" }).toArray();
-
-        //Find all users to test
-        const users = await res.connection.db.collection("Users").find().toArray();
-        console.log("Test query result:", test);
-        console.log("Users found:", users);
+        const users = await (mongoClient as Db).collection("Users").find().toArray();
+        console.log("User sample:", users[0]);
+        console.log("Users found:", users.length);
 
         dbState.setConnected(true);
         console.log("📦 Connected to MongoDB - Using real database");
