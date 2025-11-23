@@ -2,7 +2,7 @@ import { Router, RequestHandler } from "express";
 import authRouter from "../routes/auth.routes";
 import usersRouter from "../routes/user.routes";
 import permissionRouter from "../routes/permission.routes";
-import roleRouter from "../routes/role.routes"
+import roleRouter from "../routes/role.routes";
 import permissionDefinitionRouter from "../routes/permission-definition.routes";
 import { authMiddleware } from "../middleware/auth.middleware";
 

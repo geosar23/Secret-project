@@ -4,7 +4,8 @@ import { MockDatabase } from "../db/mock-database";
 import { dbState } from "../config/databases";
 
 export const UserService = {
-    getAll: () => (dbState.useMock ? Promise.resolve(MockDatabase.getAllUsers()) : UserModel.find()),
+    getAll: () =>
+        dbState.useMock ? Promise.resolve(MockDatabase.getAllUsers()) : UserModel.find(),
     getById: (id: string) =>
         dbState.useMock ? Promise.resolve(MockDatabase.getUserById(id)) : UserModel.findById(id),
     getByEmail: (email: string) =>
@@ -18,5 +19,7 @@ export const UserService = {
             ? Promise.resolve(MockDatabase.updateUser(id, data))
             : UserModel.findByIdAndUpdate(id, data, { new: true }),
     delete: (id: string) =>
-        dbState.useMock ? Promise.resolve(MockDatabase.deleteUser(id)) : UserModel.findByIdAndDelete(id),
+        dbState.useMock
+            ? Promise.resolve(MockDatabase.deleteUser(id))
+            : UserModel.findByIdAndDelete(id),
 };
