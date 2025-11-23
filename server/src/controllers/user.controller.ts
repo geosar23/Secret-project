@@ -1,16 +1,17 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { UserService } from "../services/user.service";
 import { AuthenticatedRequest } from "../interfaces/permission.interface";
 import { UserRole } from "../enums/user-role.enum";
 
-export const UserController = {
-    getUsers: async (req: AuthenticatedRequest, res: Response) => {
+export class UserController {
+    async getUsers(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             // Get requesting user from JWT token (set by auth middleware)
             const requestingUser = req.decoded;
 
             if (!requestingUser) {
-                return res.status(401).json({ message: "Unauthorized" });
+                res.status(401).json({ message: "Unauthorized" });
+                return;
             }
 
             // Parse query parameters
@@ -35,7 +36,8 @@ export const UserController = {
                 //Fetch requesting user
                 const user = await UserService.getById(requestingUser.id);
                 if (!user) {
-                    return res.status(404).json({ message: "Requesting user not found" });
+                    res.status(404).json({ message: "Requesting user not found" });
+                    return;
                 }
                 params.companyId = user.companyId as string;
             }
@@ -45,10 +47,11 @@ export const UserController = {
         } catch (error) {
             console.log("Error in UserController.getUsers:", error);
             res.status(500).json({ message: "Internal server error" });
+            next(error);
         }
-    },
+    }
 
-    create: async (req: Request, res: Response) => {
+    async create(req: Request, res: Response): Promise<void> {
         try {
             console.log("UserController.create called with body:", req.body);
             const newUser = await UserService.create(req.body);
@@ -57,5 +60,5 @@ export const UserController = {
             console.log("Error in UserController.create:", error);
             res.status(500).json({ message: "Internal server error" });
         }
-    },
-};
+    }
+}
