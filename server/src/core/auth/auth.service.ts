@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { UserService } from "../users/user.service";
+import { UserService } from "../../modules/users/user.service";
 import { UserRole } from "../../enums";
 import { LoginDto, RegisterDto, AuthResponse } from "../../interfaces";
 
