@@ -1,10 +1,5 @@
 import mongoose from "mongoose";
 import { config } from "./env";
-import { Db } from "mongodb";
-
-declare global {
-    var mongoClient: Db | undefined;
-}
 
 /**
  * Database connection state
@@ -49,14 +44,15 @@ export const dbState = DatabaseState.getInstance();
 export const connectDB = async (): Promise<void> => {
     try {
         await mongoose.connect(config.MONGO_URI);
-        global.mongoClient = mongoose.connection.db;
 
-        const users = await (mongoClient as Db).collection("Users").find().toArray();
-        console.log("User sample:", users[0]);
-        console.log("Users found:", users.length);
+        // Test the connection by counting users
+        const db = mongoose.connection.db;
+        const usersCount = await db.collection("Users").countDocuments();
+        console.log(`📦 Connected to MongoDB - Database: ${db.databaseName}`);
+        console.log(`   Users in database: ${usersCount}`);
 
         dbState.setConnected(true);
-        console.log("📦 Connected to MongoDB - Using real database");
+        console.log("✅ Using real database");
     } catch (error) {
         dbState.setConnected(false);
         console.warn("⚠️  MongoDB connection failed - Falling back to mock database");
