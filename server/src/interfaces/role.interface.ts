@@ -1,8 +1,8 @@
-import { UserRole } from "../enums/user-role.enum";
+import { DefaultUserRoles } from "../enums/user-role.enum";
 
 export interface IRole {
     _id: string;
-    role: UserRole;
+    role: DefaultUserRoles;
     name: string;
     description: string;
     level: number; // Hierarchy level (higher = more powerful)

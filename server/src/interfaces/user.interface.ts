@@ -1,4 +1,4 @@
-import { UserRole } from "../enums/user-role.enum";
+import { DefaultUserRoles } from "../enums/user-role.enum";
 
 export interface GrantedPermission {
     permission: string;
@@ -16,7 +16,7 @@ export interface IUser {
     password: string;
 
     // Role & Organization
-    role: UserRole;
+    role: DefaultUserRoles;
     companyId?: string; // null only for GOD role
     departmentId?: string;
     managerId?: string; // Direct manager's user ID

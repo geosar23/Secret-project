@@ -1,13 +1,13 @@
-import { UserRole } from "../enums";
+import { DefaultUserRoles } from "../enums/user-role.enum";
 
 /**
  * Permission mapping for each role
  * Format: entity:action:scope
  */
-export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
-    [UserRole.GOD]: ["*"], // All permissions across all companies
+export const ROLE_PERMISSIONS: Record<DefaultUserRoles, string[]> = {
+    [DefaultUserRoles.GOD]: ["*"], // All permissions across all companies
 
-    [UserRole.SUPER_ADMIN]: [
+    [DefaultUserRoles.SUPER_ADMIN]: [
         // Full company permissions
         "company:*",
 
@@ -27,7 +27,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
         "users:*",
     ],
 
-    [UserRole.ADMIN]: [
+    [DefaultUserRoles.ADMIN]: [
         // Company management - everything except delete
         "company:settings:*",
         "company:billing:*",
@@ -61,7 +61,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
         "users:roles:*",
     ],
 
-    [UserRole.HR]: [
+    [DefaultUserRoles.HR]: [
         // Employee management (no delete)
         "employees:view:all",
         "employees:create:all",
@@ -84,7 +84,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
         "users:view:all",
     ],
 
-    [UserRole.MANAGER]: [
+    [DefaultUserRoles.MANAGER]: [
         // Employee (managed only)
         "employees:view:managed",
         "employees:edit:managed",
@@ -100,7 +100,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
         "reports:view:department",
     ],
 
-    [UserRole.EMPLOYEE]: [
+    [DefaultUserRoles.EMPLOYEE]: [
         // Own profile
         "employees:view:self",
         "employees:edit:self",

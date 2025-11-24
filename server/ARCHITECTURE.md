@@ -203,7 +203,7 @@ export class UserService {
 const UserSchema = new Schema({
     name: { type: String, required: true },
     email: { type: String, unique: true },
-    role: { type: String, enum: Object.values(UserRole) },
+    role: { type: String, enum: Object.values(DefaultUserRoles) },
 });
 
 export const User = mongoose.model("User", UserSchema);
