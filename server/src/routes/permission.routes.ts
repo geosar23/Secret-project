@@ -26,9 +26,6 @@ router.post("/users/:userId/permissions/restore", PermissionController.restoreRo
 // Get effective permissions for user
 router.get("/users/:userId/permissions/effective", PermissionController.getEffectivePermissions as RequestHandler);
 
-// Get permission history for user
-router.get("/users/:userId/permissions/history", PermissionController.getPermissionHistory as RequestHandler);
-
 // Cleanup expired permissions
 router.post("/users/:userId/permissions/cleanup", PermissionController.cleanupExpiredPermissions as RequestHandler);
 

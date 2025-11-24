@@ -240,28 +240,6 @@ export const PermissionController = {
     },
 
     /**
-     * Get permission history for a user
-     * GET /users/:userId/permissions/history
-     */
-    async getPermissionHistory(req: AuthenticatedRequest, res: Response) {
-        try {
-            const { userId } = req.params;
-
-            const history = await PermissionService.getPermissionHistory(userId);
-
-            res.status(200).json({
-                userId,
-                history,
-            });
-        } catch (error) {
-            console.error("Get permission history error:", error);
-            res.status(500).json({
-                error: error instanceof Error ? error.message : "Failed to get permission history",
-            });
-        }
-    },
-
-    /**
      * Clean up expired permissions for a user
      * POST /users/:userId/permissions/cleanup
      */

@@ -3,14 +3,13 @@ import { Request } from "express";
 
 export interface IPermission {
     _id: string;
-    permission: string; // Format: entity:action:scope
-    entity: string; // e.g., "employees", "leaves", "company"
-    action: string; // e.g., "view", "create", "edit", "delete"
-    scope: string; // e.g., "all", "department", "managed", "self"
-    description: string;
-    category: string; // For grouping in UI
+    key: string; // Unique key: e.g., "users.create", "requests.leaves.approve"
+    name: string; // Human-readable name: e.g., "Create Users", "Approve Leave Requests"
+    description: string; // Detailed description of what this permission allows
+    category: string; // Category for grouping in UI (uses PermissionCategory enum)
     isActive: boolean;
     createdAt: Date;
+    updatedAt: Date;
 }
 
 /**
