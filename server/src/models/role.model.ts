@@ -6,7 +6,7 @@ const RoleSchema = new Schema<IRole>(
     {
         role: {
             type: String,
-            
+
             required: true,
             validate: {
                 validator: function (this: IRole, value: string) {
