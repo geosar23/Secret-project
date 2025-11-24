@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 import { IRole } from "../interfaces/role.interface";
-import { UserRole } from "../enums/user-role.enum";
+import { DefaultUserRoles } from "../enums/user-role.enum";
 
 const RoleSchema = new Schema<IRole>(
     {
@@ -10,10 +10,10 @@ const RoleSchema = new Schema<IRole>(
             unique: true,
             validate: {
                 validator: function (this: IRole, value: string) {
-                    // System roles must use predefined UserRole enum values
+                    // System roles must use predefined DefaultUserRoles enum values
                     value = value.trim().toLowerCase();
                     if (this.isSystemRole) {
-                        return Object.values(UserRole).includes(value as UserRole);
+                        return Object.values(DefaultUserRoles).includes(value as DefaultUserRoles);
                     }
                     // Custom roles can have any string value
                     return true;

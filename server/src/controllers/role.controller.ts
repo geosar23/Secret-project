@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { RoleService } from "../services/role.service";
-import { UserRole } from "../enums/user-role.enum";
+import { DefaultUserRoles } from "../enums/user-role.enum";
 
 /**
  * Controller for role management
@@ -79,7 +79,7 @@ export const RoleController = {
     async getRolePermissions(req: Request, res: Response) {
         try {
             const { roleType } = req.params;
-            const permissions = await RoleService.getPermissions(roleType as UserRole);
+            const permissions = await RoleService.getPermissions(roleType as DefaultUserRoles);
 
             res.json({
                 success: true,
@@ -109,7 +109,7 @@ export const RoleController = {
             }
 
             const newRole = await RoleService.create({
-                role: name.toLowerCase().replace(/ /g, "_") as UserRole,
+                role: name.toLowerCase().replace(/ /g, "_") as DefaultUserRoles,
                 name,
                 description: description || "",
                 level: 55, // Custom roles default level

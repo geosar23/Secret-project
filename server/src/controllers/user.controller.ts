@@ -1,7 +1,7 @@
 import { NextFunction, Response } from "express";
 import { UserService } from "../services/user.service";
 import { AuthenticatedRequest } from "../interfaces/permission.interface";
-import { UserRole } from "../enums/user-role.enum";
+import { DefaultUserRoles } from "../enums/user-role.enum";
 
 export class UserController {
     static async getUsers(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
@@ -27,7 +27,7 @@ export class UserController {
             };
 
             // Authorization: Enforce company-level data access
-            if (requestingUser.role !== UserRole.GOD) {
+            if (requestingUser.role !== DefaultUserRoles.GOD) {
                 //Fetch requesting user
                 const user = await UserService.getById(requestingUser.id);
                 if (!user) {

@@ -1,6 +1,6 @@
 import { RoleModel } from "../models/role.model";
 import { IRole } from "../interfaces/role.interface";
-import { UserRole } from "../enums/user-role.enum";
+import { DefaultUserRoles } from "../enums/user-role.enum";
 import { MockDatabase } from "../db/mock-database";
 import { dbState } from "../config/databases";
 
@@ -28,7 +28,7 @@ export const RoleService = {
     /**
      * Get role by type (enum)
      */
-    getByType: (roleType: UserRole): Promise<IRole | null> => {
+    getByType: (roleType: DefaultUserRoles): Promise<IRole | null> => {
         if (dbState.useMock) {
             return Promise.resolve(MockDatabase.getRoleByType(roleType) || null);
         }
@@ -60,7 +60,7 @@ export const RoleService = {
     /**
      * Get permissions for a role
      */
-    getPermissions: async (roleType: UserRole): Promise<string[]> => {
+    getPermissions: async (roleType: DefaultUserRoles): Promise<string[]> => {
         if (dbState.useMock) {
             return Promise.resolve(MockDatabase.getPermissionsForRole(roleType));
         }
@@ -116,7 +116,7 @@ export const RoleService = {
     /**
      * Check if role A is higher than role B
      */
-    isHigherRole: async (roleA: UserRole, roleB: UserRole): Promise<boolean> => {
+    isHigherRole: async (roleA: DefaultUserRoles, roleB: DefaultUserRoles): Promise<boolean> => {
         if (dbState.useMock) {
             return Promise.resolve(MockDatabase.isHigherRole(roleA, roleB));
         }

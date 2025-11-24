@@ -1,6 +1,6 @@
 import { IUser } from "../interfaces/user.interface";
 import { AccessContext } from "../interfaces/permission.interface";
-import { UserRole } from "../enums/user-role.enum";
+import { DefaultUserRoles } from "../enums/user-role.enum";
 import { RoleService } from "../services/role.service";
 import { SCOPE_HANDLERS } from "./attribute-rules";
 
@@ -18,7 +18,7 @@ export class PermissionChecker {
      */
     static async canAccess(user: IUser, permission: string, resource?: Record<string, unknown>): Promise<boolean> {
         // 1. GOD role bypasses all checks
-        if (user.role === UserRole.GOD) {
+        if (user.role === DefaultUserRoles.GOD) {
             return true;
         }
 

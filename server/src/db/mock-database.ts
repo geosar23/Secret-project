@@ -5,7 +5,7 @@
  */
 
 import { IUser } from "../interfaces/user.interface";
-import { UserRole } from "../enums/user-role.enum";
+import { DefaultUserRoles } from "../enums/user-role.enum";
 import { IRole } from "../interfaces/role.interface";
 import { IPermission } from "../interfaces/permission.interface";
 
@@ -16,7 +16,7 @@ import { IPermission } from "../interfaces/permission.interface";
 export const mockRoles: IRole[] = [
     {
         _id: "role-god",
-        role: UserRole.GOD,
+        role: DefaultUserRoles.GOD,
         name: "God",
         description: "System super user with unrestricted access across all companies",
         level: 100,
@@ -28,7 +28,7 @@ export const mockRoles: IRole[] = [
     },
     {
         _id: "role-super-admin",
-        role: UserRole.SUPER_ADMIN,
+        role: DefaultUserRoles.SUPER_ADMIN,
         name: "Super Admin",
         description: "Company owner with full control over company resources",
         level: 90,
@@ -40,7 +40,7 @@ export const mockRoles: IRole[] = [
     },
     {
         _id: "role-admin",
-        role: UserRole.ADMIN,
+        role: DefaultUserRoles.ADMIN,
         name: "Admin",
         description: "Administrator with broad permissions but cannot delete critical resources",
         level: 80,
@@ -73,7 +73,7 @@ export const mockRoles: IRole[] = [
     },
     {
         _id: "role-hr",
-        role: UserRole.HR,
+        role: DefaultUserRoles.HR,
         name: "HR Manager",
         description: "Human Resources manager with employee and leave management permissions",
         level: 70,
@@ -97,7 +97,7 @@ export const mockRoles: IRole[] = [
     },
     {
         _id: "role-manager",
-        role: UserRole.MANAGER,
+        role: DefaultUserRoles.MANAGER,
         name: "Manager",
         description: "Department or team manager with limited management permissions",
         level: 60,
@@ -116,7 +116,7 @@ export const mockRoles: IRole[] = [
     },
     {
         _id: "role-employee",
-        role: UserRole.EMPLOYEE,
+        role: DefaultUserRoles.EMPLOYEE,
         name: "Employee",
         description: "Regular employee with basic self-service permissions",
         level: 50,
@@ -594,7 +594,7 @@ export const mockUsers: IUser[] = [
         _id: "1",
         name: "God User",
         email: "god@system.com",
-        role: UserRole.GOD,
+        role: DefaultUserRoles.GOD,
         password: "$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e", // password123
         isActive: true,
         createdAt: new Date("2024-01-01"),
@@ -605,7 +605,7 @@ export const mockUsers: IUser[] = [
         _id: "2",
         name: "Super Admin A",
         email: "superadmin@companya.com",
-        role: UserRole.SUPER_ADMIN,
+        role: DefaultUserRoles.SUPER_ADMIN,
         companyId: "company-a",
         password: "$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e", // password123
         isActive: true,
@@ -616,7 +616,7 @@ export const mockUsers: IUser[] = [
         _id: "3",
         name: "Admin A",
         email: "admin@companya.com",
-        role: UserRole.ADMIN,
+        role: DefaultUserRoles.ADMIN,
         companyId: "company-a",
         password: "$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e", // password123
         isActive: true,
@@ -627,7 +627,7 @@ export const mockUsers: IUser[] = [
         _id: "4",
         name: "HR Manager A",
         email: "hr@companya.com",
-        role: UserRole.HR,
+        role: DefaultUserRoles.HR,
         companyId: "company-a",
         departmentId: "dept-hr",
         password: "$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e", // password123
@@ -639,7 +639,7 @@ export const mockUsers: IUser[] = [
         _id: "5",
         name: "Engineering Manager",
         email: "eng-manager@companya.com",
-        role: UserRole.MANAGER,
+        role: DefaultUserRoles.MANAGER,
         companyId: "company-a",
         departmentId: "dept-eng",
         managedDepartments: ["dept-eng"],
@@ -652,7 +652,7 @@ export const mockUsers: IUser[] = [
         _id: "6",
         name: "John Developer",
         email: "john@companya.com",
-        role: UserRole.EMPLOYEE,
+        role: DefaultUserRoles.EMPLOYEE,
         companyId: "company-a",
         departmentId: "dept-eng",
         managerId: "5", // Managed by Engineering Manager
@@ -665,7 +665,7 @@ export const mockUsers: IUser[] = [
         _id: "7",
         name: "Jane Developer",
         email: "jane@companya.com",
-        role: UserRole.EMPLOYEE,
+        role: DefaultUserRoles.EMPLOYEE,
         companyId: "company-a",
         departmentId: "dept-eng",
         managerId: "5", // Managed by Engineering Manager
@@ -689,7 +689,7 @@ export const mockUsers: IUser[] = [
         _id: "8",
         name: "Bob Sales",
         email: "bob@companya.com",
-        role: UserRole.EMPLOYEE,
+        role: DefaultUserRoles.EMPLOYEE,
         companyId: "company-a",
         departmentId: "dept-sales",
         password: "$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e", // password123
@@ -701,7 +701,7 @@ export const mockUsers: IUser[] = [
         _id: "9",
         name: "Super Admin B",
         email: "superadmin@companyb.com",
-        role: UserRole.SUPER_ADMIN,
+        role: DefaultUserRoles.SUPER_ADMIN,
         companyId: "company-b",
         password: "$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e", // password123
         isActive: true,
@@ -712,7 +712,7 @@ export const mockUsers: IUser[] = [
         _id: "10",
         name: "Alice Employee B",
         email: "alice@companyb.com",
-        role: UserRole.EMPLOYEE,
+        role: DefaultUserRoles.EMPLOYEE,
         companyId: "company-b",
         password: "$2a$10$ZLtIHiqNSJoW1qG//nrfTubOrYz/eTxHMJb.HbZB/Tq3Lwy5tNT8e", // password123
         isActive: true,
@@ -781,7 +781,7 @@ export class MockDatabase {
         return mockRoles.find(role => role._id === id);
     }
 
-    static getRoleByType(roleType: UserRole): IRole | undefined {
+    static getRoleByType(roleType: DefaultUserRoles): IRole | undefined {
         return mockRoles.find(role => role.role === roleType);
     }
 
@@ -846,7 +846,7 @@ export class MockDatabase {
     }
 
     // Helper: Get permissions for a role
-    static getPermissionsForRole(roleType: UserRole): string[] {
+    static getPermissionsForRole(roleType: DefaultUserRoles): string[] {
         const role = this.getRoleByType(roleType);
         return role?.permissions || [];
     }
@@ -857,7 +857,7 @@ export class MockDatabase {
     }
 
     // Helper: Check if role A is higher than role B
-    static isHigherRole(roleA: UserRole, roleB: UserRole): boolean {
+    static isHigherRole(roleA: DefaultUserRoles, roleB: DefaultUserRoles): boolean {
         const roleAData = this.getRoleByType(roleA);
         const roleBData = this.getRoleByType(roleB);
         if (!roleAData || !roleBData) return false;

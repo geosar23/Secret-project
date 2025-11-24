@@ -1,15 +1,15 @@
-import { UserRole } from "../enums/user-role.enum";
+import { DefaultUserRoles } from "../enums/user-role.enum";
 
 /**
  * Role display names
  */
-export const ROLE_NAMES: Record<UserRole, string> = {
-    [UserRole.GOD]: "God",
-    [UserRole.SUPER_ADMIN]: "Super Admin",
-    [UserRole.ADMIN]: "Admin",
-    [UserRole.HR]: "HR Manager",
-    [UserRole.MANAGER]: "Manager",
-    [UserRole.EMPLOYEE]: "Employee",
+export const ROLE_NAMES: Record<DefaultUserRoles, string> = {
+    [DefaultUserRoles.GOD]: "God",
+    [DefaultUserRoles.SUPER_ADMIN]: "Super Admin",
+    [DefaultUserRoles.ADMIN]: "Admin",
+    [DefaultUserRoles.HR]: "HR Manager",
+    [DefaultUserRoles.MANAGER]: "Manager",
+    [DefaultUserRoles.EMPLOYEE]: "Employee",
 } as const;
 
 /**
@@ -17,14 +17,21 @@ export const ROLE_NAMES: Record<UserRole, string> = {
  * Higher level includes all permissions of lower levels
  */
 export const ROLE_HIERARCHY_CONFIG = {
-    levels: [UserRole.GOD, UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.HR, UserRole.MANAGER, UserRole.EMPLOYEE],
+    levels: [
+        DefaultUserRoles.GOD,
+        DefaultUserRoles.SUPER_ADMIN,
+        DefaultUserRoles.ADMIN,
+        DefaultUserRoles.HR,
+        DefaultUserRoles.MANAGER,
+        DefaultUserRoles.EMPLOYEE,
+    ],
     hierarchy: {
-        [UserRole.GOD]: 6, // Highest
-        [UserRole.SUPER_ADMIN]: 5,
-        [UserRole.ADMIN]: 4,
-        [UserRole.HR]: 3,
-        [UserRole.MANAGER]: 2,
-        [UserRole.EMPLOYEE]: 1, // Lowest
+        [DefaultUserRoles.GOD]: 6, // Highest
+        [DefaultUserRoles.SUPER_ADMIN]: 5,
+        [DefaultUserRoles.ADMIN]: 4,
+        [DefaultUserRoles.HR]: 3,
+        [DefaultUserRoles.MANAGER]: 2,
+        [DefaultUserRoles.EMPLOYEE]: 1, // Lowest
     },
 } as const;
 
@@ -35,42 +42,42 @@ export class RoleUtils {
     /**
      * Get the display name for a role
      */
-    static getRoleName(role: UserRole): string {
+    static getRoleName(role: DefaultUserRoles): string {
         return ROLE_NAMES[role];
     }
 
     /**
      * Check if roleA is higher in hierarchy than roleB
      */
-    static isHigherRole(roleA: UserRole, roleB: UserRole): boolean {
+    static isHigherRole(roleA: DefaultUserRoles, roleB: DefaultUserRoles): boolean {
         return ROLE_HIERARCHY_CONFIG.hierarchy[roleA] > ROLE_HIERARCHY_CONFIG.hierarchy[roleB];
     }
 
     /**
      * Get all roles sorted by hierarchy (highest to lowest)
      */
-    static getAllRolesSorted(): UserRole[] {
+    static getAllRolesSorted(): DefaultUserRoles[] {
         return [...ROLE_HIERARCHY_CONFIG.levels];
     }
 
     /**
      * Get hierarchy level for a role
      */
-    static getRoleLevel(role: UserRole): number {
+    static getRoleLevel(role: DefaultUserRoles): number {
         return ROLE_HIERARCHY_CONFIG.hierarchy[role];
     }
 
     /**
      * Check if role can manage another role (must be higher in hierarchy)
      */
-    static canManageRole(managerRole: UserRole, targetRole: UserRole): boolean {
+    static canManageRole(managerRole: DefaultUserRoles, targetRole: DefaultUserRoles): boolean {
         return this.isHigherRole(managerRole, targetRole);
     }
 
     /**
      * Get all roles that a given role can manage (lower in hierarchy)
      */
-    static getManagedRoles(role: UserRole): UserRole[] {
+    static getManagedRoles(role: DefaultUserRoles): DefaultUserRoles[] {
         const level = this.getRoleLevel(role);
         return ROLE_HIERARCHY_CONFIG.levels.filter(r => this.getRoleLevel(r) < level);
     }
@@ -79,7 +86,7 @@ export class RoleUtils {
      * Get all available roles with their metadata
      */
     static getAllRolesWithMetadata(): Array<{
-        role: UserRole;
+        role: DefaultUserRoles;
         name: string;
         level: number;
     }> {

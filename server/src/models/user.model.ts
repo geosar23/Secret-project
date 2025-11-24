@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 import { IUser } from "../interfaces/user.interface";
-import { UserRole } from "../enums/user-role.enum";
+import { DefaultUserRoles } from "../enums/user-role.enum";
 import { RoleModel } from "./role.model";
 
 const GrantedPermissionSchema = new Schema(
@@ -22,7 +22,7 @@ const UserSchema = new Schema<IUser>(
         password: { type: String, required: true },
 
         // Role & Organization
-        role: { type: String, required: true, default: UserRole.EMPLOYEE },
+        role: { type: String, required: true, default: DefaultUserRoles.EMPLOYEE },
         companyId: { type: String },
         departmentId: { type: String },
         managerId: { type: String },
