@@ -6,11 +6,12 @@ const RoleSchema = new Schema<IRole>(
     {
         role: {
             type: String,
-
             required: true,
+            unique: true,
             validate: {
                 validator: function (this: IRole, value: string) {
                     // System roles must use predefined UserRole enum values
+                    value = value.trim().toLowerCase();
                     if (this.isSystemRole) {
                         return Object.values(UserRole).includes(value as UserRole);
                     }
@@ -47,10 +48,10 @@ const RoleSchema = new Schema<IRole>(
     {
         timestamps: true, // Automatically adds createdAt and updatedAt
         collection: "Roles", // Use capital R to match MongoDB collection name
+        autoIndex: false, // Disable automatic index creation
     },
 );
 
-// Prevent creation of new system roles (only custom roles can be created)
 RoleSchema.pre("save", function (next) {
     if (this.isNew && this.isSystemRole) {
         next(new Error("System roles cannot be created. Only custom roles can be created."));
@@ -103,10 +104,5 @@ RoleSchema.pre("findOneAndUpdate", function (next) {
         next();
     }
 });
-
-// Indexes for performance
-RoleSchema.index({ role: 1, companyId: 1 }, { unique: true, sparse: true }); // Unique role per company
-RoleSchema.index({ companyId: 1, isActive: 1 }); // Query active roles by company
-RoleSchema.index({ isSystemRole: 1 }); // Query system vs custom roles
 
 export const RoleModel = model<IRole>("Role", RoleSchema);

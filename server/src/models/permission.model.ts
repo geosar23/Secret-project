@@ -35,13 +35,8 @@ const PermissionSchema = new Schema<IPermission>(
     {
         timestamps: true, // Automatically adds createdAt and updatedAt
         collection: "Permissions", // Use capital P to match MongoDB collection name
+        autoIndex: false, // Disable automatic index creation
     },
 );
-
-// Indexes for performance
-PermissionSchema.index({ key: 1 }); // Fast lookup by permission key
-PermissionSchema.index({ category: 1 }); // Fast filtering by category
-PermissionSchema.index({ isActive: 1 }); // Fast filtering active/inactive
-PermissionSchema.index({ category: 1, isActive: 1 }); // Compound index for common query
 
 export const PermissionModel = model<IPermission>("Permission", PermissionSchema);

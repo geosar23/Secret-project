@@ -17,7 +17,7 @@ const GrantedPermissionSchema = new Schema(
 const UserSchema = new Schema<IUser>(
     {
         name: { type: String, required: true },
-        email: { type: String, required: true, unique: true },
+        email: { type: String, required: true, unique: true, match: /.+@.+\..+/ },
         password: { type: String, required: true },
 
         // Role & Organization
@@ -33,12 +33,7 @@ const UserSchema = new Schema<IUser>(
 
         isActive: { type: Boolean, default: true },
     },
-    { timestamps: true, collection: "Users" },
+    { timestamps: true, collection: "Users", autoIndex: false },
 );
-
-// Indexes for performance and uniqueness
-UserSchema.index({ email: 1 }, { unique: true });
-UserSchema.index({ companyId: 1, isActive: 1 });
-UserSchema.index({ role: 1 });
 
 export const UserModel = model<IUser>("User", UserSchema);
