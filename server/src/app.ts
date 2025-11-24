@@ -5,6 +5,7 @@ import errorMiddleware from "./middleware/error.middleware";
 import morgan from "morgan";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import { seedPermissions } from "./utils/permissions.constants";
 
 // import swaggerUi from "swagger-ui-express"; //check later
 // import swaggerDocument from "./swagger.json";
@@ -28,5 +29,7 @@ app.use("/api", apiRouter);
 
 // Global error handler
 app.use(errorMiddleware);
+
+seedPermissions().catch(err => console.error("Error seeding permissions on app start:", err));
 
 export default app;
