@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 import { IPermission } from "../interfaces/permission.interface";
-import { PermissionCategory } from "../enums/permission-category.enum";
+import { PermissionActions, PermissionCategories, PermissionScopes } from "../enums/permissions.enum";
 
 const PermissionSchema = new Schema<IPermission>(
     {
@@ -23,8 +23,16 @@ const PermissionSchema = new Schema<IPermission>(
         category: {
             type: String,
             required: true,
-            enum: Object.values(PermissionCategory),
+            enum: Object.values(PermissionCategories),
             // Used for grouping permissions in UI
+        },
+        scope: {
+            type: String,
+            enum: Object.values(PermissionScopes),
+        },
+        action: {
+            type: String,
+            enum: Object.values(PermissionActions),
         },
         isActive: {
             type: Boolean,

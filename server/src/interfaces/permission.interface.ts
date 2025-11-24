@@ -1,3 +1,4 @@
+import { PermissionActions, PermissionCategories, PermissionScopes } from "../enums/permissions.enum";
 import { IUser } from "./user.interface";
 import { Request } from "express";
 
@@ -6,7 +7,9 @@ export interface IPermission {
     key: string; // Unique key: e.g., "users.create", "requests.leaves.approve"
     name: string; // Human-readable name: e.g., "Create Users", "Approve Leave Requests"
     description: string; // Detailed description of what this permission allows
-    category: string; // Category for grouping in UI (uses PermissionCategory enum)
+    category: PermissionCategories; // Category for grouping in UI (uses PermissionCategories enum)
+    scope?: PermissionScopes; // Optional scope for the permission (uses PermissionScopes enum)
+    action?: PermissionActions; // Specific action of the permission: e.g., "view", "create", "edit"
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
