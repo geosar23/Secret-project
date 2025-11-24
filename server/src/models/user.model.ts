@@ -36,4 +36,9 @@ const UserSchema = new Schema<IUser>(
     { timestamps: true, collection: "Users" },
 );
 
+// Indexes for performance and uniqueness
+UserSchema.index({ email: 1 }, { unique: true });
+UserSchema.index({ companyId: 1, isActive: 1 });
+UserSchema.index({ role: 1 });
+
 export const UserModel = model<IUser>("User", UserSchema);

@@ -6,8 +6,20 @@ const RoleSchema = new Schema<IRole>(
     {
         role: {
             type: String,
-            enum: Object.values(UserRole),
+            
             required: true,
+            validate: {
+                validator: function (this: IRole, value: string) {
+                    // System roles must use predefined UserRole enum values
+                    if (this.isSystemRole) {
+                        return Object.values(UserRole).includes(value as UserRole);
+                    }
+                    // Custom roles can have any string value
+                    return true;
+                },
+                message:
+                    "System roles must use predefined role values (GOD, SUPER_ADMIN, ADMIN, HR, MANAGER, EMPLOYEE)",
+            },
         },
         name: { type: String, required: true },
         description: { type: String, required: true },
@@ -96,6 +108,5 @@ RoleSchema.pre("findOneAndUpdate", function (next) {
 RoleSchema.index({ role: 1, companyId: 1 }, { unique: true, sparse: true }); // Unique role per company
 RoleSchema.index({ companyId: 1, isActive: 1 }); // Query active roles by company
 RoleSchema.index({ isSystemRole: 1 }); // Query system vs custom roles
-RoleSchema.index({ level: -1 });
 
 export const RoleModel = model<IRole>("Role", RoleSchema);
