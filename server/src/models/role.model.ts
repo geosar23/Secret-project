@@ -38,15 +38,42 @@ const RoleSchema = new Schema<IRole>(
     },
 );
 
-// Custom validation: System roles cannot have companyId, custom roles must have it
-RoleSchema.pre("validate", function (next) {
-    if (this.isSystemRole && this.companyId) {
-        next(new Error("System roles cannot be assigned to a specific company"));
-    } else if (!this.isSystemRole && !this.companyId) {
-        next(new Error("Custom roles must be assigned to a company"));
+// Prevent creation of new system roles (only custom roles can be created)
+RoleSchema.pre("save", function (next) {
+    if (this.isNew && this.isSystemRole) {
+        next(new Error("System roles cannot be created. Only custom roles can be created."));
     } else {
         next();
     }
+});
+
+// Prevent deletion of system roles
+RoleSchema.pre("deleteOne", { document: true, query: false }, function (next) {
+    if (this.isSystemRole) {
+        next(new Error("System roles cannot be deleted"));
+    } else {
+        next();
+    }
+});
+
+RoleSchema.pre("deleteOne", { document: false, query: true }, function (next) {
+    this.model.findOne(this.getFilter()).then(doc => {
+        if (doc?.isSystemRole) {
+            next(new Error("System roles cannot be deleted"));
+        } else {
+            next();
+        }
+    }).catch(next);
+});
+
+RoleSchema.pre("findOneAndDelete", function (next) {
+    this.model.findOne(this.getFilter()).then(doc => {
+        if (doc?.isSystemRole) {
+            next(new Error("System roles cannot be deleted"));
+        } else {
+            next();
+        }
+    }).catch(next);
 });
 
 // Indexes for performance
