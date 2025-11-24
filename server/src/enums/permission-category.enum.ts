@@ -8,16 +8,16 @@ export enum PermissionCategory {
     EMPLOYEES = "employees",
     DEPARTMENTS = "departments",
     COMPANY = "company",
-    
+
     // Requests (parent category)
     REQUESTS_LEAVES = "requests.leaves",
     REQUESTS_ADDITIONAL_PAYMENTS = "requests.additional_payments",
     REQUESTS_DEDUCTIONS = "requests.deductions",
     REQUESTS_REMOTE_WORK = "requests.remote_work",
-    
+
     // Payroll
     PAYROLL = "payroll",
-    
+
     // System
     REPORTS = "reports",
     SETTINGS = "settings",
@@ -30,7 +30,7 @@ export enum PermissionCategory {
  * @example getParentCategory("requests.leaves") => "requests"
  */
 export function getParentCategory(category: string): string {
-    return category.split('.')[0];
+    return category.split(".")[0];
 }
 
 /**
@@ -38,7 +38,7 @@ export function getParentCategory(category: string): string {
  * @example getSubCategory("requests.leaves") => "leaves"
  */
 export function getSubCategory(category: string): string | null {
-    const parts = category.split('.');
+    const parts = category.split(".");
     return parts.length > 1 ? parts[1] : null;
 }
 
@@ -50,14 +50,14 @@ export const CATEGORY_HIERARCHY = {
     employees: { label: "Employees", subcategories: [] },
     departments: { label: "Departments", subcategories: [] },
     company: { label: "Company", subcategories: [] },
-    requests: { 
-        label: "Requests", 
+    requests: {
+        label: "Requests",
         subcategories: [
             { key: "leaves", label: "Leaves" },
             { key: "additional_payments", label: "Additional Payments" },
             { key: "deductions", label: "Deductions" },
             { key: "remote_work", label: "Remote Work Requests" },
-        ]
+        ],
     },
     payroll: { label: "Payroll", subcategories: [] },
     reports: { label: "Reports", subcategories: [] },
