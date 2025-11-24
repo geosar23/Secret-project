@@ -5,7 +5,7 @@ import errorMiddleware from "./middleware/error.middleware";
 import morgan from "morgan";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import { seedPermissions } from "./utils/permissions.constants";
+import { seedPermissions } from "./utils/permissions.utils";
 
 // import swaggerUi from "swagger-ui-express"; //check later
 // import swaggerDocument from "./swagger.json";

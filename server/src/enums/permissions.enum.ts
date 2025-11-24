@@ -5,21 +5,13 @@
 export enum PermissionCategories {
     // Core Management
     USERS = "users",
-    EMPLOYEES = "employees",
     DEPARTMENTS = "departments",
-    COMPANY = "company",
-
-    // Requests (parent category)
-    REQUESTS_LEAVES = "requests.leaves",
-    REQUESTS_ADDITIONAL_PAYMENTS = "requests.additional_payments",
-    REQUESTS_DEDUCTIONS = "requests.deductions",
-    REQUESTS_REMOTE_WORK = "requests.remote_work",
-
-    // Payroll
-    PAYROLL = "payroll",
+    COMPANIES = "companies",
+    COUNTRIES = "countries",
+    EMPLOYMENT_TITLES = "employment_titles",
+    EMPLOYMENT_TYPES = "employment_types",
 
     // System
-    REPORTS = "reports",
     SETTINGS = "settings",
     PERMISSIONS = "permissions",
     ROLES = "roles",
@@ -33,10 +25,12 @@ export enum PermissionScopes {
 }
 
 export enum PermissionActions {
+    ALL = "*",
     VIEW = "view",
     CREATE = "create",
     EDIT = "edit",
     DELETE = "delete",
     APPROVE = "approve",
+    REJECT = "reject",
     CANCEL = "cancel",
 }

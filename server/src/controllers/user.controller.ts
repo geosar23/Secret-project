@@ -1,6 +1,6 @@
 import { NextFunction, Response } from "express";
 import { UserService } from "../services/user.service";
-import { AuthenticatedRequest } from "../interfaces/permission.interface";
+import { AuthenticatedRequest } from "../interfaces/auth.interface";
 import { DefaultUserRoles } from "../enums/user-role.enum";
 
 export class UserController {

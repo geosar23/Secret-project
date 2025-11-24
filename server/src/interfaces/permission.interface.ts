@@ -1,6 +1,5 @@
 import { PermissionActions, PermissionCategories, PermissionScopes } from "../enums/permissions.enum";
 import { IUser } from "./user.interface";
-import { Request } from "express";
 
 export interface IPermission {
     _id: string;
@@ -22,17 +21,4 @@ export interface AccessContext {
     user: IUser;
     resource: Record<string, unknown>;
     action: string;
-}
-
-/**
- * Extended Request interface with user
- */
-export interface AuthenticatedRequest extends Request {
-    user?: IUser;
-    decoded?: {
-        id: string;
-        email: string;
-        name?: string;
-        role?: string;
-    };
 }

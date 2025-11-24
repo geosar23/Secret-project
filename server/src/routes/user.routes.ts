@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { UserController } from "../controllers/user.controller";
-import { AuthenticatedRequest } from "../interfaces/permission.interface";
+import { AuthenticatedRequest } from "../interfaces/auth.interface";
 
 const router = Router();
 
