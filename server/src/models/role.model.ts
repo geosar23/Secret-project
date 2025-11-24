@@ -42,6 +42,8 @@ const RoleSchema = new Schema<IRole>(
 RoleSchema.pre("save", function (next) {
     if (this.isNew && this.isSystemRole) {
         next(new Error("System roles cannot be created. Only custom roles can be created."));
+    } else if (this.isSystemRole && this.isModified("isActive") && this.isActive === false) {
+        next(new Error("System roles cannot be set to inactive"));
     } else {
         next();
     }
@@ -56,24 +58,38 @@ RoleSchema.pre("deleteOne", { document: true, query: false }, function (next) {
     }
 });
 
-RoleSchema.pre("deleteOne", { document: false, query: true }, function (next) {
-    this.model.findOne(this.getFilter()).then(doc => {
-        if (doc?.isSystemRole) {
-            next(new Error("System roles cannot be deleted"));
-        } else {
-            next();
-        }
-    }).catch(next);
+RoleSchema.pre("findOneAndDelete", function (next) {
+    this.model
+        .findOne(this.getFilter())
+        .then(doc => {
+            if (doc?.isSystemRole) {
+                next(new Error("System roles cannot be deleted"));
+            } else {
+                next();
+            }
+        })
+        .catch(next);
 });
 
-RoleSchema.pre("findOneAndDelete", function (next) {
-    this.model.findOne(this.getFilter()).then(doc => {
-        if (doc?.isSystemRole) {
-            next(new Error("System roles cannot be deleted"));
-        } else {
-            next();
-        }
-    }).catch(next);
+RoleSchema.pre("findOneAndUpdate", function (next) {
+    const update = this.getUpdate();
+    const isActiveUpdate =
+        (update && typeof update === "object" && "isActive" in update && update.isActive === false) ||
+        (update && typeof update === "object" && "$set" in update && update.$set && update.$set.isActive === false);
+    if (isActiveUpdate) {
+        this.model
+            .findOne(this.getFilter())
+            .then(doc => {
+                if (doc?.isSystemRole) {
+                    next(new Error("System roles cannot be set to inactive"));
+                } else {
+                    next();
+                }
+            })
+            .catch(next);
+    } else {
+        next();
+    }
 });
 
 // Indexes for performance
