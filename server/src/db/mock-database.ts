@@ -243,16 +243,7 @@ export const mockUsers: IUser[] = [
         createdAt: new Date("2024-01-20"),
         updatedAt: new Date("2024-01-20"),
         // Example: Jane has extra permission granted
-        grantedPermissions: [
-            {
-                permission: "reports.view",
-                grantedBy: "2", // Granted by Super Admin
-                grantedAt: new Date("2024-02-01"),
-                expiresAt: new Date("2024-12-31"),
-                reason: "Needs access for team reporting",
-                scope: "company",
-            },
-        ],
+        grantedPermissions: ["reports.view"],
     },
     {
         _id: "8",

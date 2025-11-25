@@ -1,4 +1,4 @@
-import { IUser, GrantedPermission } from "../interfaces/user.interface";
+import { IUser } from "../interfaces/user.interface";
 import { UserService } from "./user.service";
 import { PermissionChecker } from "../utils/permission-checker";
 import { PermissionModel } from "../models/permission.model";
@@ -103,17 +103,8 @@ export const PermissionService = {
     },
     /**
      * Grant a custom permission to a user
-     */
-    async grantPermission(
-        userId: string,
-        permission: string,
-        grantedBy: string,
-        options?: {
-            expiresAt?: Date;
-            reason?: string;
-            scope?: string;
-        },
-    ): Promise<IUser> {
+     */ //to be implemented
+    async grantPermission(userId: string, permission: string): Promise<IUser> {
         const user = await UserService.getById(userId);
         if (!user) {
             throw new Error("User not found");
@@ -124,30 +115,11 @@ export const PermissionService = {
             user.grantedPermissions = [];
         }
 
-        // Check if permission already granted
-        const existingGrant = user.grantedPermissions.find((g: GrantedPermission) => g.permission === permission);
-
-        if (existingGrant) {
-            // Update existing grant
-            existingGrant.grantedBy = grantedBy;
-            existingGrant.grantedAt = new Date();
-            existingGrant.expiresAt = options?.expiresAt;
-            existingGrant.reason = options?.reason;
-            existingGrant.scope = options?.scope;
-        } else {
-            // Add new grant
-            const grant: GrantedPermission = {
-                permission,
-                grantedBy,
-                grantedAt: new Date(),
-                expiresAt: options?.expiresAt,
-                reason: options?.reason,
-                scope: options?.scope,
-            };
-            user.grantedPermissions.push(grant);
+        // Add to granted list if not already there
+        if (!user.grantedPermissions.includes(permission)) {
+            user.grantedPermissions.push(permission);
         }
 
-        // Save user
         const updated = await UserService.update(userId, user);
         if (!updated) {
             throw new Error("Failed to update user");
@@ -165,9 +137,7 @@ export const PermissionService = {
         }
 
         if (user.grantedPermissions) {
-            user.grantedPermissions = user.grantedPermissions.filter(
-                (g: GrantedPermission) => g.permission !== permission,
-            );
+            user.grantedPermissions = user.grantedPermissions.filter((g: string) => g !== permission);
         }
 
         const updated = await UserService.update(userId, user);
@@ -235,53 +205,5 @@ export const PermissionService = {
         }
 
         return PermissionChecker.getEffectivePermissions(user);
-    },
-
-    /**
-     * Clean up expired granted permissions
-     */
-    async cleanupExpiredPermissions(userId: string): Promise<IUser> {
-        const user = await UserService.getById(userId);
-        if (!user) {
-            throw new Error("User not found");
-        }
-
-        if (user.grantedPermissions) {
-            const now = new Date();
-            user.grantedPermissions = user.grantedPermissions.filter(
-                (g: GrantedPermission) => !g.expiresAt || new Date(g.expiresAt) > now,
-            );
-        }
-
-        const updated = await UserService.update(userId, user);
-        if (!updated) {
-            throw new Error("Failed to update user");
-        }
-        return updated;
-    },
-
-    /**
-     * Bulk grant permissions to multiple users
-     */
-    async bulkGrantPermission(
-        userIds: string[],
-        permission: string,
-        grantedBy: string,
-        options?: {
-            expiresAt?: Date;
-            reason?: string;
-            scope?: string;
-        },
-    ): Promise<IUser[]> {
-        const promises = userIds.map(userId => this.grantPermission(userId, permission, grantedBy, options));
-        return Promise.all(promises);
-    },
-
-    /**
-     * Bulk revoke permissions from multiple users
-     */
-    async bulkRevokeGrantedPermission(userIds: string[], permission: string): Promise<IUser[]> {
-        const promises = userIds.map(userId => this.revokeGrantedPermission(userId, permission));
-        return Promise.all(promises);
     },
 };

@@ -29,17 +29,9 @@ export class PermissionChecker {
 
         // 3. Check custom granted permissions (with expiration)
         if (user.grantedPermissions) {
-            const grant = user.grantedPermissions.find(g => g.permission === permission);
+            const grant = user.grantedPermissions.find(per => per === permission);
             if (grant) {
-                // Check if grant has expired
-                if (grant.expiresAt && new Date(grant.expiresAt) < new Date()) {
-                    return false; // Expired
-                }
-                // Check scope if resource provided
-                if (resource && grant.scope) {
-                    return this.checkScope(user, resource, grant.scope);
-                }
-                return true; // Valid grant
+                return true;
             }
         }
 
@@ -197,11 +189,8 @@ export class PermissionChecker {
 
         // Add granted permissions (if not expired)
         if (user.grantedPermissions) {
-            const now = new Date();
-            user.grantedPermissions.forEach(grant => {
-                if (!grant.expiresAt || new Date(grant.expiresAt) > now) {
-                    permissions.add(grant.permission);
-                }
+            user.grantedPermissions.forEach(permission => {
+                permissions.add(permission);
             });
         }
 

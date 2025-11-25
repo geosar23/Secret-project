@@ -3,34 +3,22 @@ import { IUser } from "../interfaces/user.interface";
 import { DefaultUserRoles } from "../enums/user-role.enum";
 import { RoleModel } from "./role.model";
 
-const GrantedPermissionSchema = new Schema(
-    {
-        permission: { type: String, required: true },
-        grantedBy: { type: String, required: true },
-        grantedAt: { type: Date, required: true },
-        expiresAt: { type: Date },
-        reason: { type: String },
-        scope: { type: String },
-    },
-    { _id: false },
-);
-
 const UserSchema = new Schema<IUser>(
     {
-        name: { type: String, required: true },
-        email: { type: String, required: true, unique: true, match: /.+@.+\..+/ },
+        name: { type: String, required: true, trim: true },
+        email: { type: String, required: true, unique: true, trim: true, match: /.+@.+\..+/ },
         password: { type: String, required: true },
 
         // Role & Organization
-        role: { type: String, required: true, default: DefaultUserRoles.EMPLOYEE },
-        companyId: { type: String },
-        departmentId: { type: String },
-        managerId: { type: String },
-        managedDepartments: [{ type: String }],
+        role: { type: String, required: true, default: DefaultUserRoles.EMPLOYEE, lowercase: true, trim: true, ref: "Roles" },
+        companyId: { type: Schema.Types.ObjectId, ref: "Company" },
+        departmentId: { type: Schema.Types.ObjectId, ref: "Departments" },
+        managerId: { type: Schema.Types.ObjectId, ref: "Users" },
+        managedDepartments: [{ type: Schema.Types.ObjectId, ref: "Departments" }],
 
         // Custom permissions
-        grantedPermissions: [GrantedPermissionSchema],
-        revokedPermissions: [{ type: String }],
+        grantedPermissions: [{type: String, ref: "Permissions"}],
+        revokedPermissions: [{ type: String, ref: "Permissions" }],
 
         isActive: { type: Boolean, default: true },
     },

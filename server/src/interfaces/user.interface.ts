@@ -1,14 +1,4 @@
 import { DefaultUserRoles } from "../enums/user-role.enum";
-
-export interface GrantedPermission {
-    permission: string;
-    grantedBy: string; // User ID who granted it
-    grantedAt: Date;
-    expiresAt?: Date; // Optional expiration
-    reason?: string; // Audit trail
-    scope?: string; // e.g., "self", "managed", "department", "company", "all"
-}
-
 export interface IUser {
     _id?: string;
     name: string;
@@ -23,7 +13,7 @@ export interface IUser {
     managedDepartments?: string[]; // For managers - departments they manage
 
     // Custom permissions
-    grantedPermissions?: GrantedPermission[]; // Additional permissions granted
+    grantedPermissions?: string[]; // Additional permissions granted
     revokedPermissions?: string[]; // Role permissions that are revoked
 
     isActive?: boolean;

@@ -8,10 +8,10 @@ const RoleSchema = new Schema<IRole>(
             type: String,
             required: true,
             unique: true,
+            trim: true,
             validate: {
                 validator: function (this: IRole, value: string) {
                     // System roles must use predefined DefaultUserRoles enum values
-                    value = value.trim().toLowerCase();
                     if (this.isSystemRole) {
                         return Object.values(DefaultUserRoles).includes(value as DefaultUserRoles);
                     }
@@ -22,13 +22,14 @@ const RoleSchema = new Schema<IRole>(
                     "System roles must use predefined role values (GOD, SUPER_ADMIN, ADMIN, HR, MANAGER, EMPLOYEE)",
             },
         },
-        name: { type: String, required: true },
-        description: { type: String, required: true },
+        name: { type: String, required: true, trim: true, unique: true },
+        description: { type: String, required: true, trim: true },
         level: { type: Number, required: true },
-        permissions: [{ type: String }],
+        permissions: [{ type: String, ref: "Permissions" }],
         isSystemRole: { type: Boolean, default: false },
         companyId: {
             type: String,
+            ref: "Companies",
             // companyId is required for custom roles, not allowed for system roles
             validate: {
                 validator: function (this: IRole, value: string | undefined) {

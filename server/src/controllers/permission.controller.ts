@@ -39,7 +39,7 @@ export const PermissionController = {
     async grantPermission(req: AuthenticatedRequest, res: Response) {
         try {
             const { userId } = req.params;
-            const { permission, expiresAt, reason, scope } = req.body;
+            const { permission } = req.body;
 
             if (!permission) {
                 return res.status(400).json({ error: "Permission is required" });
@@ -49,13 +49,9 @@ export const PermissionController = {
                 return res.status(401).json({ error: "Authentication required" });
             }
 
-            const grantedBy = req.user._id!;
+            // const grantedBy = req.user._id!; check if its authorized
 
-            const updatedUser = await PermissionService.grantPermission(userId, permission, grantedBy, {
-                expiresAt: expiresAt ? new Date(expiresAt) : undefined,
-                reason,
-                scope,
-            });
+            const updatedUser = await PermissionService.grantPermission(userId, permission);
 
             const effectivePermissions = await PermissionService.getEffectivePermissions(userId);
 
@@ -175,98 +171,6 @@ export const PermissionController = {
             console.error("Get effective permissions error:", error);
             res.status(500).json({
                 error: error instanceof Error ? error.message : "Failed to get effective permissions",
-            });
-        }
-    },
-
-    /**
-     * Clean up expired permissions for a user
-     * POST /users/:userId/permissions/cleanup
-     */
-    async cleanupExpiredPermissions(req: AuthenticatedRequest, res: Response) {
-        try {
-            const { userId } = req.params;
-
-            const updatedUser = await PermissionService.cleanupExpiredPermissions(userId);
-
-            res.status(200).json({
-                message: "Expired permissions cleaned up successfully",
-                user: updatedUser,
-            });
-        } catch (error) {
-            console.error("Cleanup expired permissions error:", error);
-            res.status(500).json({
-                error: error instanceof Error ? error.message : "Failed to cleanup expired permissions",
-            });
-        }
-    },
-
-    /**
-     * Bulk grant permissions to multiple users
-     * POST /permissions/bulk/grant
-     */
-    async bulkGrantPermission(req: AuthenticatedRequest, res: Response) {
-        try {
-            const { userIds, permission, expiresAt, reason, scope } = req.body;
-
-            if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
-                return res.status(400).json({ error: "User IDs array is required" });
-            }
-
-            if (!permission) {
-                return res.status(400).json({ error: "Permission is required" });
-            }
-
-            if (!req.user) {
-                return res.status(401).json({ error: "Authentication required" });
-            }
-
-            const grantedBy = req.user._id!;
-
-            const updatedUsers = await PermissionService.bulkGrantPermission(userIds, permission, grantedBy, {
-                expiresAt: expiresAt ? new Date(expiresAt) : undefined,
-                reason,
-                scope,
-            });
-
-            res.status(200).json({
-                message: `Permission granted to ${updatedUsers.length} users`,
-                users: updatedUsers,
-            });
-        } catch (error) {
-            console.error("Bulk grant permission error:", error);
-            res.status(500).json({
-                error: error instanceof Error ? error.message : "Failed to bulk grant permission",
-            });
-        }
-    },
-
-    /**
-     * Bulk revoke granted permissions from multiple users
-     * POST /permissions/bulk/revoke
-     */
-    async bulkRevokeGrantedPermission(req: AuthenticatedRequest, res: Response) {
-        try {
-            const { userIds, permission } = req.body;
-
-            if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
-                return res.status(400).json({ error: "User IDs array is required" });
-            }
-
-            if (!permission) {
-                return res.status(400).json({ error: "Permission is required" });
-            }
-
-            const updatedUsers = await PermissionService.bulkRevokeGrantedPermission(userIds, permission);
-
-            res.status(200).json({
-                message: `Granted permission revoked from ${updatedUsers.length} users`,
-                users: updatedUsers,
-            });
-        } catch (error) {
-            console.error("Bulk revoke granted permission error:", error);
-            res.status(500).json({
-                error: error instanceof Error ? error.message : "Failed to bulk revoke granted permission",
             });
         }
     },

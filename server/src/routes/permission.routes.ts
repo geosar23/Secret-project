@@ -26,11 +26,4 @@ router.post("/users/:userId/permissions/restore", PermissionController.restoreRo
 // Get effective permissions for user
 router.get("/users/:userId/permissions/effective", PermissionController.getEffectivePermissions as RequestHandler);
 
-// Cleanup expired permissions
-router.post("/users/:userId/permissions/cleanup", PermissionController.cleanupExpiredPermissions as RequestHandler);
-
-// Bulk operations
-router.post("/permissions/bulk/grant", PermissionController.bulkGrantPermission as RequestHandler);
-router.post("/permissions/bulk/revoke", PermissionController.bulkRevokeGrantedPermission as RequestHandler);
-
 export default router;

@@ -8,6 +8,7 @@ const PermissionSchema = new Schema<IPermission>(
             type: String,
             required: true,
             unique: true,
+            trim: true,
             // Examples: "users.create", "users.view", "requests.leaves.approve"
         },
         name: {
