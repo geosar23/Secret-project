@@ -10,14 +10,21 @@ const UserSchema = new Schema<IUser>(
         password: { type: String, required: true },
 
         // Role & Organization
-        role: { type: String, required: true, default: DefaultUserRoles.EMPLOYEE, lowercase: true, trim: true, ref: "Roles" },
+        role: {
+            type: String,
+            required: true,
+            default: DefaultUserRoles.EMPLOYEE,
+            lowercase: true,
+            trim: true,
+            ref: "Roles",
+        },
         companyId: { type: Schema.Types.ObjectId, ref: "Company" },
         departmentId: { type: Schema.Types.ObjectId, ref: "Departments" },
         managerId: { type: Schema.Types.ObjectId, ref: "Users" },
         managedDepartments: [{ type: Schema.Types.ObjectId, ref: "Departments" }],
 
         // Custom permissions
-        grantedPermissions: [{type: String, ref: "Permissions"}],
+        grantedPermissions: [{ type: String, ref: "Permissions" }],
         revokedPermissions: [{ type: String, ref: "Permissions" }],
 
         isActive: { type: Boolean, default: true },
