@@ -1,13 +1,4 @@
 <div class="dashboard">
-    <mat-toolbar color="primary" class="toolbar">
-        <span class="toolbar-title">Dashboard</span>
-        <span class="spacer"></span>
-        @if (currentUser$ | async; as user) {
-            <span class="welcome-text">Welcome, {{ user.name }}!</span>
-        }
-        <button mat-raised-button color="warn" (click)="logout()">Logout</button>
-    </mat-toolbar>
-
     <div class="content">
         @if (currentUser$ | async; as user) {
             <mat-card class="user-card">
