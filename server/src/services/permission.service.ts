@@ -2,8 +2,6 @@ import { IUser } from "../interfaces/user.interface";
 import { UserService } from "./user.service";
 import { PermissionChecker } from "../utils/permission-checker";
 import { PermissionModel } from "../models/permission.model";
-import { dbState } from "../config/databases";
-import { MockDatabase } from "../db/mock-database";
 import { IPermission } from "../interfaces/permission.interface";
 
 /**
@@ -14,9 +12,6 @@ export const PermissionService = {
      * Get all permissions
      */
     getAll: (): Promise<IPermission[]> => {
-        if (dbState.useMock) {
-            return Promise.resolve(MockDatabase.getAllPermissions());
-        }
         return PermissionModel.find().exec();
     },
 
@@ -24,9 +19,6 @@ export const PermissionService = {
      * Get permission by ID
      */
     getById: (id: string): Promise<IPermission | null> => {
-        if (dbState.useMock) {
-            return Promise.resolve(MockDatabase.getPermissionById(id) || null);
-        }
         return PermissionModel.findById(id).exec();
     },
 
@@ -41,9 +33,6 @@ export const PermissionService = {
      * Get permissions by category
      */
     getByCategory: (category: string): Promise<IPermission[]> => {
-        if (dbState.useMock) {
-            return Promise.resolve(MockDatabase.getPermissionsByCategory(category));
-        }
         return PermissionModel.find({ category }).exec();
     },
 
@@ -51,9 +40,6 @@ export const PermissionService = {
      * Get all permission categories
      */
     getCategories: async (): Promise<string[]> => {
-        if (dbState.useMock) {
-            return Promise.resolve(MockDatabase.getPermissionCategories());
-        }
         const categories = await PermissionModel.distinct("category").exec();
         return categories;
     },
@@ -78,20 +64,6 @@ export const PermissionService = {
      * Search permissions
      */
     search: async (query: string): Promise<IPermission[]> => {
-        if (dbState.useMock) {
-            const allPermissions = MockDatabase.getAllPermissions();
-            const searchTerm = query.toLowerCase();
-            return Promise.resolve(
-                allPermissions.filter(
-                    perm =>
-                        perm.key.toLowerCase().includes(searchTerm) ||
-                        perm.name.toLowerCase().includes(searchTerm) ||
-                        perm.description.toLowerCase().includes(searchTerm) ||
-                        perm.category.toLowerCase().includes(searchTerm),
-                ),
-            );
-        }
-
         return PermissionModel.find({
             $or: [
                 { key: { $regex: query, $options: "i" } },

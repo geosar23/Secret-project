@@ -14,4 +14,4 @@ const CompanySchema = new Schema<ICompany>(
     },
 );
 
-export const CompanyModel = model<ICompany>("Company", CompanySchema);
+export const CompanyModel = model<ICompany>("Companies", CompanySchema);

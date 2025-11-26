@@ -1,17 +1,17 @@
+import { Schema } from "mongoose";
 import { DefaultUserRoles } from "../enums/user-role.enum";
 export interface IUser {
-    _id?: string;
+    _id?: Schema.Types.ObjectId;
     name: string;
     email: string;
     password: string;
 
     // Role & Organization
-    role: DefaultUserRoles;
-    companyId?: string; // null only for GOD role
-    departmentId?: string;
-    managerId?: string; // Direct manager's user ID
-    managedDepartments?: string[]; // For managers - departments they manage
-
+    role: DefaultUserRoles | string; // Can be default roles or custom roles
+    companyId?: Schema.Types.ObjectId; // null only for GOD role
+    departmentId?: Schema.Types.ObjectId;
+    managerId?: Schema.Types.ObjectId; // Direct manager's user ID
+    managedDepartments?: Schema.Types.ObjectId[]; // For managers - departments they manage
     // Custom permissions
     grantedPermissions?: string[]; // Additional permissions granted
     revokedPermissions?: string[]; // Role permissions that are revoked

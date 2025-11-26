@@ -18,7 +18,7 @@ const UserSchema = new Schema<IUser>(
             trim: true,
             ref: "Roles",
         },
-        companyId: { type: Schema.Types.ObjectId, ref: "Company" },
+        companyId: { type: Schema.Types.ObjectId, ref: "Companies" },
         departmentId: { type: Schema.Types.ObjectId, ref: "Departments" },
         managerId: { type: Schema.Types.ObjectId, ref: "Users" },
         managedDepartments: [{ type: Schema.Types.ObjectId, ref: "Departments" }],
@@ -69,4 +69,4 @@ UserSchema.pre("findOneAndUpdate", async function (next) {
     next();
 });
 
-export const UserModel = model<IUser>("User", UserSchema);
+export const UserModel = model<IUser>("Users", UserSchema);

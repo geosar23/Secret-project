@@ -12,14 +12,17 @@ export const ATTRIBUTE_RULES = {
      * User is the resource owner (viewing/editing own profile)
      */
     isSelf: (ctx: AccessContext): boolean => {
-        return ctx.user._id === ctx.resource._id || ctx.user._id === ctx.resource.userId;
+        return (
+            ctx.user._id?.toString() === ctx.resource._id?.toString() ||
+            ctx.user._id?.toString() === ctx.resource.userId?.toString()
+        );
     },
 
     /**
      * User is the direct manager of the resource owner
      */
     isDirectManager: (ctx: AccessContext): boolean => {
-        return ctx.user._id === ctx.resource.managerId;
+        return ctx.user._id?.toString() === ctx.resource.managerId?.toString();
     },
 
     /**
@@ -29,21 +32,21 @@ export const ATTRIBUTE_RULES = {
         if (!ctx.user.managedDepartments || !ctx.resource.departmentId) {
             return false;
         }
-        return ctx.user.managedDepartments.includes(ctx.resource.departmentId as string);
+        return ctx.user.managedDepartments.map(d => d?.toString()).includes(ctx.resource.departmentId?.toString());
     },
 
     /**
      * Resource is in the same department as the user
      */
     sameDepartment: (ctx: AccessContext): boolean => {
-        return !!ctx.user.departmentId && ctx.user.departmentId === ctx.resource.departmentId;
+        return !!ctx.user.departmentId && ctx.user.departmentId?.toString() === ctx.resource.departmentId?.toString();
     },
 
     /**
      * Resource belongs to the same company (multi-tenant isolation)
      */
     sameCompany: (ctx: AccessContext): boolean => {
-        return ctx.user.companyId === ctx.resource.companyId;
+        return ctx.user.companyId?.toString() === ctx.resource.companyId?.toString();
     },
 
     /**
@@ -56,10 +59,13 @@ export const ATTRIBUTE_RULES = {
         }
 
         // Check if user is the direct manager
-        const isDirectManager = ctx.user._id === ctx.resource.managerId;
+        const isDirectManager = ctx.user._id?.toString() === ctx.resource.managerId?.toString();
 
         // Check if user manages the department
-        const managesDept = ctx.user.managedDepartments?.includes(ctx.resource.departmentId as string) || false;
+        const resourceDeptId = ctx.resource.departmentId?.toString();
+        const managesDept = resourceDeptId
+            ? ctx.user.managedDepartments?.map(d => d?.toString()).includes(resourceDeptId) || false
+            : false;
 
         return isDirectManager || managesDept;
     },

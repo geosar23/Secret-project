@@ -1,17 +1,12 @@
 import { RoleModel } from "../models/role.model";
 import { IRole } from "../interfaces/role.interface";
 import { DefaultUserRoles } from "../enums/user-role.enum";
-import { MockDatabase } from "../db/mock-database";
-import { dbState } from "../config/databases";
 
 export const RoleService = {
     /**
      * Get all roles
      */
     getAll: (): Promise<IRole[]> => {
-        if (dbState.useMock) {
-            return Promise.resolve(MockDatabase.getAllRoles());
-        }
         return RoleModel.find().sort({ level: -1 }).exec();
     },
 
@@ -19,9 +14,6 @@ export const RoleService = {
      * Get role by ID
      */
     getById: (id: string): Promise<IRole | null> => {
-        if (dbState.useMock) {
-            return Promise.resolve(MockDatabase.getRoleById(id) || null);
-        }
         return RoleModel.findById(id).exec();
     },
 
@@ -29,9 +21,6 @@ export const RoleService = {
      * Get role by type (enum)
      */
     getByType: (roleType: DefaultUserRoles): Promise<IRole | null> => {
-        if (dbState.useMock) {
-            return Promise.resolve(MockDatabase.getRoleByType(roleType) || null);
-        }
         return RoleModel.findOne({ role: roleType }).exec();
     },
 
@@ -39,9 +28,6 @@ export const RoleService = {
      * Get roles by company (includes system roles)
      */
     getByCompany: (companyId?: string): Promise<IRole[]> => {
-        if (dbState.useMock) {
-            return Promise.resolve(MockDatabase.getRolesByCompany(companyId));
-        }
         return RoleModel.find({
             $or: [{ companyId }, { companyId: { $exists: false } }],
         }).exec();
@@ -51,19 +37,13 @@ export const RoleService = {
      * Get role hierarchy (sorted by level)
      */
     getHierarchy: (): Promise<IRole[]> => {
-        if (dbState.useMock) {
-            return Promise.resolve(MockDatabase.getRoleHierarchy());
-        }
         return RoleModel.find().sort({ level: -1 }).exec();
     },
 
     /**
      * Get permissions for a role
      */
-    getPermissions: async (roleType: DefaultUserRoles): Promise<string[]> => {
-        if (dbState.useMock) {
-            return Promise.resolve(MockDatabase.getPermissionsForRole(roleType));
-        }
+    getPermissions: async (roleType: DefaultUserRoles | string): Promise<string[]> => {
         const role = await RoleModel.findOne({ role: roleType }).exec();
         return role?.permissions || [];
     },
@@ -72,9 +52,6 @@ export const RoleService = {
      * Create a custom role
      */
     create: (data: Omit<IRole, "_id">): Promise<IRole> => {
-        if (dbState.useMock) {
-            return Promise.resolve(MockDatabase.createRole(data));
-        }
         return RoleModel.create(data);
     },
 
@@ -82,10 +59,6 @@ export const RoleService = {
      * Update a role
      */
     update: async (id: string, data: Partial<IRole>): Promise<IRole | null> => {
-        if (dbState.useMock) {
-            return Promise.resolve(MockDatabase.updateRole(id, data));
-        }
-
         // Prevent modification of system roles
         const role = await RoleModel.findById(id).exec();
         if (role?.isSystemRole) {
@@ -99,10 +72,6 @@ export const RoleService = {
      * Delete a role
      */
     delete: async (id: string): Promise<boolean> => {
-        if (dbState.useMock) {
-            return Promise.resolve(MockDatabase.deleteRole(id));
-        }
-
         // Prevent deletion of system roles
         const role = await RoleModel.findById(id).exec();
         if (role?.isSystemRole) {
@@ -117,10 +86,6 @@ export const RoleService = {
      * Check if role A is higher than role B
      */
     isHigherRole: async (roleA: DefaultUserRoles, roleB: DefaultUserRoles): Promise<boolean> => {
-        if (dbState.useMock) {
-            return Promise.resolve(MockDatabase.isHigherRole(roleA, roleB));
-        }
-
         const [roleAData, roleBData] = await Promise.all([
             RoleModel.findOne({ role: roleA }).exec(),
             RoleModel.findOne({ role: roleB }).exec(),

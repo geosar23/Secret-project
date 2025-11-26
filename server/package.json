@@ -7,7 +7,9 @@
         "dev": "npx ts-node src/server.ts",
         "dev:watch": "npx nodemon src/server.ts",
         "build": "tsc",
-        "start": "node dist/server.ts"
+        "start": "node dist/server.ts",
+        "format": "prettier --write \"src/**/*.{ts,js,json,css,scss,md,html}\"",
+        "lint": "eslint . --ext .ts"
     },
     "dependencies": {
         "bcryptjs": "^2.4.3",

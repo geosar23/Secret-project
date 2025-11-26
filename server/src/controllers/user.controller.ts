@@ -34,7 +34,7 @@ export class UserController {
                     res.status(404).json({ message: "Requesting user not found" });
                     return;
                 }
-                params.companyId = user.companyId as string;
+                params.companyId = user.companyId?.toString() as string;
             }
 
             const users = await UserService.getUsers(params);

@@ -1,5 +1,7 @@
+import { Schema } from "mongoose";
+
 export interface ICompany {
-    _id: string;
+    _id: Schema.Types.ObjectId;
     name: string;
     slug: string;
     isActive: boolean;
