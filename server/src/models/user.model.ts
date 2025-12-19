@@ -11,7 +11,7 @@ const UserSchema = new Schema<IUser>(
 
         // Role & Organization
         role: {
-            type: Schema.Types.ObjectId,
+            type: String,
             required: true,
             default: DefaultUserRoles.EMPLOYEE,
             lowercase: true,
