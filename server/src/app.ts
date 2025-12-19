@@ -6,6 +6,7 @@ import morgan from "morgan";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { seedPermissions } from "./utils/permissions.utils";
+import { RoleModel } from "./models/role.model";
 
 // import swaggerUi from "swagger-ui-express"; //check later
 // import swaggerDocument from "./swagger.json";
@@ -31,5 +32,24 @@ app.use("/api", apiRouter);
 app.use(errorMiddleware);
 
 seedPermissions().catch(err => console.error("Error seeding permissions on app start:", err));
+transformData().catch(err => console.error("Error transforming data on app start:", err));
+async function transformData() {
+    return;
+    const result = await RoleModel.collection.updateMany(
+        {},
+        [
+            {
+                $set: {
+                    // Convert string dates to proper Date objects
+                    createdAt: {
+                        $cond: [{ $eq: [{ $type: "$createdAt" }, "string"] }, { $toDate: "$createdAt" }, "$createdAt"],
+                    },
+                },
+            },
+        ],
+    );
+
+    console.log("Modified documents:", result.modifiedCount);
+}
 
 export default app;

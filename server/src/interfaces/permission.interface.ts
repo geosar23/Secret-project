@@ -1,9 +1,9 @@
-import { Schema } from "mongoose";
+import { Types } from "mongoose";
 import { PermissionActions, PermissionCategories, PermissionScopes } from "../enums/permissions.enum";
 import { IUser } from "./user.interface";
 
 export interface IPermission {
-    _id: Schema.Types.ObjectId;
+    _id: Types.ObjectId;
     key: string; // Unique key: e.g., "users.create", "requests.leaves.approve"
     name: string; // Human-readable name: e.g., "Create Users", "Approve Leave Requests"
     description: string; // Detailed description of what this permission allows

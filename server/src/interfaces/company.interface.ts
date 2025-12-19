@@ -1,7 +1,7 @@
-import { Schema } from "mongoose";
+import { Types } from "mongoose";
 
 export interface ICompany {
-    _id: Schema.Types.ObjectId;
+    _id: Types.ObjectId;
     name: string;
     slug: string;
     isActive: boolean;
