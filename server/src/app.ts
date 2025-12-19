@@ -35,7 +35,7 @@ app.use(errorMiddleware);
 // Script to run at startup
 // scriptToRunAtStartup();
 
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 async function scriptToRunAtStartup() {
     //Populate permissions collection
     //Add view permissions for user profile

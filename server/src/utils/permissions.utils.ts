@@ -1,4 +1,3 @@
- 
 /**
  * Permission structure: category:action:scope
  *

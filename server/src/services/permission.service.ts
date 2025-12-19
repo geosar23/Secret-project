@@ -8,7 +8,6 @@ import { IPermission } from "../interfaces/permission.interface";
  * Service for managing custom permission grants and revocations
  */
 export const PermissionService = {
-
     create: (entry: Partial<IPermission>): Promise<IPermission> => {
         return PermissionModel.create(entry);
     },
