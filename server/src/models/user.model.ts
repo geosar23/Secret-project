@@ -1,6 +1,5 @@
 import { Schema, model } from "mongoose";
 import { IUser } from "../interfaces/user.interface";
-import { DefaultUserRoles } from "../enums/user-role.enum";
 import { RoleModel } from "./role.model";
 
 const UserSchema = new Schema<IUser>(
@@ -10,14 +9,7 @@ const UserSchema = new Schema<IUser>(
         password: { type: String, required: true },
 
         // Role & Organization
-        role: {
-            type: String,
-            required: true,
-            default: DefaultUserRoles.EMPLOYEE,
-            lowercase: true,
-            trim: true,
-            ref: "Roles",
-        },
+        role: { type: Schema.Types.ObjectId, ref: "Roles", required: true },
         companyId: { type: Schema.Types.ObjectId, ref: "Companies" },
         departmentId: { type: Schema.Types.ObjectId, ref: "Departments" },
         managerId: { type: Schema.Types.ObjectId, ref: "Users" },

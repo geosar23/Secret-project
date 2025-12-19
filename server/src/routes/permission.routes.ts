@@ -24,6 +24,6 @@ router.post("/users/:userId/permissions/revoke", PermissionController.revokeRole
 router.post("/users/:userId/permissions/restore", PermissionController.restoreRolePermission as RequestHandler);
 
 // Get effective permissions for user
-router.get("/users/:userId/permissions/effective", PermissionController.getEffectivePermissions as RequestHandler);
+router.get("/users/:userId/permissions", PermissionController.getUserPermissions as RequestHandler);
 
 export default router;

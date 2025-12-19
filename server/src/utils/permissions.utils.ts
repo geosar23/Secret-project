@@ -1,3 +1,4 @@
+ 
 /**
  * Permission structure: category:action:scope
  *
@@ -14,9 +15,9 @@
  * - user: User themselves
  */
 
-import { IPermission } from "../interfaces/permission.interface";
-import { PermissionModel } from "../models/permission.model";
-import { PermissionActions, PermissionCategories, PermissionScopes } from "../enums/permissions.enum";
+// import { IPermission } from "../interfaces/permission.interface";
+// // import { PermissionModel } from "../models/permission.model";
+// import { PermissionActions, PermissionCategories, PermissionScopes } from "../enums/permissions.enum";
 
 export const PERMISSIONS = {
     // User Management
@@ -116,110 +117,73 @@ export const PERMISSIONS = {
 } as const;
 
 // Map permission key categories to PermissionCategories enum
-const CATEGORY_MAP: Record<string, PermissionCategories> = {
-    users: PermissionCategories.USERS,
-    departments: PermissionCategories.DEPARTMENTS,
-    companies: PermissionCategories.COMPANIES,
-    countries: PermissionCategories.COUNTRIES,
-    employment_titles: PermissionCategories.EMPLOYMENT_TITLES,
-    employment_types: PermissionCategories.EMPLOYMENT_TYPES,
-    settings: PermissionCategories.SETTINGS,
-    permissions: PermissionCategories.PERMISSIONS,
-    roles: PermissionCategories.ROLES,
-};
+// const CATEGORY_MAP: Record<string, PermissionCategories> = {
+//     'Users Management': PermissionCategories.USERS_MANAGEMENT,
+// };
 
 // -----------------------------
 // Generate DB-ready permission docs from PERMISSIONS object
-function generatePermissionDocs() {
-    const docs: Partial<IPermission>[] = [];
+// function generatePermissionDocs() {
+//     const docs: Partial<IPermission>[] = [];
 
-    for (const categoryKey of Object.keys(PERMISSIONS)) {
-        const permissions = PERMISSIONS[categoryKey as keyof typeof PERMISSIONS];
+//     for (const categoryKey of Object.keys(PERMISSIONS)) {
+//         const permissions = PERMISSIONS[categoryKey as keyof typeof PERMISSIONS];
 
-        for (const permKey of Object.keys(permissions)) {
-            const key = permissions[permKey as keyof typeof permissions] as string;
-            const [categoryStr, action, scope] = key.split(":");
-            const category = CATEGORY_MAP[categoryStr];
+//         for (const permKey of Object.keys(permissions)) {
+//             const key = permissions[permKey as keyof typeof permissions] as string;
+//             const [categoryStr, action, scope] = key.split(":");
+//             const category = CATEGORY_MAP[categoryStr];
 
-            if (!category) {
-                console.warn(`Unknown category: ${categoryStr} for permission: ${key}`);
-                continue;
-            }
+//             if (!category) {
+//                 console.warn(`Unknown category: ${categoryStr} for permission: ${key}`);
+//                 continue;
+//             }
 
-            docs.push({
-                key,
-                name: toReadableName(permKey),
-                description: generateDescription(categoryStr, action, scope),
-                category,
-                isActive: true,
-            });
-        }
-    }
+//             docs.push({
+//                 key,
+//                 name: toReadableName(permKey),
+//                 description: generateDescription(categoryStr, action, scope),
+//                 category,
+//                 isActive: true,
+//             });
+//         }
+//     }
 
-    return docs;
-}
+//     return docs;
+// }
 
-function generatePermissionDoc2() {
-    const docs: Partial<IPermission>[] = [];
-    for (const category of Object.values(PermissionCategories)) {
-        for (const scope of Object.values(PermissionScopes)) {
-            for (const action of Object.values(PermissionActions)) {
-                const key = `${category}:${action}:${scope}`;
-                const name = toReadableName(key);
-                const description = `Allows user to ${action} on ${category} with ${scope} scope.`;
-                docs.push({
-                    key,
-                    name,
-                    description,
-                    category,
-                    scope,
-                    action,
-                    isActive: true,
-                });
-            }
-        }
-    }
+// function generatePermissionDoc2() {
+//     const docs: Partial<IPermission>[] = [];
+//     for (const category of Object.values(PermissionCategories)) {
+//         for (const scope of Object.values(PermissionScopes)) {
+//             for (const action of Object.values(PermissionActions)) {
+//                 const key = `${category}:${action}:${scope}`;
+//                 const name = toReadableName(key);
+//                 const description = `Allows user to ${action} on ${category} with ${scope} scope.`;
+//                 docs.push({
+//                     key,
+//                     name,
+//                     description,
+//                     category,
+//                     scope,
+//                     action,
+//                     isActive: true,
+//                 });
+//             }
+//         }
+//     }
 
-    return docs;
-}
+//     return docs;
+// }
 
-function generateDescription(category: string, action: string, scope: string): string {
-    const scopeDesc = scope === "*" ? "all" : scope;
-    return `Allows user to ${action} ${category} with ${scopeDesc} scope`;
-}
+// function generateDescription(category: string, action: string, scope: string): string {
+//     const scopeDesc = scope === "*" ? "all" : scope;
+//     return `Allows user to ${action} ${category} with ${scopeDesc} scope`;
+// }
 
-function toReadableName(key: string): string {
-    return key
-        .split("_")
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(" ");
-}
-
-// -----------------------------
-// Seed function
-export async function seedPermissions() {
-    try {
-        const docs = generatePermissionDocs();
-
-        console.log("Sample permissions:", docs.slice(0, 2));
-        console.log(`Generated ${docs.length} permissions...`);
-
-        const docs2 = generatePermissionDoc2();
-        console.log("Sample permissions from method 2:", docs2.slice(0, 2));
-        console.log(`Generated ${docs2.length} permissions from method 2...`);
-
-        return;
-
-        for (const doc of docs) {
-            await PermissionModel.updateOne(
-                { key: doc.key }, // match by key
-                { $set: doc }, // update fields if exists
-                { upsert: true }, // create if missing
-            );
-        }
-
-        console.log("✅ Permissions seeded successfully.");
-    } catch (error) {
-        console.error("❌ Error seeding permissions:", error);
-    }
-}
+// function toReadableName(key: string): string {
+//     return key
+//         .split("_")
+//         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+//         .join(" ");
+// }

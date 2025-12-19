@@ -1,6 +1,7 @@
 import { RoleModel } from "../models/role.model";
 import { IRole } from "../interfaces/role.interface";
 import { DefaultUserRoles } from "../enums/user-role.enum";
+import { Types } from "mongoose";
 
 export const RoleService = {
     /**
@@ -13,7 +14,7 @@ export const RoleService = {
     /**
      * Get role by ID
      */
-    getById: (id: string): Promise<IRole | null> => {
+    getById: (id: Types.ObjectId): Promise<IRole | null> => {
         return RoleModel.findById(id).exec();
     },
 
@@ -38,14 +39,6 @@ export const RoleService = {
      */
     getHierarchy: (): Promise<IRole[]> => {
         return RoleModel.find().sort({ level: -1 }).exec();
-    },
-
-    /**
-     * Get permissions for a role
-     */
-    getPermissions: async (roleType: DefaultUserRoles | string): Promise<string[]> => {
-        const role = await RoleModel.findOne({ role: roleType }).exec();
-        return role?.permissions || [];
     },
 
     /**

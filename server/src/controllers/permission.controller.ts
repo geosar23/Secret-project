@@ -13,18 +13,8 @@ export const PermissionController = {
      */
     async getAllPermissions(req: AuthenticatedRequest, res: Response) {
         try {
-            // Transform PERMISSIONS constants into a flat array with metadata
-            const permissionDefinitions: Array<{
-                permission: string;
-                description: string;
-                category: string;
-            }> = [];
-
-            //Fetch PERMISSIONS from service
-            const permission = await PermissionService.getAll();
-            console.log("Fetched PERMISSIONS:", permission);
-
-            res.status(200).json({ permissions: permissionDefinitions });
+            const permissions = await PermissionService.getAll();
+            res.status(200).json({ permissions });
         } catch (error) {
             console.error("Get all permissions error:", error);
             res.status(500).json({
@@ -53,7 +43,7 @@ export const PermissionController = {
 
             const updatedUser = await PermissionService.grantPermission(userId, permission);
 
-            const effectivePermissions = await PermissionService.getEffectivePermissions(userId);
+            const effectivePermissions = await PermissionService.getUserPermissions(userId);
 
             res.status(200).json({
                 message: "Permission granted successfully",
@@ -78,7 +68,7 @@ export const PermissionController = {
 
             const updatedUser = await PermissionService.revokeGrantedPermission(userId, decodeURIComponent(permission));
 
-            const effectivePermissions = await PermissionService.getEffectivePermissions(userId);
+            const effectivePermissions = await PermissionService.getUserPermissions(userId);
 
             res.status(200).json({
                 message: "Granted permission revoked successfully",
@@ -108,7 +98,7 @@ export const PermissionController = {
 
             const updatedUser = await PermissionService.revokeRolePermission(userId, permission);
 
-            const effectivePermissions = await PermissionService.getEffectivePermissions(userId);
+            const effectivePermissions = await PermissionService.getUserPermissions(userId);
 
             res.status(200).json({
                 message: "Role permission revoked successfully",
@@ -138,7 +128,7 @@ export const PermissionController = {
 
             const updatedUser = await PermissionService.restoreRolePermission(userId, permission);
 
-            const effectivePermissions = await PermissionService.getEffectivePermissions(userId);
+            const effectivePermissions = await PermissionService.getUserPermissions(userId);
 
             res.status(200).json({
                 message: "Role permission restored successfully",
@@ -157,11 +147,11 @@ export const PermissionController = {
      * Get effective permissions for a user
      * GET /users/:userId/permissions/effective
      */
-    async getEffectivePermissions(req: AuthenticatedRequest, res: Response) {
+    async getUserPermissions(req: AuthenticatedRequest, res: Response) {
         try {
             const { userId } = req.params;
 
-            const permissions = await PermissionService.getEffectivePermissions(userId);
+            const permissions = await PermissionService.getUserPermissions(userId);
 
             res.status(200).json({
                 userId,

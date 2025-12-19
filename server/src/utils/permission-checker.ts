@@ -3,6 +3,7 @@ import { AccessContext } from "../interfaces/permission.interface";
 import { DefaultUserRoles } from "../enums/user-role.enum";
 import { RoleService } from "../services/role.service";
 import { SCOPE_HANDLERS } from "./attribute-rules";
+import { PermissionService } from "../services/permission.service";
 
 /**
  * PermissionChecker handles all permission evaluation logic
@@ -17,8 +18,14 @@ export class PermissionChecker {
      * @returns true if access is granted, false otherwise
      */
     static async canAccess(user: IUser, permission: string, resource?: Record<string, unknown>): Promise<boolean> {
+        //Fetch user's role permissions from DB and evaluate
+        const roleData = await RoleService.getById(user.role);
+        if (!roleData) {
+            return false; // Role not found
+        }
+
         // 1. GOD role bypasses all checks
-        if (user.role === DefaultUserRoles.GOD) {
+        if (roleData.role === DefaultUserRoles.GOD) {
             return true;
         }
 
@@ -36,7 +43,10 @@ export class PermissionChecker {
         }
 
         // 4. Check role-based permissions from database
-        const rolePermissions = await RoleService.getPermissions(user.role);
+        const rolePermissions = await PermissionService.getByIds(roleData.permissions.map(p => p.toString())).then(
+            perms => perms.map(p => p.key),
+        );
+        console.log("Role Permissions:", rolePermissions);
 
         // Check for wildcard permission
         if (rolePermissions.includes("*")) {
@@ -174,39 +184,6 @@ export class PermissionChecker {
             }
         }
         return accessible;
-    }
-
-    /**
-     * Get all effective permissions for a user (including role and granted permissions)
-     * Expands permissions to include inherited scopes (e.g., "all" includes "department", "managed", "self")
-     */
-    static async getEffectivePermissions(user: IUser): Promise<string[]> {
-        const permissions = new Set<string>();
-
-        // Add role permissions from database
-        const rolePermissions = await RoleService.getPermissions(user.role);
-        rolePermissions.forEach(p => permissions.add(p));
-
-        // Add granted permissions (if not expired)
-        if (user.grantedPermissions) {
-            user.grantedPermissions.forEach(permission => {
-                permissions.add(permission);
-            });
-        }
-
-        // Remove revoked permissions
-        if (user.revokedPermissions) {
-            user.revokedPermissions.forEach(p => permissions.delete(p));
-        }
-
-        // Expand permissions to include inherited scopes
-        const expandedPermissions = new Set<string>(permissions);
-        permissions.forEach(perm => {
-            const expanded = this.expandPermissionScopes(perm);
-            expanded.forEach(p => expandedPermissions.add(p));
-        });
-
-        return Array.from(expandedPermissions);
     }
 
     /**

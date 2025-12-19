@@ -1,6 +1,6 @@
 import { IUser } from "../interfaces/user.interface";
 import { UserService } from "./user.service";
-import { PermissionChecker } from "../utils/permission-checker";
+// import { PermissionChecker } from "../utils/permission-checker";
 import { PermissionModel } from "../models/permission.model";
 import { IPermission } from "../interfaces/permission.interface";
 
@@ -8,11 +8,19 @@ import { IPermission } from "../interfaces/permission.interface";
  * Service for managing custom permission grants and revocations
  */
 export const PermissionService = {
+
+    create: (entry: Partial<IPermission>): Promise<IPermission> => {
+        return PermissionModel.create(entry);
+    },
     /**
      * Get all permissions
      */
     getAll: (): Promise<IPermission[]> => {
         return PermissionModel.find().exec();
+    },
+
+    getByIds: (ids: string[]): Promise<IPermission[]> => {
+        return PermissionModel.find({ _id: { $in: ids } }).exec();
     },
 
     /**
@@ -170,12 +178,14 @@ export const PermissionService = {
      * Get all effective permissions for a user
      * Combines role permissions, granted permissions, and revoked permissions
      */
-    async getEffectivePermissions(userId: string): Promise<string[]> {
+    async getUserPermissions(userId: string): Promise<string[]> {
         const user = await UserService.getById(userId);
         if (!user) {
             throw new Error("User not found");
         }
 
-        return PermissionChecker.getEffectivePermissions(user);
+        console.log("Fetching effective permissions for user:", userId);
+
+        return [];
     },
 };
