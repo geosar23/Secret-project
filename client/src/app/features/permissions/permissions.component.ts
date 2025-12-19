@@ -53,9 +53,8 @@ export class PermissionsComponent implements OnInit {
         this.permissionCategories = Array.from(categoryMap.entries()).map(([category, perms]) => ({
             name: category,
             permissions: perms.map(p => ({
-                permission: p.permission,
-                description: p.description,
-                hasPermission: this.checkPermission(p.permission),
+                ...p,
+                hasPermission: this.checkPermission(p.key),
             })),
         }));
     }

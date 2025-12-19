@@ -18,7 +18,7 @@
                     <mat-card-content>
                         <h2 class="category-title">{{ category.name }}</h2>
                         <div class="permissions-list">
-                            @for (item of category.permissions; track item.permission) {
+                            @for (item of category.permissions; track item.key) {
                                 <div class="permission-item" [class.has-permission]="item.hasPermission">
                                     <div class="permission-status">
                                         <mat-icon
@@ -34,7 +34,7 @@
                                     </div>
                                     <div class="permission-details">
                                         <div class="permission-name">{{ item.description }}</div>
-                                        <div class="permission-code">{{ item.permission }}</div>
+                                        <div class="permission-code">{{ item.key }}</div>
                                     </div>
                                 </div>
                             }

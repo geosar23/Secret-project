@@ -18,13 +18,13 @@ export interface IPermissionCategory {
 }
 
 export interface IPermissionItem {
-    permission: string;
+    key: string;
     description: string;
     hasPermission: boolean;
 }
 
 export interface IPermissionDefinition {
-    permission: string;
+    key: string;
     description: string;
     category: string;
 }
