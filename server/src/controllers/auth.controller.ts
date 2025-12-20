@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { AuthService } from "../services/auth.service";
 import { UserService } from "../services/user.service";
-import { JwtPayload } from "../interfaces/auth.interface";
+import { AuthenticatedRequest, JwtPayload } from "../interfaces/auth.interface";
 
 export const AuthController = {
     login: async (req: Request, res: Response) => {
@@ -20,7 +20,7 @@ export const AuthController = {
         }
     },
 
-    me: async (req: Request, res: Response) => {
+    me: async (req: AuthenticatedRequest, res: Response) => {
         try {
             const token = req.headers.authorization?.replace("Bearer ", "");
 

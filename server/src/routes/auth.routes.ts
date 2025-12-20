@@ -1,5 +1,6 @@
-import { Router } from "express";
+import { RequestHandler, Router } from "express";
 import { AuthController } from "../controllers/auth.controller";
+import { authMiddleware } from "../middleware/auth.middleware";
 
 const router = Router();
 
@@ -7,7 +8,7 @@ const router = Router();
 router.post("/login", AuthController.login);
 
 // Protected routes (require authentication)
-// router.get("/me", AuthController.me);
+router.get("/me", authMiddleware as RequestHandler, AuthController.me as RequestHandler);
 
 // TODO: Add these employee-facing endpoints:
 // router.post("/activate-account", AuthController.activateAccount); // Employee sets password after invitation

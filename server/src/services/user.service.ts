@@ -67,7 +67,9 @@ export const UserService = {
         };
     },
 
-    getById: (id: string) => UserModel.findById(id),
+    getById: (id: string) => {
+        return UserModel.findById(id).populate("role", "role name").populate("company").select("-password");
+    },
     getByEmail: (email: string) => UserModel.findOne({ email }),
     create: (data: Omit<IUser, "_id">) => UserModel.create(data),
     update: (id: string, data: Partial<IUser>) => UserModel.findByIdAndUpdate(id, data, { new: true }),
