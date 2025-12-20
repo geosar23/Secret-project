@@ -13,12 +13,12 @@
         </mat-card>
 
         <div class="permissions-grid">
-            @for (category of permissionCategories; track category.name) {
+            @for (c of permissionCategories; track c) {
                 <mat-card class="category-card">
                     <mat-card-content>
-                        <h2 class="category-title">{{ category.name }}</h2>
+                        <h2 class="category-title">{{ PermissionCategoriesStrings[c.category] }}</h2>
                         <div class="permissions-list">
-                            @for (item of category.permissions; track item.key) {
+                            @for (item of c.permissions; track item.key) {
                                 <div class="permission-item" [class.has-permission]="item.hasPermission">
                                     <div class="permission-status">
                                         <mat-icon

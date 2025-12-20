@@ -10,6 +10,7 @@ import { AuthService } from "../../core/services/auth.service";
 import { IPermissionCategory, IPermissionDefinition } from "../../core/interfaces/permission.interface";
 import { forkJoin } from "rxjs";
 import { RoleUtils } from "../../core/utils/role.utils";
+import { PermissionCategories, PermissionCategoriesStrings } from "../../core/enums/permissions.enum";
 
 @Component({
     selector: "app-permissions",
@@ -25,6 +26,7 @@ export class PermissionsComponent implements OnInit {
     currentUser$ = this.authService.currentUser$;
     effectivePermissions: string[] = [];
     permissionCategories: IPermissionCategory[] = [];
+    readonly PermissionCategoriesStrings = PermissionCategoriesStrings;
     readonly rolesHierarchy = RoleUtils.getAllRolesWithMetadata();
 
     ngOnInit(): void {
@@ -42,7 +44,7 @@ export class PermissionsComponent implements OnInit {
 
     private buildPermissionCategoriesFromBackend(definitions: IPermissionDefinition[]): void {
         // Group permissions by category
-        const categoryMap = new Map<string, IPermissionDefinition[]>();
+        const categoryMap = new Map<PermissionCategories, IPermissionDefinition[]>();
 
         definitions.forEach(def => {
             if (!categoryMap.has(def.category)) {
@@ -53,7 +55,7 @@ export class PermissionsComponent implements OnInit {
 
         // Convert to array format
         this.permissionCategories = Array.from(categoryMap.entries()).map(([category, perms]) => ({
-            name: category,
+            category,
             permissions: perms.map(p => ({
                 ...p,
                 hasPermission: this.checkPermission(p._id),

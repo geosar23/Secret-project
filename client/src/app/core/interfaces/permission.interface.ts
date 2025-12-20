@@ -15,7 +15,7 @@ export interface IPermissionHistory {
 }
 
 export interface IPermissionCategory {
-    name: string;
+    category: PermissionCategories;
     permissions: IPermissionItem[];
 }
 

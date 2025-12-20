@@ -1,3 +1,8 @@
+export const PermissionCategoriesStrings: Record<string, string> = {
+    usersManagement: "Users Management",
+    userProfile: "User Profile",
+};
+
 export enum PermissionCategories {
     USERS_MANAGEMENT = "usersManagement",
     USER_PROFILE = "userProfile",

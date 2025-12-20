@@ -12,8 +12,8 @@ import rateLimit from "express-rate-limit";
 const app = express();
 
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per 15 minutes
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 100, // limit each IP to 100 requests per 1 minute
 });
 
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true })); // Enable CORS
