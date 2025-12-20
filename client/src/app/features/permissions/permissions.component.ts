@@ -53,7 +53,7 @@ export class PermissionsComponent implements OnInit {
     ngOnInit(): void {
         // Fetch both effective permissions and all permission definitions from backend
         forkJoin({
-            effectivePermissions: this.permissionService.fetchEffectivePermissions(),
+            effectivePermissions: this.permissionService.getEffectivePermissions(),
             allDefinitions: this.permissionService.fetchAllPermissionDefinitions(),
         }).subscribe(({ effectivePermissions, allDefinitions }) => {
             console.log("Effective Permissions:", effectivePermissions);
