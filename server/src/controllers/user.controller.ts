@@ -2,6 +2,7 @@ import { NextFunction, Response } from "express";
 import { UserService } from "../services/user.service";
 import { AuthenticatedRequest } from "../interfaces/auth.interface";
 import { DefaultUserRoles } from "../enums/user-role.enum";
+import { IUsersQueryParams } from "../interfaces/user.interface";
 
 export class UserController {
     static async getUsers(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
@@ -15,7 +16,7 @@ export class UserController {
             }
 
             // Parse query parameters
-            const params = {
+            const params: IUsersQueryParams = {
                 page: req.query.page ? parseInt(req.query.page as string) : undefined,
                 limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
                 search: req.query.search as string,
@@ -23,6 +24,7 @@ export class UserController {
                 sortOrder: req.query.sortOrder as "asc" | "desc",
                 role: req.query.role as string,
                 companyId: req.query.companyId as string,
+                departmentId: req.query.departmentId as string,
                 isActive: req.query.isActive === "true" ? true : req.query.isActive === "false" ? false : undefined,
             };
 
@@ -34,7 +36,7 @@ export class UserController {
                     res.status(404).json({ message: "Requesting user not found" });
                     return;
                 }
-                params.companyId = user.companyId?.toString() as string;
+                params.companyId = user.company?.toString() as string;
             }
 
             const users = await UserService.getUsers(params);

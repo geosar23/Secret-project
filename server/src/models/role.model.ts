@@ -106,4 +106,4 @@ RoleSchema.pre("findOneAndUpdate", function (next) {
     }
 });
 
-export const RoleModel = model<IRole>("Role", RoleSchema);
+export const RoleModel = model<IRole>("Roles", RoleSchema);

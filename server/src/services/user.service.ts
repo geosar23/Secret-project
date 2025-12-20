@@ -12,8 +12,8 @@ export const UserService = {
         const sortBy = allowedSortFields.includes(params.sortBy || "") ? params.sortBy! : "createdAt";
         const sortOrder = params.sortOrder === "asc" ? "asc" : "desc";
         const role = params.role;
-        const companyId = params.companyId;
-        const departmentId = params.departmentId;
+        const company = params.companyId;
+        const department = params.departmentId;
         const isActive = params.isActive;
 
         // Build filter query
@@ -27,12 +27,12 @@ export const UserService = {
             filter.role = role;
         }
 
-        if (companyId) {
-            filter.companyId = companyId;
+        if (company) {
+            filter.company = company;
         }
 
-        if (departmentId) {
-            filter.departmentId = departmentId;
+        if (department) {
+            filter.department = department;
         }
 
         if (isActive !== undefined) {
@@ -47,7 +47,14 @@ export const UserService = {
 
         // Execute query with pagination
         const [users, total] = await Promise.all([
-            UserModel.find(filter).sort(sortOptions).skip(skip).limit(limit).select("-password").lean(),
+            UserModel.find(filter)
+                .populate('role','role name')
+                .populate('company')
+                .sort(sortOptions)
+                .skip(skip)
+                .limit(limit)
+                .select("-password")
+                .lean(),
             UserModel.countDocuments(filter),
         ]);
 

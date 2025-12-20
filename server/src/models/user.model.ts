@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 import { IUser } from "../interfaces/user.interface";
 import { RoleModel } from "./role.model";
+import "./company.model";
 
 const UserSchema = new Schema<IUser>(
     {
@@ -10,9 +11,9 @@ const UserSchema = new Schema<IUser>(
 
         // Role & Organization
         role: { type: Schema.Types.ObjectId, ref: "Roles", required: true },
-        companyId: { type: Schema.Types.ObjectId, ref: "Companies" },
-        departmentId: { type: Schema.Types.ObjectId, ref: "Departments" },
-        managerId: { type: Schema.Types.ObjectId, ref: "Users" },
+        company: { type: Schema.Types.ObjectId, ref: "Companies" },
+        department: { type: Schema.Types.ObjectId, ref: "Departments" },
+        manager: { type: Schema.Types.ObjectId, ref: "Users" },
 
         // Custom permissions
         grantedPermissions: [{ type: Schema.Types.ObjectId, ref: "Permissions" }],

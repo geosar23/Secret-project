@@ -7,9 +7,9 @@ export interface IUser {
 
     // Role & Organization
     role: Types.ObjectId; // Can be default roles or custom roles
-    companyId?: Types.ObjectId; // null only for GOD role
-    departmentId?: Types.ObjectId;
-    managerId?: Types.ObjectId; // Direct manager's user ID
+    company?: Types.ObjectId; // null only for GOD role
+    department?: Types.ObjectId;
+    manager?: Types.ObjectId; // Direct manager's user ID
     managedDepartments?: Types.ObjectId[]; // For managers - departments they manage
     // Custom permissions
     grantedPermissions?: Types.ObjectId[]; // Additional permissions granted
