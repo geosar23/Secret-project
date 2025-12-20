@@ -12,8 +12,8 @@ export interface IUser {
     managerId?: Types.ObjectId; // Direct manager's user ID
     managedDepartments?: Types.ObjectId[]; // For managers - departments they manage
     // Custom permissions
-    grantedPermissions?: string[]; // Additional permissions granted
-    revokedPermissions?: string[]; // Role permissions that are revoked
+    grantedPermissions?: Types.ObjectId[]; // Additional permissions granted
+    revokedPermissions?: Types.ObjectId[]; // Role permissions that are revoked
 
     isActive?: boolean;
     createdAt?: Date;

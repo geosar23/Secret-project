@@ -1,9 +1,8 @@
-import { IUser } from "../interfaces/user.interface";
 import { UserService } from "./user.service";
-// import { PermissionChecker } from "../utils/permission-checker";
 import { PermissionModel } from "../models/permission.model";
 import { IPermission } from "../interfaces/permission.interface";
-
+import { RoleService } from "./role.service";
+import { Types } from "mongoose";
 /**
  * Service for managing custom permission grants and revocations
  */
@@ -83,108 +82,126 @@ export const PermissionService = {
     /**
      * Grant a custom permission to a user
      */ //to be implemented
-    async grantPermission(userId: string, permission: string): Promise<IUser> {
-        const user = await UserService.getById(userId);
-        if (!user) {
-            throw new Error("User not found");
-        }
+    // async grantPermission(userId: string, permission: string): Promise<IUser> {
+    //     const user = await UserService.getById(userId);
+    //     if (!user) {
+    //         throw new Error("User not found");
+    //     }
 
-        // Initialize grantedPermissions array if not exists
-        if (!user.grantedPermissions) {
-            user.grantedPermissions = [];
-        }
+    //     // Initialize grantedPermissions array if not exists
+    //     if (!user.grantedPermissions) {
+    //         user.grantedPermissions = [];
+    //     }
 
-        // Add to granted list if not already there
-        if (!user.grantedPermissions.includes(permission)) {
-            user.grantedPermissions.push(permission);
-        }
+    //     // Add to granted list if not already there
+    //     if (!user.grantedPermissions.includes(permission)) {
+    //         user.grantedPermissions.push(permission);
+    //     }
 
-        const updated = await UserService.update(userId, user);
-        if (!updated) {
-            throw new Error("Failed to update user");
-        }
-        return updated;
-    },
+    //     const updated = await UserService.update(userId, user);
+    //     if (!updated) {
+    //         throw new Error("Failed to update user");
+    //     }
+    //     return updated;
+    // },
 
     /**
      * Revoke a custom granted permission from a user
      */
-    async revokeGrantedPermission(userId: string, permission: string): Promise<IUser> {
-        const user = await UserService.getById(userId);
-        if (!user) {
-            throw new Error("User not found");
-        }
+    // async revokeGrantedPermission(userId: string, permission: string): Promise<IUser> {
+    //     const user = await UserService.getById(userId);
+    //     if (!user) {
+    //         throw new Error("User not found");
+    //     }
 
-        if (user.grantedPermissions) {
-            user.grantedPermissions = user.grantedPermissions.filter((g: string) => g !== permission);
-        }
+    //     if (user.grantedPermissions) {
+    //         user.grantedPermissions = user.grantedPermissions.filter((g: string) => g !== permission);
+    //     }
 
-        const updated = await UserService.update(userId, user);
-        if (!updated) {
-            throw new Error("Failed to update user");
-        }
-        return updated;
-    },
+    //     const updated = await UserService.update(userId, user);
+    //     if (!updated) {
+    //         throw new Error("Failed to update user");
+    //     }
+    //     return updated;
+    // },
 
     /**
      * Revoke a role permission for a user (blacklist)
      * This removes a permission that the user would normally have through their role
      */
-    async revokeRolePermission(userId: string, permission: string): Promise<IUser> {
-        const user = await UserService.getById(userId);
-        if (!user) {
-            throw new Error("User not found");
-        }
+    // async revokeRolePermission(userId: string, permission: string): Promise<IUser> {
+    //     const user = await UserService.getById(userId);
+    //     if (!user) {
+    //         throw new Error("User not found");
+    //     }
 
-        // Initialize revokedPermissions array if not exists
-        if (!user.revokedPermissions) {
-            user.revokedPermissions = [];
-        }
+    //     // Initialize revokedPermissions array if not exists
+    //     if (!user.revokedPermissions) {
+    //         user.revokedPermissions = [];
+    //     }
 
-        // Add to revoked list if not already there
-        if (!user.revokedPermissions.includes(permission)) {
-            user.revokedPermissions.push(permission);
-        }
+    //     // Add to revoked list if not already there
+    //     if (!user.revokedPermissions.includes(permission)) {
+    //         user.revokedPermissions.push(permission);
+    //     }
 
-        const updated = await UserService.update(userId, user);
-        if (!updated) {
-            throw new Error("Failed to update user");
-        }
-        return updated;
-    },
+    //     const updated = await UserService.update(userId, user);
+    //     if (!updated) {
+    //         throw new Error("Failed to update user");
+    //     }
+    //     return updated;
+    // },
 
     /**
      * Restore a previously revoked role permission
      */
-    async restoreRolePermission(userId: string, permission: string): Promise<IUser> {
-        const user = await UserService.getById(userId);
-        if (!user) {
-            throw new Error("User not found");
-        }
+    // async restoreRolePermission(userId: string, permission: string): Promise<IUser> {
+    //     const user = await UserService.getById(userId);
+    //     if (!user) {
+    //         throw new Error("User not found");
+    //     }
 
-        if (user.revokedPermissions) {
-            user.revokedPermissions = user.revokedPermissions.filter((p: string) => p !== permission);
-        }
+    //     if (user.revokedPermissions) {
+    //         user.revokedPermissions = user.revokedPermissions.filter((p: string) => p !== permission);
+    //     }
 
-        const updated = await UserService.update(userId, user);
-        if (!updated) {
-            throw new Error("Failed to update user");
-        }
-        return updated;
-    },
+    //     const updated = await UserService.update(userId, user);
+    //     if (!updated) {
+    //         throw new Error("Failed to update user");
+    //     }
+    //     return updated;
+    // },
 
     /**
      * Get all effective permissions for a user
      * Combines role permissions, granted permissions, and revoked permissions
      */
-    async getUserPermissions(userId: string): Promise<string[]> {
+    async getEffectiveUserPermissions(userId: string): Promise<Types.ObjectId[]> {
         const user = await UserService.getById(userId);
         if (!user) {
             throw new Error("User not found");
         }
 
-        console.log("Fetching effective permissions for user:", userId);
+        const role = await RoleService.getById(user.role._id);
+        console.log("User role:", role);
 
-        return [];
+        const effectivePermissions = [...(role?.permissions || [])];
+
+        // Add granted permissions
+        if (user.grantedPermissions) {
+            effectivePermissions.push(...(user.grantedPermissions || []));
+        }
+
+        // Remove revoked permissions
+        if (user.revokedPermissions) {
+            user.revokedPermissions.forEach(perm => {
+                const index = effectivePermissions.indexOf(perm);
+                if (index > -1) {
+                    effectivePermissions.splice(index, 1);
+                }
+            });
+        }
+
+        return effectivePermissions;
     },
 };

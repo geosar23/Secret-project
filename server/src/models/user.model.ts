@@ -13,11 +13,10 @@ const UserSchema = new Schema<IUser>(
         companyId: { type: Schema.Types.ObjectId, ref: "Companies" },
         departmentId: { type: Schema.Types.ObjectId, ref: "Departments" },
         managerId: { type: Schema.Types.ObjectId, ref: "Users" },
-        managedDepartments: [{ type: Schema.Types.ObjectId, ref: "Departments" }],
 
         // Custom permissions
-        grantedPermissions: [{ type: String, ref: "Permissions" }],
-        revokedPermissions: [{ type: String, ref: "Permissions" }],
+        grantedPermissions: [{ type: Schema.Types.ObjectId, ref: "Permissions" }],
+        revokedPermissions: [{ type: Schema.Types.ObjectId, ref: "Permissions" }],
 
         isActive: { type: Boolean, default: true },
     },
