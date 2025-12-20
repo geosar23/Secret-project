@@ -48,8 +48,8 @@ export const UserService = {
         // Execute query with pagination
         const [users, total] = await Promise.all([
             UserModel.find(filter)
-                .populate('role','role name')
-                .populate('company')
+                .populate("role", "role name")
+                .populate("company")
                 .sort(sortOptions)
                 .skip(skip)
                 .limit(limit)
