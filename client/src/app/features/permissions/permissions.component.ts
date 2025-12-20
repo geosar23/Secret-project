@@ -5,6 +5,10 @@ import { MatCardModule } from "@angular/material/card";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
 import { MatListModule } from "@angular/material/list";
+import { MatSelectModule } from "@angular/material/select";
+import { MatFormFieldModule } from "@angular/material/form-field";
+import { MatButtonModule } from "@angular/material/button";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { PermissionService } from "../../core/services/permission.service";
 import { AuthService } from "../../core/services/auth.service";
 import { IPermissionCategory, IPermissionDefinition } from "../../core/interfaces/permission.interface";
@@ -15,7 +19,18 @@ import { PermissionCategories, PermissionCategoriesStrings } from "../../core/en
 @Component({
     selector: "app-permissions",
     standalone: true,
-    imports: [CommonModule, MatToolbarModule, MatCardModule, MatChipsModule, MatIconModule, MatListModule],
+    imports: [
+        CommonModule,
+        MatToolbarModule,
+        MatCardModule,
+        MatChipsModule,
+        MatIconModule,
+        MatListModule,
+        MatSelectModule,
+        MatFormFieldModule,
+        MatButtonModule,
+        MatProgressSpinnerModule,
+    ],
     templateUrl: "./permissions.component.html",
     styleUrls: ["./permissions.component.scss"],
 })
@@ -28,6 +43,10 @@ export class PermissionsComponent implements OnInit {
     permissionCategories: IPermissionCategory[] = [];
     readonly PermissionCategoriesStrings = PermissionCategoriesStrings;
     readonly rolesHierarchy = RoleUtils.getAllRolesWithMetadata();
+    
+    selectedRole: string = "";
+    viewAsRoleActive: boolean = false;
+    isLoading: boolean = false;
 
     ngOnInit(): void {
         // Fetch both effective permissions and all permission definitions from backend
@@ -75,5 +94,10 @@ export class PermissionsComponent implements OnInit {
 
     getRoleName(role: string): string {
         return RoleUtils.getRoleName(role);
+    }
+
+    toggleRoleImpersonation(): void {
+        this.viewAsRoleActive = !this.viewAsRoleActive;
+        console.log("Impersonation toggled. Now:", this.viewAsRoleActive);
     }
 }

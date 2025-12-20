@@ -1,4 +1,23 @@
 <div class="permissions-container">
+    @if (viewAsRoleActive && selectedRole) {
+        <div class="alert-sticky">
+            <div class="alert-content">
+                <div class="alert-icon">
+                    <mat-icon>info</mat-icon>
+                </div>
+                <div class="alert-message">
+                    <strong>Impersonation Active</strong>
+                    <span>You are currently viewing permissions as </span>
+                    <mat-chip [style.background]="getRoleColor(selectedRole)">
+                        {{ getRoleName(selectedRole) }}
+                    </mat-chip>
+                </div>
+                <button mat-icon-button (click)="toggleRoleImpersonation()" [disabled]="isLoading" class="close-btn">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
+        </div>
+    }
     @if (currentUser$ | async; as user) {
         <mat-card class="header">
             <mat-card-content>
@@ -20,10 +39,42 @@
                         <mat-chip [style.background]="roleInfo.color">
                             {{ roleInfo.name }}
                         </mat-chip>
-                        @if (!isLast) { 
+                        @if (!isLast) {
                             <span class="arrow">→</span>
                         }
                     }
+                </div>
+                <div class="row">
+                    <div class="col-6 col-md-6">
+                        <mat-form-field appearance="fill" class="role-select">
+                            <mat-label>View default role permissions</mat-label>
+                            <mat-select [(value)]="selectedRole" [disabled]="viewAsRoleActive || isLoading">
+                                <mat-option value="">-- Select Role --</mat-option>
+                                @for (roleInfo of rolesHierarchy; track roleInfo.role) {
+                                    <mat-option [value]="roleInfo.role">
+                                        {{ roleInfo.name }}
+                                    </mat-option>
+                                }
+                            </mat-select>
+                        </mat-form-field>
+                        <button
+                            mat-raised-button
+                            color="primary"
+                            class="m-sm mb-lg"
+                            (click)="toggleRoleImpersonation()"
+                            [disabled]="isLoading || !selectedRole"
+                        >
+                            @if (isLoading) {
+                                <mat-spinner diameter="20"></mat-spinner>
+                            }
+
+                            @if (viewAsRoleActive) {
+                                Stop
+                            } @else {
+                                View As
+                            }
+                        </button>
+                    </div>
                 </div>
             </mat-card-content>
         </mat-card>
