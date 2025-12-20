@@ -73,11 +73,11 @@ export class PermissionService {
      */
     getEffectivePermissions(): Observable<string[]> {
         const cached = this.effectivePermissions$.getValue();
-        
+
         if (cached.length > 0) {
             return of(cached);
         }
-        
+
         return this.fetchEffectivePermissions();
     }
 
