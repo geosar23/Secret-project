@@ -56,7 +56,7 @@ export class PermissionService {
         }
 
         return this.apiService
-            .get<{ permissions: string[] }>(`permissions/users/${currentUser.id}/permissions/effective`)
+            .get<{ permissions: string[] }>(`permissions/users/${currentUser.id}/effective`)
             .pipe(
                 tap(response => {
                     this.effectivePermissions$.next(response.permissions);

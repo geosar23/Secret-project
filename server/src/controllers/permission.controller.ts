@@ -2,6 +2,7 @@ import { Response } from "express";
 import { PermissionService } from "../services/permission.service";
 import { AuthenticatedRequest } from "../middleware/permission.middleware";
 import { RoleUtils } from "../utils/role.utils";
+import { RoleService } from "../services/role.service";
 
 /**
  * Controller for permission management endpoints
@@ -37,6 +38,21 @@ export const PermissionController = {
             console.error("Get effective permissions error:", error);
             res.status(500).json({
                 error: error instanceof Error ? error.message : "Failed to get effective permissions",
+            });
+        }
+    },
+
+    async getRolePermissions(req: AuthenticatedRequest, res: Response) {
+        try {
+            const { roleId } = req.params;
+
+            const role = await RoleService.getById(roleId);
+
+            res.status(200).json({ permissions: role ? role.permissions : [] });
+        } catch (error) {
+            console.error("Get role permissions error:", error);
+            res.status(500).json({
+                error: error instanceof Error ? error.message : "Failed to get role permissions",
             });
         }
     },

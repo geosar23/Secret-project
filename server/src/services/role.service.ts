@@ -1,7 +1,6 @@
 import { RoleModel } from "../models/role.model";
 import { IRole } from "../interfaces/role.interface";
 import { DefaultUserRoles } from "../enums/user-role.enum";
-import { Types } from "mongoose";
 
 export const RoleService = {
     /**
@@ -14,7 +13,7 @@ export const RoleService = {
     /**
      * Get role by ID
      */
-    getById: (id: Types.ObjectId): Promise<IRole | null> => {
+    getById: (id: string): Promise<IRole | null> => {
         return RoleModel.findById(id).exec();
     },
 
