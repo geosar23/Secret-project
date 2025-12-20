@@ -69,11 +69,16 @@ export class PermissionService {
     }
 
     /**
-     * Get effective permissions (synchronous, returns cached value)
-     * Use fetchEffectivePermissions() to refresh from server
+     * Get effective permissions - returns cached value if available, otherwise fetches from server
      */
-    getEffectivePermissions(): string[] {
-        return this.effectivePermissions$.getValue();
+    getEffectivePermissions(): Observable<string[]> {
+        const cached = this.effectivePermissions$.getValue();
+        
+        if (cached.length > 0) {
+            return of(cached);
+        }
+        
+        return this.fetchEffectivePermissions();
     }
 
     /**
