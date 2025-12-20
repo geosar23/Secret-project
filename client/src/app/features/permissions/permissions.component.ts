@@ -41,6 +41,7 @@ export class PermissionsComponent implements OnInit {
     private authService = inject(AuthService);
 
     currentUser$ = this.authService.currentUser$;
+    permissionsDefinitions: IPermissionDefinition[] = [];
     effectivePermissions: string[] = [];
     permissionCategories: IPermissionCategory[] = [];
     readonly PermissionCategoriesStrings = PermissionCategoriesStrings;
@@ -51,23 +52,25 @@ export class PermissionsComponent implements OnInit {
     isLoading: boolean = false;
 
     ngOnInit(): void {
-        // Fetch both effective permissions and all permission definitions from backend
+        this.getUserPermissions();
+    }
+
+    private getUserPermissions(): void {
         forkJoin({
             effectivePermissions: this.permissionService.getEffectivePermissions(),
             allDefinitions: this.permissionService.fetchAllPermissionDefinitions(),
         }).subscribe(({ effectivePermissions, allDefinitions }) => {
-            console.log("Effective Permissions:", effectivePermissions);
-            console.log("All Permission Definitions:", allDefinitions);
             this.effectivePermissions = effectivePermissions;
-            this.buildPermissionCategoriesFromBackend(allDefinitions);
+            this.permissionsDefinitions = allDefinitions;
+            this.buildPermissionCategoriesFromBackend();
         });
     }
 
-    private buildPermissionCategoriesFromBackend(definitions: IPermissionDefinition[]): void {
+    private buildPermissionCategoriesFromBackend(): void {
         // Group permissions by category
         const categoryMap = new Map<PermissionCategories, IPermissionDefinition[]>();
 
-        definitions.forEach(def => {
+        this.permissionsDefinitions.forEach(def => {
             if (!categoryMap.has(def.category)) {
                 categoryMap.set(def.category, []);
             }
@@ -99,7 +102,18 @@ export class PermissionsComponent implements OnInit {
     }
 
     toggleRoleImpersonation(): void {
-        this.viewAsRoleActive = !this.viewAsRoleActive;
-        console.log("Impersonation toggled. Now:", this.viewAsRoleActive);
+        if (this.viewAsRoleActive) {
+            // Disable view as role
+            this.getUserPermissions();
+            this.viewAsRoleActive = false;
+            this.selectedRole = "";
+            return;
+        }
+        // Enable view as role
+        this.permissionService.fetchPermissionsForRole(this.selectedRole).subscribe(permissions => {
+            this.effectivePermissions = permissions;
+            this.viewAsRoleActive = true;
+            this.buildPermissionCategoriesFromBackend();
+        });
     }
 }

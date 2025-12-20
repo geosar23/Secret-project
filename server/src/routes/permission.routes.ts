@@ -9,7 +9,7 @@ router.get("/definitions", PermissionController.getAllPermissions as RequestHand
 router.get("/users/:userId/effective", PermissionController.getEffectiveUserPermissions as RequestHandler);
 
 //Get role permissions
-router.get("/roles/:roleId", PermissionController.getRolePermissions as RequestHandler);
+router.get("/roles/:slug", PermissionController.getRolePermissions as RequestHandler);
 
 // Get role metadata
 router.get("/roles", PermissionController.getRoles as RequestHandler);

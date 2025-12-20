@@ -56,4 +56,14 @@ export class PermissionService {
             }),
         );
     }
+
+    fetchPermissionsForRole(role: string): Observable<string[]> {
+        return this.apiService.get<{ permissions: string[] }>(`permissions/roles/${role}`).pipe(
+            map(response => response.permissions),
+            catchError(error => {
+                console.error(`Error fetching permissions for role ${role}:`, error);
+                return of([]);
+            }),
+        );
+    }
 }

@@ -17,11 +17,8 @@ export const RoleService = {
         return RoleModel.findById(id).exec();
     },
 
-    /**
-     * Get role by type (enum)
-     */
-    getByType: (roleType: DefaultUserRoles): Promise<IRole | null> => {
-        return RoleModel.findOne({ role: roleType }).exec();
+    getByRole: (slug: DefaultUserRoles | string): Promise<IRole | null> => {
+        return RoleModel.findOne({ role: slug }).exec();
     },
 
     /**

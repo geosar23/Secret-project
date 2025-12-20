@@ -44,9 +44,9 @@ export const PermissionController = {
 
     async getRolePermissions(req: AuthenticatedRequest, res: Response) {
         try {
-            const { roleId } = req.params;
+            const { slug } = req.params;
 
-            const role = await RoleService.getById(roleId);
+            const role = await RoleService.getByRole(slug);
 
             res.status(200).json({ permissions: role ? role.permissions : [] });
         } catch (error) {
