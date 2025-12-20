@@ -43,7 +43,7 @@ export class PermissionsComponent implements OnInit {
     permissionCategories: IPermissionCategory[] = [];
     readonly PermissionCategoriesStrings = PermissionCategoriesStrings;
     readonly rolesHierarchy = RoleUtils.getAllRolesWithMetadata();
-    
+
     selectedRole: string = "";
     viewAsRoleActive: boolean = false;
     isLoading: boolean = false;
