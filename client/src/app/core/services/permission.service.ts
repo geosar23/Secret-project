@@ -55,19 +55,17 @@ export class PermissionService {
             return of([]);
         }
 
-        return this.apiService
-            .get<{ permissions: string[] }>(`permissions/users/${currentUser.id}/effective`)
-            .pipe(
-                tap(response => {
-                    this.effectivePermissions$.next(response.permissions);
-                }),
-                map(response => response.permissions),
-                catchError(error => {
-                    console.error("Error fetching permissions:", error);
-                    this.effectivePermissions$.next([]);
-                    return of([]);
-                }),
-            );
+        return this.apiService.get<{ permissions: string[] }>(`permissions/users/${currentUser.id}/effective`).pipe(
+            tap(response => {
+                this.effectivePermissions$.next(response.permissions);
+            }),
+            map(response => response.permissions),
+            catchError(error => {
+                console.error("Error fetching permissions:", error);
+                this.effectivePermissions$.next([]);
+                return of([]);
+            }),
+        );
     }
 
     /**
