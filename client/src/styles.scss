@@ -1,5 +1,6 @@
 // Angular Material Theme Configuration
 @use "@angular/material" as mat;
+@use "sass:math";
 
 // Global reset and base styles
 * {
@@ -1091,4 +1092,96 @@ select.form-control {
     &:hover {
         background: var(--color-gray-500);
     }
+}
+
+// ----------------------
+// Grid Settings
+// ----------------------
+$columns: 12;
+$gutter: 16px;
+
+$breakpoints: (
+    sm: 576px,
+    md: 768px,
+    lg: 992px,
+    xl: 1200px,
+);
+
+// ----------------------
+// Container
+// ----------------------
+.container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: $gutter;
+    padding-right: $gutter;
+}
+
+// ----------------------
+// Row
+// ----------------------
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: calc(-1 * (#{$gutter} / 2));
+    margin-right: calc(-1 * (#{$gutter} / 2));
+}
+
+// ----------------------
+// Column Base
+// ----------------------
+.col {
+    flex: 1 0 0%;
+    padding-left: calc(#{$gutter} / 2);
+    padding-right: calc(#{$gutter} / 2);
+}
+
+// ----------------------
+// Column widths (default)
+// ----------------------
+@for $i from 1 through $columns {
+    .col-#{$i} {
+        flex: 0 0 math.percentage(math.div($i, $columns));
+        max-width: math.percentage(math.div($i, $columns));
+    }
+
+    // Offsets for default
+    .offset-#{$i} {
+        margin-left: math.percentage(math.div($i, $columns));
+    }
+}
+
+// ----------------------
+// Responsive Columns & Offsets
+// ----------------------
+@each $breakpoint, $width in $breakpoints {
+    @for $i from 1 through $columns {
+        .#{$breakpoint}-col-#{$i} {
+            @media (min-width: $width) {
+                flex: 0 0 math.percentage(math.div($i, $columns));
+                max-width: math.percentage(math.div($i, $columns));
+            }
+        }
+
+        .#{$breakpoint}-offset-#{$i} {
+            @media (min-width: $width) {
+                margin-left: math.percentage(math.div($i, $columns));
+            }
+        }
+    }
+}
+
+// ----------------------
+// Auto Margins
+// ----------------------
+.mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+}
+.ml-auto {
+    margin-left: auto;
+}
+.mr-auto {
+    margin-right: auto;
 }

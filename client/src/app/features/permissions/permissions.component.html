@@ -12,6 +12,22 @@
             </mat-card-content>
         </mat-card>
 
+        <mat-card class="legend">
+            <mat-card-content>
+                <h3>Role Hierarchy</h3>
+                <div class="roles">
+                    @for (roleInfo of rolesHierarchy; track roleInfo.role; let isLast = $last) {
+                        <mat-chip [style.background]="roleInfo.color">
+                            {{ roleInfo.name }}
+                        </mat-chip>
+                        @if (!isLast) { 
+                            <span class="arrow">→</span>
+                        }
+                    }
+                </div>
+            </mat-card-content>
+        </mat-card>
+
         <div class="permissions-grid">
             @for (c of permissionCategories; track c) {
                 <mat-card class="category-card">
@@ -43,21 +59,5 @@
                 </mat-card>
             }
         </div>
-
-        <mat-card class="legend">
-            <mat-card-content>
-                <h3>Role Hierarchy</h3>
-                <div class="roles">
-                    @for (roleInfo of rolesHierarchy; track roleInfo.role; let isLast = $last) {
-                        <mat-chip [style.background]="roleInfo.color">
-                            {{ roleInfo.name }}
-                        </mat-chip>
-                        @if (!isLast) {
-                            <span class="arrow">→</span>
-                        }
-                    }
-                </div>
-            </mat-card-content>
-        </mat-card>
     }
 </div>
