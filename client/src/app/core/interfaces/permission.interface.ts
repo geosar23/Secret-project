@@ -1,3 +1,5 @@
+import { PermissionActions, PermissionCategories, PermissionScopes } from "../enums/permissions.enum";
+
 export interface IGrantedPermission {
     permission: string;
     grantedBy: string;
@@ -24,7 +26,13 @@ export interface IPermissionItem {
 }
 
 export interface IPermissionDefinition {
+    _id: string;
+    action: PermissionActions;
+    createdAt: string;
+    isActive: boolean;
     key: string;
+    name: string;
+    scope: PermissionScopes;
     description: string;
-    category: string;
+    category: PermissionCategories;
 }

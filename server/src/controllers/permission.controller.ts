@@ -32,10 +32,7 @@ export const PermissionController = {
 
             const permissions = await PermissionService.getEffectiveUserPermissions(userId);
 
-            res.status(200).json({
-                userId,
-                permissions,
-            });
+            res.status(200).json({ permissions });
         } catch (error) {
             console.error("Get effective permissions error:", error);
             res.status(500).json({
