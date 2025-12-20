@@ -11,6 +11,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { PermissionService } from "../../core/services/permission.service";
 import { AuthService } from "../../core/services/auth.service";
+import { StickyAlertComponent } from "../../shared/components/sticky-alert/sticky-alert.component";
 import { IPermissionCategory, IPermissionDefinition } from "../../core/interfaces/permission.interface";
 import { forkJoin } from "rxjs";
 import { RoleUtils } from "../../core/utils/role.utils";
@@ -30,6 +31,7 @@ import { PermissionCategories, PermissionCategoriesStrings } from "../../core/en
         MatFormFieldModule,
         MatButtonModule,
         MatProgressSpinnerModule,
+        StickyAlertComponent,
     ],
     templateUrl: "./permissions.component.html",
     styleUrls: ["./permissions.component.scss"],

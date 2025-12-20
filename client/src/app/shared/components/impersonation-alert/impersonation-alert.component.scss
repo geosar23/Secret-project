@@ -1,0 +1,108 @@
+// Sticky Impersonation Alert Banner
+.alert-sticky {
+    position: sticky;
+    top: var(--spacing-xl);
+    background: linear-gradient(135deg, var(--color-warning), var(--color-accent-400));
+    color: white;
+    padding: var(--spacing-md) var(--spacing-lg);
+    z-index: var(--z-sticky);
+    box-shadow: var(--shadow-lg);
+    animation: slideDown 300ms ease-out;
+    margin-bottom: var(--spacing-lg);
+
+    .alert-content {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        max-width: 1400px;
+        margin: 0 auto;
+
+        .alert-icon {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+
+            mat-icon {
+                font-size: 24px;
+                width: 24px;
+                height: 24px;
+                color: white;
+            }
+        }
+
+        .alert-message {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+
+            strong {
+                font-weight: 700;
+                font-size: 1rem;
+            }
+
+            span {
+                font-weight: 500;
+            }
+
+            ::ng-deep mat-chip {
+                background-color: rgba(255, 255, 255, 0.25) !important;
+                color: white !important;
+                border: 1px solid rgba(255, 255, 255, 0.5);
+                font-weight: 600;
+
+                .mdc-evolution-chip__text-label {
+                    color: white !important;
+                }
+            }
+        }
+
+        .close-btn {
+            flex-shrink: 0;
+            color: white;
+
+            mat-icon {
+                color: white;
+            }
+
+            &:hover {
+                background-color: rgba(255, 255, 255, 0.2);
+            }
+        }
+    }
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .alert-sticky {
+        padding: var(--spacing-sm) var(--spacing-md);
+
+        .alert-content {
+            flex-direction: column;
+            gap: var(--spacing-xs);
+            text-align: center;
+
+            .alert-message {
+                justify-content: center;
+                gap: var(--spacing-xs);
+
+                strong,
+                span {
+                    display: block;
+                    width: 100%;
+                }
+            }
+        }
+    }
+}
