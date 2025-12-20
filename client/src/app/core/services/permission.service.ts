@@ -19,12 +19,12 @@ export class PermissionService {
     private fetchEffectivePermissions(): Observable<string[]> {
         const currentUser = this.authService.getCurrentUser();
 
-        if (!currentUser || !currentUser.id) {
+        if (!currentUser || !currentUser._id) {
             this.effectivePermissions$.next([]);
             return of([]);
         }
 
-        return this.apiService.get<{ permissions: string[] }>(`permissions/users/${currentUser.id}/effective`).pipe(
+        return this.apiService.get<{ permissions: string[] }>(`permissions/users/${currentUser._id}/effective`).pipe(
             tap(response => {
                 this.effectivePermissions$.next(response.permissions);
             }),

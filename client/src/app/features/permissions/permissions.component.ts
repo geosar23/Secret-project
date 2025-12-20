@@ -13,9 +13,10 @@ import { PermissionService } from "../../core/services/permission.service";
 import { AuthService } from "../../core/services/auth.service";
 import { StickyAlertComponent } from "../../shared/components/sticky-alert/sticky-alert.component";
 import { IPermissionCategory, IPermissionDefinition } from "../../core/interfaces/permission.interface";
-import { forkJoin } from "rxjs";
+import { forkJoin, Observable } from "rxjs";
 import { RoleUtils } from "../../core/utils/role.utils";
 import { PermissionCategories, PermissionCategoriesStrings } from "../../core/enums/permissions.enum";
+import { IUser } from "../../core/interfaces/user.interface";
 
 @Component({
     selector: "app-permissions",
@@ -40,7 +41,7 @@ export class PermissionsComponent implements OnInit {
     private permissionService = inject(PermissionService);
     private authService = inject(AuthService);
 
-    currentUser$ = this.authService.currentUser$;
+    localUser$: Observable<IUser | null>;
     permissionsDefinitions: IPermissionDefinition[] = [];
     effectivePermissions: string[] = [];
     permissionCategories: IPermissionCategory[] = [];
@@ -50,6 +51,10 @@ export class PermissionsComponent implements OnInit {
     selectedRole: string = "";
     viewAsRoleActive: boolean = false;
     isLoading: boolean = false;
+
+    constructor() {
+        this.localUser$ = this.authService.localUser$;
+    }
 
     ngOnInit(): void {
         this.getUserPermissions();

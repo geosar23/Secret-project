@@ -10,7 +10,7 @@
         [contentColor]="getRoleColor(selectedRole)"
         [showCloseButton]="false"
     ></app-sticky-alert>
-    @if (currentUser$ | async; as user) {
+    @if (localUser$ | async; as user) {
         <mat-card class="header">
             <mat-card-content>
                 <h1>Your Permissions</h1>

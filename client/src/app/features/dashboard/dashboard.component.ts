@@ -16,7 +16,7 @@ import { AuthService } from "../../core/services/auth.service";
 })
 export class DashboardComponent {
     private authService = inject(AuthService);
-    currentUser$ = this.authService.currentUser$;
+    currentUser$ = this.authService.localUser$;
 
     logout(): void {
         this.authService.logout();

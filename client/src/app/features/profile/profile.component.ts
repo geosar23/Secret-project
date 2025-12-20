@@ -66,12 +66,12 @@ export class ProfileComponent implements OnInit {
 
     loadProfile(): void {
         const currentUser = this.authService.getCurrentUser();
-        if (!currentUser || !currentUser.id) return;
+        if (!currentUser || !currentUser._id) return;
 
         this.loading = true;
         this.profileError = "";
 
-        this.profileService.getProfile(currentUser.id).subscribe({
+        this.profileService.getProfile(currentUser._id).subscribe({
             next: response => {
                 this.profile = response.user;
                 this.profileForm.patchValue({

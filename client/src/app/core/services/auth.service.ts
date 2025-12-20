@@ -1,41 +1,47 @@
-import { Injectable } from "@angular/core";
+import { Injectable, inject } from "@angular/core";
 import { Router } from "@angular/router";
-import { Observable, BehaviorSubject, tap } from "rxjs";
+import { Observable, BehaviorSubject, tap, switchMap, map } from "rxjs";
 import { ApiService } from "./api.service";
+import { UsersService } from "./users.service";
 import { decodeToken, isTokenValid } from "../utils/token.util";
 import { LoginRequest, RegisterRequest, AuthResponse } from "../interfaces/auth.interface";
+import { IUser, UserResponse } from "../interfaces/user.interface";
 
 @Injectable({
     providedIn: "root",
 })
 export class AuthService {
-    private currentUserSubject = new BehaviorSubject<AuthResponse["user"] | null>(null);
-    public currentUser$ = this.currentUserSubject.asObservable();
+    private api = inject(ApiService);
+    private usersService = inject(UsersService);
+    private router = inject(Router);
 
-    constructor(
-        private api: ApiService,
-        private router: Router,
-    ) {
+    private localUserSubject = new BehaviorSubject<IUser | null>(null);
+    public localUser$ = this.localUserSubject.asObservable();
+
+    constructor() {
         this.initializeAuth(); // Restore user session if token exists
     }
 
-    getCurrentUser(): AuthResponse["user"] | null {
-        return this.currentUserSubject.getValue();
+    getCurrentUser(): IUser | null {
+        return this.localUserSubject.getValue();
     }
 
     private initializeAuth(): void {
         const token = this.getToken();
         if (token) {
-            // Decode JWT token to get user info (without verification - server will verify)
+            // Decode JWT token to get user info
             try {
                 const payload = decodeToken(token);
                 if (payload && isTokenValid(payload)) {
-                    // Set user from token payload
-                    this.currentUserSubject.next({
-                        id: payload.id,
-                        email: payload.email,
-                        name: payload.name || "",
-                        role: payload.role,
+                    // Fetch full user data from backend
+                    this.getMe().subscribe({
+                        next: (response: { user: IUser | null }) => {
+                            this.localUserSubject.next(response.user);
+                        },
+                        error: () => {
+                            // If getMe fails, logout
+                            this.logout();
+                        },
                     });
                 } else {
                     // Token expired or invalid
@@ -48,27 +54,39 @@ export class AuthService {
         }
     }
 
-    login(credentials: LoginRequest): Observable<AuthResponse> {
+    login(credentials: LoginRequest): Observable<IUser> {
         return this.api.post<AuthResponse>("auth/login", credentials).pipe(
             tap(response => {
                 this.setToken(response.token);
-                this.currentUserSubject.next(response.user);
             }),
+            switchMap(() => this.getMe()),
+            tap(response => {
+                this.localUserSubject.next(response.user);
+            }),
+            map(response => response.user),
         );
     }
 
-    register(data: RegisterRequest): Observable<AuthResponse> {
+    getMe(): Observable<UserResponse> {
+        return this.api.get<UserResponse>("auth/me");
+    }
+
+    register(data: RegisterRequest): Observable<IUser> {
         return this.api.post<AuthResponse>("auth/register", data).pipe(
             tap(response => {
                 this.setToken(response.token);
-                this.currentUserSubject.next(response.user);
             }),
+            switchMap(() => this.getMe()),
+            tap(response => {
+                this.localUserSubject.next(response.user);
+            }),
+            map(response => response.user),
         );
     }
 
     logout(): void {
         localStorage.removeItem("token");
-        this.currentUserSubject.next(null);
+        this.localUserSubject.next(null);
         this.router.navigate(["/login"]);
     }
 
