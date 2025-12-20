@@ -33,6 +33,8 @@ export class PermissionsComponent implements OnInit {
             effectivePermissions: this.permissionService.fetchEffectivePermissions(),
             allDefinitions: this.permissionService.fetchAllPermissionDefinitions(),
         }).subscribe(({ effectivePermissions, allDefinitions }) => {
+            console.log("Effective Permissions:", effectivePermissions);
+            console.log("All Permission Definitions:", allDefinitions);
             this.effectivePermissions = effectivePermissions;
             this.buildPermissionCategoriesFromBackend(allDefinitions);
         });
@@ -54,7 +56,7 @@ export class PermissionsComponent implements OnInit {
             name: category,
             permissions: perms.map(p => ({
                 ...p,
-                hasPermission: this.checkPermission(p.key),
+                hasPermission: this.checkPermission(p._id),
             })),
         }));
     }

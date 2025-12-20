@@ -183,7 +183,6 @@ export const PermissionService = {
         }
 
         const role = await RoleService.getById(user.role._id);
-        console.log("User role:", role);
 
         const effectivePermissions = [...(role?.permissions || [])];
 
