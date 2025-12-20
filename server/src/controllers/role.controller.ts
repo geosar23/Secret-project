@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { RoleService } from "../services/role.service";
 import { DefaultUserRoles } from "../enums/user-role.enum";
-import { ObjectId } from "mongodb";
 
 /**
  * Controller for role management
@@ -33,7 +32,7 @@ export const RoleController = {
     async getRoleById(req: Request, res: Response) {
         try {
             const { id } = req.params;
-            const role = await RoleService.getById(new ObjectId(id));
+            const role = await RoleService.getById(id);
 
             if (!role) {
                 return res.status(404).json({

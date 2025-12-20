@@ -182,7 +182,7 @@ export const PermissionService = {
             throw new Error("User not found");
         }
 
-        const role = await RoleService.getById(user.role._id);
+        const role = await RoleService.getById(user.role._id.toString());
 
         const effectivePermissions = [...(role?.permissions || [])];
 
