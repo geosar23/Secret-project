@@ -7,7 +7,7 @@
             <h1 class="app-title" routerLink="/dashboard">HR SAAS</h1>
 
             <mat-menu #adminMenu="matMenu" xPosition="before">
-                @for (item of adminNavItems; track item.label) {
+                @for (item of adminNavItems; track $index) {
                     <button mat-menu-item (click)="handleMenuClick(item)">
                         <mat-icon>{{ item.icon }}</mat-icon>
                         <span>{{ item.label }}</span>
@@ -98,7 +98,7 @@
             </button>
 
             <mat-menu #userMenu="matMenu" xPosition="before">
-                @for (item of userMenuItems; track item.label) {
+                @for (item of userMenuItems; track $index) {
                     @if (item.divider) {
                         <mat-divider></mat-divider>
                     } @else {
