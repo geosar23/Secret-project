@@ -107,7 +107,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 name: this.profile.name,
                 email: this.profile.email,
             });
-            
+
             this.loading = false;
         });
     }
