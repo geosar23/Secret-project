@@ -157,7 +157,7 @@ export class HeaderComponent implements OnInit {
 
     private getSearchResults(searchTerm: string | null | undefined): SearchResult[] {
         // Ensure searchTerm is a string to avoid trim() errors
-        const term = typeof searchTerm === 'string' ? searchTerm : '';
+        const term = typeof searchTerm === "string" ? searchTerm : "";
 
         if (!term || term.trim().length < 2) {
             return [];
@@ -194,10 +194,8 @@ export class HeaderComponent implements OnInit {
 
     selectResult(resultId: string | SearchResult): void {
         // Handle both string ID and SearchResult object for compatibility
-        const result = typeof resultId === 'string' 
-            ? this.filteredResults.find(r => r.id === resultId)
-            : resultId;
-            
+        const result = typeof resultId === "string" ? this.filteredResults.find(r => r.id === resultId) : resultId;
+
         if (result && result.route) {
             this.router.navigate([result.route]);
             this.searchControl.setValue("");

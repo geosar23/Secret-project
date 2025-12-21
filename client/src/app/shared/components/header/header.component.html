@@ -35,7 +35,11 @@
                     }
                 </div>
 
-                <mat-autocomplete #auto="matAutocomplete" class="search-autocomplete" (optionSelected)="selectResult($event.option.value)">
+                <mat-autocomplete
+                    #auto="matAutocomplete"
+                    class="search-autocomplete"
+                    (optionSelected)="selectResult($event.option.value)"
+                >
                     @if (filteredResults.length > 0) {
                         <div class="autocomplete-header">
                             <span class="result-count"
