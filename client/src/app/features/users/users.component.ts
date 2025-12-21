@@ -173,4 +173,49 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     getRoleColor(role: string): string {
         return RoleUtils.getRoleColor(role);
     }
+
+    downloadUsersAsCSV() {
+        if (this.tableData.data.length === 0) {
+            return;
+        }
+
+        // Define CSV headers
+        const headers = ["Name", "Email", "Role", "Company", "Status", "Created Date"];
+
+        // Map table data to CSV rows
+        const rows = this.tableData.data.map(user => [
+            user.name,
+            user.email,
+            user.roleName || user.role?.role || "N/A",
+            user.company?.name || "N/A",
+            user.isActive ? "Active" : "Inactive",
+            user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A",
+        ]);
+
+        // Combine headers and rows
+        const csvContent = [headers, ...rows]
+            .map(row =>
+                row
+                    .map(cell => {
+                        // Escape quotes and wrap in quotes if contains comma or newline
+                        const escaped = String(cell).replace(/"/g, '""');
+                        return escaped.includes(",") || escaped.includes("\n") ? `"${escaped}"` : escaped;
+                    })
+                    .join(","),
+            )
+            .join("\n");
+
+        // Create blob and download
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+
+        link.setAttribute("href", url);
+        link.setAttribute("download", `users_${new Date().getTime()}.csv`);
+        link.style.visibility = "hidden";
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
 }

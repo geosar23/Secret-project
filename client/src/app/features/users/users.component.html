@@ -1,10 +1,21 @@
 <div class="users-container">
     <div class="page-header">
         <h1>User Management</h1>
-        <button class="btn btn-primary" (click)="openCreateModal()" [disabled]="loading">
-            <mat-icon>add</mat-icon>
-            Create User
-        </button>
+        <div class="header-actions p-lg">
+            <button
+                class="btn btn-secondary m-xs"
+                (click)="downloadUsersAsCSV()"
+                [disabled]="loading || tableData.data.length === 0"
+                title="Download as CSV"
+            >
+                <mat-icon>download</mat-icon>
+                Download
+            </button>
+            <button class="btn btn-primary m-xs" (click)="openCreateModal()" [disabled]="loading">
+                <mat-icon>add</mat-icon>
+                Create User
+            </button>
+        </div>
     </div>
 
     <div class="filters-container">
