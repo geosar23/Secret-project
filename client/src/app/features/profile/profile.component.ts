@@ -97,8 +97,13 @@ export class ProfileComponent implements OnInit {
         this.profileError = "";
 
         this.usersService.getUserById(userId).subscribe({
-            next: response => {
-                this.profile = response.user;
+            next: user => {
+                if (!user) {
+                    this.profileError = "User not found";
+                    this.loading = false;
+                    return;
+                }
+                this.profile = user;
                 this.profileForm.patchValue({
                     name: this.profile.name,
                     email: this.profile.email,

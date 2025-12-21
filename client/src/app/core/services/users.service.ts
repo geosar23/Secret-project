@@ -7,6 +7,7 @@ import {
     IUsersListResponse,
     UserResponse,
     IUsersQueryParams,
+    IUser,
 } from "../interfaces/user.interface";
 
 @Injectable({
@@ -20,9 +21,9 @@ export class UsersService {
         return this.apiService.get<IUsersListResponse>(`users${queryString}`);
     }
 
-    getUserById(userId: string, selectModes: "full" | "partial" = "full", fields = []): Observable<UserResponse> {
+    getUserById(userId: string, selectModes: "full" | "partial" = "full", fields = []): Observable<IUser> {
         const queryString = selectModes === "partial" && fields.length > 0 ? `?fields=${fields.join(",")}` : "";
-        return this.apiService.get<UserResponse>(`users/${userId}${queryString}`);
+        return this.apiService.get<IUser>(`users/${userId}${queryString}`);
     }
 
     createUser(data: ICreateUserRequest): Observable<UserResponse> {
