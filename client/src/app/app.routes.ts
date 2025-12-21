@@ -26,7 +26,16 @@ export const routes: Routes = [
             },
             {
                 path: "profile",
-                loadComponent: () => import("./features/profile/profile.component").then(m => m.ProfileComponent),
+                children: [
+                    {
+                        path: "me",
+                        loadComponent: () => import("./features/profile/profile.component").then(m => m.ProfileComponent),
+                    },
+                    {
+                        path: ":id",
+                        loadComponent: () => import("./features/profile/profile.component").then(m => m.ProfileComponent),
+                    },
+                ],
             },
         ],
     },

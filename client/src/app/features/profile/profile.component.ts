@@ -9,10 +9,11 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatIconModule } from "@angular/material/icon";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatDividerModule } from "@angular/material/divider";
-import { ProfileService } from "../../core/services/profile.service";
+import { ActivatedRoute } from "@angular/router";
 import { AuthService } from "../../core/services/auth.service";
 import { UserProfile } from "../../core/interfaces/profile.interface";
 import { RoleUtils } from "../../core/utils/role.utils";
+import { UsersService } from "../../core/services/users.service";
 
 @Component({
     selector: "app-profile",
@@ -34,8 +35,9 @@ import { RoleUtils } from "../../core/utils/role.utils";
 })
 export class ProfileComponent implements OnInit {
     private fb = inject(FormBuilder);
-    private profileService = inject(ProfileService);
+    private usersService = inject(UsersService);
     private authService = inject(AuthService);
+    private route = inject(ActivatedRoute);
 
     profile: UserProfile | null = null;
     profileForm: FormGroup;
@@ -46,6 +48,8 @@ export class ProfileComponent implements OnInit {
     passwordError = "";
     passwordSuccess = "";
     editMode = false;
+    isOwnProfile = true;
+    pageTitle = "My Profile";
 
     constructor() {
         this.profileForm = this.fb.group({
@@ -61,17 +65,38 @@ export class ProfileComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.loadProfile();
+        this.route.params.subscribe(params => {
+            const userId = params["id"];
+
+            if (userId === "me" || !userId) {
+                // Load current user's profile
+                this.isOwnProfile = true;
+                this.pageTitle = "My Profile";
+                this.loadOwnProfile();
+            } else {
+                // Load another user's profile
+                this.isOwnProfile = false;
+                this.pageTitle = "User Profile";
+                this.loadUserProfile(userId);
+            }
+        });
     }
 
-    loadProfile(): void {
+    loadOwnProfile(): void {
         const currentUser = this.authService.getLocalUser();
         if (!currentUser || !currentUser._id) return;
 
         this.loading = true;
         this.profileError = "";
 
-        this.profileService.getProfile(currentUser._id).subscribe({
+        this.profile = currentUser;
+    }
+
+    loadUserProfile(userId: string): void {
+        this.loading = true;
+        this.profileError = "";
+
+        this.usersService.getUserById(userId).subscribe({
             next: response => {
                 this.profile = response.user;
                 this.profileForm.patchValue({
@@ -81,7 +106,7 @@ export class ProfileComponent implements OnInit {
                 this.loading = false;
             },
             error: error => {
-                this.profileError = error.error?.error || "Failed to load profile";
+                this.profileError = error.error?.error || "Failed to load user profile";
                 this.loading = false;
             },
         });
@@ -107,7 +132,7 @@ export class ProfileComponent implements OnInit {
         this.profileError = "";
         this.profileSuccess = "";
 
-        this.profileService.updateProfile(this.profile.id, this.profileForm.value).subscribe({
+        this.usersService.updateUser(this.profile._id as string, this.profileForm.value).subscribe({
             next: response => {
                 this.profile = response.user;
                 this.profileSuccess = "Profile updated successfully";
@@ -122,30 +147,32 @@ export class ProfileComponent implements OnInit {
     }
 
     onChangePassword(): void {
-        if (this.passwordForm.invalid || !this.profile) return;
+        console.log("Change password called");
+        return;
+        // if (this.passwordForm.invalid || !this.profile) return;
 
-        const { currentPassword, newPassword, confirmPassword } = this.passwordForm.value;
+        // const { currentPassword, newPassword, confirmPassword } = this.passwordForm.value;
 
-        if (newPassword !== confirmPassword) {
-            this.passwordError = "New passwords do not match";
-            return;
-        }
+        // if (newPassword !== confirmPassword) {
+        //     this.passwordError = "New passwords do not match";
+        //     return;
+        // }
 
-        this.loading = true;
-        this.passwordError = "";
-        this.passwordSuccess = "";
+        // this.loading = true;
+        // this.passwordError = "";
+        // this.passwordSuccess = "";
 
-        this.profileService.changePassword(this.profile.id, { currentPassword, newPassword }).subscribe({
-            next: () => {
-                this.passwordSuccess = "Password changed successfully";
-                this.passwordForm.reset();
-                this.loading = false;
-            },
-            error: error => {
-                this.passwordError = error.error?.error || "Failed to change password";
-                this.loading = false;
-            },
-        });
+        // this.profileService.changePassword(this.profile.id, { currentPassword, newPassword }).subscribe({
+        //     next: () => {
+        //         this.passwordSuccess = "Password changed successfully";
+        //         this.passwordForm.reset();
+        //         this.loading = false;
+        //     },
+        //     error: error => {
+        //         this.passwordError = error.error?.error || "Failed to change password";
+        //         this.loading = false;
+        //     },
+        // });
     }
 
     getRoleColor(role: string): string {

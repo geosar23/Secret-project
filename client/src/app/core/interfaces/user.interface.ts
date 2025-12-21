@@ -60,6 +60,7 @@ export interface IUsersQueryParams {
     limit?: number;
     search?: string;
     role?: string;
+    companyId?: string;
     departmentId?: string;
     isActive?: boolean;
     sortBy?: string;

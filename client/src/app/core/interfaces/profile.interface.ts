@@ -1,14 +1,7 @@
-export interface UserProfile {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-    companyId?: string;
-    departmentId?: string;
-    managerId?: string;
-    isActive: boolean;
-    createdAt: Date;
-    updatedAt: Date;
+import { IUser } from "./user.interface";
+
+export interface UserProfile extends IUser {
+    newField?: string;
 }
 
 export interface UpdateProfileRequest {
