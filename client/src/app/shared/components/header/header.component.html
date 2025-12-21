@@ -35,7 +35,7 @@
                     }
                 </div>
 
-                <mat-autocomplete #auto="matAutocomplete" class="search-autocomplete">
+                <mat-autocomplete #auto="matAutocomplete" class="search-autocomplete" (optionSelected)="selectResult($event.option.value)">
                     @if (filteredResults.length > 0) {
                         <div class="autocomplete-header">
                             <span class="result-count"
@@ -46,7 +46,7 @@
                             >
                         </div>
                         @for (result of filteredResults; track result.id) {
-                            <mat-option [value]="result" class="search-option" [ngClass]="'type-' + result.type">
+                            <mat-option [value]="result.id" class="search-option" [ngClass]="'type-' + result.type">
                                 <div class="option-container">
                                     <div class="option-icon-wrapper">
                                         <mat-icon class="option-icon">{{ result.icon }}</mat-icon>

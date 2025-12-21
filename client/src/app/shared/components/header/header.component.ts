@@ -155,12 +155,15 @@ export class HeaderComponent implements OnInit {
             });
     }
 
-    private getSearchResults(searchTerm: string): SearchResult[] {
-        if (!searchTerm || searchTerm.trim().length < 2) {
+    private getSearchResults(searchTerm: string | null | undefined): SearchResult[] {
+        // Ensure searchTerm is a string to avoid trim() errors
+        const term = typeof searchTerm === 'string' ? searchTerm : '';
+
+        if (!term || term.trim().length < 2) {
             return [];
         }
 
-        const lowerSearchTerm = searchTerm.toLowerCase();
+        const lowerSearchTerm = term.toLowerCase();
         const routeResults = this.navigationRoutes.filter(
             route =>
                 route.name.toLowerCase().includes(lowerSearchTerm) ||
@@ -189,10 +192,16 @@ export class HeaderComponent implements OnInit {
         return routeResults.slice(0, 8);
     }
 
-    selectResult(result: SearchResult): void {
-        if (result.route) {
+    selectResult(resultId: string | SearchResult): void {
+        // Handle both string ID and SearchResult object for compatibility
+        const result = typeof resultId === 'string' 
+            ? this.filteredResults.find(r => r.id === resultId)
+            : resultId;
+            
+        if (result && result.route) {
             this.router.navigate([result.route]);
             this.searchControl.setValue("");
+            this.filteredResults = [];
         }
     }
 
