@@ -17,7 +17,7 @@ export class PermissionService {
     }
 
     private fetchEffectivePermissions(): Observable<string[]> {
-        const currentUser = this.authService.getCurrentUser();
+        const currentUser = this.authService.getLocalUser();
 
         if (!currentUser || !currentUser._id) {
             this.effectivePermissions$.next([]);

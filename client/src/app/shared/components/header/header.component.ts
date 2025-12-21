@@ -12,7 +12,6 @@ interface NavItem {
     label: string;
     icon: string;
     route: string;
-    roles?: string[];
 }
 
 interface MenuItem {
@@ -21,7 +20,6 @@ interface MenuItem {
     route?: string;
     action?: () => void;
     divider?: boolean;
-    roles?: string[];
 }
 
 @Component({
@@ -35,39 +33,36 @@ export class HeaderComponent {
     private authService = inject(AuthService);
     private router = inject(Router);
 
-    currentUser$ = this.authService.localUser$;
+    localUser$ = this.authService.localUser$;
 
-    navItems: NavItem[] = [
+    adminNavItems: NavItem[] = [
         {
-            label: "Dashboard",
-            icon: "dashboard",
-            route: "/dashboard",
-        },
-        {
-            label: "Users",
+            label: "Users Management",
             icon: "people",
             route: "/users",
-            roles: ["god", "super-admin", "admin", "hr"],
         },
         {
-            label: "Permissions",
+            label: "Permissions Management",
             icon: "security",
             route: "/permissions",
-            roles: ["god", "super-admin", "admin"],
         },
     ];
 
-    menuItems: MenuItem[] = [
+    userMenuItems: MenuItem[] = [
         {
             label: "My Profile",
             icon: "person",
             route: "/profile",
         },
         {
+            label: "Dashboard",
+            icon: "dashboard",
+            route: "/dashboard",
+        },
+        {
             label: "Settings",
             icon: "settings",
             route: "/settings",
-            roles: ["god", "super-admin", "admin"],
         },
         {
             divider: true,
@@ -80,27 +75,6 @@ export class HeaderComponent {
             action: () => this.logout(),
         },
     ];
-
-    get filteredNavItems(): NavItem[] {
-        const user = this.authService.getCurrentUser();
-        if (!user || !user.role) return [];
-
-        return this.navItems.filter(item => {
-            if (!item.roles || item.roles.length === 0) return true;
-            return item.roles.includes(user.role!);
-        });
-    }
-
-    get filteredMenuItems(): MenuItem[] {
-        const user = this.authService.getCurrentUser();
-        if (!user || !user.role) return [];
-
-        return this.menuItems.filter(item => {
-            if (item.divider) return true;
-            if (!item.roles || item.roles.length === 0) return true;
-            return item.roles.includes(user.role!);
-        });
-    }
 
     handleMenuClick(item: MenuItem): void {
         if (item.action) {

@@ -26,10 +26,6 @@
 
     .menu-button {
         color: var(--color-text-on-primary);
-
-        @media (min-width: 769px) {
-            display: none;
-        }
     }
 
     .app-title {

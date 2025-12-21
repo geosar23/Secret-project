@@ -1,6 +1,6 @@
 <div class="dashboard">
     <div class="content">
-        @if (currentUser$ | async; as user) {
+        @if (localUser$ | async; as user) {
             <mat-card class="user-card">
                 <mat-card-header>
                     <mat-card-title>Your Profile</mat-card-title>

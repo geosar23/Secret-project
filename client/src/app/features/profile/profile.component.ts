@@ -65,7 +65,7 @@ export class ProfileComponent implements OnInit {
     }
 
     loadProfile(): void {
-        const currentUser = this.authService.getCurrentUser();
+        const currentUser = this.authService.getLocalUser();
         if (!currentUser || !currentUser._id) return;
 
         this.loading = true;

@@ -1,14 +1,23 @@
 <mat-toolbar class="app-header">
     <div class="header-container">
         <div class="header-left">
-            <button mat-icon-button class="menu-button">
+            <button mat-icon-button [matMenuTriggerFor]="adminMenu" class="menu-button">
                 <mat-icon>menu</mat-icon>
             </button>
             <h1 class="app-title" routerLink="/dashboard">HR SAAS</h1>
+
+            <mat-menu #adminMenu="matMenu" xPosition="before">
+                @for (item of adminNavItems; track item.label) {
+                    <button mat-menu-item (click)="handleMenuClick(item)">
+                        <mat-icon>{{ item.icon }}</mat-icon>
+                        <span>{{ item.label }}</span>
+                    </button>
+                }
+            </mat-menu>
         </div>
 
         <nav class="header-nav">
-            @for (item of filteredNavItems; track item.route) {
+            @for (item of adminNavItems; track item.route) {
                 <a mat-button [routerLink]="item.route" routerLinkActive="active">
                     <mat-icon>{{ item.icon }}</mat-icon>
                     <span>{{ item.label }}</span>
@@ -23,14 +32,14 @@
 
             <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
                 <mat-icon>account_circle</mat-icon>
-                @if (currentUser$ | async; as user) {
+                @if (localUser$ | async; as user) {
                     <span class="user-name">{{ user.name }}</span>
                 }
                 <mat-icon>arrow_drop_down</mat-icon>
             </button>
 
             <mat-menu #userMenu="matMenu" xPosition="before">
-                @for (item of filteredMenuItems; track item.label) {
+                @for (item of userMenuItems; track item.label) {
                     @if (item.divider) {
                         <mat-divider></mat-divider>
                     } @else {

@@ -20,7 +20,7 @@ export class AuthService {
         this.initializeAuth(); // Restore user session if token exists
     }
 
-    getCurrentUser(): IUser | null {
+    getLocalUser(): IUser | null {
         return this.localUserSubject.getValue();
     }
 
