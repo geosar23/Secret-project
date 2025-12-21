@@ -20,10 +20,10 @@
             <div class="search-wrapper">
                 <div class="search-container">
                     <mat-icon class="search-icon">search</mat-icon>
-                    <input 
-                        matInput 
-                        [formControl]="searchControl" 
-                        placeholder="Search pages, users..." 
+                    <input
+                        matInput
+                        [formControl]="searchControl"
+                        placeholder="Search pages, users..."
                         class="search-input"
                         [matAutocomplete]="auto"
                         autocomplete="off"
@@ -38,7 +38,12 @@
                 <mat-autocomplete #auto="matAutocomplete" class="search-autocomplete">
                     @if (filteredResults.length > 0) {
                         <div class="autocomplete-header">
-                            <span class="result-count">{{ filteredResults.length }} result{{ filteredResults.length !== 1 ? 's' : '' }} found</span>
+                            <span class="result-count"
+                                >{{ filteredResults.length }} result{{
+                                    filteredResults.length !== 1 ? "s" : ""
+                                }}
+                                found</span
+                            >
                         </div>
                         @for (result of filteredResults; track result.id) {
                             <mat-option [value]="result" class="search-option" [ngClass]="'type-' + result.type">
@@ -51,7 +56,9 @@
                                         @if (result.description) {
                                             <div class="option-subtitle">{{ result.description }}</div>
                                         }
-                                        <div class="option-badge">{{ result.type === 'route' ? '📄 Page' : '👤 User' }}</div>
+                                        <div class="option-badge">
+                                            {{ result.type === "route" ? "📄 Page" : "👤 User" }}
+                                        </div>
                                     </div>
                                     <mat-icon class="option-arrow">arrow_forward</mat-icon>
                                 </div>

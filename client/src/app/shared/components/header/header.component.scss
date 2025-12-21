@@ -158,7 +158,11 @@
 .autocomplete-header {
     padding: 12px 16px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    background: linear-gradient(135deg, rgba(var(--color-primary-500-rgb), 0.05), rgba(var(--color-primary-500-rgb), 0.02));
+    background: linear-gradient(
+        135deg,
+        rgba(var(--color-primary-500-rgb), 0.05),
+        rgba(var(--color-primary-500-rgb), 0.02)
+    );
 }
 
 .result-count {

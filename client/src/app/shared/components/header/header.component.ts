@@ -32,7 +32,7 @@ interface MenuItem {
 interface SearchResult {
     id: string;
     name: string;
-    type: 'route' | 'user';
+    type: "route" | "user";
     icon: string;
     route?: string;
     description?: string;
@@ -41,7 +41,19 @@ interface SearchResult {
 @Component({
     selector: "app-header",
     standalone: true,
-    imports: [CommonModule, RouterModule, MatToolbarModule, MatButtonModule, MatIconModule, MatMenuModule, MatDivider, MatAutocompleteModule, MatInputModule, MatFormFieldModule, ReactiveFormsModule],
+    imports: [
+        CommonModule,
+        RouterModule,
+        MatToolbarModule,
+        MatButtonModule,
+        MatIconModule,
+        MatMenuModule,
+        MatDivider,
+        MatAutocompleteModule,
+        MatInputModule,
+        MatFormFieldModule,
+        ReactiveFormsModule,
+    ],
     templateUrl: "./header.component.html",
     styleUrls: ["./header.component.scss"],
 })
@@ -50,7 +62,7 @@ export class HeaderComponent implements OnInit {
     private router = inject(Router);
     private usersService = inject(UsersService);
 
-    searchControl = new FormControl('');
+    searchControl = new FormControl("");
     filteredResults: SearchResult[] = [];
 
     localUser$ = this.authService.localUser$;
@@ -136,7 +148,7 @@ export class HeaderComponent implements OnInit {
             .pipe(
                 debounceTime(300),
                 distinctUntilChanged(),
-                switchMap((searchTerm) => Promise.resolve(this.getSearchResults(searchTerm || ''))),
+                switchMap(searchTerm => Promise.resolve(this.getSearchResults(searchTerm || ""))),
             )
             .subscribe((results: SearchResult[]) => {
                 this.filteredResults = results;
@@ -150,16 +162,16 @@ export class HeaderComponent implements OnInit {
 
         const lowerSearchTerm = searchTerm.toLowerCase();
         const routeResults = this.navigationRoutes.filter(
-            (route) =>
+            route =>
                 route.name.toLowerCase().includes(lowerSearchTerm) ||
                 route.description?.toLowerCase().includes(lowerSearchTerm),
         );
 
         // Return routes immediately, user search happens in parallel
         this.usersService.getUsers({ search: lowerSearchTerm }).subscribe(
-            (response) => {
+            response => {
                 const userResults = (response.users || []).map<SearchResult>((user: IUser) => ({
-                    id: user._id || '',
+                    id: user._id || "",
                     name: user.name,
                     type: "user",
                     icon: "person",
@@ -180,12 +192,12 @@ export class HeaderComponent implements OnInit {
     selectResult(result: SearchResult): void {
         if (result.route) {
             this.router.navigate([result.route]);
-            this.searchControl.setValue('');
+            this.searchControl.setValue("");
         }
     }
 
     clearSearch(): void {
-        this.searchControl.setValue('');
+        this.searchControl.setValue("");
         this.filteredResults = [];
     }
 
