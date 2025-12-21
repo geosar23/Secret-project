@@ -74,8 +74,13 @@ export const UserService = {
         }
         return query.exec();
     },
+    update: async (id: string, data: Partial<IUser>) => {
+        const updatedUser = await UserModel.findByIdAndUpdate(id, data, { new: true, runValidators: true })
+            .select("-password")
+            .lean();
+        return updatedUser;
+    },
     getByEmail: (email: string) => UserModel.findOne({ email }),
     create: (data: Omit<IUser, "_id">) => UserModel.create(data),
-    update: (id: string, data: Partial<IUser>) => UserModel.findByIdAndUpdate(id, data, { new: true }),
     delete: (id: string) => UserModel.findByIdAndDelete(id),
 };
