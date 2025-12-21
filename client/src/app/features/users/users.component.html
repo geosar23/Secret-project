@@ -69,7 +69,7 @@
             <!-- Company ID Column -->
             <ng-container matColumnDef="companyId">
                 <mat-header-cell *matHeaderCellDef>Company ID</mat-header-cell>
-                <mat-cell *matCellDef="let user" data-label="Company ID">{{ user.companyId || "N/A" }}</mat-cell>
+                <mat-cell *matCellDef="let user" data-label="Company ID">{{ user.company?.name || "N/A" }}</mat-cell>
             </ng-container>
 
             <!-- Status Column -->
