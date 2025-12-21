@@ -92,13 +92,24 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     loadOwnProfile(): void {
-        const currentUser = this.authService.getLocalUser();
-        if (!currentUser || !currentUser._id) return;
-
         this.loading = true;
         this.profileError = "";
 
-        this.profile = currentUser;
+        this.authService.localUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
+            if (!user || !user._id) {
+                this.profileError = "Failed to load profile";
+                this.loading = false;
+                return;
+            }
+
+            this.profile = user;
+            this.profileForm.patchValue({
+                name: this.profile.name,
+                email: this.profile.email,
+            });
+            
+            this.loading = false;
+        });
     }
 
     loadUserProfile(userId: string): void {
