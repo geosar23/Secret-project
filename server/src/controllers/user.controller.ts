@@ -58,4 +58,20 @@ export class UserController {
             res.status(500).json({ message: "Internal server error" });
         }
     }
+
+    static async getById(req: AuthenticatedRequest, res: Response): Promise<void> {
+        try {
+            const userId = req.params.id;
+            const selectFields = req.query.fields ? (req.query.fields as string).split(",") : undefined;
+            const user = await UserService.getById(userId, selectFields);
+            if (!user) {
+                res.status(404).json({ message: "User not found" });
+                return;
+            }
+            res.status(200).json(user);
+        } catch (error) {
+            console.log("Error in UserController.getById:", error);
+            res.status(500).json({ message: "Internal server error" });
+        }
+    }
 }

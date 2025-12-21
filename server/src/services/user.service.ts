@@ -67,8 +67,12 @@ export const UserService = {
         };
     },
 
-    getById: (id: string) => {
-        return UserModel.findById(id).populate("role", "role name").populate("company").select("-password");
+    getById: (id: string, selectFields?: string[]) => {
+        let query = UserModel.findById(id).populate("role", "role name").populate("company").select("-password");
+        if (selectFields && selectFields.length > 0) {
+            query = query.select(selectFields.join(" "));
+        }
+        return query.exec();
     },
     getByEmail: (email: string) => UserModel.findOne({ email }),
     create: (data: Omit<IUser, "_id">) => UserModel.create(data),
