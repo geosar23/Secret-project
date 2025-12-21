@@ -32,7 +32,7 @@ UserSchema.pre("save", async function (next) {
         if (!roleExists) {
             return next(new Error(`Role '${roleValue}' does not exist in Roles collection.`));
         }
-        if (roleValue === null || roleValue === undefined) {
+        if (!roleValue) {
             return next(new Error("Role cannot be unset or null."));
         }
     }
