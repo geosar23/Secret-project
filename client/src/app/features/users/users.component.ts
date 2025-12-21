@@ -123,8 +123,8 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             next: response => {
                 this.tableData.data = response.users.map(user => ({
                     ...user,
-                    roleColor: RoleUtils.getRoleColor(user.role),
-                    roleName: RoleUtils.getRoleName(user.role),
+                    roleColor: RoleUtils.getRoleColor(user.role?.role),
+                    roleName: RoleUtils.getRoleName(user.role?.role),
                 }));
                 // Update paginator after data is loaded
                 setTimeout(() => {

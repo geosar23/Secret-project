@@ -14,7 +14,7 @@ export class AuthService {
     private router = inject(Router);
 
     private localUserSubject = new BehaviorSubject<IUser | null>(null);
-    public localUser$ = this.localUserSubject.asObservable();
+    public localUser$: Observable<IUser | null> = this.localUserSubject.asObservable();
 
     constructor() {
         this.initializeAuth(); // Restore user session if token exists

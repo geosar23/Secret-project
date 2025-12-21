@@ -1,5 +1,6 @@
-import { UserRole } from "../enums/user-role.enum";
+import { ICompany } from "./company.interface";
 import { IGrantedPermission } from "./permission.interface";
+import { IRole } from "./role.interface";
 
 export interface IUser {
     _id?: string;
@@ -8,10 +9,10 @@ export interface IUser {
     password: string;
 
     // Role & Organization
-    role: UserRole;
-    companyId?: string; // null only for GOD role
-    departmentId?: string;
-    managerId?: string; // Direct manager's user ID
+    role: IRole;
+    company?: ICompany; // null only for GOD role
+    department?: string;
+    manager?: string; // Direct manager's user ID
     managedDepartments?: string[]; // For managers - departments they manage
 
     // Custom permissions

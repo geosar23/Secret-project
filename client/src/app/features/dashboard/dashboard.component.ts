@@ -6,6 +6,8 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatCardModule } from "@angular/material/card";
 import { MatIconModule } from "@angular/material/icon";
 import { AuthService } from "../../core/services/auth.service";
+import { IUser } from "../../core/interfaces/user.interface";
+import { Observable } from "rxjs";
 
 @Component({
     selector: "app-dashboard",
@@ -16,7 +18,7 @@ import { AuthService } from "../../core/services/auth.service";
 })
 export class DashboardComponent {
     private authService = inject(AuthService);
-    localUser$ = this.authService.localUser$;
+    localUser$: Observable<IUser | null> = this.authService.localUser$;
 
     logout(): void {
         this.authService.logout();
