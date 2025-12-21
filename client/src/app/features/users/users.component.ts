@@ -100,10 +100,10 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngAfterViewInit() {
         if (this.paginator) {
-            // Listen to paginator changes
-            this.paginator.page.pipe(takeUntil(this.destroy$)).subscribe(() => {
-                this.queryParams.page = this.paginator.pageIndex + 1;
-                this.queryParams.limit = this.paginator.pageSize;
+            // Listen to paginator changes (page and pageSize)
+            this.paginator.page.pipe(takeUntil(this.destroy$)).subscribe(event => {
+                this.queryParams.page = event.pageIndex + 1;
+                this.queryParams.limit = event.pageSize;
                 console.log("Paginator changed:", this.queryParams);
                 this.loadUsers();
             });
