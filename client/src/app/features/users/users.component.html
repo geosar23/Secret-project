@@ -88,19 +88,6 @@
                 <mat-cell *matCellDef="let user" data-label="Created">{{ user.createdAt | date: "short" }}</mat-cell>
             </ng-container>
 
-            <!-- Actions Column -->
-            <ng-container matColumnDef="actions">
-                <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
-                <mat-cell *matCellDef="let user" data-label="Actions" class="actions">
-                    <button mat-icon-button color="primary" title="Edit">
-                        <mat-icon>edit</mat-icon>
-                    </button>
-                    <button mat-icon-button color="warn" title="Delete">
-                        <mat-icon>delete</mat-icon>
-                    </button>
-                </mat-cell>
-            </ng-container>
-
             <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
             <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
         </table>
