@@ -382,12 +382,279 @@
 }
 
 // Mobile responsive
+@media (max-width: 1200px) {
+    .header-center {
+        max-width: 350px;
+    }
+
+    .search-container {
+        padding: 0 12px;
+    }
+
+    .search-input {
+        font-size: 13px;
+    }
+
+    .option-title {
+        font-size: 13px;
+    }
+
+    .option-subtitle {
+        font-size: 11px;
+    }
+}
+
 @media (max-width: 768px) {
     .header-container {
-        gap: var(--spacing-sm);
+        gap: var(--spacing-xs);
+        padding: 0 var(--spacing-sm);
+    }
+
+    .header-left {
+        gap: var(--spacing-xs);
     }
 
     .header-left .app-title {
         font-size: var(--font-size-lg);
+        display: none;
+
+        @media (min-width: 600px) {
+            display: block;
+        }
+    }
+
+    .header-center {
+        flex: 0 1 auto;
+        max-width: 100%;
+        margin: 0;
+        min-width: 0;
+    }
+
+    .search-wrapper {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .search-container {
+        padding: 0 10px;
+        gap: 6px;
+
+        &:focus-within {
+            transform: none;
+        }
+    }
+
+    .search-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+    }
+
+    .search-input {
+        font-size: 12px;
+        padding: 10px 0;
+
+        &::placeholder {
+            font-size: 12px;
+        }
+    }
+
+    .clear-btn {
+        width: 28px;
+        height: 28px;
+
+        mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    .search-autocomplete {
+        max-width: 90vw !important;
+        width: 90vw !important;
+        margin-left: -10vw !important;
+    }
+
+    .option-container {
+        gap: 8px;
+    }
+
+    .option-icon-wrapper {
+        width: 32px;
+        height: 32px;
+    }
+
+    .option-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+    }
+
+    .option-title {
+        font-size: 12px;
+    }
+
+    .option-subtitle {
+        font-size: 10px;
+    }
+
+    .option-badge {
+        font-size: 10px;
+        padding: 3px 6px;
+    }
+
+    .option-arrow {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+    }
+
+    .autocomplete-header {
+        padding: 10px 12px;
+    }
+
+    .result-count {
+        font-size: 11px;
+    }
+
+    .user-button {
+        .user-name {
+            display: none;
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .header-container {
+        gap: var(--spacing-xs);
+        padding: 0 var(--spacing-xs);
+    }
+
+    .header-left {
+        gap: var(--spacing-xs);
+    }
+
+    .header-left .app-title {
+        font-size: var(--font-size-base);
+        display: none;
+    }
+
+    .header-center {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .search-container {
+        border-radius: 20px;
+        padding: 0 8px;
+    }
+
+    .search-input {
+        font-size: 11px;
+        padding: 8px 0;
+    }
+
+    .search-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+    }
+
+    .clear-btn {
+        width: 24px;
+        height: 24px;
+
+        mat-icon {
+            font-size: 14px;
+            width: 14px;
+            height: 14px;
+        }
+    }
+
+    .search-autocomplete {
+        max-width: calc(100vw - 20px) !important;
+        width: calc(100vw - 20px) !important;
+        margin-left: calc(-50vw + 10px) !important;
+    }
+
+    .search-option {
+        padding: 10px 12px !important;
+    }
+
+    .option-container {
+        gap: 6px;
+    }
+
+    .option-icon-wrapper {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+    }
+
+    .option-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+    }
+
+    .option-content {
+        gap: 2px;
+    }
+
+    .option-title {
+        font-size: 11px;
+        margin-bottom: 2px;
+    }
+
+    .option-subtitle {
+        font-size: 9px;
+        margin-bottom: 4px;
+    }
+
+    .option-badge {
+        font-size: 9px;
+        padding: 2px 4px;
+    }
+
+    .option-arrow {
+        display: none;
+    }
+
+    .no-results-content {
+        gap: 6px;
+
+        mat-icon {
+            font-size: 24px;
+            width: 24px;
+            height: 24px;
+        }
+
+        span:first-of-type {
+            font-size: 12px;
+        }
+    }
+
+    .no-results-hint {
+        font-size: 10px !important;
+    }
+
+    .hint-content {
+        gap: 6px;
+        font-size: 12px;
+
+        mat-icon {
+            font-size: 16px;
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    .header-right {
+        gap: var(--spacing-xs);
+
+        button {
+            padding: 4px;
+        }
     }
 }
