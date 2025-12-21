@@ -17,6 +17,8 @@ export class StickyAlertComponent {
     @Input() title: string = "";
     @Input() message: string = "";
     @Input() backgroundColor: string = "linear-gradient(135deg, #f59e0b, #ec4899)";
+    @Input() opacity: number = 1;
+    @Input() zIndex: number = 1000;
     @Input() icon: string = "info";
     @Input() contentLabel?: string;
     @Input() contentColor?: string;
