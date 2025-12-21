@@ -97,8 +97,8 @@ export class HeaderComponent implements OnInit {
             name: "Profile",
             type: "route",
             icon: "person",
-            route: "/profile",
-            description: "View profile",
+            route: "/profile/me",
+            description: "My profile",
         },
     ];
 
@@ -119,7 +119,7 @@ export class HeaderComponent implements OnInit {
         {
             label: "My Profile",
             icon: "person",
-            route: "/profile",
+            route: "/profile/me",
         },
         {
             label: "Dashboard",

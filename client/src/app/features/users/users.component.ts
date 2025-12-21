@@ -13,6 +13,7 @@ import { MatDialog } from "@angular/material/dialog";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { Subject } from "rxjs";
 import { takeUntil, debounceTime, distinctUntilChanged } from "rxjs/operators";
+import { Router } from "@angular/router";
 import { UsersService } from "../../core/services/users.service";
 import { IUser, IUsersQueryParams } from "../../core/interfaces/user.interface";
 import { CreateUserDialogComponent } from "./create-user-dialog/create-user-dialog.component";
@@ -80,6 +81,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     constructor(
         private usersService: UsersService,
         private dialog: MatDialog,
+        private router: Router,
     ) {}
 
     ngOnInit() {
@@ -168,6 +170,10 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.tableData.data = currentData;
             }
         });
+    }
+
+    navigateToUserProfile(userId: string) {
+        this.router.navigate(["/profile", userId]);
     }
 
     getRoleColor(role: string): string {

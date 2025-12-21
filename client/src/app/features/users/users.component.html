@@ -58,7 +58,9 @@
             <!-- Name Column -->
             <ng-container matColumnDef="name">
                 <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
-                <mat-cell *matCellDef="let user" data-label="Name">{{ user.name }}</mat-cell>
+                <mat-cell *matCellDef="let user" data-label="Name">
+                    <a class="name-link" (click)="navigateToUserProfile(user._id)">{{ user.name }}</a>
+                </mat-cell>
             </ng-container>
 
             <!-- Email Column -->
