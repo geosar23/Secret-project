@@ -2,7 +2,6 @@ import { Injectable, inject } from "@angular/core";
 import { Router } from "@angular/router";
 import { Observable, BehaviorSubject, tap, switchMap, map } from "rxjs";
 import { ApiService } from "./api.service";
-import { UsersService } from "./users.service";
 import { decodeToken, isTokenValid } from "../utils/token.util";
 import { LoginRequest, RegisterRequest, AuthResponse } from "../interfaces/auth.interface";
 import { IUser, UserResponse } from "../interfaces/user.interface";
@@ -12,7 +11,6 @@ import { IUser, UserResponse } from "../interfaces/user.interface";
 })
 export class AuthService {
     private api = inject(ApiService);
-    private usersService = inject(UsersService);
     private router = inject(Router);
 
     private localUserSubject = new BehaviorSubject<IUser | null>(null);
