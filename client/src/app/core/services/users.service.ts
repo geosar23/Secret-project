@@ -20,10 +20,8 @@ export class UsersService {
         return this.apiService.get<IUsersListResponse>(`users${queryString}`);
     }
 
-    getUserById(userId: string, selectModes: 'full' | 'partial' = 'full', fields = []): Observable<UserResponse> {
-        const queryString = selectModes === 'partial' && fields.length > 0
-            ? `?fields=${fields.join(',')}`
-            : '';
+    getUserById(userId: string, selectModes: "full" | "partial" = "full", fields = []): Observable<UserResponse> {
+        const queryString = selectModes === "partial" && fields.length > 0 ? `?fields=${fields.join(",")}` : "";
         return this.apiService.get<UserResponse>(`users/${userId}${queryString}`);
     }
 

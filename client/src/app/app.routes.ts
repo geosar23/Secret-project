@@ -29,11 +29,13 @@ export const routes: Routes = [
                 children: [
                     {
                         path: "me",
-                        loadComponent: () => import("./features/profile/profile.component").then(m => m.ProfileComponent),
+                        loadComponent: () =>
+                            import("./features/profile/profile.component").then(m => m.ProfileComponent),
                     },
                     {
                         path: ":id",
-                        loadComponent: () => import("./features/profile/profile.component").then(m => m.ProfileComponent),
+                        loadComponent: () =>
+                            import("./features/profile/profile.component").then(m => m.ProfileComponent),
                     },
                 ],
             },
