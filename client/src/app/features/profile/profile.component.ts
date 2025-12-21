@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from "@angular/core";
+import { Component, OnInit, OnDestroy, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { MatCardModule } from "@angular/material/card";
@@ -14,6 +14,8 @@ import { AuthService } from "../../core/services/auth.service";
 import { UserProfile } from "../../core/interfaces/profile.interface";
 import { RoleUtils } from "../../core/utils/role.utils";
 import { UsersService } from "../../core/services/users.service";
+import { Subject } from "rxjs";
+import { takeUntil } from "rxjs/operators";
 
 @Component({
     selector: "app-profile",
@@ -33,11 +35,13 @@ import { UsersService } from "../../core/services/users.service";
     templateUrl: "./profile.component.html",
     styleUrls: ["./profile.component.scss"],
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent implements OnInit, OnDestroy {
     private fb = inject(FormBuilder);
     private usersService = inject(UsersService);
     private authService = inject(AuthService);
     private route = inject(ActivatedRoute);
+
+    private destroy$ = new Subject<void>();
 
     profile: UserProfile | null = null;
     profileForm: FormGroup;
@@ -65,7 +69,7 @@ export class ProfileComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.route.params.subscribe(params => {
+        this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
             const userId = params["id"];
 
             if (userId === "me" || !userId) {
@@ -80,6 +84,11 @@ export class ProfileComponent implements OnInit {
                 this.loadUserProfile(userId);
             }
         });
+    }
+
+    ngOnDestroy(): void {
+        this.destroy$.next();
+        this.destroy$.complete();
     }
 
     loadOwnProfile(): void {
