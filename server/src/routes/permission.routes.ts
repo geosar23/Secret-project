@@ -11,9 +11,6 @@ router.get("/users/:userId/effective", PermissionController.getEffectiveUserPerm
 //Get role permissions
 router.get("/roles/:slug", PermissionController.getRolePermissions as RequestHandler);
 
-// Get role metadata
-router.get("/roles", PermissionController.getRoles as RequestHandler);
-
 // Grant permission to user
 // router.post("/users/:userId/permissions/grant", PermissionController.grantPermission as RequestHandler);
 

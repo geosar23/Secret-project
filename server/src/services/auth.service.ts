@@ -29,6 +29,7 @@ export const AuthService = {
                 email: user.email,
                 name: user.name,
                 role: (user.role as unknown as { role: string }).role.toString(),
+                permissions: []
             },
             JWT_SECRET,
             { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions,

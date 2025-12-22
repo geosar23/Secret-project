@@ -2,7 +2,9 @@ import { UserService } from "./user.service";
 import { PermissionModel } from "../models/permission.model";
 import { IPermission } from "../interfaces/permission.interface";
 import { RoleService } from "./role.service";
-import { Types } from "mongoose";
+import { ObjectId, Types } from "mongoose";
+import { UserModel } from "../models/user.model";
+import { PopulatedPermission, PopulatedUser } from "../interfaces/populated.interface";
 /**
  * Service for managing custom permission grants and revocations
  */
@@ -202,5 +204,30 @@ export const PermissionService = {
         }
 
         return effectivePermissions;
+    },
+
+    async resolveUserPermissions(userId: ObjectId | string): Promise<Set<string>> {
+        const user = (await UserModel.findById(userId)
+            .populate({
+                path: "role",
+                populate: { path: "permissions", select: "key" },
+            })
+            .populate("grantedPermissions", "key")
+            .populate("revokedPermissions", "key")) as PopulatedUser | null;
+
+        const rolePermissions: PopulatedPermission[] =
+            user?.role && "permissions" in user.role ? user.role.permissions : [];
+        const grantedPermissions: PopulatedPermission[] = Array.isArray(user?.grantedPermissions)
+            ? (user!.grantedPermissions as PopulatedPermission[])
+            : [];
+        const revokedPermissions: PopulatedPermission[] = Array.isArray(user?.revokedPermissions)
+            ? (user!.revokedPermissions as PopulatedPermission[])
+            : [];
+
+        const rolePerms = rolePermissions.map(p => p.key);
+        const granted = grantedPermissions.map(p => p.key);
+        const revoked = new Set(revokedPermissions.map(p => p.key));
+
+        return new Set([...rolePerms, ...granted].filter(p => !revoked.has(p)));
     },
 };

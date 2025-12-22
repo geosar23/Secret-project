@@ -1,7 +1,6 @@
 import { Response } from "express";
 import { PermissionService } from "../services/permission.service";
 import { AuthenticatedRequest } from "../middleware/permission.middleware";
-import { RoleUtils } from "../utils/role.utils";
 import { RoleService } from "../services/role.service";
 
 /**
@@ -177,26 +176,4 @@ export const PermissionController = {
     //         });
     //     }
     // },
-
-    /**
-     * Get role metadata (hierarchy, names, levels)
-     * GET /permissions/roles
-     */
-    async getRoles(req: AuthenticatedRequest, res: Response) {
-        try {
-            const roles = RoleUtils.getAllRolesWithMetadata();
-
-            res.status(200).json({
-                success: true,
-                roles,
-                hierarchy: roles.map(r => r.role),
-            });
-        } catch (error) {
-            console.error("Error fetching roles:", error);
-            res.status(500).json({
-                success: false,
-                error: "Failed to fetch role metadata",
-            });
-        }
-    },
 };
