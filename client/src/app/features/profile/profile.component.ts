@@ -15,7 +15,7 @@ import { UserProfile } from "../../core/interfaces/profile.interface";
 import { RoleUtils } from "../../core/utils/role.utils";
 import { UsersService } from "../../core/services/users.service";
 import { Subject } from "rxjs";
-import { takeUntil } from "rxjs/operators";
+import { skipWhile, takeUntil } from "rxjs/operators";
 
 @Component({
     selector: "app-profile",
@@ -95,21 +95,26 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.loading = true;
         this.profileError = "";
 
-        this.authService.localUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
-            if (!user || !user._id) {
-                this.profileError = "Failed to load profile";
+        this.authService.localUser$
+            .pipe(
+                skipWhile(user => !user),
+                takeUntil(this.destroy$),
+            )
+            .subscribe(user => {
+                if (!user || !user._id) {
+                    this.profileError = "Failed to load profile";
+                    this.loading = false;
+                    return;
+                }
+
+                this.profile = user;
+                this.profileForm.patchValue({
+                    name: this.profile.name,
+                    email: this.profile.email,
+                });
+
                 this.loading = false;
-                return;
-            }
-
-            this.profile = user;
-            this.profileForm.patchValue({
-                name: this.profile.name,
-                email: this.profile.email,
             });
-
-            this.loading = false;
-        });
     }
 
     loadUserProfile(userId: string): void {

@@ -37,7 +37,7 @@ export class AuthService {
                             this.localUserSubject.next(response.user);
                         },
                         error: () => {
-                            // If getMe fails, logout
+                            this.localUserSubject.next(null);
                             this.logout();
                         },
                     });
