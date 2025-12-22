@@ -19,10 +19,10 @@ export class PermissionChecker {
      */
     static async canAccess(user: IUser, permission: string, resource?: Record<string, unknown>): Promise<boolean> {
         //Fetch user's role permissions from DB and evaluate
-            // Extract role id without using `any`
-            const roleVal = user.role as unknown as { _id?: { toString: () => string }; toString: () => string };
-            const roleId = roleVal._id ? roleVal._id.toString() : roleVal.toString();
-            const roleData = await RoleService.getById(roleId);
+        // Extract role id without using `any`
+        const roleVal = user.role as unknown as { _id?: { toString: () => string }; toString: () => string };
+        const roleId = roleVal._id ? roleVal._id.toString() : roleVal.toString();
+        const roleData = await RoleService.getById(roleId);
         if (!roleData) {
             return false; // Role not found
         }
@@ -45,9 +45,9 @@ export class PermissionChecker {
         }
 
         // 4. Check role-based permissions from database
-        const rolePermissions = await PermissionService.getByIds((roleData.permissions || []).map(p => p.toString())).then(
-            perms => perms.map(p => p.key),
-        );
+        const rolePermissions = await PermissionService.getByIds(
+            (roleData.permissions || []).map(p => p.toString()),
+        ).then(perms => perms.map(p => p.key));
         console.log("Role Permissions:", rolePermissions);
 
         // Check for wildcard permission
@@ -72,7 +72,8 @@ export class PermissionChecker {
             // GOD role can access any company (already checked above)
             const userCompanyId = (user.company as unknown as { toString: () => string }).toString();
             const resourceCompanyId = (resource as { companyId?: string | { toString: () => string } }).companyId;
-            const resourceCompanyIdStr = typeof resourceCompanyId === "string" ? resourceCompanyId : resourceCompanyId?.toString();
+            const resourceCompanyIdStr =
+                typeof resourceCompanyId === "string" ? resourceCompanyId : resourceCompanyId?.toString();
             if (userCompanyId !== resourceCompanyIdStr) {
                 return false;
             }
