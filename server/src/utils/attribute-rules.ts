@@ -39,14 +39,14 @@ export const ATTRIBUTE_RULES = {
      * Resource is in the same department as the user
      */
     sameDepartment: (ctx: AccessContext): boolean => {
-        return !!ctx.user.departmentId && ctx.user.departmentId?.toString() === ctx.resource.departmentId?.toString();
+        return !!ctx.user.department && ctx.user.department?.toString() === ctx.resource.departmentId?.toString();
     },
 
     /**
      * Resource belongs to the same company (multi-tenant isolation)
      */
     sameCompany: (ctx: AccessContext): boolean => {
-        return ctx.user.companyId?.toString() === ctx.resource.companyId?.toString();
+        return ctx.user.company?.toString() === ctx.resource.companyId?.toString();
     },
 
     /**
@@ -79,7 +79,7 @@ export const ATTRIBUTE_RULES = {
 export const SCOPE_HANDLERS: Record<string, (ctx: AccessContext) => boolean> = {
     self: ATTRIBUTE_RULES.isSelf,
     managed: ATTRIBUTE_RULES.inManagedTeam,
-    department: ATTRIBUTE_RULES.managesDepartment,
+    department: ATTRIBUTE_RULES.sameDepartment,
     company: ATTRIBUTE_RULES.sameCompany,
     all: () => true, // No restriction
 };

@@ -1,5 +1,8 @@
-// import { PermissionChecker } from "../utils/permission-checker";
+import { Response, NextFunction } from "express";
+import { PermissionChecker } from "../utils/permission-checker";
 import { AuthenticatedRequest } from "../interfaces/auth.interface";
+import { IUser } from "../interfaces/user.interface";
+import { UserService } from "../services/user.service";
 
 // Re-export for backwards compatibility
 export type { AuthenticatedRequest };
@@ -10,135 +13,97 @@ export type { AuthenticatedRequest };
  * @param permission Permission string to check (e.g., "employees:edit:managed")
  * @param resourceLoader Optional function to load resource from request
  */
-// export function userHasPermission(
-//     permission: string,
-//     resourceLoader?: (req: AuthenticatedRequest) => Promise<Record<string, unknown> | null>,
-// ) {
-//     return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-//         try {
-//             // Check if user is authenticated
-//             if (!req.user) {
-//                 return res.status(401).json({
-//                     error: "Authentication required",
-//                 });
-//             }
+export function userHasPermission(permission: string) {
+    return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+        try {
+            // Check if user is authenticated (auth middleware sets `req.decoded`)
+            if (!req.decoded || !req.decoded.id) {
+                return res.status(401).json({ message: "Authentication required" });
+            }
 
-//             const user = req.user;
+            // Load full user from DB
+            const user = (await UserService.getById(req.decoded.id as string)) as IUser | null;
+            if (!user) {
+                return res.status(401).json({ message: "User not found" });
+            }
 
-//             // Load resource if loader provided
-//             let resource: Record<string, unknown> | undefined;
-//             if (resourceLoader) {
-//                 const loadedResource = await resourceLoader(req);
-//                 if (loadedResource) {
-//                     resource = loadedResource;
-//                 }
-//             }
+            // No resource-based loading by default
+            let resource: Record<string, unknown> | undefined;
 
-//             // Check permission
-//             const hasAccess = PermissionChecker.canAccess(user, permission, resource);
+            // Check permission using PermissionChecker
+            const hasAccess = await PermissionChecker.canAccess(user as IUser, permission, resource);
 
-//             if (!hasAccess) {
-//                 return res.status(403).json({
-//                     error: "Insufficient permissions",
-//                     required: permission,
-//                 });
-//             }
+            if (!hasAccess) {
+                return res.status(403).json({ message: "Insufficient permissions", required: permission });
+            }
 
-//             // Permission granted, proceed
-//             next();
-//         } catch (error) {
-//             console.error("Authorization error:", error);
-//             res.status(500).json({
-//                 error: "Authorization check failed",
-//             });
-//         }
-//     };
-// }
+            // Permission granted
+            next();
+        } catch (error) {
+            console.error("Authorization error:", error);
+            return next({ statusCode: 500, message: "Authorization check failed" });
+        }
+    };
+}
 
 /**
  * Middleware to check if user has ANY of the specified permissions
  */
-// export function userHasAnyPermission(
-//     permissions: string[],
-//     resourceLoader?: (req: AuthenticatedRequest) => Promise<Record<string, unknown> | null>,
-// ) {
-//     return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-//         try {
-//             if (!req.user) {
-//                 return res.status(401).json({
-//                     error: "Authentication required",
-//                 });
-//             }
+export function userHasAnyPermission(permissions: string[]) {
+    return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+        try {
+            if (!req.decoded || !req.decoded.id) {
+                return res.status(401).json({ message: "Authentication required" });
+            }
 
-//             const user = req.user;
-//             let resource: Record<string, unknown> | undefined;
+            const user = (await UserService.getById(req.decoded.id as string)) as IUser | null;
+            if (!user) {
+                return res.status(401).json({ message: "User not found" });
+            }
 
-//             if (resourceLoader) {
-//                 const loadedResource = await resourceLoader(req);
-//                 if (loadedResource) {
-//                     resource = loadedResource;
-//                 }
-//             }
+            let resource: Record<string, unknown> | undefined;
 
-//             const hasAccess = PermissionChecker.hasAnyPermission(user, permissions, resource);
+            const hasAccess = await PermissionChecker.hasAnyPermission(user as IUser, permissions, resource);
 
-//             if (!hasAccess) {
-//                 return res.status(403).json({
-//                     error: "Insufficient permissions",
-//                     requiredAny: permissions,
-//                 });
-//             }
+            if (!hasAccess) {
+                return res.status(403).json({ message: "Insufficient permissions", requiredAny: permissions });
+            }
 
-//             next();
-//         } catch (error) {
-//             console.error("Authorization error:", error);
-//             res.status(500).json({
-//                 error: "Authorization check failed",
-//             });
-//         }
-//     };
-// }
+            next();
+        } catch (error) {
+            console.error("Authorization error:", error);
+            return next({ statusCode: 500, message: "Authorization check failed" });
+        }
+    };
+}
 
 /**
  * Middleware to check if user has ALL of the specified permissions
  */
-// export function userHasAllPermissions(
-//     permissions: string[],
-//     resourceLoader?: (req: AuthenticatedRequest) => Promise<Record<string, unknown> | null>,
-// ) {
-//     return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-//         try {
-//             if (!req.user) {
-//                 return res.status(401).json({
-//                     error: "Authentication required",
-//                 });
-//             }
+export function userHasAllPermissions(permissions: string[]) {
+    return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+        try {
+            if (!req.decoded || !req.decoded.id) {
+                return res.status(401).json({ message: "Authentication required" });
+            }
 
-//             const user = req.user;
-//             let resource: Record<string, unknown> | undefined;
+            const user = (await UserService.getById(req.decoded.id as string)) as IUser | null;
+            if (!user) {
+                return res.status(401).json({ message: "User not found" });
+            }
 
-//             if (resourceLoader) {
-//                 const loadedResource = await resourceLoader(req);
-//                 if (loadedResource) {
-//                     resource = loadedResource;
-//                 }
-//             }
+            let resource: Record<string, unknown> | undefined;
 
-//             const hasAccess = PermissionChecker.hasAllPermissions(user, permissions, resource);
+            const hasAccess = await PermissionChecker.hasAllPermissions(user as IUser, permissions, resource);
 
-//             if (!hasAccess) {
-//                 return res.status(403).json({
-//                     error: "Insufficient permissions",
-//                     requiredAll: permissions,
-//                 });
-//             }
+            if (!hasAccess) {
+                return res.status(403).json({ message: "Insufficient permissions", requiredAll: permissions });
+            }
 
-//             next();
-//         } catch (error) {
-//             console.error("Authorization error:", error);
-//             res.status(500).json({
-//                 error: "Authorization check failed",
-//             });
-//         }
-//     };
-// }
+            next();
+        } catch (error) {
+            console.error("Authorization error:", error);
+            return next({ statusCode: 500, message: "Authorization check failed" });
+        }
+    };
+}

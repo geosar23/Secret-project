@@ -15,7 +15,6 @@ export interface JwtPayload {
     email: string;
     name: string;
     role: string;
-    company?: string;
 }
 
 export interface AuthenticatedRequest extends Request {
