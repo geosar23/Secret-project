@@ -1,7 +1,6 @@
 import { Schema, model, UpdateQuery } from "mongoose";
 import { IUser } from "../interfaces/user.interface";
 import { RoleModel } from "./role.model";
-import { companyPlugin } from "../utils/company.plugin";
 import "./company.model";
 
 const UserSchema = new Schema<IUser>(
@@ -81,8 +80,5 @@ UserSchema.pre("findOneAndUpdate", async function (next) {
 
     next();
 });
-
-// Apply company plugin for automatic company-level filtering
-UserSchema.plugin(companyPlugin, { companyField: "company" });
 
 export const UserModel = model<IUser>("Users", UserSchema);
