@@ -15,7 +15,7 @@ export const AuthController = {
             const result = await AuthService.login({ email, password });
             res.json(result);
         } catch (error) {
-            console.log(JSON.stringify(error));
+            console.log(error);
             res.status(401).json({ message: "Invalid email or password" });
         }
     },

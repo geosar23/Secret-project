@@ -41,7 +41,10 @@
                         </div>
                         <div class="info-row">
                             <span class="label">Account Status:</span>
-                            <mat-chip [style.background]="profile.isActive ? '#4CAF50' : '#f44336'" style="color: white;">
+                            <mat-chip
+                                [style.background]="profile.isActive ? '#4CAF50' : '#f44336'"
+                                style="color: white"
+                            >
                                 {{ profile.isActive ? "Active" : "Inactive" }}
                             </mat-chip>
                         </div>
@@ -63,7 +66,10 @@
                             </div>
                             <div class="info-row">
                                 <span class="label">Company Status:</span>
-                                <mat-chip [style.background]="profile.company.isActive ? '#4CAF50' : '#f44336'" style="color: white;">
+                                <mat-chip
+                                    [style.background]="profile.company.isActive ? '#4CAF50' : '#f44336'"
+                                    style="color: white"
+                                >
                                     {{ profile.company.isActive ? "Active" : "Inactive" }}
                                 </mat-chip>
                             </div>
@@ -132,12 +138,19 @@
                                 </div>
                             </div>
                         }
-                        @if (!profile.department && !profile.manager && (!profile.managedDepartments || profile.managedDepartments.length === 0)) {
+                        @if (
+                            !profile.department &&
+                            !profile.manager &&
+                            (!profile.managedDepartments || profile.managedDepartments.length === 0)
+                        ) {
                             <p class="empty-state">No department or manager information available</p>
                         }
 
                         <!-- Custom Permissions Section -->
-                        @if ((profile.grantedPermissions && profile.grantedPermissions.length > 0) || (profile.revokedPermissions && profile.revokedPermissions.length > 0)) {
+                        @if (
+                            (profile.grantedPermissions && profile.grantedPermissions.length > 0) ||
+                            (profile.revokedPermissions && profile.revokedPermissions.length > 0)
+                        ) {
                             <mat-divider class="divider-margin"></mat-divider>
                             <h3 class="section-title">
                                 <mat-icon>verified_user</mat-icon>
