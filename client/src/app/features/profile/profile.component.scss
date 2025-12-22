@@ -65,29 +65,69 @@
 
     .info-row {
         display: flex;
-        align-items: center;
-        gap: var(--spacing-md);
-        border-radius: var(--radius-md);
+        flex-direction: column;
+        gap: var(--spacing-sm);
 
         .label {
             font-weight: var(--font-weight-semibold);
             color: var(--color-text-secondary);
-            min-width: 150px;
+            font-size: 0.875rem;
         }
 
         .value {
             color: var(--color-text-primary);
+            font-size: 1rem;
         }
 
         ::ng-deep mat-chip {
             color: white !important;
             font-weight: var(--font-weight-semibold);
             text-transform: uppercase;
+            width: fit-content;
 
             .mdc-evolution-chip__text-label {
                 color: white !important;
             }
         }
+
+        .permissions-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+
+            ::ng-deep mat-chip {
+                font-size: 0.85rem;
+            }
+        }
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        margin-top: var(--spacing-md);
+        margin-bottom: var(--spacing-md);
+        font-size: 1.1rem;
+        font-weight: var(--font-weight-semibold);
+        color: var(--color-text-primary);
+
+        mat-icon {
+            color: var(--color-primary-500);
+        }
+    }
+
+    .divider-margin {
+        margin: var(--spacing-lg) 0;
+    }
+
+    .empty-state {
+        text-align: center;
+        color: var(--color-text-secondary);
+        font-style: italic;
+        padding: var(--spacing-md);
+        background-color: var(--color-background-secondary);
+        border-radius: var(--radius-md);
+        margin: var(--spacing-md) 0;
     }
 }
 
