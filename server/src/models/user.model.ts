@@ -1,6 +1,7 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, UpdateQuery } from "mongoose";
 import { IUser } from "../interfaces/user.interface";
 import { RoleModel } from "./role.model";
+import { companyPlugin } from "../utils/company.plugin";
 import "./company.model";
 
 const UserSchema = new Schema<IUser>(
@@ -40,25 +41,48 @@ UserSchema.pre("save", async function (next) {
 });
 
 UserSchema.pre("findOneAndUpdate", async function (next) {
-    const update = this.getUpdate();
-    let roleValue;
-    if (update && typeof update === "object") {
-        if ("role" in update) {
-            roleValue = update.role;
-        } else if ("$set" in update && update.$set && update.$set.role) {
-            roleValue = update.$set.role;
-        }
+    const update = this.getUpdate() as UpdateQuery<IUser>;
+
+    if (!update || typeof update !== "object") {
+        return next();
     }
-    if (roleValue) {
-        const roleExists = await RoleModel.exists({ role: roleValue });
-        if (!roleExists) {
-            return next(new Error(`Role '${roleValue}' does not exist in Roles collection.`));
-        }
+
+    // Extract role and company from update payload (supports direct and $set updates)
+    const role = (update as Partial<IUser>).role ?? (update.$set as Partial<IUser> | undefined)?.role;
+    const company = (update as Partial<IUser>).company ?? (update.$set as Partial<IUser> | undefined)?.company;
+
+    // If role is not part of the update, do nothing
+    if (role === undefined) {
+        return next();
     }
-    if (roleValue === null || roleValue === undefined) {
+
+    // Prevent unsetting or nulling role
+    if (role === null) {
         return next(new Error("Role cannot be unset or null."));
     }
+
+    // Validate role existence
+    const roleExists = await RoleModel.exists({ _id: role });
+    if (!roleExists) {
+        return next(new Error(`Role '${role}' does not exist in Roles collection.`));
+    }
+
+    // If user has a company, validate that the role exists in that company
+    const userBeingUpdated = await this.model.findOne(this.getFilter());
+    console.log("User being updated:", userBeingUpdated);
+    const userCompany = company ?? userBeingUpdated?.company;
+
+    if (userCompany) {
+        const roleInCompany = await RoleModel.exists({ _id: role, company: userCompany });
+        if (!roleInCompany) {
+            return next(new Error(`Role '${role}' does not exist in company '${userCompany}'.`));
+        }
+    }
+
     next();
 });
+
+// Apply company plugin for automatic company-level filtering
+UserSchema.plugin(companyPlugin, { companyField: "company" });
 
 export const UserModel = model<IUser>("Users", UserSchema);

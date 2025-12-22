@@ -11,12 +11,7 @@ export interface RegisterRequest {
 
 export interface AuthResponse {
     token: string;
-    user: {
-        id: string;
-        email: string;
-        name: string;
-        role?: string;
-    };
+    user: JwtPayload;
 }
 
 export interface JwtPayload {

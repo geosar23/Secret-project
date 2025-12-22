@@ -72,15 +72,16 @@ export const UserService = {
         if (selectFields && selectFields.length > 0) {
             query = query.select(selectFields.join(" "));
         }
-        return query.exec();
+        return query.lean();
     },
     update: async (id: string, data: Partial<IUser>) => {
-        const updatedUser = await UserModel.findByIdAndUpdate(id, data, { new: true, runValidators: true })
+        const updatedUser = await UserModel.findByIdAndUpdate(id, data, { new: true, runValidators: false })
             .select("-password")
             .lean();
         return updatedUser;
     },
-    getByEmail: (email: string) => UserModel.findOne({ email }),
+    getByEmail: (email: string) =>
+        UserModel.findOne({ email }).populate("role", "role name").populate("company").lean(),
     create: (data: Omit<IUser, "_id">) => UserModel.create(data),
     delete: (id: string) => UserModel.findByIdAndDelete(id),
 };

@@ -4,6 +4,7 @@ import usersRouter from "../routes/user.routes";
 import permissionRouter from "../routes/permission.routes";
 import roleRouter from "../routes/role.routes";
 import { authMiddleware } from "../middleware/auth.middleware";
+import { companyMiddleware } from "../middleware/company.middleware";
 
 const router = Router();
 
@@ -15,13 +16,13 @@ router.get("/health", (_req, res) => {
 // Mount module routers under /api
 router.use("/auth", authRouter);
 
-// User management (requires authentication)
-router.use("/users", authMiddleware as RequestHandler, usersRouter);
+// User management (requires authentication + company isolation)
+router.use("/users", authMiddleware as RequestHandler, companyMiddleware as RequestHandler, usersRouter);
 
-// Permission management (requires authentication)
-router.use("/permissions", authMiddleware as RequestHandler, permissionRouter);
+// Permission management (requires authentication + company isolation)
+router.use("/permissions", authMiddleware as RequestHandler, companyMiddleware as RequestHandler, permissionRouter);
 
-// Role management (requires authentication)
-router.use("/roles", authMiddleware as RequestHandler, roleRouter);
+// Role management (requires authentication + company isolation)
+router.use("/roles", authMiddleware as RequestHandler, companyMiddleware as RequestHandler, roleRouter);
 
 export default router;

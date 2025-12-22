@@ -1,5 +1,3 @@
-import { DefaultUserRoles } from "../enums/user-role.enum";
-import { IUser } from "./user.interface";
 import { Request } from "express";
 
 export interface LoginDto {
@@ -7,36 +5,19 @@ export interface LoginDto {
     password: string;
 }
 
-export interface RegisterDto {
-    name: string;
-    email: string;
-    password: string;
-    role?: DefaultUserRoles;
-}
-
 export interface AuthResponse {
     token: string;
-    user: {
-        id: string;
-        email: string;
-        name: string;
-        role: DefaultUserRoles | string;
-    };
+    user: JwtPayload;
 }
 
 export interface JwtPayload {
     id: string;
     email: string;
-    name?: string;
-    role?: string;
+    name: string;
+    role: string;
+    company?: string;
 }
 
 export interface AuthenticatedRequest extends Request {
-    user?: IUser;
-    decoded?: {
-        id: string;
-        email: string;
-        name?: string;
-        role?: string;
-    };
+    decoded?: JwtPayload;
 }

@@ -25,10 +25,10 @@ export const AuthService = {
         // Generate JWT token
         const token = jwt.sign(
             {
-                id: user._id,
+                id: user._id.toString(),
                 email: user.email,
                 name: user.name,
-                role: user.role,
+                role: (user.role as unknown as { role: string }).role.toString(),
             },
             JWT_SECRET,
             { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions,
