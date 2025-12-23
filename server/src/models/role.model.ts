@@ -1,9 +1,11 @@
 import { Schema, model } from "mongoose";
 import { IRole } from "../interfaces/role.interface";
 import { DefaultUserRoles } from "../enums/user-role.enum";
+import { CompanyFields } from "./company.model";
 
 const RoleSchema = new Schema<IRole>(
     {
+        ...CompanyFields,
         role: {
             type: String,
             required: true,

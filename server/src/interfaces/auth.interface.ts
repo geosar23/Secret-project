@@ -7,10 +7,10 @@ export interface LoginDto {
 
 export interface AuthResponse {
     token: string;
-    user: JwtPayload;
+    user: tokenPayload;
 }
 
-export interface JwtPayload {
+export interface tokenPayload {
     id: string;
     email: string;
     name: string;
@@ -18,5 +18,5 @@ export interface JwtPayload {
 }
 
 export interface AuthenticatedRequest extends Request {
-    decoded?: JwtPayload;
+    decoded?: tokenPayload;
 }
