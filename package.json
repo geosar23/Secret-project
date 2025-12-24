@@ -2,7 +2,8 @@
     "private": true,
     "workspaces": [
         "client",
-        "server"
+        "server",
+        "shared"
     ],
     "scripts": {
         "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
@@ -10,7 +11,11 @@
         "dev:client": "npm start -w client",
         "format": "prettier --write \"**/*.{ts,js,json,css,scss,md,html}\" && eslint --fix \"server/src/**/*.{ts,js}\" \"client/src/**/*.{ts,html}\"",
         "lint": "eslint \"server/src/**/*.ts\" \"client/src/**/*.ts\" --fix",
-        "prepare": "husky"
+        "prepare": "husky",
+        "build": "tsc -b",
+        "build:shared": "npm run build -w shared",
+        "build:server": "npm run build -w server",
+        "build:client": "npm run build -w client"
     },
     "doc": {
         "how_to_run": "pray to god "

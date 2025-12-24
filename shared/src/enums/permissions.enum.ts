@@ -1,6 +1,4 @@
-/* eslint-disable no-unused-vars */
-
-import type { PermissionDefinition, PermissionKey } from "../interfaces/permission.interface";
+import { IPermissionDefinition, PermissionKey } from "../interfaces/permissions.interface";
 
 export enum PermissionCategories {
     ALL = "*",
@@ -73,7 +71,7 @@ export const PermissionKeys = {
     USER_PROFILE_ALL_SELF: `${PermissionCategories.USER_PROFILE}:${PermissionActions.ALL}:${PermissionScopes.SELF}`,
 } as const;
 
-export const PERMISSIONS: Record<PermissionKey, PermissionDefinition> = {
+export const PERMISSIONS: Record<PermissionKey, IPermissionDefinition> = {
     [PermissionKeys.ALL]: {
         key: PermissionKeys.ALL,
         category: PermissionCategories.ALL,

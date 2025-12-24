@@ -1,4 +1,4 @@
-import { IPermission } from "./permission.interface";
+import { IPermission } from "../../../shared/interfaces/permissions.interface";
 import { IRole } from "./role.interface";
 import { IUser } from "./user.interface";
 

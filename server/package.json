@@ -11,7 +11,13 @@
         "format": "prettier --write \"src/**/*.{ts,js,json,css,scss,md,html}\"",
         "lint": "eslint . --ext .ts"
     },
+    "references": [
+        {
+            "path": "../shared"
+        }
+    ],
     "dependencies": {
+        "@sarlib/shared": "file:../shared",
         "bcryptjs": "^2.4.3",
         "cors": "^2.8.5",
         "dotenv": "^16.6.1",
