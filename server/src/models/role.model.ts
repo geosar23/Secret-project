@@ -27,7 +27,7 @@ const RoleSchema = new Schema<IRole>(
         name: { type: String, required: true, trim: true, unique: true },
         description: { type: String, required: true, trim: true },
         level: { type: Number, required: true },
-        permissions: [{ type: Schema.Types.ObjectId, ref: "Permissions" }],
+        permissions: [{ type: String, trim: true }],
         isSystemRole: { type: Boolean, default: false },
         companyId: {
             type: Schema.Types.ObjectId,

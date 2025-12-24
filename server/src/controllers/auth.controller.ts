@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { AuthService } from "../services/auth.service";
 import { UserService } from "../services/user.service";
-import { AuthenticatedRequest, JwtPayload } from "../interfaces/auth.interface";
+import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 
 export const AuthController = {
     login: async (req: Request, res: Response) => {
@@ -29,7 +29,7 @@ export const AuthController = {
             }
 
             const decoded = AuthService.verifyToken(token);
-            const userId = (decoded as JwtPayload).id;
+            const userId = (decoded as tokenPayload).id;
             const user = await UserService.getById(userId);
 
             if (!user) {

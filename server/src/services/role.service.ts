@@ -7,7 +7,7 @@ export const RoleService = {
      * Get all roles
      */
     getAll: (): Promise<IRole[]> => {
-        return RoleModel.find().sort({ level: -1 }).exec();
+        return RoleModel.find().exec();
     },
 
     /**

@@ -12,14 +12,14 @@
         [contentColor]="getRoleColor(selectedRole)"
         [showCloseButton]="false"
     ></app-sticky-alert>
-    @if (localUser$ | async; as user) {
+    @if (localUser) {
         <mat-card class="header">
             <mat-card-content>
                 <h1>Your Permissions</h1>
                 <div class="user-info">
-                    <span class="user-name">{{ user.name }}</span>
-                    <mat-chip [style.background]="getRoleColor(user.role.role || '')">
-                        {{ getRoleName(user.role.role || "") }}
+                    <span class="user-name">{{ localUser.name }}</span>
+                    <mat-chip [style.background]="getRoleColor(localUser.role.role || '')">
+                        {{ getRoleName(localUser.role.role || "") }}
                     </mat-chip>
                 </div>
             </mat-card-content>

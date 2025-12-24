@@ -9,14 +9,14 @@ import { MatSelectModule } from "@angular/material/select";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { PermissionService } from "../../core/services/permission.service";
 import { AuthService } from "../../core/services/auth.service";
 import { StickyAlertComponent } from "../../shared/components/sticky-alert/sticky-alert.component";
 import { IPermissionCategory, IPermissionDefinition } from "../../core/interfaces/permission.interface";
-import { forkJoin, Observable } from "rxjs";
 import { RoleUtils } from "../../core/utils/role.utils";
-import { PermissionCategories, PermissionCategoriesStrings } from "../../core/enums/permissions.enum";
+import { PermissionCategories, PermissionCategoriesStrings, PermissionKeys, PERMISSIONS } from "../../core/enums/permissions.enum";
 import { IUser } from "../../core/interfaces/user.interface";
+import { RoleService } from "../../core/services/role.service";
+import { IRole } from "../../core/interfaces/role.interface";
 
 @Component({
     selector: "app-permissions",
@@ -38,12 +38,11 @@ import { IUser } from "../../core/interfaces/user.interface";
     styleUrls: ["./permissions.component.scss"],
 })
 export class PermissionsComponent implements OnInit {
-    private permissionService = inject(PermissionService);
     private authService = inject(AuthService);
+    private roleService = inject(RoleService);
 
-    localUser$: Observable<IUser | null>;
-    permissionsDefinitions: IPermissionDefinition[] = [];
-    effectivePermissions: string[] = [];
+    localUser: IUser | null = null;
+    roleData: IRole[] = [];
     permissionCategories: IPermissionCategory[] = [];
     readonly PermissionCategoriesStrings = PermissionCategoriesStrings;
     readonly rolesHierarchy = RoleUtils.getAllRolesWithMetadata();
@@ -52,50 +51,49 @@ export class PermissionsComponent implements OnInit {
     viewAsRoleActive: boolean = false;
     isLoading: boolean = false;
 
-    constructor() {
-        this.localUser$ = this.authService.localUser$;
-    }
+    constructor() {}
 
     ngOnInit(): void {
-        this.getUserPermissions();
-    }
-
-    private getUserPermissions(): void {
-        forkJoin({
-            effectivePermissions: this.permissionService.getEffectivePermissions(),
-            allDefinitions: this.permissionService.fetchAllPermissionDefinitions(),
-        }).subscribe(({ effectivePermissions, allDefinitions }) => {
-            this.effectivePermissions = effectivePermissions;
-            this.permissionsDefinitions = allDefinitions;
-            this.buildPermissionCategoriesFromBackend();
+        this.authService.localUser$.subscribe(user => {
+            this.localUser = user;
+            this.permissionCategories = [];
+            this.buildForRole(user?.role.permissions, user?.grantedPermissions, user?.revokedPermissions);
+        });
+        this.roleService.getAllRoles().subscribe(roles => {
+            console.log(roles);
+            this.roleData = roles;
         });
     }
 
-    private buildPermissionCategoriesFromBackend(): void {
-        // Group permissions by category
+    private buildPermissionCategoriesFromConstants(effectivePermissions: string[] = []): void {
+        console.log(PermissionKeys);
+        const perms = Object.values(PERMISSIONS) as unknown as IPermissionDefinition[];
         const categoryMap = new Map<PermissionCategories, IPermissionDefinition[]>();
 
-        this.permissionsDefinitions.forEach(def => {
-            if (!categoryMap.has(def.category)) {
-                categoryMap.set(def.category, []);
-            }
+        perms.forEach(def => {
+            if (!categoryMap.has(def.category)) categoryMap.set(def.category, []);
             categoryMap.get(def.category)!.push(def);
         });
 
-        // Convert to array format
         this.permissionCategories = Array.from(categoryMap.entries()).map(([category, perms]) => ({
             category,
-            permissions: perms.map(p => ({
-                ...p,
-                hasPermission: this.checkPermission(p._id),
+            permissions: perms.map((p: IPermissionDefinition) => ({
+                key: p.key,
+                description: p.description,
+                hasPermission: effectivePermissions.includes(p.key),
             })),
         }));
     }
 
-    private checkPermission(permission: string): boolean {
-        // Simple check - backend already expanded permissions with scope hierarchy
-        // effectivePermissions contains all computed permissions from backend
-        return this.effectivePermissions.includes(permission);
+    private buildForRole(
+        rolePermissions: string[] = [],
+        grantedPermissions: string[] = [],
+        revokedPermissions: string[] = [],
+    ): void {
+        const effectivePermissions = Array.from(
+            new Set([...rolePermissions, ...grantedPermissions].filter(p => !revokedPermissions.includes(p))),
+        );
+        this.buildPermissionCategoriesFromConstants(effectivePermissions);
     }
 
     getRoleColor(role: string): string {
@@ -109,16 +107,21 @@ export class PermissionsComponent implements OnInit {
     toggleRoleImpersonation(): void {
         if (this.viewAsRoleActive) {
             // Disable view as role
-            this.getUserPermissions();
+            this.buildForRole(
+                this.localUser?.role.permissions,
+                this.localUser?.grantedPermissions,
+                this.localUser?.revokedPermissions,
+            );
             this.viewAsRoleActive = false;
             this.selectedRole = "";
             return;
         }
         // Enable view as role
-        this.permissionService.fetchPermissionsForRole(this.selectedRole).subscribe(permissions => {
-            this.effectivePermissions = permissions;
+
+        const role = this.roleData.find(r => r.role === this.selectedRole);
+        if (role) {
+            this.buildForRole(role.permissions);
             this.viewAsRoleActive = true;
-            this.buildPermissionCategoriesFromBackend();
-        });
+        }
     }
 }

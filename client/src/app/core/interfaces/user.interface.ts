@@ -1,5 +1,4 @@
 import { ICompany } from "./company.interface";
-import { IGrantedPermission } from "./permission.interface";
 import { IRole } from "./role.interface";
 
 export interface IUser {
@@ -16,7 +15,7 @@ export interface IUser {
     managedDepartments?: string[]; // For managers - departments they manage
 
     // Custom permissions
-    grantedPermissions?: IGrantedPermission[]; // Additional permissions granted
+    grantedPermissions?: string[]; // Additional permissions granted
     revokedPermissions?: string[]; // Role permissions that are revoked
 
     isActive?: boolean;

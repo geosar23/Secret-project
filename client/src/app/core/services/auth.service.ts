@@ -10,7 +10,7 @@ import { IUser, UserResponse } from "../interfaces/user.interface";
     providedIn: "root",
 })
 export class AuthService {
-    private api = inject(ApiService);
+    private apiService = inject(ApiService);
     private router = inject(Router);
 
     private localUserSubject = new BehaviorSubject<IUser | null>(null);
@@ -53,7 +53,7 @@ export class AuthService {
     }
 
     login(credentials: LoginRequest): Observable<IUser> {
-        return this.api.post<AuthResponse>("auth/login", credentials).pipe(
+        return this.apiService.post<AuthResponse>("auth/login", credentials).pipe(
             tap(response => {
                 this.setToken(response.token);
             }),
@@ -66,11 +66,11 @@ export class AuthService {
     }
 
     getMe(): Observable<UserResponse> {
-        return this.api.get<UserResponse>("auth/me");
+        return this.apiService.get<UserResponse>("auth/me");
     }
 
     register(data: RegisterRequest): Observable<IUser> {
-        return this.api.post<AuthResponse>("auth/register", data).pipe(
+        return this.apiService.post<AuthResponse>("auth/register", data).pipe(
             tap(response => {
                 this.setToken(response.token);
             }),

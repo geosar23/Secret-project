@@ -1,6 +1,6 @@
 import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { JwtPayload } from "../interfaces/auth.interface";
+import { tokenPayload } from "../interfaces/auth.interface";
 import { AuthenticatedRequest } from "../interfaces/auth.interface";
 
 export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
@@ -9,7 +9,7 @@ export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: N
     if (!token) return res.status(401).json({ message: "Unauthorized" });
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as tokenPayload;
         req.decoded = decoded;
         next();
     } catch {

@@ -1,17 +1,31 @@
-import { PermissionActions, PermissionCategories, PermissionScopes } from "../enums/permissions.enum";
+import { PermissionActions, PermissionCategories, PermissionKeys, PermissionScopes } from "../enums/permissions.enum";
 
-export interface IGrantedPermission {
-    permission: string;
-    grantedBy: string;
-    grantedAt: Date;
-    expiresAt?: Date;
-    reason?: string;
-    scope?: string;
+export type PermissionKey = (typeof PermissionKeys)[keyof typeof PermissionKeys];
+export interface IPermissionDefinition {
+    key: PermissionKey;
+    category: PermissionCategories;
+    action: PermissionActions;
+    scopes: PermissionScopes[];
+    name: string;
+    description: string;
 }
 
-export interface IPermissionHistory {
-    granted: IGrantedPermission[];
-    revoked: string[];
+/**
+ * Context for attribute-based access control
+ */
+export interface AccessContext<TResource = unknown> {
+    actor: {
+        id: string;
+        companyId: string;
+        departmentId?: string;
+        countryId?: string;
+        managerId?: string;
+        permissions: Set<PermissionKey>;
+    };
+
+    resource: TResource;
+
+    action: PermissionActions;
 }
 
 export interface IPermissionCategory {
@@ -23,16 +37,4 @@ export interface IPermissionItem {
     key: string;
     description: string;
     hasPermission: boolean;
-}
-
-export interface IPermissionDefinition {
-    _id: string;
-    action: PermissionActions;
-    createdAt: string;
-    isActive: boolean;
-    key: string;
-    name: string;
-    scope: PermissionScopes;
-    description: string;
-    category: PermissionCategories;
 }
