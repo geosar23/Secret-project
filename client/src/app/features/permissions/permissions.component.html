@@ -29,8 +29,8 @@
             <mat-card-content>
                 <h3>Role Hierarchy</h3>
                 <div class="roles">
-                    @for (roleInfo of rolesHierarchy; track roleInfo.role; let isLast = $last) {
-                        <mat-chip [style.background]="roleInfo.color">
+                    @for (roleInfo of roleData; track roleInfo.role; let isLast = $last) {
+                        <mat-chip [style.background]="getRoleColor(roleInfo.role)">
                             {{ roleInfo.name }}
                         </mat-chip>
                         @if (!isLast) {
@@ -44,9 +44,9 @@
                             <mat-label>View default role permissions</mat-label>
                             <mat-select [(value)]="selectedRole" [disabled]="viewAsRoleActive || isLoading">
                                 <mat-option value="">-- Select Role --</mat-option>
-                                @for (roleInfo of rolesHierarchy; track roleInfo.role) {
-                                    <mat-option [value]="roleInfo.role">
-                                        {{ roleInfo.name }}
+                                @for (role of roleData; track role.role) {
+                                    <mat-option [value]="role.role">
+                                        {{ role.name }}
                                     </mat-option>
                                 }
                             </mat-select>

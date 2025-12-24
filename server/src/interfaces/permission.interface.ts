@@ -1,7 +1,11 @@
-import type { PermissionActions, PermissionCategories, PermissionScopes, PermissionKeys } from "../enums/permissions.enum";
+import type {
+    PermissionActions,
+    PermissionCategories,
+    PermissionScopes,
+    PermissionKeys,
+} from "../enums/permissions.enum";
 
-export type PermissionKey =
-    typeof PermissionKeys[keyof typeof PermissionKeys];
+export type PermissionKey = (typeof PermissionKeys)[keyof typeof PermissionKeys];
 export interface PermissionDefinition {
     key: PermissionKey;
     category: PermissionCategories;

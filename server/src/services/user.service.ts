@@ -68,7 +68,7 @@ export const UserService = {
     },
 
     getById: (id: string, selectFields?: string[]) => {
-        let query = UserModel.findById(id).populate("role", "role name").populate("company").select("-password");
+        let query = UserModel.findById(id).populate("role").populate("company").select("-password");
         if (selectFields && selectFields.length > 0) {
             query = query.select(selectFields.join(" "));
         }

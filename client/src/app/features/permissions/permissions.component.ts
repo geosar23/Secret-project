@@ -13,7 +13,11 @@ import { AuthService } from "../../core/services/auth.service";
 import { StickyAlertComponent } from "../../shared/components/sticky-alert/sticky-alert.component";
 import { IPermissionCategory, IPermissionDefinition } from "../../core/interfaces/permission.interface";
 import { RoleUtils } from "../../core/utils/role.utils";
-import { PermissionCategories, PermissionCategoriesStrings, PermissionKeys, PERMISSIONS } from "../../core/enums/permissions.enum";
+import {
+    PermissionCategories,
+    PermissionCategoriesStrings,
+    PERMISSIONS,
+} from "../../core/enums/permissions.enum";
 import { IUser } from "../../core/interfaces/user.interface";
 import { RoleService } from "../../core/services/role.service";
 import { IRole } from "../../core/interfaces/role.interface";
@@ -45,7 +49,6 @@ export class PermissionsComponent implements OnInit {
     roleData: IRole[] = [];
     permissionCategories: IPermissionCategory[] = [];
     readonly PermissionCategoriesStrings = PermissionCategoriesStrings;
-    readonly rolesHierarchy = RoleUtils.getAllRolesWithMetadata();
 
     selectedRole: string = "";
     viewAsRoleActive: boolean = false;
@@ -59,14 +62,14 @@ export class PermissionsComponent implements OnInit {
             this.permissionCategories = [];
             this.buildForRole(user?.role.permissions, user?.grantedPermissions, user?.revokedPermissions);
         });
-        this.roleService.getAllRoles().subscribe(roles => {
-            console.log(roles);
-            this.roleData = roles;
+        this.roleService.getAllRoles().subscribe(res => {
+           if(res.success){
+               this.roleData = res.data;
+           }
         });
     }
 
     private buildPermissionCategoriesFromConstants(effectivePermissions: string[] = []): void {
-        console.log(PermissionKeys);
         const perms = Object.values(PERMISSIONS) as unknown as IPermissionDefinition[];
         const categoryMap = new Map<PermissionCategories, IPermissionDefinition[]>();
 
@@ -117,8 +120,8 @@ export class PermissionsComponent implements OnInit {
             return;
         }
         // Enable view as role
-
-        const role = this.roleData.find(r => r.role === this.selectedRole);
+        console.log(this.roleData)
+        const role = this.roleData?.find(r => r.role === this.selectedRole);
         if (role) {
             this.buildForRole(role.permissions);
             this.viewAsRoleActive = true;

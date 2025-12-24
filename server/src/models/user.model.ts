@@ -16,8 +16,8 @@ const UserSchema = new Schema<IUser>(
         manager: { type: Schema.Types.ObjectId, ref: "Users" },
 
         // Custom permissions
-        grantedPermissions: [{ type: String,  trim: true }],
-        revokedPermissions: [{ type: String,  trim: true }],
+        grantedPermissions: [{ type: String, trim: true }],
+        revokedPermissions: [{ type: String, trim: true }],
 
         isActive: { type: Boolean, default: true },
     },
