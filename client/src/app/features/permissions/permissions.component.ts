@@ -13,7 +13,11 @@ import { AuthService } from "../../core/services/auth.service";
 import { StickyAlertComponent } from "../../shared/components/sticky-alert/sticky-alert.component";
 import { IPermissionCategory, IPermissionDefinition } from "../../../../../shared/src/interfaces/permissions.interface";
 import { RoleUtils } from "../../core/utils/role.utils";
-import { PermissionCategories, PermissionCategoriesStrings, PERMISSIONS } from "../../../../../shared/src/enums/permissions.enum";
+import {
+    PermissionCategories,
+    PermissionCategoriesStrings,
+    PERMISSIONS,
+} from "../../../../../shared/src/enums/permissions.enum";
 import { IUser } from "../../core/interfaces/user.interface";
 import { RoleService } from "../../core/services/role.service";
 import { IRole } from "../../core/interfaces/role.interface";
