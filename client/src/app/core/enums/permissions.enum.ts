@@ -1,13 +1,15 @@
 import { IPermissionDefinition, PermissionKey } from "../interfaces/permission.interface";
 
 export enum PermissionCategories {
+    ALL = "*",
     USERS_MANAGEMENT = "usersManagement",
     USER_PROFILE = "userProfile",
 }
 
-export const PermissionCategoriesStrings: Record<string, string> = {
-    usersManagement: "Users Management",
-    userProfile: "User Profile",
+export const PermissionCategoriesStrings: Record<PermissionCategories, string> = {
+    [PermissionCategories.ALL]: "All",
+    [PermissionCategories.USERS_MANAGEMENT]: "Users Management",
+    [PermissionCategories.USER_PROFILE]: "User Profile",
 };
 
 export enum PermissionScopes {
@@ -28,6 +30,10 @@ export enum PermissionActions {
 
 //PermissionCategory:PermissionAction:PermissionScope
 export const PermissionKeys = {
+    ALL: `${PermissionCategories.ALL}:${PermissionActions.ALL}:${PermissionScopes.ALL}`,
+
+    ALL_COMPANY: `${PermissionCategories.ALL}:${PermissionActions.ALL}:${PermissionScopes.COMPANY}`,
+
     USERS_MANAGEMENT_READ_ALL: `${PermissionCategories.USERS_MANAGEMENT}:${PermissionActions.READ}:${PermissionScopes.ALL}`,
     USERS_MANAGEMENT_READ_COMPANY: `${PermissionCategories.USERS_MANAGEMENT}:${PermissionActions.READ}:${PermissionScopes.COMPANY}`,
     USERS_MANAGEMENT_READ_DEPARTMENT: `${PermissionCategories.USERS_MANAGEMENT}:${PermissionActions.READ}:${PermissionScopes.DEPARTMENT}`,
@@ -66,6 +72,22 @@ export const PermissionKeys = {
 } as const;
 
 export const PERMISSIONS: Record<PermissionKey, IPermissionDefinition> = {
+    [PermissionKeys.ALL]: {
+        key: PermissionKeys.ALL,
+        category: PermissionCategories.ALL,
+        action: PermissionActions.ALL,
+        scopes: [PermissionScopes.ALL],
+        name: "All Permissions",
+        description: "Grants all permissions",
+    },
+    [PermissionKeys.ALL_COMPANY]: {
+        key: PermissionKeys.ALL_COMPANY,
+        category: PermissionCategories.ALL,
+        action: PermissionActions.ALL,
+        scopes: [PermissionScopes.COMPANY],
+        name: "All Company Permissions",
+        description: "Grants all permissions within the company scope",
+    },
     [PermissionKeys.USERS_MANAGEMENT_READ_ALL]: {
         key: PermissionKeys.USERS_MANAGEMENT_READ_ALL,
         category: PermissionCategories.USERS_MANAGEMENT,
