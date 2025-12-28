@@ -73,6 +73,13 @@
     }
 }
 
+/* Make the ALL category span the full grid width */
+.category-card.full-width {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: none;
+}
+
 .permissions-list {
     display: flex;
     flex-direction: column;

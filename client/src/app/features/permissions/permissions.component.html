@@ -74,12 +74,12 @@
         </mat-card>
 
         <div class="permissions-grid">
-            @for (c of permissionCategories; track c.category) {
-                <mat-card class="category-card">
+            @for (p of permissions; track p.category) {
+                <mat-card class="category-card" [class.full-width]="p.category === PermissionCategories.ALL">
                     <mat-card-content>
-                        <h2 class="category-title">{{ PermissionCategoriesStrings[c.category] }}</h2>
+                        <h2 class="category-title">{{ PermissionCategoriesStrings[p.category] }}</h2>
                         <div class="permissions-list">
-                            @for (item of c.permissions; track item.key) {
+                            @for (item of p.permissions; track item.key) {
                                 <div class="permission-item" [class.has-permission]="item.hasPermission">
                                     <div class="permission-status">
                                         <mat-icon

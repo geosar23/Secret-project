@@ -11,7 +11,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { AuthService } from "../../core/services/auth.service";
 import { StickyAlertComponent } from "../../shared/components/sticky-alert/sticky-alert.component";
-import { IPermissionCategory, IPermissionDefinition } from "../../core/interfaces/permission.interface";
+import { IPermissionItem, IPermissionDefinition } from "../../core/interfaces/permission.interface";
 import { RoleUtils } from "../../core/utils/role.utils";
 import { PermissionCategories, PermissionCategoriesStrings, PERMISSIONS } from "../../core/enums/permissions.enum";
 import { IUser } from "../../core/interfaces/user.interface";
@@ -43,7 +43,8 @@ export class PermissionsComponent implements OnInit {
 
     localUser: IUser | null = null;
     roleData: IRole[] = [];
-    permissionCategories: IPermissionCategory[] = [];
+    permissions: IPermissionItem[] = [];
+    readonly PermissionCategories = PermissionCategories;
     readonly PermissionCategoriesStrings = PermissionCategoriesStrings;
 
     selectedRole: string = "";
@@ -55,7 +56,7 @@ export class PermissionsComponent implements OnInit {
     ngOnInit(): void {
         this.authService.localUser$.subscribe(user => {
             this.localUser = user;
-            this.permissionCategories = [];
+            this.permissions = [];
             this.buildForRole(user?.role.permissions, user?.grantedPermissions, user?.revokedPermissions);
         });
         this.roleService.getAllRoles().subscribe(res => {
@@ -74,7 +75,7 @@ export class PermissionsComponent implements OnInit {
             categoryMap.get(def.category)!.push(def);
         });
 
-        this.permissionCategories = Array.from(categoryMap.entries()).map(([category, perms]) => ({
+        this.permissions = Array.from(categoryMap.entries()).map(([category, perms]) => ({
             category,
             permissions: perms.map((p: IPermissionDefinition) => ({
                 key: p.key,
@@ -115,8 +116,8 @@ export class PermissionsComponent implements OnInit {
             this.selectedRole = "";
             return;
         }
+        
         // Enable view as role
-        console.log(this.roleData);
         const role = this.roleData?.find(r => r.role === this.selectedRole);
         if (role) {
             this.buildForRole(role.permissions);

@@ -28,12 +28,12 @@ export interface AccessContext<TResource = unknown> {
     action: PermissionActions;
 }
 
-export interface IPermissionCategory {
+export interface IPermissionItem {
     category: PermissionCategories;
-    permissions: IPermissionItem[];
+    permissions: IUserPermissionItem[];
 }
 
-export interface IPermissionItem {
+export interface IUserPermissionItem {
     key: string;
     description: string;
     hasPermission: boolean;
