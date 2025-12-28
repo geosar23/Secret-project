@@ -1,10 +1,10 @@
-import { JwtPayload } from "../interfaces/auth.interface";
+import { tokenPayload } from "../interfaces/auth.interface";
 
 /**
  * Decode a JWT token without verification
  * Note: Server will verify token authenticity
  */
-export function decodeToken(token: string): JwtPayload | null {
+export function decodeToken(token: string): tokenPayload | null {
     try {
         const base64Url = token.split(".")[1];
         const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
@@ -14,7 +14,7 @@ export function decodeToken(token: string): JwtPayload | null {
                 .map(c => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
                 .join(""),
         );
-        return JSON.parse(jsonPayload) as JwtPayload;
+        return JSON.parse(jsonPayload) as tokenPayload;
     } catch {
         return null;
     }
@@ -23,7 +23,7 @@ export function decodeToken(token: string): JwtPayload | null {
 /**
  * Check if a decoded token payload is still valid
  */
-export function isTokenValid(payload: JwtPayload | null): boolean {
+export function isTokenValid(payload: tokenPayload | null): boolean {
     if (!payload || !payload.exp) {
         return false;
     }

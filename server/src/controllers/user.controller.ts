@@ -1,7 +1,7 @@
 import { NextFunction, Response } from "express";
 import { UserService } from "../services/user.service";
 import { AuthenticatedRequest } from "../interfaces/auth.interface";
-import { DefaultUserRoles } from "../enums/user-role.enum";
+// import { DefaultUserRoles } from "../enums/user-role.enum";
 import { IUser, IUsersQueryParams } from "../interfaces/user.interface";
 
 export class UserController {
@@ -28,16 +28,16 @@ export class UserController {
                 isActive: req.query.isActive === "true" ? true : req.query.isActive === "false" ? false : undefined,
             };
 
-            // Authorization: Enforce company-level data access
-            if (requestingUser.role !== DefaultUserRoles.GOD) {
-                //Fetch requesting user
-                const user = await UserService.getById(requestingUser.id);
-                if (!user) {
-                    res.status(404).json({ message: "Requesting user not found" });
-                    return;
-                }
-                params.companyId = user.company?._id.toString() as string;
-            }
+            // // Authorization: Enforce company-level data access
+            // if (requestingUser.role !== DefaultUserRoles.GOD) {
+            //     //Fetch requesting user
+            //     const user = await UserService.getById(requestingUser.id);
+            //     if (!user) {
+            //         res.status(404).json({ message: "Requesting user not found" });
+            //         return;
+            //     }
+            //     params.companyId = user.company?._id.toString() as string;
+            // }
 
             const users = await UserService.getUsers(params);
             res.status(200).json(users);

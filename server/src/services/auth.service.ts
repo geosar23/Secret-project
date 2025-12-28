@@ -28,7 +28,7 @@ export const AuthService = {
                 id: user._id.toString(),
                 email: user.email,
                 name: user.name,
-                role: (user.role as unknown as { role: string }).role.toString(),
+                roleId: (user.role as unknown as { role: string }).role.toString(),
                 companyId: user.company?._id.toString(),
             },
             JWT_SECRET,
@@ -37,12 +37,6 @@ export const AuthService = {
 
         return {
             token,
-            user: {
-                id: user._id.toString() || "",
-                email: user.email,
-                name: user.name,
-                role: user.role.toString() || "",
-            },
         };
     },
 

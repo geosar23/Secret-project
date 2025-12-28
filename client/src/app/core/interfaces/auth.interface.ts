@@ -11,13 +11,13 @@ export interface RegisterRequest {
 
 export interface AuthResponse {
     token: string;
-    user: JwtPayload;
 }
 
-export interface JwtPayload {
+export interface tokenPayload {
     id: string;
     email: string;
     name?: string;
-    role?: string;
+    roleId?: string;
+    companyId?: string;
     exp?: number;
 }

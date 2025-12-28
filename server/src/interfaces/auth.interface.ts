@@ -7,14 +7,14 @@ export interface LoginDto {
 
 export interface AuthResponse {
     token: string;
-    user: tokenPayload;
 }
 
 export interface tokenPayload {
     id: string;
     email: string;
     name: string;
-    role: string;
+    roleId: string;
+    companyId?: string;
 }
 
 export interface AuthenticatedRequest extends Request {
