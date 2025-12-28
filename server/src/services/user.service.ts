@@ -1,9 +1,9 @@
-import { UserModel } from "../models/user.model";
+import { userRepository } from "../repositories/user.repository";
 import { IUser, IUsersQueryParams } from "../interfaces/user.interface";
 import { FilterQuery } from "mongoose";
 
 export const UserService = {
-    getUsers: async (params: IUsersQueryParams = {}) => {
+    getUsers: async (params: IUsersQueryParams = {}, companyId: string) => {
         // Validate and sanitize parameters (business rules)
         const page = Math.max(1, Math.min(params.page || 1, 1000));
         const limit = Math.max(1, Math.min(params.limit || 10, 100));
@@ -11,7 +11,7 @@ export const UserService = {
         const allowedSortFields = ["name", "email", "createdAt", "role", "companyId"];
         const sortBy = allowedSortFields.includes(params.sortBy || "") ? params.sortBy! : "createdAt";
         const sortOrder = params.sortOrder === "asc" ? "asc" : "desc";
-        const role = params.role;
+        const role = params.roleId;
         const company = params.companyId;
         const department = params.departmentId;
         const isActive = params.isActive;
@@ -45,9 +45,14 @@ export const UserService = {
             [sortBy]: sortOrder === "asc" ? 1 : -1,
         };
 
-        // Execute query with pagination
+        // Execute query with pagination (use repository when companyId provided)
+        if (!companyId) {
+            return { users: [], total: 0, page, limit, totalPages: 0 };
+        }
+        const repo = userRepository(companyId);
         const [users, total] = await Promise.all([
-            UserModel.find(filter)
+            repo
+                .find(filter)
                 .populate("role", "role name")
                 .populate("company")
                 .sort(sortOptions)
@@ -55,7 +60,7 @@ export const UserService = {
                 .limit(limit)
                 .select("-password")
                 .lean(),
-            UserModel.countDocuments(filter),
+            repo.count(filter),
         ]);
 
         return {
@@ -67,21 +72,48 @@ export const UserService = {
         };
     },
 
-    getById: (id: string, selectFields?: string[]) => {
-        let query = UserModel.findById(id).populate("role").populate("company").select("-password");
+    getById: (id: string, companyId: string, selectFields?: string[]) => {
+        if (!companyId) {
+            throw new Error("Company ID is required for fetching user by ID");
+        }
+        const repo = userRepository(companyId);
+        let query = repo.findById(id).populate("role").populate("company").select("-password").lean();
         if (selectFields && selectFields.length > 0) {
-            query = query.select(selectFields.join(" "));
+            query = query.select("-password " + selectFields.join(" "));
         }
         return query.lean();
     },
-    update: async (id: string, data: Partial<IUser>) => {
-        const updatedUser = await UserModel.findByIdAndUpdate(id, data, { new: true, runValidators: false })
-            .select("-password")
-            .lean();
-        return updatedUser;
+    update: async (id: string, data: Partial<IUser>, companyId: string) => {
+        if (!companyId) {
+            throw new Error("Company ID is required for updating user");
+        }
+
+        const repo = userRepository(String(companyId));
+        await repo.updateOne({ _id: id }, data as Partial<IUser>);
+        const updated = await repo.findById(id).select("-password").lean();
+        return updated;
     },
-    getByEmail: (email: string) =>
-        UserModel.findOne({ email }).populate("role", "role name").populate("company").lean(),
-    create: (data: Omit<IUser, "_id">) => UserModel.create(data),
-    delete: (id: string) => UserModel.findByIdAndDelete(id),
+    getByEmail: (email: string, companyId: string) => {
+        if (!companyId) {
+            throw new Error("Company ID is required for fetching user by email");
+        }
+        const repo = userRepository(companyId);
+        return repo.findOne({ email }).populate("role", "role name").populate("company").lean();
+    },
+    create: (data: Omit<IUser, "_id">, companyId: string) => {
+        if (!companyId) {
+            throw new Error("Company ID is required for creating user");
+        }
+
+        const repo = userRepository(String(companyId));
+        return repo.create(data as Partial<IUser>);
+    },
+
+    delete: (id: string, companyId: string) => {
+        if (!companyId) {
+            throw new Error("Company ID is required for deleting user");
+        }
+        const repo = userRepository(companyId);
+        return repo.deleteOne({ _id: id });
+    },
 };

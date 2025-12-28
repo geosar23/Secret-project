@@ -23,8 +23,8 @@ export interface IUsersQueryParams {
     page?: number;
     limit?: number;
     search?: string;
-    role?: string;
-    companyId?: string;
+    roleId?: string;
+    companyId?: string | null;
     departmentId?: string;
     isActive?: boolean;
     sortBy?: string;

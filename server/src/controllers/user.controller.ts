@@ -7,10 +7,8 @@ import { IUser, IUsersQueryParams } from "../interfaces/user.interface";
 export class UserController {
     static async getUsers(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
-            // Get requesting user from JWT token (set by auth middleware)
             const requestingUser = req.decoded;
-
-            if (!requestingUser) {
+            if (!requestingUser || requestingUser.companyId) {
                 res.status(401).json({ message: "Unauthorized" });
                 return;
             }
@@ -22,27 +20,16 @@ export class UserController {
                 search: req.query.search as string,
                 sortBy: req.query.sortBy as string,
                 sortOrder: req.query.sortOrder as "asc" | "desc",
-                role: req.query.role as string,
+                roleId: req.query.roleId as string,
                 companyId: req.query.companyId as string,
                 departmentId: req.query.departmentId as string,
                 isActive: req.query.isActive === "true" ? true : req.query.isActive === "false" ? false : undefined,
             };
 
-            // // Authorization: Enforce company-level data access
-            // if (requestingUser.role !== DefaultUserRoles.GOD) {
-            //     //Fetch requesting user
-            //     const user = await UserService.getById(requestingUser.id);
-            //     if (!user) {
-            //         res.status(404).json({ message: "Requesting user not found" });
-            //         return;
-            //     }
-            //     params.companyId = user.company?._id.toString() as string;
-            // }
-
-            const users = await UserService.getUsers(params);
+            const users = await UserService.getUsers(params, requestingUser.companyId);
             res.status(200).json(users);
         } catch (error) {
-            console.log("Error in UserController.getUsers:", error);
+            console.log("Error in UserController.getUsers:", error, { decoded: req.decoded, query: req.query });
             res.status(500).json({ message: "Internal server error" });
             next(error);
         }
@@ -50,20 +37,41 @@ export class UserController {
 
     static async create(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
-            console.log("UserController.create called with body:", req.body);
-            const newUser = await UserService.create(req.body);
+            const requestingUser = req.decoded;
+            if (!requestingUser || requestingUser.companyId) {
+                res.status(401).json({ message: "Unauthorized" });
+                return;
+            }
+
+            const params: Omit<IUser, "_id"> = {
+                name: req.body.name,
+                email: req.body.email,
+                password: req.body.password,
+                role: req.body.role,
+                company: req.body.companyId,
+                department: req.body.departmentId,
+                manager: req.body.managerId,
+                isActive: true,
+            };
+
+            const newUser = await UserService.create(params, requestingUser.companyId);
             res.status(201).json(newUser);
         } catch (error) {
-            console.log("Error in UserController.create:", error);
+            console.log("Error in UserController.create:", error, { decoded: req.decoded, body: req.body });
             res.status(500).json({ message: "Internal server error" });
         }
     }
 
     static async getById(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
+            const requestingUser = req.decoded;
+            if (!requestingUser || requestingUser.companyId) {
+                res.status(401).json({ message: "Unauthorized" });
+                return;
+            }
             const userId = req.params.id;
             const selectFields = req.query.fields ? (req.query.fields as string).split(",") : undefined;
-            const user = await UserService.getById(userId, selectFields);
+            const user = await UserService.getById(userId, requestingUser.companyId, selectFields);
             if (!user) {
                 res.status(404).json({ message: "User not found" });
                 return;
@@ -77,7 +85,19 @@ export class UserController {
 
     static async update(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
+            const requestingUser = req.decoded;
+            if (!requestingUser || requestingUser.companyId) {
+                res.status(401).json({ message: "Unauthorized" });
+                return;
+            }
+
             const userId = req.params.id;
+
+            const user = await UserService.getById(userId, requestingUser.companyId);
+            if (!user) {
+                res.status(404).json({ message: "User not found" });
+                return;
+            }
 
             // Define allowed fields for update (prevent unauthorized field modifications)
             const allowedFields: (keyof IUser)[] = ["name", "email", "department", "isActive"];
@@ -119,7 +139,7 @@ export class UserController {
                 return;
             }
 
-            const updatedUser = await UserService.update(userId, sanitizedData);
+            const updatedUser = await UserService.update(userId, sanitizedData, requestingUser.companyId);
             if (!updatedUser) {
                 res.status(404).json({ message: "User not found" });
                 return;

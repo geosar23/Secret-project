@@ -58,7 +58,7 @@ export interface IUsersQueryParams {
     page?: number;
     limit?: number;
     search?: string;
-    role?: string;
+    roleId?: string;
     companyId?: string;
     departmentId?: string;
     isActive?: boolean;

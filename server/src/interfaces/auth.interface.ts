@@ -14,9 +14,9 @@ export interface tokenPayload {
     email: string;
     name: string;
     roleId: string;
-    companyId?: string;
+    companyId: string;
 }
 
 export interface AuthenticatedRequest extends Request {
-    decoded?: tokenPayload;
+    decoded: tokenPayload;
 }
