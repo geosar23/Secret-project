@@ -116,7 +116,7 @@ export class PermissionsComponent implements OnInit {
             this.selectedRole = "";
             return;
         }
-        
+
         // Enable view as role
         const role = this.roleData?.find(r => r.role === this.selectedRole);
         if (role) {
