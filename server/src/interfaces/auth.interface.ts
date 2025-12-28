@@ -1,4 +1,5 @@
 import { Request } from "express";
+import { JwtPayload } from "jsonwebtoken";
 
 export interface LoginDto {
     email: string;
@@ -18,5 +19,5 @@ export interface tokenPayload {
 }
 
 export interface AuthenticatedRequest extends Request {
-    decoded: tokenPayload;
+    decoded?: tokenPayload | string | JwtPayload;
 }

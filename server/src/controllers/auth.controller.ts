@@ -13,7 +13,7 @@ export const AuthController = {
             }
 
             const result = await AuthService.login({ email, password });
-            res.json(result);
+            res.status(200).json(result);
         } catch (error) {
             console.log(error);
             res.status(401).json({ message: "Invalid email or password" });
@@ -30,13 +30,13 @@ export const AuthController = {
 
             const decoded = AuthService.verifyToken(token);
             const userId = (decoded as tokenPayload).id;
-            const user = await UserService.getById(userId);
+            const user = await UserService.getById(userId, (decoded as tokenPayload).companyId);
 
             if (!user) {
                 return res.status(404).json({ message: "User not found" });
             }
 
-            res.json({ user });
+            res.status(200).json({ user });
         } catch (error) {
             const message = error instanceof Error ? error.message : "Invalid token";
             res.status(401).json({ message });

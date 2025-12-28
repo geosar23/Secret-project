@@ -1,6 +1,7 @@
 import { userRepository } from "../repositories/user.repository";
 import { IUser, IUsersQueryParams } from "../interfaces/user.interface";
 import { FilterQuery } from "mongoose";
+import { UserModel } from "../models/user.model";
 
 export const UserService = {
     getUsers: async (params: IUsersQueryParams = {}, companyId: string) => {
@@ -93,13 +94,8 @@ export const UserService = {
         const updated = await repo.findById(id).select("-password").lean();
         return updated;
     },
-    getByEmail: (email: string, companyId: string) => {
-        if (!companyId) {
-            throw new Error("Company ID is required for fetching user by email");
-        }
-        const repo = userRepository(companyId);
-        return repo.findOne({ email }).populate("role", "role name").populate("company").lean();
-    },
+    getByEmail: (email: string) =>
+        UserModel.findOne({ email }).populate("role", "role name").populate("company").lean(),
     create: (data: Omit<IUser, "_id">, companyId: string) => {
         if (!companyId) {
             throw new Error("Company ID is required for creating user");

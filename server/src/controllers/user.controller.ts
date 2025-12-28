@@ -1,14 +1,14 @@
 import { NextFunction, Response } from "express";
 import { UserService } from "../services/user.service";
-import { AuthenticatedRequest } from "../interfaces/auth.interface";
+import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 // import { DefaultUserRoles } from "../enums/user-role.enum";
 import { IUser, IUsersQueryParams } from "../interfaces/user.interface";
 
 export class UserController {
     static async getUsers(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
-            const requestingUser = req.decoded;
-            if (!requestingUser || requestingUser.companyId) {
+            const requestingUser = req.decoded as tokenPayload;
+            if (!requestingUser.companyId) {
                 res.status(401).json({ message: "Unauthorized" });
                 return;
             }
@@ -37,8 +37,8 @@ export class UserController {
 
     static async create(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
-            const requestingUser = req.decoded;
-            if (!requestingUser || requestingUser.companyId) {
+            const requestingUser = req.decoded as tokenPayload;
+            if (!requestingUser.companyId) {
                 res.status(401).json({ message: "Unauthorized" });
                 return;
             }
@@ -64,8 +64,8 @@ export class UserController {
 
     static async getById(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
-            const requestingUser = req.decoded;
-            if (!requestingUser || requestingUser.companyId) {
+            const requestingUser = req.decoded as tokenPayload;
+            if (!requestingUser.companyId) {
                 res.status(401).json({ message: "Unauthorized" });
                 return;
             }
@@ -85,8 +85,8 @@ export class UserController {
 
     static async update(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
-            const requestingUser = req.decoded;
-            if (!requestingUser || requestingUser.companyId) {
+            const requestingUser = req.decoded as tokenPayload;
+            if (!requestingUser.companyId) {
                 res.status(401).json({ message: "Unauthorized" });
                 return;
             }
