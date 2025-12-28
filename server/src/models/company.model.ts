@@ -34,7 +34,7 @@ export function companyModel<T>(Model: Model<T>, companyId: string) {
 
     const withCompany = (filter: FilterQuery<T> = {}) => ({
         ...filter,
-        companyId,
+        company: companyId,
     });
 
     return {
@@ -47,11 +47,11 @@ export function companyModel<T>(Model: Model<T>, companyId: string) {
         },
 
         findById(id: string) {
-            return Model.findOne({ _id: id, companyId });
+            return Model.findOne({ _id: id, company: companyId });
         },
 
         create(data: Partial<T>) {
-            return Model.create({ ...data, companyId });
+            return Model.create({ ...data, company: companyId });
         },
 
         updateOne(filter: FilterQuery<T>, update: Partial<T>) {
