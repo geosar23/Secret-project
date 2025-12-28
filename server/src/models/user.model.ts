@@ -11,7 +11,7 @@ const UserSchema = new Schema<IUser>(
 
         // Role & Organization
         role: { type: Schema.Types.ObjectId, ref: "Roles", required: true },
-        company: { type: Schema.Types.ObjectId, ref: "Companies" },
+        company: { type: Schema.Types.ObjectId, ref: "Companies", required: true },
         department: { type: Schema.Types.ObjectId, ref: "Departments" },
         manager: { type: Schema.Types.ObjectId, ref: "Users" },
 
