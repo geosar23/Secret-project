@@ -61,12 +61,6 @@
                     }
                 </mat-form-field>
 
-                @if (errorMessage) {
-                    <mat-error class="error-alert">
-                        {{ errorMessage }}
-                    </mat-error>
-                }
-
                 <button
                     mat-raised-button
                     color="primary"
@@ -85,7 +79,12 @@
         </mat-card-content>
 
         <mat-card-footer>
-            <p class="help-text">Contact your HR or Admin to get access.</p>
+            @if (errorMessage) {
+                <mat-error class="error-alert">
+                    {{ errorMessage }}
+                </mat-error>
+                <p class="help-text">Contact your HR or Admin to get access.</p>
+            }
         </mat-card-footer>
     </mat-card>
 </div>

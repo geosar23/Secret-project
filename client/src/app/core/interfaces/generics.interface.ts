@@ -2,6 +2,6 @@
 export interface JsonResponse<T> {
     success: boolean;
     data?: T;
-    error: any;
+    error?: any;
     message?: string;
 }

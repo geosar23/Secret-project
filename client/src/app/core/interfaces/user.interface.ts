@@ -50,7 +50,7 @@ export interface IUsersListResponse {
     limit: number;
 }
 
-export interface UserResponse {
+export interface IUserResponse {
     user: IUser;
 }
 

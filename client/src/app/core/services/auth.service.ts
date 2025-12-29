@@ -1,10 +1,10 @@
 import { Injectable, inject } from "@angular/core";
 import { Router } from "@angular/router";
-import { Observable, BehaviorSubject, tap, switchMap, map } from "rxjs";
+import { Observable, BehaviorSubject, tap, switchMap, map, of } from "rxjs";
 import { ApiService } from "./api.service";
 import { decodeToken, isTokenValid } from "../utils/token.util";
 import { LoginRequest, AuthResponse } from "../interfaces/auth.interface";
-import { IUser, UserResponse } from "../interfaces/user.interface";
+import { IUser, IUserResponse } from "../interfaces/user.interface";
 import { JsonResponse } from "../interfaces/generics.interface";
 
 @Injectable({
@@ -34,7 +34,7 @@ export class AuthService {
                 if (payload && isTokenValid(payload)) {
                     // Fetch full user data from backend
                     this.getMe().subscribe({
-                        next: (response: JsonResponse<UserResponse>) => {
+                        next: (response: JsonResponse<IUserResponse>) => {
                             this.localUserSubject.next(response.data!.user);
                         },
                         error: () => {
@@ -54,23 +54,34 @@ export class AuthService {
     }
 
     login(credentials: LoginRequest): Observable<JsonResponse<IUser>> {
-        return this.apiService.post<JsonResponse<AuthResponse>>("auth/login", credentials).pipe(
-            tap((response: JsonResponse<AuthResponse>) => {
-                this.setToken(response.data!.token);
+        return this.apiService.post<JsonResponse<AuthResponse>>("auth/login2", credentials).pipe(
+            switchMap((loginRes: JsonResponse<AuthResponse>) => {
+                if (!loginRes.success || !loginRes.data?.token) {
+                    return of({
+                        success: false,
+                        message: loginRes.message || "Login failed",
+                    } as JsonResponse<IUserResponse>);
+                }
+
+                this.setToken(loginRes.data.token);
+
+                return this.getMe();
             }),
-            switchMap(() => this.getMe()),
-            tap((response: JsonResponse<UserResponse>) => {
-                this.localUserSubject.next(response.data!.user);
+            tap((meRes: JsonResponse<IUserResponse>) => {
+                if (meRes.success && meRes.data?.user) {
+                    this.localUserSubject.next(meRes.data.user);
+                }
             }),
-            tap(() => {
-                this.router.navigate(["/"]);
-            }),
-            map(response => ({ success: true, data: response.data!.user }) as JsonResponse<IUser>),
+            map((meRes: JsonResponse<IUserResponse>) => ({
+                success: meRes.success,
+                message: meRes.message,
+                data: meRes.data?.user,
+            })),
         );
     }
 
-    getMe(): Observable<JsonResponse<UserResponse>> {
-        return this.apiService.get<JsonResponse<UserResponse>>("auth/me");
+    getMe(): Observable<JsonResponse<IUserResponse>> {
+        return this.apiService.get<JsonResponse<IUserResponse>>("auth/me");
     }
 
     // register(data: RegisterRequest): Observable<IUser> {

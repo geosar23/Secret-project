@@ -6,7 +6,7 @@ import {
     ICreateUserRequest,
     IUpdateUserRequest,
     IUsersListResponse,
-    UserResponse,
+    IUserResponse,
     IUsersQueryParams,
     IUser,
 } from "../interfaces/user.interface";
@@ -31,12 +31,12 @@ export class UsersService {
         return this.apiService.get<JsonResponse<IUser>>(`users/${userId}${queryString}`);
     }
 
-    createUser(data: ICreateUserRequest): Observable<JsonResponse<UserResponse>> {
-        return this.apiService.post<JsonResponse<UserResponse>>("users", data);
+    createUser(data: ICreateUserRequest): Observable<JsonResponse<IUserResponse>> {
+        return this.apiService.post<JsonResponse<IUserResponse>>("users", data);
     }
 
-    updateUser(userId: string, data: IUpdateUserRequest): Observable<JsonResponse<UserResponse>> {
-        return this.apiService.put<JsonResponse<UserResponse>>(`users/${userId}`, data);
+    updateUser(userId: string, data: IUpdateUserRequest): Observable<JsonResponse<IUserResponse>> {
+        return this.apiService.put<JsonResponse<IUserResponse>>(`users/${userId}`, data);
     }
 
     // deleteUser(userId: string): Observable<{ message: string }> {
