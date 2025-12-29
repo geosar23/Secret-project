@@ -122,13 +122,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.profileError = "";
 
         this.usersService.getUserById(userId).subscribe({
-            next: user => {
-                if (!user) {
-                    this.profileError = "User not found";
+            next: response => {
+                if (!response.success || !response.data) {
+                    this.profileError = response.message || "User not found";
                     this.loading = false;
                     return;
                 }
-                this.profile = user;
+                this.profile = response.data;
                 this.profileForm.patchValue({
                     name: this.profile.name,
                     email: this.profile.email,
@@ -164,7 +164,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
         this.usersService.updateUser(this.profile._id as string, this.profileForm.value).subscribe({
             next: response => {
-                this.profile = response.user;
+                if(!response.success || !response.data) {
+                    this.profileError = response.message || "Failed to update profile";
+                    this.loading = false;
+                    return;
+                }
+
+                this.profile = response.data.user;
                 this.profileSuccess = "Profile updated successfully";
                 this.editMode = false;
                 this.loading = false;

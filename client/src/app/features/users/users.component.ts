@@ -12,12 +12,13 @@ import { MatInputModule } from "@angular/material/input";
 import { MatDialog } from "@angular/material/dialog";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { Subject } from "rxjs";
-import { takeUntil, debounceTime, distinctUntilChanged } from "rxjs/operators";
+import { takeUntil, debounceTime, distinctUntilChanged, finalize } from "rxjs/operators";
 import { Router } from "@angular/router";
 import { UsersService } from "../../core/services/users.service";
-import { IUser, IUsersQueryParams } from "../../core/interfaces/user.interface";
+import { IUser, IUsersListResponse, IUsersQueryParams } from "../../core/interfaces/user.interface";
 import { CreateUserDialogComponent } from "./create-user-dialog/create-user-dialog.component";
 import { RoleUtils } from "../../core/utils/role.utils";
+import { JsonResponse } from "../../core/interfaces/generics.interface";
 
 interface IUserTableData extends IUser {
     roleColor?: string;
@@ -120,30 +121,39 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     loadUsers() {
         this.loading = true;
         this.userFetchingError = "";
-        console.log("Loading users with params:", this.queryParams);
-        this.usersService.getUsers(this.queryParams).subscribe({
-            next: response => {
-                this.tableData.data = response.users.map(user => ({
-                    ...user,
-                    roleColor: RoleUtils.getRoleColor(user.role?.role),
-                    roleName: RoleUtils.getRoleName(user.role?.role),
-                }));
-                // Update paginator after data is loaded
-                setTimeout(() => {
-                    if (this.paginator) {
-                        this.paginator.length = response.total;
-                        this.paginator.pageSize = this.queryParams.limit || 10;
-                        this.paginator.pageIndex = (this.queryParams.page || 1) - 1;
+
+        this.usersService
+            .getUsers(this.queryParams)
+            .pipe(finalize(() => (this.loading = false)))
+            .subscribe({
+                next: (res: JsonResponse<IUsersListResponse>) => {
+                    if (!res.success || !res.data) {
+                        // Soft error handling
+                        this.userFetchingError = res.message || "Failed to load users";
+                        return;
                     }
-                });
-                console.log("Users loaded:", response);
-                this.loading = false;
-            },
-            error: err => {
-                this.userFetchingError = err.error?.message || "Failed to load users";
-                this.loading = false;
-            },
-        });
+
+                    const response = res.data;
+
+                    this.tableData.data = response.users.map(user => ({
+                        ...user,
+                        roleColor: RoleUtils.getRoleColor(user.role?.role),
+                        roleName: RoleUtils.getRoleName(user.role?.role),
+                    }));
+
+                    setTimeout(() => {
+                        if (this.paginator) {
+                            this.paginator.length = response.total;
+                            this.paginator.pageSize = this.queryParams.limit || 10;
+                            this.paginator.pageIndex = (this.queryParams.page || 1) - 1;
+                        }
+                    });
+                },
+                error: err => {
+                    // Hard error (network / 500 / timeout)
+                    this.userFetchingError = err.error?.message || "Unexpected error occurred";
+                },
+            });
     }
 
     onSortChange(sortValue: string) {

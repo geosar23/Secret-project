@@ -173,7 +173,7 @@ export class HeaderComponent implements OnInit {
         // Return routes immediately, user search happens in parallel
         this.usersService.getUsers({ search: lowerSearchTerm }).subscribe(
             response => {
-                const userResults = (response.users || []).map<SearchResult>((user: IUser) => ({
+                const userResults = (response.data!.users || []).map<SearchResult>((user: IUser) => ({
                     id: user._id || "",
                     name: user.name,
                     type: "user",

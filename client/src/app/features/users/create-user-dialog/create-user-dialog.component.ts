@@ -62,7 +62,7 @@ export class CreateUserDialogComponent {
 
         this.usersService.createUser(this.userForm.value).subscribe({
             next: response => {
-                this.dialogRef.close(response.user);
+                this.dialogRef.close(response.data!.user);
             },
             error: err => {
                 this.errorMessage = err.error?.message || "Failed to create user";

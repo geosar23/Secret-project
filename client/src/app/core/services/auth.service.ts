@@ -3,8 +3,9 @@ import { Router } from "@angular/router";
 import { Observable, BehaviorSubject, tap, switchMap, map } from "rxjs";
 import { ApiService } from "./api.service";
 import { decodeToken, isTokenValid } from "../utils/token.util";
-import { LoginRequest, RegisterRequest, AuthResponse } from "../interfaces/auth.interface";
+import { LoginRequest, AuthResponse } from "../interfaces/auth.interface";
 import { IUser, UserResponse } from "../interfaces/user.interface";
+import { JsonResponse } from "../interfaces/generics.interface";
 
 @Injectable({
     providedIn: "root",
@@ -33,8 +34,8 @@ export class AuthService {
                 if (payload && isTokenValid(payload)) {
                     // Fetch full user data from backend
                     this.getMe().subscribe({
-                        next: (response: { user: IUser | null }) => {
-                            this.localUserSubject.next(response.user);
+                        next: (response: JsonResponse<UserResponse>) => {
+                            this.localUserSubject.next(response.data!.user);
                         },
                         error: () => {
                             this.localUserSubject.next(null);
@@ -52,35 +53,36 @@ export class AuthService {
         }
     }
 
-    login(credentials: LoginRequest): Observable<IUser> {
-        return this.apiService.post<AuthResponse>("auth/login", credentials).pipe(
-            tap(response => {
-                this.setToken(response.token);
+    login(credentials: LoginRequest): Observable<JsonResponse<IUser>> {
+        return this.apiService.post<JsonResponse<AuthResponse>>("auth/login", credentials).pipe(
+            tap((response: JsonResponse<AuthResponse>) => {
+                this.setToken(response.data!.token);
             }),
             switchMap(() => this.getMe()),
-            tap(response => {
-                this.localUserSubject.next(response.user);
+            tap((response: JsonResponse<UserResponse>) => {
+                this.localUserSubject.next(response.data!.user);
             }),
-            map(response => response.user),
+            tap(() => { this.router.navigate(["/"]) } ),
+            map(response => ({ success: true, data: response.data!.user } as JsonResponse<IUser>)),
         );
     }
 
-    getMe(): Observable<UserResponse> {
-        return this.apiService.get<UserResponse>("auth/me");
+    getMe(): Observable<JsonResponse<UserResponse>> {
+        return this.apiService.get<JsonResponse<UserResponse>>("auth/me");
     }
 
-    register(data: RegisterRequest): Observable<IUser> {
-        return this.apiService.post<AuthResponse>("auth/register", data).pipe(
-            tap(response => {
-                this.setToken(response.token);
-            }),
-            switchMap(() => this.getMe()),
-            tap(response => {
-                this.localUserSubject.next(response.user);
-            }),
-            map(response => response.user),
-        );
-    }
+    // register(data: RegisterRequest): Observable<IUser> {
+    //     return this.apiService.post<AuthResponse>("auth/register", data).pipe(
+    //         tap(response => {
+    //             this.setToken(response.token);
+    //         }),
+    //         switchMap(() => this.getMe()),
+    //         tap(response => {
+    //             this.localUserSubject.next(response.user);
+    //         }),
+    //         map(response => response.user),
+    //     );
+    // }
 
     logout(): void {
         localStorage.removeItem("token");
