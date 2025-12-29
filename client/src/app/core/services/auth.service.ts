@@ -54,7 +54,7 @@ export class AuthService {
     }
 
     login(credentials: LoginRequest): Observable<JsonResponse<IUser>> {
-        return this.apiService.post<JsonResponse<AuthResponse>>("auth/login2", credentials).pipe(
+        return this.apiService.post<JsonResponse<AuthResponse>>("auth/login", credentials).pipe(
             switchMap((loginRes: JsonResponse<AuthResponse>) => {
                 if (!loginRes.success || !loginRes.data?.token) {
                     return of({
