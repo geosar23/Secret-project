@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from "express";
 import { AuthService } from "../services/auth.service";
 import { UserService } from "../services/user.service";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
+import { success, softError } from "../util/response.util";
 
 export const AuthController = {
     login: async (req: Request, res: Response) => {
@@ -9,14 +11,14 @@ export const AuthController = {
             const { email, password } = req.body;
 
             if (!email || !password) {
-                return res.status(400).json({ message: "Email and password are required" });
+                return res.json(softError("Invalid credentials"));
             }
 
             const result = await AuthService.login({ email, password });
-            res.status(200).json(result);
-        } catch (error) {
-            console.log(error);
-            res.status(401).json({ message: "Invalid email or password" });
+            res.json(success(result));
+        } catch (err) {
+            console.log("Error in AuthController.login:", err);
+            res.json(softError("Invalid credentials"));
         }
     },
 
@@ -25,21 +27,20 @@ export const AuthController = {
             const token = req.headers.authorization?.replace("Bearer ", "");
 
             if (!token) {
-                return res.status(401).json({ message: "No token provided" });
+                return res.json(softError("No token provided"));
             }
 
-            const decoded = AuthService.verifyToken(token);
-            const userId = (decoded as tokenPayload).id;
-            const user = await UserService.getById(userId, (decoded as tokenPayload).companyId);
+            const decoded = AuthService.verifyToken(token) as tokenPayload;
+            const userId = decoded.id;
+            const user = await UserService.getById(userId, decoded.companyId);
 
             if (!user) {
-                return res.status(404).json({ message: "User not found" });
+                return res.json(softError("User not found"));
             }
 
-            res.status(200).json({ user });
-        } catch (error) {
-            const message = error instanceof Error ? error.message : "Invalid token";
-            res.status(401).json({ message });
+            res.json(success({ user }));
+        } catch (err: any) {
+            res.json(softError(err.message, err));
         }
     },
 };

@@ -1,15 +1,17 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Response } from "express";
 import { UserService } from "../services/user.service";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 // import { DefaultUserRoles } from "../enums/user-role.enum";
 import { IUser, IUsersQueryParams } from "../interfaces/user.interface";
+import { success, softError } from "../util/response.util";
 
 export class UserController {
     static async getUsers(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             if (!requestingUser.companyId) {
-                res.status(401).json({ message: "Unauthorized" });
+                res.json(softError("Unauthorized"));
                 return;
             }
 
@@ -27,10 +29,10 @@ export class UserController {
             };
 
             const users = await UserService.getUsers(params, requestingUser.companyId);
-            res.status(200).json(users);
-        } catch (error) {
+            res.json(success(users));
+        } catch (error: any) {
             console.log("Error in UserController.getUsers:", error, { decoded: req.decoded, query: req.query });
-            res.status(500).json({ message: "Internal server error" });
+            res.json(softError(error.message, error));
             next(error);
         }
     }
@@ -39,7 +41,7 @@ export class UserController {
         try {
             const requestingUser = req.decoded as tokenPayload;
             if (!requestingUser.companyId) {
-                res.status(401).json({ message: "Unauthorized" });
+                res.json(softError("Unauthorized"));
                 return;
             }
 
@@ -55,10 +57,10 @@ export class UserController {
             };
 
             const newUser = await UserService.create(params, requestingUser.companyId);
-            res.status(201).json(newUser);
-        } catch (error) {
+            res.json(success(newUser));
+        } catch (error: any) {
             console.log("Error in UserController.create:", error, { decoded: req.decoded, body: req.body });
-            res.status(500).json({ message: "Internal server error" });
+            res.json(softError(error.message, error));
         }
     }
 
@@ -66,20 +68,20 @@ export class UserController {
         try {
             const requestingUser = req.decoded as tokenPayload;
             if (!requestingUser.companyId) {
-                res.status(401).json({ message: "Unauthorized" });
+                res.json(softError("Unauthorized"));
                 return;
             }
             const userId = req.params.id;
             const selectFields = req.query.fields ? (req.query.fields as string).split(",") : undefined;
             const user = await UserService.getById(userId, requestingUser.companyId, selectFields);
             if (!user) {
-                res.status(404).json({ message: "User not found" });
+                res.json(softError("User not found"));
                 return;
             }
-            res.status(200).json(user);
-        } catch (error) {
+            res.json(success(user));
+        } catch (error: any) {
             console.log("Error in UserController.getById:", error);
-            res.status(500).json({ message: "Internal server error" });
+            res.json(softError(error.message, error));
         }
     }
 
@@ -87,7 +89,7 @@ export class UserController {
         try {
             const requestingUser = req.decoded as tokenPayload;
             if (!requestingUser.companyId) {
-                res.status(401).json({ message: "Unauthorized" });
+                res.json(softError("Unauthorized"));
                 return;
             }
 
@@ -95,7 +97,7 @@ export class UserController {
 
             const user = await UserService.getById(userId, requestingUser.companyId);
             if (!user) {
-                res.status(404).json({ message: "User not found" });
+                res.json(softError("User not found"));
                 return;
             }
 
@@ -135,19 +137,19 @@ export class UserController {
             });
 
             if (Object.keys(sanitizedData).length === 0) {
-                res.status(400).json({ message: "No valid fields provided for update" });
+                res.json(softError("No valid fields provided for update"));
                 return;
             }
 
             const updatedUser = await UserService.update(userId, sanitizedData, requestingUser.companyId);
             if (!updatedUser) {
-                res.status(404).json({ message: "User not found" });
+                res.json(softError("User not found"));
                 return;
             }
-            res.status(200).json(updatedUser);
-        } catch (error) {
+            res.json(success(updatedUser));
+        } catch (error: any) {
             console.log("Error in UserController.update:", error);
-            res.status(500).json({ message: "Internal server error" });
+            res.json(softError(error.message, error));
         }
     }
 }
