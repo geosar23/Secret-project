@@ -62,8 +62,10 @@ export class AuthService {
             tap((response: JsonResponse<UserResponse>) => {
                 this.localUserSubject.next(response.data!.user);
             }),
-            tap(() => { this.router.navigate(["/"]) } ),
-            map(response => ({ success: true, data: response.data!.user } as JsonResponse<IUser>)),
+            tap(() => {
+                this.router.navigate(["/"]);
+            }),
+            map(response => ({ success: true, data: response.data!.user }) as JsonResponse<IUser>),
         );
     }
 

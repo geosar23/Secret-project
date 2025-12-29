@@ -22,7 +22,11 @@ export class UsersService {
         return this.apiService.get<JsonResponse<IUsersListResponse>>(`users${queryString}`);
     }
 
-    getUserById(userId: string, selectModes: "full" | "partial" = "full", fields = []): Observable<JsonResponse<IUser>> {
+    getUserById(
+        userId: string,
+        selectModes: "full" | "partial" = "full",
+        fields = [],
+    ): Observable<JsonResponse<IUser>> {
         const queryString = selectModes === "partial" && fields.length > 0 ? `?fields=${fields.join(",")}` : "";
         return this.apiService.get<JsonResponse<IUser>>(`users/${userId}${queryString}`);
     }

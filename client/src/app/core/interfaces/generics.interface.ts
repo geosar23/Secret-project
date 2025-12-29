@@ -5,4 +5,3 @@ export interface JsonResponse<T> {
     error: any;
     message?: string;
 }
-

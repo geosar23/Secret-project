@@ -164,7 +164,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
         this.usersService.updateUser(this.profile._id as string, this.profileForm.value).subscribe({
             next: response => {
-                if(!response.success || !response.data) {
+                if (!response.success || !response.data) {
                     this.profileError = response.message || "Failed to update profile";
                     this.loading = false;
                     return;
