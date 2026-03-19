@@ -1,89 +1,175 @@
-# My HR SAAS
+# HR SaaS Application
 
-This repository contains a full-stack HR SaaS application: an Angular client (frontend) and a Node + Express + TypeScript backend (server). The project is organized so backend TypeScript sources live under `server/src` and are compiled to `server/dist`.
+A full-stack HR management system built with modern web technologies. This monorepo contains both the Angular frontend and the Node.js/Express backend.
 
-**Quick summary**
+## Stack Overview
 
-- **Frontend**: Angular app (in `client/` or the `raw code/` folder if your client is stored there).
-- **Backend**: Node.js + Express + TypeScript (server code under `server/src`).
+- **Frontend**: Angular 21 with Material Design
+- **Backend**: Node.js + Express + TypeScript with MongoDB
+- **Authentication**: JWT-based with bcryptjs hashing
+- **Security**: Helmet, CORS, rate limiting, and validation
+- **Development Tools**: Prettier, ESLint, Husky, Commitlint
 
-**Prerequisites**
+## Prerequisites
 
-- **Node.js** >= 16 and **npm** (or Yarn)
-- **TypeScript** (installed via project `devDependencies`)
-- **MongoDB** (for local development) or a connection string to a hosted MongoDB instance
-- (Optional) **Angular CLI** for working on the client: `npm install -g @angular/cli`
+- **Node.js** >= 16 and **npm**
+- **MongoDB** (local or cloud instance)
+- Optional: **Angular CLI** for enhanced frontend development
 
-**Repository layout (important paths)**
+## Project Structure
 
-- `server/` : backend project (TypeScript). Important files: `server/package.json`, `server/tsconfig.json`, `server/src/`.
-- `server/.env.example` : example environment variables — copy to `server/.env` and fill values.
-- `client/` : frontend Angular application (if your Angular app lives under a different folder such as `raw code/client/`, use that path instead).
-
-**Environment**
-
-1. Copy the example env for the server and edit values:
-
-```bash
-cp server/.env.example server/.env
-# Open server/.env and replace placeholder values (MONGO_URI, JWT_SECRET, etc.)
+```
+.
+├── client/               # Angular frontend application
+│   ├── src/
+│   ├── public/
+│   └── package.json
+├── server/               # Node.js + Express backend
+│   ├── src/
+│   │   ├── controllers/  # Request handlers
+│   │   ├── models/       # MongoDB schemas
+│   │   ├── routes/       # API route definitions
+│   │   ├── services/     # Business logic
+│   │   ├── middleware/   # Express middleware
+│   │   ├── api/          # API utilities
+│   │   └── server.ts     # Entry point
+│   └── package.json
+└── package.json          # Root workspace configuration
 ```
 
-Recommended `.env` keys (already present in `server/.env.example`):
+## Getting Started
 
-- `PORT` — server port (e.g. `3000`)
-- `MONGO_URI` — MongoDB connection string
-- `JWT_SECRET` — JWT signing secret
-- `CDN_URL`, `APP_SECRET`, etc. — other optional keys used by legacy scripts
+### 1. Install Dependencies
 
-Security note: Do NOT commit `server/.env`. The repository contains `server/.env.example` with placeholders.
-
-**Run the backend (development)**
+Install dependencies for the entire workspace:
 
 ```bash
-cd server
 npm install
-# start with ts-node (dev):
+```
+
+### 2. Environment Setup
+
+Create a `.env` file in the `server` directory with the following variables:
+
+```env
+PORT=3000
+MONGO_URI=mongodb://localhost:27017/hrms
+JWT_SECRET=your-secret-key-here
+NODE_ENV=development
+```
+
+**Security Note**: Do NOT commit `.env` files. The `.env` file is included in `.gitignore`.
+
+### 3. Run Development Mode
+
+Run both client and server concurrently:
+
+```bash
 npm run dev
 ```
 
-This runs the TypeScript source directly using `ts-node` as configured in `server/package.json`.
+This launches:
+- **Backend**: `http://localhost:3000` (Node + Express)
+- **Frontend**: `http://localhost:4200` (Angular development server)
 
-**Build and run the backend (production)**
+### Individual Development
+
+**Backend only** (with auto-reload):
+```bash
+npm run dev:server
+```
+
+**Frontend only**:
+```bash
+npm run dev:client
+```
+
+## Building for Production
+
+Build both frontend and backend:
 
 ```bash
+# Backend
 cd server
-npm install
-npm run build   # compiles TypeScript into dist/
-npm start       # runs node dist/server.js
-```
+npm run build    # TypeScript → dist/
+npm start        # Run compiled code
 
-**Run the frontend (development)**
-
-```bash
+# Frontend
 cd client
-npm install
-npm start       # or `ng serve` if you have angular-cli installed
+npm run build    # Angular → dist/
 ```
 
-If your Angular app is under `raw code/client/`, substitute that path for `client` above.
+## Available Scripts
 
-**Common commands**
+### From Root
 
-- `npm run dev` (in `server/`): run server with `ts-node` for fast iteration
-- `npm run build` (in `server/`): compile TypeScript to `dist/`
-- `npm start` (in `server/`): run compiled server
+- `npm run dev` — Run both client and server
+- `npm run dev:server` — Run backend with watch mode
+- `npm run dev:client` — Run frontend dev server
+- `npm run format` — Format and lint all code
+- `npm run lint` — Run ESLint with auto-fix
 
-**Git / GitHub notes**
+### Backend (server/)
 
-- This repo includes a `.gitignore` configured to exclude `node_modules`, `dist/`, and `.env` files.
-- If you see `Permission denied (publickey)` when pushing, either configure SSH keys or switch remote to HTTPS (see GitHub docs).
+- `npm run dev` — Start with ts-node
+- `npm run dev:watch` — Start with auto-reload via nodemon
+- `npm run build` — Compile TypeScript
+- `npm start` — Run compiled JavaScript
+- `npm run format` — Format code
+- `npm run lint` — Lint TypeScript
 
-**Troubleshooting**
+### Frontend (client/)
 
-- If `npm run dev` fails, check `server/.env` values and ensure MongoDB is reachable.
-- If routes are 404, ensure the server mounts `api` router (`/api`) — `server/src/app.ts` composes routers from `src/api` and `src/modules`.
+- `npm start` — Run dev server
+- `npm run build` — Build for production
+- `npm run test` — Run unit tests
 
-**Contributing**
+## API Endpoints
 
-**License**
+The backend provides REST API endpoints under `/api`:
+
+- **Auth**: `/api/auth/*` — Login, logout, token refresh
+- **Users**: `/api/users/*` — User management
+- **Roles**: `/api/roles/*` — Role-based access control
+- **Companies**: `/api/companies/*` — Company data
+
+## Key Features
+
+- User authentication and authorization
+- Role-based access control (RBAC)
+- Company and employee management
+- Secure session handling with JWT
+- API rate limiting and request validation
+- Code formatting and linting automation
+- Git hooks for commit quality (Husky + Commitlint)
+
+## Troubleshooting
+
+**Backend won't start**
+- Verify MongoDB is running and `MONGO_URI` is correct
+- Check that port 3000 is not in use
+- Review error logs in the terminal
+
+**Frontend won't connect to backend**
+- Ensure backend is running on the correct port
+- Check CORS configuration in `server/src/app.ts`
+- Verify network connectivity
+
+**npm install fails**
+- Try clearing npm cache: `npm cache clean --force`
+- Delete `node_modules` and `package-lock.json`, then reinstall
+- Ensure Node.js version matches prerequisites
+
+## Contributing
+
+Follow the commit guidelines enforced by Commitlint. The project uses Prettier for formatting and ESLint for code quality.
+
+Run before committing:
+```bash
+npm run format
+npm run lint
+```
+
+## License
+
+[Add license information]
