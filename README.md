@@ -69,17 +69,20 @@ npm run dev
 ```
 
 This launches:
+
 - **Backend**: `http://localhost:3000` (Node + Express)
 - **Frontend**: `http://localhost:4200` (Angular development server)
 
 ### Individual Development
 
 **Backend only** (with auto-reload):
+
 ```bash
 npm run dev:server
 ```
 
 **Frontend only**:
+
 ```bash
 npm run dev:client
 ```
@@ -146,16 +149,19 @@ The backend provides REST API endpoints under `/api`:
 ## Troubleshooting
 
 **Backend won't start**
+
 - Verify MongoDB is running and `MONGO_URI` is correct
 - Check that port 3000 is not in use
 - Review error logs in the terminal
 
 **Frontend won't connect to backend**
+
 - Ensure backend is running on the correct port
 - Check CORS configuration in `server/src/app.ts`
 - Verify network connectivity
 
 **npm install fails**
+
 - Try clearing npm cache: `npm cache clean --force`
 - Delete `node_modules` and `package-lock.json`, then reinstall
 - Ensure Node.js version matches prerequisites
@@ -165,6 +171,7 @@ The backend provides REST API endpoints under `/api`:
 Follow the commit guidelines enforced by Commitlint. The project uses Prettier for formatting and ESLint for code quality.
 
 Run before committing:
+
 ```bash
 npm run format
 npm run lint
