@@ -26,6 +26,7 @@ import {
     ProfileEditDialogResult,
 } from "../../core/interfaces/profile-edit-dialog.interface";
 import { ChangePasswordDialogResult } from "../../core/interfaces/change-password-dialog.interface";
+import { ProfileRouteContext } from "../../core/interfaces/profile-route-context.interface";
 
 @Component({
     selector: "app-profile",
@@ -59,20 +60,23 @@ export class ProfileComponent implements OnInit, OnDestroy {
     pageTitle = "My Profile";
 
     ngOnInit(): void {
-        this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
-            const userId = params["id"];
+        this.route.data.pipe(takeUntil(this.destroy$)).subscribe(data => {
+            const profileContext = data["profileContext"] as ProfileRouteContext;
 
-            if (userId === "me" || !userId) {
-                // Load current user's profile
-                this.isOwnProfile = true;
-                this.pageTitle = "My Profile";
+            this.isOwnProfile = profileContext.isOwnProfile;
+            this.pageTitle = profileContext.pageTitle;
+
+            if (profileContext.isOwnProfile) {
                 this.loadOwnProfile();
-            } else {
-                // Load another user's profile
-                this.isOwnProfile = false;
-                this.pageTitle = "User Profile";
-                this.loadUserProfile(userId);
+                return;
             }
+
+            if (!profileContext.userId) {
+                this.toast.error("User profile route is missing user id");
+                return;
+            }
+
+            this.loadUserProfile(profileContext.userId);
         });
     }
 

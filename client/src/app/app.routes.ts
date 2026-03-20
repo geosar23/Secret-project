@@ -2,6 +2,7 @@ import { Routes } from "@angular/router";
 import { LoginComponent } from "./features/auth/login/login.component";
 import { authGuard } from "./core/guards/auth.guard";
 import { MainLayoutComponent } from "./shared/layouts/main-layout/main-layout.component";
+import { profileRouteContextResolver } from "./features/profile/profile-route-context.resolver";
 
 export const routes: Routes = [
     { path: "", redirectTo: "/dashboard", pathMatch: "full" },
@@ -29,13 +30,19 @@ export const routes: Routes = [
                 children: [
                     {
                         path: "me",
+                        resolve: { profileContext: profileRouteContextResolver },
                         loadComponent: () =>
                             import("./features/profile/profile.component").then(m => m.ProfileComponent),
                     },
                     {
                         path: ":id",
+                        resolve: { profileContext: profileRouteContextResolver },
                         loadComponent: () =>
                             import("./features/profile/profile.component").then(m => m.ProfileComponent),
+                    },
+                    {
+                        path: "**",
+                        redirectTo: "me",
                     },
                 ],
             },
