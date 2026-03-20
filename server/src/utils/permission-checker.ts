@@ -1,0 +1,100 @@
+import { Types } from "mongoose";
+import { IUser } from "../interfaces/user.interface";
+
+/**
+ * Shape of a populated role object on IUser.
+ * IUser.role is typed as ObjectId but is populated at runtime.
+ */
+interface PopulatedRole {
+    _id: Types.ObjectId;
+    permissions: string[];
+}
+
+/**
+ * Compute effective permissions for a user:
+ *   (role.permissions ∪ grantedPermissions) ∖ revokedPermissions
+ *
+ * Handles the mismatch between IUser types (ObjectId[]) and actual
+ * DB storage (string[]) via runtime casts.
+ */
+export function getEffectivePermissions(user: IUser): Set<string> {
+    const role = user.role as unknown as PopulatedRole;
+    const rolePerms: string[] = Array.isArray(role?.permissions) ? role.permissions : [];
+    const granted: string[] = (user.grantedPermissions as unknown as string[]) ?? [];
+    const revoked: string[] = (user.revokedPermissions as unknown as string[]) ?? [];
+
+    const effective = new Set([...rolePerms, ...granted]);
+    for (const p of revoked) effective.delete(p);
+    return effective;
+}
+
+/**
+ * Check whether an effective permission set covers a required key,
+ * honouring wildcard segments ("*").
+ *
+ * Permission format: `{category}:{action}:{scope}`
+ *
+ * A granted key covers a required key when every segment of the granted
+ * key either matches exactly or is the wildcard "*".
+ * We test all 8 wildcard combinations so that e.g. "*:*:*",
+ * "usersManagement:*:*" and "usersManagement:read:*" all satisfy
+ * a required "usersManagement:read:department".
+ */
+function matchesWildcard(effectivePerms: Set<string>, required: string): boolean {
+    const parts = required.split(":");
+    if (parts.length !== 3) return false;
+
+    const [cat, action, scope] = parts;
+    const W = "*";
+
+    const candidates = [
+        `${W}:${W}:${W}`,
+        `${cat}:${W}:${W}`,
+        `${W}:${action}:${W}`,
+        `${W}:${W}:${scope}`,
+        `${cat}:${action}:${W}`,
+        `${cat}:${W}:${scope}`,
+        `${W}:${action}:${scope}`,
+        `${cat}:${action}:${scope}`,
+    ];
+
+    return candidates.some(c => effectivePerms.has(c));
+}
+
+export const PermissionChecker = {
+    getEffectivePermissions,
+
+    /**
+     * Returns true if the user holds the required permission (wildcard-aware).
+     * The optional `resource` parameter is reserved for future policy-based
+     * scope checks (e.g. canViewUser in user.policy.ts).
+     */
+    canAccess: async (
+        user: IUser,
+        permission: string,
+        // _resource?: Record<string, unknown>,
+    ): Promise<boolean> => {
+        const effective = getEffectivePermissions(user);
+        return matchesWildcard(effective, permission);
+    },
+
+    /** Returns true if the user holds ANY of the given permissions. */
+    hasAnyPermission: async (
+        user: IUser,
+        permissions: string[],
+        // _resource?: Record<string, unknown>,
+    ): Promise<boolean> => {
+        const effective = getEffectivePermissions(user);
+        return permissions.some(perm => matchesWildcard(effective, perm));
+    },
+
+    /** Returns true if the user holds ALL of the given permissions. */
+    hasAllPermissions: async (
+        user: IUser,
+        permissions: string[],
+        // _resource?: Record<string, unknown>,
+    ): Promise<boolean> => {
+        const effective = getEffectivePermissions(user);
+        return permissions.every(perm => matchesWildcard(effective, perm));
+    },
+};
