@@ -14,6 +14,15 @@ export class ToastService {
         });
     }
 
+    warning(message: string, duration = 4000): void {
+        this.snackBar.open(message, "✕", {
+            duration,
+            panelClass: ["toast-warning"],
+            horizontalPosition: "right",
+            verticalPosition: "top",
+        });
+    }
+
     error(message: string, duration = 6000): void {
         this.snackBar.open(message, "✕", {
             duration,
