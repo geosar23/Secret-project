@@ -224,71 +224,28 @@
                     </mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
-                    <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()">
-                        <mat-form-field appearance="outline" class="full-width">
-                            <mat-label>Current Password</mat-label>
-                            <input matInput type="password" formControlName="currentPassword" />
-                            <mat-icon matPrefix>lock_open</mat-icon>
-                            @if (
-                                passwordForm.get("currentPassword")?.hasError("required") &&
-                                passwordForm.get("currentPassword")?.touched
-                            ) {
-                                <mat-error>Current password is required</mat-error>
-                            }
-                        </mat-form-field>
-
-                        <mat-form-field appearance="outline" class="full-width">
-                            <mat-label>New Password</mat-label>
-                            <input matInput type="password" formControlName="newPassword" />
-                            <mat-icon matPrefix>lock</mat-icon>
-                            @if (
-                                passwordForm.get("newPassword")?.hasError("required") &&
-                                passwordForm.get("newPassword")?.touched
-                            ) {
-                                <mat-error>New password is required</mat-error>
-                            }
-                            @if (passwordForm.get("newPassword")?.hasError("minlength")) {
-                                <mat-error>Password must be at least 6 characters</mat-error>
-                            }
-                        </mat-form-field>
-
-                        <mat-form-field appearance="outline" class="full-width">
-                            <mat-label>Confirm New Password</mat-label>
-                            <input matInput type="password" formControlName="confirmPassword" />
-                            <mat-icon matPrefix>lock</mat-icon>
-                            @if (
-                                passwordForm.get("confirmPassword")?.hasError("required") &&
-                                passwordForm.get("confirmPassword")?.touched
-                            ) {
-                                <mat-error>Please confirm your password</mat-error>
-                            }
-                        </mat-form-field>
-
-                        @if (passwordError) {
-                            <div class="error-message">{{ passwordError }}</div>
-                        }
-
-                        @if (passwordSuccess) {
-                            <div class="success-message">
-                                <mat-icon>check_circle</mat-icon>
-                                {{ passwordSuccess }}
-                            </div>
-                        }
-
-                        <div class="action-buttons">
-                            <button
-                                mat-raised-button
-                                color="primary"
-                                type="submit"
-                                [disabled]="passwordForm.invalid || loading"
-                            >
-                                @if (loading) {
-                                    <mat-spinner diameter="20"></mat-spinner>
-                                }
-                                Change Password
-                            </button>
+                    @if (passwordSuccess) {
+                        <div class="success-message">
+                            <mat-icon>check_circle</mat-icon>
+                            {{ passwordSuccess }}
                         </div>
-                    </form>
+                    }
+
+                    @if (passwordError) {
+                        <div class="error-message">{{ passwordError }}</div>
+                    }
+
+                    <div class="action-buttons">
+                        <button
+                            mat-raised-button
+                            color="primary"
+                            (click)="openChangePasswordDialog()"
+                            [disabled]="loading"
+                        >
+                            <mat-icon>lock_reset</mat-icon>
+                            Change Password
+                        </button>
+                    </div>
                 </mat-card-content>
             </mat-card>
         }

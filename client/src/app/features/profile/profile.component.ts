@@ -1,6 +1,5 @@
 import { Component, OnInit, OnDestroy, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { MatCardModule } from "@angular/material/card";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
@@ -22,13 +21,16 @@ import {
     ProfileEditDialogData,
     ProfileEditDialogResult,
 } from "./profile-edit-dialog/profile-edit-dialog.component";
+import {
+    ChangePasswordDialogComponent,
+    ChangePasswordDialogResult,
+} from "./change-password-dialog/change-password-dialog.component";
 
 @Component({
     selector: "app-profile",
     standalone: true,
     imports: [
         CommonModule,
-        ReactiveFormsModule,
         MatCardModule,
         MatFormFieldModule,
         MatInputModule,
@@ -42,7 +44,6 @@ import {
     styleUrls: ["./profile.component.scss"],
 })
 export class ProfileComponent implements OnInit, OnDestroy {
-    private fb = inject(FormBuilder);
     private usersService = inject(UsersService);
     private authService = inject(AuthService);
     private route = inject(ActivatedRoute);
@@ -51,7 +52,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
     profile: UserProfile | null = null;
-    passwordForm: FormGroup;
     loading = false;
     profileError = "";
     profileSuccess = "";
@@ -59,14 +59,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     passwordSuccess = "";
     isOwnProfile = true;
     pageTitle = "My Profile";
-
-    constructor() {
-        this.passwordForm = this.fb.group({
-            currentPassword: ["", [Validators.required]],
-            newPassword: ["", [Validators.required, Validators.minLength(6)]],
-            confirmPassword: ["", [Validators.required]],
-        });
-    }
 
     ngOnInit(): void {
         this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -184,33 +176,42 @@ export class ProfileComponent implements OnInit, OnDestroy {
         });
     }
 
-    onChangePassword(): void {
-        console.log("Change password called");
-        return;
-        // if (this.passwordForm.invalid || !this.profile) return;
+    openChangePasswordDialog(): void {
+        if (!this.profile || this.loading) return;
 
-        // const { currentPassword, newPassword, confirmPassword } = this.passwordForm.value;
+        this.passwordError = "";
+        this.passwordSuccess = "";
 
-        // if (newPassword !== confirmPassword) {
-        //     this.passwordError = "New passwords do not match";
-        //     return;
-        // }
+        this.dialog
+            .open(ChangePasswordDialogComponent, {
+                width: "460px",
+                maxWidth: "95vw",
+            })
+            .afterClosed()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((result?: ChangePasswordDialogResult) => {
+                if (!result) return;
+                this.onChangePassword(result);
+            });
+    }
 
-        // this.loading = true;
-        // this.passwordError = "";
-        // this.passwordSuccess = "";
+    onChangePassword(payload: ChangePasswordDialogResult): void {
+        if (!this.profile) return;
 
-        // this.profileService.changePassword(this.profile.id, { currentPassword, newPassword }).subscribe({
-        //     next: () => {
-        //         this.passwordSuccess = "Password changed successfully";
-        //         this.passwordForm.reset();
-        //         this.loading = false;
-        //     },
-        //     error: error => {
-        //         this.passwordError = error.error?.error || "Failed to change password";
-        //         this.loading = false;
-        //     },
-        // });
+        this.loading = true;
+        this.passwordError = "";
+        this.passwordSuccess = "";
+
+        this.usersService.changePassword(this.profile._id as string, payload).subscribe({
+            next: () => {
+                this.passwordSuccess = "Password changed successfully";
+                this.loading = false;
+            },
+            error: error => {
+                this.passwordError = error.error?.error || "Failed to change password";
+                this.loading = false;
+            },
+        });
     }
 
     getRoleColor(role: string): string {

@@ -39,6 +39,13 @@ export class UsersService {
         return this.apiService.put<JsonResponse<IUserResponse>>(`users/${userId}`, data);
     }
 
+    changePassword(
+        userId: string,
+        payload: { currentPassword: string; newPassword: string },
+    ): Observable<JsonResponse<void>> {
+        return this.apiService.put<JsonResponse<void>>(`users/${userId}/change-password`, payload);
+    }
+
     // deleteUser(userId: string): Observable<{ message: string }> {
     //     return this.apiService.delete<{ message: string }>(`users/${userId}`);
     // }
