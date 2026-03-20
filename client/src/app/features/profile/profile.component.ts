@@ -9,6 +9,7 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatIconModule } from "@angular/material/icon";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatDividerModule } from "@angular/material/divider";
+import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute } from "@angular/router";
 import { AuthService } from "../../core/services/auth.service";
 import { UserProfile } from "../../core/interfaces/profile.interface";
@@ -16,6 +17,11 @@ import { RoleUtils } from "../../core/utils/role.utils";
 import { UsersService } from "../../core/services/users.service";
 import { Subject } from "rxjs";
 import { skipWhile, takeUntil } from "rxjs/operators";
+import {
+    ProfileEditDialogComponent,
+    ProfileEditDialogData,
+    ProfileEditDialogResult,
+} from "./profile-edit-dialog/profile-edit-dialog.component";
 
 @Component({
     selector: "app-profile",
@@ -40,27 +46,21 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private usersService = inject(UsersService);
     private authService = inject(AuthService);
     private route = inject(ActivatedRoute);
+    private dialog = inject(MatDialog);
 
     private destroy$ = new Subject<void>();
 
     profile: UserProfile | null = null;
-    profileForm: FormGroup;
     passwordForm: FormGroup;
     loading = false;
     profileError = "";
     profileSuccess = "";
     passwordError = "";
     passwordSuccess = "";
-    editMode = false;
     isOwnProfile = true;
     pageTitle = "My Profile";
 
     constructor() {
-        this.profileForm = this.fb.group({
-            name: ["", [Validators.required, Validators.minLength(2)]],
-            email: ["", [Validators.required, Validators.email]],
-        });
-
         this.passwordForm = this.fb.group({
             currentPassword: ["", [Validators.required]],
             newPassword: ["", [Validators.required, Validators.minLength(6)]],
@@ -108,11 +108,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 }
 
                 this.profile = user;
-                this.profileForm.patchValue({
-                    name: this.profile.name,
-                    email: this.profile.email,
-                });
-
                 this.loading = false;
             });
     }
@@ -129,10 +124,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     return;
                 }
                 this.profile = response.data;
-                this.profileForm.patchValue({
-                    name: this.profile.name,
-                    email: this.profile.email,
-                });
                 this.loading = false;
             },
             error: error => {
@@ -142,27 +133,39 @@ export class ProfileComponent implements OnInit, OnDestroy {
         });
     }
 
-    toggleEditMode(): void {
-        this.editMode = !this.editMode;
-        if (!this.editMode) {
-            // Reset form to original values
-            this.profileForm.patchValue({
-                name: this.profile?.name,
-                email: this.profile?.email,
-            });
-        }
+    openEditDialog(): void {
+        if (!this.profile || this.loading) return;
+
         this.profileSuccess = "";
         this.profileError = "";
+
+        const dialogData: ProfileEditDialogData = {
+            name: this.profile.name,
+            email: this.profile.email,
+        };
+
+        this.dialog
+            .open(ProfileEditDialogComponent, {
+                width: "460px",
+                maxWidth: "95vw",
+                data: dialogData,
+            })
+            .afterClosed()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((result?: ProfileEditDialogResult) => {
+                if (!result) return;
+                this.onUpdateProfile(result);
+            });
     }
 
-    onUpdateProfile(): void {
-        if (this.profileForm.invalid || !this.profile) return;
+    onUpdateProfile(payload: ProfileEditDialogResult): void {
+        if (!this.profile) return;
 
         this.loading = true;
         this.profileError = "";
         this.profileSuccess = "";
 
-        this.usersService.updateUser(this.profile._id as string, this.profileForm.value).subscribe({
+        this.usersService.updateUser(this.profile._id as string, payload).subscribe({
             next: response => {
                 if (!response.success || !response.data) {
                     this.profileError = response.message || "Failed to update profile";
@@ -172,7 +175,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
                 this.profile = response.data.user;
                 this.profileSuccess = "Profile updated successfully";
-                this.editMode = false;
                 this.loading = false;
             },
             error: error => {

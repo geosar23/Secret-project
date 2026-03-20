@@ -28,236 +28,185 @@
                 </mat-card-title>
             </mat-card-header>
             <mat-card-content>
-                @if (!editMode) {
-                    <div class="profile-info">
-                        <!-- Basic User Information -->
-                        <div class="info-row">
-                            <span class="label">Name:</span>
-                            <span class="value">{{ profile.name }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="label">Email:</span>
-                            <span class="value">{{ profile.email }}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="label">Account Status:</span>
-                            <mat-chip
-                                [style.background]="profile.isActive ? '#4CAF50' : '#f44336'"
-                                style="color: white"
-                            >
-                                {{ profile.isActive ? "Active" : "Inactive" }}
-                            </mat-chip>
-                        </div>
+                <div class="profile-info">
+                    <!-- Basic User Information -->
+                    <div class="info-row">
+                        <span class="label">Name:</span>
+                        <span class="value">{{ profile.name }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Email:</span>
+                        <span class="value">{{ profile.email }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Account Status:</span>
+                        <mat-chip [style.background]="profile.isActive ? '#4CAF50' : '#f44336'" style="color: white">
+                            {{ profile.isActive ? "Active" : "Inactive" }}
+                        </mat-chip>
+                    </div>
 
-                        <!-- Company Information Section -->
-                        @if (profile.company) {
-                            <mat-divider class="divider-margin"></mat-divider>
-                            <h3 class="section-title">
-                                <mat-icon>business</mat-icon>
-                                Company Information
-                            </h3>
-                            <div class="info-row">
-                                <span class="label">Company Name:</span>
-                                <span class="value">{{ profile.company.name }}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="label">Company Slug:</span>
-                                <span class="value">{{ profile.company.slug }}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="label">Company Status:</span>
-                                <mat-chip
-                                    [style.background]="profile.company.isActive ? '#4CAF50' : '#f44336'"
-                                    style="color: white"
-                                >
-                                    {{ profile.company.isActive ? "Active" : "Inactive" }}
-                                </mat-chip>
-                            </div>
-                        }
-
-                        <!-- Role Details Section -->
-                        @if (profile.role) {
-                            <mat-divider class="divider-margin"></mat-divider>
-                            <h3 class="section-title">
-                                <mat-icon>security</mat-icon>
-                                Role Details
-                            </h3>
-                            <div class="info-row">
-                                <span class="label">Role Name:</span>
-                                <mat-chip [style.background]="getRoleColor(profile.role.role)">
-                                    {{ profile.role.name }}
-                                </mat-chip>
-                            </div>
-                            <div class="info-row">
-                                <span class="label">Role Code:</span>
-                                <span class="value">{{ profile.role.role }}</span>
-                            </div>
-                            @if (profile.role.description) {
-                                <div class="info-row">
-                                    <span class="label">Description:</span>
-                                    <span class="value">{{ profile.role.description }}</span>
-                                </div>
-                            }
-                            @if (profile.role.permissions && profile.role.permissions.length > 0) {
-                                <div class="info-row">
-                                    <span class="label">Role Permissions:</span>
-                                    <div class="permissions-list">
-                                        @for (perm of profile.role.permissions; track $index) {
-                                            <mat-chip>{{ perm }}</mat-chip>
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        }
-
-                        <!-- Organization Structure Section -->
+                    <!-- Company Information Section -->
+                    @if (profile.company) {
                         <mat-divider class="divider-margin"></mat-divider>
                         <h3 class="section-title">
-                            <mat-icon>group</mat-icon>
-                            Organization Structure
+                            <mat-icon>business</mat-icon>
+                            Company Information
                         </h3>
-                        @if (profile.department) {
+                        <div class="info-row">
+                            <span class="label">Company Name:</span>
+                            <span class="value">{{ profile.company.name }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Company Slug:</span>
+                            <span class="value">{{ profile.company.slug }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Company Status:</span>
+                            <mat-chip [style.background]="profile.company.isActive ? '#4CAF50' : '#f44336'" style="color: white">
+                                {{ profile.company.isActive ? "Active" : "Inactive" }}
+                            </mat-chip>
+                        </div>
+                    }
+
+                    <!-- Role Details Section -->
+                    @if (profile.role) {
+                        <mat-divider class="divider-margin"></mat-divider>
+                        <h3 class="section-title">
+                            <mat-icon>security</mat-icon>
+                            Role Details
+                        </h3>
+                        <div class="info-row">
+                            <span class="label">Role Name:</span>
+                            <mat-chip [style.background]="getRoleColor(profile.role.role)">
+                                {{ profile.role.name }}
+                            </mat-chip>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Role Code:</span>
+                            <span class="value">{{ profile.role.role }}</span>
+                        </div>
+                        @if (profile.role.description) {
                             <div class="info-row">
-                                <span class="label">Department:</span>
-                                <span class="value">{{ profile.department }}</span>
+                                <span class="label">Description:</span>
+                                <span class="value">{{ profile.role.description }}</span>
                             </div>
                         }
-                        @if (profile.manager) {
+                        @if (profile.role.permissions && profile.role.permissions.length > 0) {
                             <div class="info-row">
-                                <span class="label">Manager:</span>
-                                <span class="value">{{ profile.manager }}</span>
-                            </div>
-                        }
-                        @if (profile.managedDepartments && profile.managedDepartments.length > 0) {
-                            <div class="info-row">
-                                <span class="label">Managed Departments:</span>
+                                <span class="label">Role Permissions:</span>
                                 <div class="permissions-list">
-                                    @for (dept of profile.managedDepartments; track $index) {
-                                        <mat-chip>{{ dept }}</mat-chip>
+                                    @for (perm of profile.role.permissions; track $index) {
+                                        <mat-chip>{{ perm }}</mat-chip>
                                     }
                                 </div>
                             </div>
                         }
-                        @if (
-                            !profile.department &&
-                            !profile.manager &&
-                            (!profile.managedDepartments || profile.managedDepartments.length === 0)
-                        ) {
-                            <p class="empty-state">No department or manager information available</p>
-                        }
+                    }
 
-                        <!-- Custom Permissions Section -->
-                        @if (
-                            (profile.grantedPermissions && profile.grantedPermissions.length > 0) ||
-                            (profile.revokedPermissions && profile.revokedPermissions.length > 0)
-                        ) {
-                            <mat-divider class="divider-margin"></mat-divider>
-                            <h3 class="section-title">
-                                <mat-icon>verified_user</mat-icon>
-                                Custom Permissions
-                            </h3>
-                            @if (profile.grantedPermissions && profile.grantedPermissions.length > 0) {
-                                <div class="info-row">
-                                    <span class="label">Granted Permissions:</span>
-                                    <div class="permissions-list">
-                                        @for (perm of profile.grantedPermissions; track $index) {
-                                            <mat-chip color="accent">{{ perm }}</mat-chip>
-                                        }
-                                    </div>
-                                </div>
-                            }
-                            @if (profile.revokedPermissions && profile.revokedPermissions.length > 0) {
-                                <div class="info-row">
-                                    <span class="label">Revoked Permissions:</span>
-                                    <div class="permissions-list">
-                                        @for (perm of profile.revokedPermissions; track $index) {
-                                            <mat-chip color="warn">{{ perm }}</mat-chip>
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        }
+                    <!-- Organization Structure Section -->
+                    <mat-divider class="divider-margin"></mat-divider>
+                    <h3 class="section-title">
+                        <mat-icon>group</mat-icon>
+                        Organization Structure
+                    </h3>
+                    @if (profile.department) {
+                        <div class="info-row">
+                            <span class="label">Department:</span>
+                            <span class="value">{{ profile.department }}</span>
+                        </div>
+                    }
+                    @if (profile.manager) {
+                        <div class="info-row">
+                            <span class="label">Manager:</span>
+                            <span class="value">{{ profile.manager }}</span>
+                        </div>
+                    }
+                    @if (profile.managedDepartments && profile.managedDepartments.length > 0) {
+                        <div class="info-row">
+                            <span class="label">Managed Departments:</span>
+                            <div class="permissions-list">
+                                @for (dept of profile.managedDepartments; track $index) {
+                                    <mat-chip>{{ dept }}</mat-chip>
+                                }
+                            </div>
+                        </div>
+                    }
+                    @if (
+                        !profile.department &&
+                        !profile.manager &&
+                        (!profile.managedDepartments || profile.managedDepartments.length === 0)
+                    ) {
+                        <p class="empty-state">No department or manager information available</p>
+                    }
 
-                        <!-- Timestamps Section -->
+                    <!-- Custom Permissions Section -->
+                    @if (
+                        (profile.grantedPermissions && profile.grantedPermissions.length > 0) ||
+                        (profile.revokedPermissions && profile.revokedPermissions.length > 0)
+                    ) {
                         <mat-divider class="divider-margin"></mat-divider>
                         <h3 class="section-title">
-                            <mat-icon>schedule</mat-icon>
-                            Timeline
+                            <mat-icon>verified_user</mat-icon>
+                            Custom Permissions
                         </h3>
-                        <div class="info-row">
-                            <span class="label">Member Since:</span>
-                            <span class="value">{{ profile.createdAt | date: "medium" }}</span>
-                        </div>
-                        @if (profile.updatedAt) {
+                        @if (profile.grantedPermissions && profile.grantedPermissions.length > 0) {
                             <div class="info-row">
-                                <span class="label">Last Updated:</span>
-                                <span class="value">{{ profile.updatedAt | date: "medium" }}</span>
+                                <span class="label">Granted Permissions:</span>
+                                <div class="permissions-list">
+                                    @for (perm of profile.grantedPermissions; track $index) {
+                                        <mat-chip color="accent">{{ perm }}</mat-chip>
+                                    }
+                                </div>
                             </div>
                         }
-                    </div>
-
-                    @if (profileSuccess) {
-                        <div class="success-message">
-                            <mat-icon>check_circle</mat-icon>
-                            {{ profileSuccess }}
-                        </div>
-                    }
-
-                    @if (isOwnProfile) {
-                        <div class="action-buttons">
-                            <button mat-raised-button color="primary" (click)="toggleEditMode()">
-                                <mat-icon>edit</mat-icon>
-                                Edit Profile
-                            </button>
-                        </div>
-                    }
-                } @else {
-                    <form [formGroup]="profileForm" (ngSubmit)="onUpdateProfile()">
-                        <mat-form-field appearance="outline" class="full-width">
-                            <mat-label>Name</mat-label>
-                            <input matInput formControlName="name" placeholder="Your name" />
-                            <mat-icon matPrefix>person</mat-icon>
-                            @if (profileForm.get("name")?.hasError("required") && profileForm.get("name")?.touched) {
-                                <mat-error>Name is required</mat-error>
-                            }
-                            @if (profileForm.get("name")?.hasError("minlength")) {
-                                <mat-error>Name must be at least 2 characters</mat-error>
-                            }
-                        </mat-form-field>
-
-                        <mat-form-field appearance="outline" class="full-width">
-                            <mat-label>Email</mat-label>
-                            <input matInput type="email" formControlName="email" placeholder="your@email.com" />
-                            <mat-icon matPrefix>email</mat-icon>
-                            @if (profileForm.get("email")?.hasError("required") && profileForm.get("email")?.touched) {
-                                <mat-error>Email is required</mat-error>
-                            }
-                            @if (profileForm.get("email")?.hasError("email")) {
-                                <mat-error>Invalid email format</mat-error>
-                            }
-                        </mat-form-field>
-
-                        @if (profileError) {
-                            <div class="error-message">{{ profileError }}</div>
+                        @if (profile.revokedPermissions && profile.revokedPermissions.length > 0) {
+                            <div class="info-row">
+                                <span class="label">Revoked Permissions:</span>
+                                <div class="permissions-list">
+                                    @for (perm of profile.revokedPermissions; track $index) {
+                                        <mat-chip color="warn">{{ perm }}</mat-chip>
+                                    }
+                                </div>
+                            </div>
                         }
+                    }
 
-                        <div class="action-buttons">
-                            <button
-                                mat-raised-button
-                                color="primary"
-                                type="submit"
-                                [disabled]="profileForm.invalid || loading"
-                            >
-                                @if (loading) {
-                                    <mat-spinner diameter="20"></mat-spinner>
-                                }
-                                Save Changes
-                            </button>
-                            <button mat-button type="button" (click)="toggleEditMode()" [disabled]="loading">
-                                Cancel
-                            </button>
+                    <!-- Timestamps Section -->
+                    <mat-divider class="divider-margin"></mat-divider>
+                    <h3 class="section-title">
+                        <mat-icon>schedule</mat-icon>
+                        Timeline
+                    </h3>
+                    <div class="info-row">
+                        <span class="label">Member Since:</span>
+                        <span class="value">{{ profile.createdAt | date: "medium" }}</span>
+                    </div>
+                    @if (profile.updatedAt) {
+                        <div class="info-row">
+                            <span class="label">Last Updated:</span>
+                            <span class="value">{{ profile.updatedAt | date: "medium" }}</span>
                         </div>
-                    </form>
+                    }
+                </div>
+
+                @if (profileSuccess) {
+                    <div class="success-message">
+                        <mat-icon>check_circle</mat-icon>
+                        {{ profileSuccess }}
+                    </div>
+                }
+
+                @if (profileError) {
+                    <div class="error-message">{{ profileError }}</div>
+                }
+
+                @if (isOwnProfile) {
+                    <div class="action-buttons">
+                        <button mat-raised-button color="primary" (click)="openEditDialog()" [disabled]="loading">
+                            <mat-icon>edit</mat-icon>
+                            Edit Profile
+                        </button>
+                    </div>
                 }
             </mat-card-content>
         </mat-card>
