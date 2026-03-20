@@ -156,7 +156,29 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     return;
                 }
 
-                this.profile = response.data.user;
+                const updatedProfile = {
+                    ...this.profile,
+                    ...payload,
+                    ...response.data.user,
+                };
+
+                this.profile = updatedProfile;
+                if (this.isOwnProfile) {
+                    this.authService
+                        .patchAndRefreshCurrentUser({
+                            ...payload,
+                            ...response.data.user,
+                        })
+                        .pipe(takeUntil(this.destroy$))
+                        .subscribe({
+                            next: user => {
+                                this.profile = user;
+                            },
+                            error: () => {
+                                return;
+                            },
+                        });
+                }
                 this.toast.success("Profile updated successfully");
                 this.loading = false;
             },

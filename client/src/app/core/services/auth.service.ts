@@ -25,6 +25,43 @@ export class AuthService {
         return this.localUserSubject.getValue();
     }
 
+    setLocalUser(user: IUser | null): void {
+        this.localUserSubject.next(user);
+    }
+
+    patchLocalUser(userPatch: Partial<IUser>): void {
+        const currentUser = this.getLocalUser();
+
+        if (!currentUser) {
+            return;
+        }
+
+        this.setLocalUser({
+            ...currentUser,
+            ...userPatch,
+        });
+    }
+
+    refreshCurrentUser(): Observable<IUser> {
+        return this.getMe().pipe(
+            map((response: JsonResponse<IUserResponse>) => {
+                if (!response.success || !response.data?.user) {
+                    throw new Error(response.message || "Failed to refresh current user");
+                }
+
+                return response.data.user;
+            }),
+            tap(user => {
+                this.setLocalUser(user);
+            }),
+        );
+    }
+
+    patchAndRefreshCurrentUser(userPatch: Partial<IUser>): Observable<IUser> {
+        this.patchLocalUser(userPatch);
+        return this.refreshCurrentUser();
+    }
+
     private initializeAuth(): void {
         const token = this.getToken();
         if (token) {
@@ -32,13 +69,12 @@ export class AuthService {
             try {
                 const payload = decodeToken(token);
                 if (payload && isTokenValid(payload)) {
-                    // Fetch full user data from backend
-                    this.getMe().subscribe({
-                        next: (response: JsonResponse<IUserResponse>) => {
-                            this.localUserSubject.next(response.data!.user);
+                    this.refreshCurrentUser().subscribe({
+                        next: () => {
+                            return;
                         },
                         error: () => {
-                            this.localUserSubject.next(null);
+                            this.setLocalUser(null);
                             this.logout();
                         },
                     });
@@ -65,12 +101,15 @@ export class AuthService {
 
                 this.setToken(loginRes.data.token);
 
-                return this.getMe();
-            }),
-            tap((meRes: JsonResponse<IUserResponse>) => {
-                if (meRes.success && meRes.data?.user) {
-                    this.localUserSubject.next(meRes.data.user);
-                }
+                return this.refreshCurrentUser().pipe(
+                    map(
+                        user =>
+                            ({
+                                success: true,
+                                data: { user },
+                            }) as JsonResponse<IUserResponse>,
+                    ),
+                );
             }),
             map((meRes: JsonResponse<IUserResponse>) => ({
                 success: meRes.success,
@@ -99,7 +138,7 @@ export class AuthService {
 
     logout(): void {
         localStorage.removeItem("token");
-        this.localUserSubject.next(null);
+        this.setLocalUser(null);
         this.router.navigate(["/login"]);
     }
 
