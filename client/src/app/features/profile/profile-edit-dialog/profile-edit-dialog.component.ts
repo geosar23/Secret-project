@@ -6,16 +6,13 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-
-export interface ProfileEditDialogData {
-    name: string;
-    email: string;
-}
-
-export interface ProfileEditDialogResult {
-    name: string;
-    email: string;
-}
+import { UsersService } from "../../../core/services/users.service";
+import { ToastService } from "../../../core/services/toast.service";
+import {
+    ProfileEditDialogData,
+    ProfileEditDialogResult,
+    ProfileEditDialogPayload,
+} from "../interfaces/profile-edit-dialog.interface";
 
 @Component({
     selector: "app-profile-edit-dialog",
@@ -34,6 +31,8 @@ export interface ProfileEditDialogResult {
 })
 export class ProfileEditDialogComponent {
     private fb = inject(FormBuilder);
+    private usersService = inject(UsersService);
+    private toast = inject(ToastService);
     private dialogRef = inject(MatDialogRef<ProfileEditDialogComponent, ProfileEditDialogResult>);
     data = inject<ProfileEditDialogData>(MAT_DIALOG_DATA);
 
@@ -51,7 +50,29 @@ export class ProfileEditDialogComponent {
         }
 
         this.loading = true;
-        this.dialogRef.close(this.profileForm.value as ProfileEditDialogResult);
+        this.dialogRef.disableClose = true;
+        const payload = this.profileForm.value as ProfileEditDialogPayload;
+
+        this.usersService.updateUser(this.data.userId, payload).subscribe({
+            next: response => {
+                if (!response.success || !response.data?.user) {
+                    this.toast.error(response.message || "Failed to update profile");
+                    this.loading = false;
+                    this.dialogRef.disableClose = false;
+                    return;
+                }
+
+                this.dialogRef.close({
+                    payload,
+                    updatedUser: response.data.user,
+                });
+            },
+            error: error => {
+                this.toast.error(error.error?.error || "Failed to update profile");
+                this.loading = false;
+                this.dialogRef.disableClose = false;
+            },
+        });
     }
 
     onCancel(): void {

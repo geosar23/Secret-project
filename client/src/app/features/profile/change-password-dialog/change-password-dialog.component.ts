@@ -14,11 +14,7 @@ import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatIconModule } from "@angular/material/icon";
-
-export interface ChangePasswordDialogResult {
-    currentPassword: string;
-    newPassword: string;
-}
+import { ChangePasswordDialogResult } from "../interfaces/change-password-dialog.interface";
 
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
     const newPassword = control.get("newPassword")?.value;
