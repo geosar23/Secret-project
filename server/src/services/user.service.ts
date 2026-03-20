@@ -92,7 +92,7 @@ export const UserService = {
 
         const repo = userRepository(String(companyId));
         await repo.updateOne({ _id: id }, data as Partial<IUser>);
-        const updated = await repo.findById(id).select("-password").lean();
+        const updated = await repo.findById(id).select("_id").lean();
         return updated;
     },
     getByEmail: (email: string) =>

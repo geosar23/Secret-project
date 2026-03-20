@@ -35,8 +35,8 @@ export class UsersService {
         return this.apiService.post<JsonResponse<IUserResponse>>("users", data);
     }
 
-    updateUser(userId: string, data: IUpdateUserRequest): Observable<JsonResponse<IUserResponse>> {
-        return this.apiService.put<JsonResponse<IUserResponse>>(`users/${userId}`, data);
+    updateUser(userId: string, data: IUpdateUserRequest): Observable<JsonResponse<{ user: { _id: string } }>> {
+        return this.apiService.put<JsonResponse<{ user: { _id: string } }>>(`users/${userId}`, data);
     }
 
     changePassword(
