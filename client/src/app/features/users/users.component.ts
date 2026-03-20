@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy } from "@angular/core";
+import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatTableModule, MatTableDataSource } from "@angular/material/table";
 import { MatButtonModule } from "@angular/material/button";
@@ -19,6 +19,7 @@ import { IUser, IUsersListResponse, IUsersQueryParams } from "../../core/interfa
 import { CreateUserDialogComponent } from "./create-user-dialog/create-user-dialog.component";
 import { RoleUtils } from "../../core/utils/role.utils";
 import { JsonResponse } from "../../core/interfaces/generics.interface";
+import { ToastService } from "../../core/services/toast.service";
 
 interface IUserTableData extends IUser {
     roleColor?: string;
@@ -53,8 +54,9 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
 
     public tableData: MatTableDataSource<IUserTableData> = new MatTableDataSource<IUserTableData>([]);
     public displayedColumns: string[] = ["name", "email", "role", "companyId", "status", "createdAt"];
+    private toast = inject(ToastService);
+
     loading = false;
-    userFetchingError = "";
 
     // Sorting options
     sortOptions = [
@@ -120,7 +122,6 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
 
     loadUsers() {
         this.loading = true;
-        this.userFetchingError = "";
 
         this.usersService
             .getUsers(this.queryParams)
@@ -128,8 +129,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             .subscribe({
                 next: (res: JsonResponse<IUsersListResponse>) => {
                     if (!res.success || !res.data) {
-                        // Soft error handling
-                        this.userFetchingError = res.message || "Failed to load users";
+                        this.toast.error(res.message || "Failed to load users");
                         return;
                     }
 
@@ -150,8 +150,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
                     });
                 },
                 error: err => {
-                    // Hard error (network / 500 / timeout)
-                    this.userFetchingError = err.error?.message || "Unexpected error occurred";
+                    this.toast.error(err.error?.message || "Unexpected error occurred");
                 },
             });
     }
@@ -178,6 +177,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
                 const currentData = this.tableData.data;
                 currentData.unshift(result);
                 this.tableData.data = currentData;
+                this.toast.success("User created successfully");
             }
         });
     }

@@ -42,10 +42,6 @@
         </div>
     </div>
 
-    @if (userFetchingError) {
-        <div class="error-message badge badge-error">{{ userFetchingError }}</div>
-    }
-
     @if (loading) {
         <div class="loading-container">
             <mat-spinner diameter="50"></mat-spinner>
@@ -114,7 +110,7 @@
         </mat-paginator>
     </div>
 
-    @if (!loading && tableData.data.length === 0 && !userFetchingError) {
+    @if (!loading && tableData.data.length === 0) {
         <div class="empty-state">
             <h3>No users found</h3>
             <p>Try adjusting your filters</p>

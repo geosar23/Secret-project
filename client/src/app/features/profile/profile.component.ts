@@ -14,6 +14,7 @@ import { AuthService } from "../../core/services/auth.service";
 import { UserProfile } from "../../core/interfaces/profile.interface";
 import { RoleUtils } from "../../core/utils/role.utils";
 import { UsersService } from "../../core/services/users.service";
+import { ToastService } from "../../core/services/toast.service";
 import { Subject } from "rxjs";
 import { skipWhile, takeUntil } from "rxjs/operators";
 import {
@@ -48,15 +49,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private authService = inject(AuthService);
     private route = inject(ActivatedRoute);
     private dialog = inject(MatDialog);
+    private toast = inject(ToastService);
 
     private destroy$ = new Subject<void>();
 
     profile: UserProfile | null = null;
     loading = false;
-    profileError = "";
-    profileSuccess = "";
-    passwordError = "";
-    passwordSuccess = "";
     isOwnProfile = true;
     pageTitle = "My Profile";
 
@@ -85,7 +83,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     loadOwnProfile(): void {
         this.loading = true;
-        this.profileError = "";
 
         this.authService.localUser$
             .pipe(
@@ -94,7 +91,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             )
             .subscribe(user => {
                 if (!user || !user._id) {
-                    this.profileError = "Failed to load profile";
+                    this.toast.error("Failed to load profile");
                     this.loading = false;
                     return;
                 }
@@ -106,12 +103,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     loadUserProfile(userId: string): void {
         this.loading = true;
-        this.profileError = "";
 
         this.usersService.getUserById(userId).subscribe({
             next: response => {
                 if (!response.success || !response.data) {
-                    this.profileError = response.message || "User not found";
+                    this.toast.error(response.message || "User not found");
                     this.loading = false;
                     return;
                 }
@@ -119,7 +115,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 this.loading = false;
             },
             error: error => {
-                this.profileError = error.error?.error || "Failed to load user profile";
+                this.toast.error(error.error?.error || "Failed to load user profile");
                 this.loading = false;
             },
         });
@@ -127,9 +123,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     openEditDialog(): void {
         if (!this.profile || this.loading) return;
-
-        this.profileSuccess = "";
-        this.profileError = "";
 
         const dialogData: ProfileEditDialogData = {
             name: this.profile.name,
@@ -154,23 +147,21 @@ export class ProfileComponent implements OnInit, OnDestroy {
         if (!this.profile) return;
 
         this.loading = true;
-        this.profileError = "";
-        this.profileSuccess = "";
 
         this.usersService.updateUser(this.profile._id as string, payload).subscribe({
             next: response => {
                 if (!response.success || !response.data) {
-                    this.profileError = response.message || "Failed to update profile";
+                    this.toast.error(response.message || "Failed to update profile");
                     this.loading = false;
                     return;
                 }
 
                 this.profile = response.data.user;
-                this.profileSuccess = "Profile updated successfully";
+                this.toast.success("Profile updated successfully");
                 this.loading = false;
             },
             error: error => {
-                this.profileError = error.error?.error || "Failed to update profile";
+                this.toast.error(error.error?.error || "Failed to update profile");
                 this.loading = false;
             },
         });
@@ -178,9 +169,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     openChangePasswordDialog(): void {
         if (!this.profile || this.loading) return;
-
-        this.passwordError = "";
-        this.passwordSuccess = "";
 
         this.dialog
             .open(ChangePasswordDialogComponent, {
@@ -199,16 +187,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
         if (!this.profile) return;
 
         this.loading = true;
-        this.passwordError = "";
-        this.passwordSuccess = "";
 
         this.usersService.changePassword(this.profile._id as string, payload).subscribe({
             next: () => {
-                this.passwordSuccess = "Password changed successfully";
+                this.toast.success("Password changed successfully");
                 this.loading = false;
             },
             error: error => {
-                this.passwordError = error.error?.error || "Failed to change password";
+                this.toast.error(error.error?.error || "Failed to change password");
                 this.loading = false;
             },
         });

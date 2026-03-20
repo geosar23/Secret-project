@@ -9,15 +9,6 @@
         </div>
     }
 
-    @if (profileError && !profile) {
-        <mat-card class="error-card">
-            <mat-card-content>
-                <mat-icon color="warn">error</mat-icon>
-                <p>{{ profileError }}</p>
-            </mat-card-content>
-        </mat-card>
-    }
-
     @if (profile) {
         <!-- Profile Information Card -->
         <mat-card class="profile-card">
@@ -204,28 +195,6 @@
                     </mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
-                    @if (profileSuccess) {
-                        <div class="success-message">
-                            <mat-icon>check_circle</mat-icon>
-                            {{ profileSuccess }}
-                        </div>
-                    }
-
-                    @if (profileError) {
-                        <div class="error-message">{{ profileError }}</div>
-                    }
-
-                    @if (passwordSuccess) {
-                        <div class="success-message">
-                            <mat-icon>check_circle</mat-icon>
-                            {{ passwordSuccess }}
-                        </div>
-                    }
-
-                    @if (passwordError) {
-                        <div class="error-message">{{ passwordError }}</div>
-                    }
-
                     <div class="action-buttons">
                         <button mat-raised-button color="primary" (click)="openEditDialog()" [disabled]="loading">
                             <mat-icon>edit</mat-icon>
