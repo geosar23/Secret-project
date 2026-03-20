@@ -69,31 +69,19 @@ export const PermissionChecker = {
      * The optional `resource` parameter is reserved for future policy-based
      * scope checks (e.g. canViewUser in user.policy.ts).
      */
-    canAccess: async (
-        user: IUser,
-        permission: string,
-        // _resource?: Record<string, unknown>,
-    ): Promise<boolean> => {
+    canAccess: async (user: IUser, permission: string): Promise<boolean> => {
         const effective = getEffectivePermissions(user);
         return matchesWildcard(effective, permission);
     },
 
     /** Returns true if the user holds ANY of the given permissions. */
-    hasAnyPermission: async (
-        user: IUser,
-        permissions: string[],
-        // _resource?: Record<string, unknown>,
-    ): Promise<boolean> => {
+    hasAnyPermission: async (user: IUser, permissions: string[]): Promise<boolean> => {
         const effective = getEffectivePermissions(user);
         return permissions.some(perm => matchesWildcard(effective, perm));
     },
 
     /** Returns true if the user holds ALL of the given permissions. */
-    hasAllPermissions: async (
-        user: IUser,
-        permissions: string[],
-        // _resource?: Record<string, unknown>,
-    ): Promise<boolean> => {
+    hasAllPermissions: async (user: IUser, permissions: string[]): Promise<boolean> => {
         const effective = getEffectivePermissions(user);
         return permissions.every(perm => matchesWildcard(effective, perm));
     },

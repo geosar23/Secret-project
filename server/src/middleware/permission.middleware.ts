@@ -1,6 +1,6 @@
 import { Response, NextFunction } from "express";
 import { PermissionChecker } from "../utils/permission-checker";
-import { AuthenticatedRequest } from "../interfaces/auth.interface";
+import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { IUser } from "../interfaces/user.interface";
 import { UserService } from "../services/user.service";
 
@@ -8,36 +8,39 @@ import { UserService } from "../services/user.service";
 export type { AuthenticatedRequest };
 
 /**
+ * Narrow req.decoded to the concrete tokenPayload shape set by authMiddleware.
+ * Returns null when the request is unauthenticated or the token is malformed.
+ */
+function getTokenPayload(req: AuthenticatedRequest): tokenPayload | null {
+    const d = req.decoded;
+    if (!d || typeof d === "string" || !("id" in d) || !("companyId" in d)) return null;
+    return d as tokenPayload;
+}
+
+/**
  * Authorization middleware factory
  * Creates middleware that checks if user has required permission
- * @param permission Permission string to check (e.g., "employees:edit:managed")
- * @param resourceLoader Optional function to load resource from request
+ * @param permission Permission string to check (e.g., "usersManagement:read:department")
  */
 export function userHasPermission(permission: string) {
     return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         try {
-            // Check if user is authenticated (auth middleware sets `req.decoded`)
-            if (!req.decoded || !req.decoded.id) {
+            const payload = getTokenPayload(req);
+            if (!payload) {
                 return res.status(401).json({ message: "Authentication required" });
             }
 
-            // Load full user from DB
-            const user = (await UserService.getById(req.decoded.id as string)) as IUser | null;
+            const user = (await UserService.getById(payload.id, payload.companyId)) as IUser | null;
             if (!user) {
                 return res.status(401).json({ message: "User not found" });
             }
 
-            // No resource-based loading by default
-            let resource: Record<string, unknown> | undefined;
-
-            // Check permission using PermissionChecker
-            const hasAccess = await PermissionChecker.canAccess(user as IUser, permission, resource);
+            const hasAccess = await PermissionChecker.canAccess(user, permission);
 
             if (!hasAccess) {
                 return res.status(403).json({ message: "Insufficient permissions", required: permission });
             }
 
-            // Permission granted
             next();
         } catch (error) {
             console.error("Authorization error:", error);
@@ -52,18 +55,17 @@ export function userHasPermission(permission: string) {
 export function userHasAnyPermission(permissions: string[]) {
     return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         try {
-            if (!req.decoded || !req.decoded.id) {
+            const payload = getTokenPayload(req);
+            if (!payload) {
                 return res.status(401).json({ message: "Authentication required" });
             }
 
-            const user = (await UserService.getById(req.decoded.id as string)) as IUser | null;
+            const user = (await UserService.getById(payload.id, payload.companyId)) as IUser | null;
             if (!user) {
                 return res.status(401).json({ message: "User not found" });
             }
 
-            let resource: Record<string, unknown> | undefined;
-
-            const hasAccess = await PermissionChecker.hasAnyPermission(user as IUser, permissions, resource);
+            const hasAccess = await PermissionChecker.hasAnyPermission(user, permissions);
 
             if (!hasAccess) {
                 return res.status(403).json({ message: "Insufficient permissions", requiredAny: permissions });
@@ -83,18 +85,17 @@ export function userHasAnyPermission(permissions: string[]) {
 export function userHasAllPermissions(permissions: string[]) {
     return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         try {
-            if (!req.decoded || !req.decoded.id) {
+            const payload = getTokenPayload(req);
+            if (!payload) {
                 return res.status(401).json({ message: "Authentication required" });
             }
 
-            const user = (await UserService.getById(req.decoded.id as string)) as IUser | null;
+            const user = (await UserService.getById(payload.id, payload.companyId)) as IUser | null;
             if (!user) {
                 return res.status(401).json({ message: "User not found" });
             }
 
-            let resource: Record<string, unknown> | undefined;
-
-            const hasAccess = await PermissionChecker.hasAllPermissions(user as IUser, permissions, resource);
+            const hasAccess = await PermissionChecker.hasAllPermissions(user, permissions);
 
             if (!hasAccess) {
                 return res.status(403).json({ message: "Insufficient permissions", requiredAll: permissions });
