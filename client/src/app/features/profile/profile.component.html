@@ -191,39 +191,30 @@
                         </div>
                     }
                 </div>
-
-                @if (profileSuccess) {
-                    <div class="success-message">
-                        <mat-icon>check_circle</mat-icon>
-                        {{ profileSuccess }}
-                    </div>
-                }
-
-                @if (profileError) {
-                    <div class="error-message">{{ profileError }}</div>
-                }
-
-                @if (isOwnProfile) {
-                    <div class="action-buttons">
-                        <button mat-raised-button color="primary" (click)="openEditDialog()" [disabled]="loading">
-                            <mat-icon>edit</mat-icon>
-                            Edit Profile
-                        </button>
-                    </div>
-                }
             </mat-card-content>
         </mat-card>
 
-        <!-- Change Password Card -->
+        <!-- Actions Card -->
         @if (isOwnProfile) {
-            <mat-card class="password-card">
+            <mat-card class="actions-card">
                 <mat-card-header>
                     <mat-card-title>
-                        <mat-icon>lock</mat-icon>
-                        Change Password
+                        <mat-icon>settings</mat-icon>
+                        Actions
                     </mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
+                    @if (profileSuccess) {
+                        <div class="success-message">
+                            <mat-icon>check_circle</mat-icon>
+                            {{ profileSuccess }}
+                        </div>
+                    }
+
+                    @if (profileError) {
+                        <div class="error-message">{{ profileError }}</div>
+                    }
+
                     @if (passwordSuccess) {
                         <div class="success-message">
                             <mat-icon>check_circle</mat-icon>
@@ -236,12 +227,11 @@
                     }
 
                     <div class="action-buttons">
-                        <button
-                            mat-raised-button
-                            color="primary"
-                            (click)="openChangePasswordDialog()"
-                            [disabled]="loading"
-                        >
+                        <button mat-raised-button color="primary" (click)="openEditDialog()" [disabled]="loading">
+                            <mat-icon>edit</mat-icon>
+                            Edit Profile
+                        </button>
+                        <button mat-raised-button (click)="openChangePasswordDialog()" [disabled]="loading">
                             <mat-icon>lock_reset</mat-icon>
                             Change Password
                         </button>
