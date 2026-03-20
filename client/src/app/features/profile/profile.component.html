@@ -62,7 +62,10 @@
                         </div>
                         <div class="info-row">
                             <span class="label">Company Status:</span>
-                            <mat-chip [style.background]="profile.company.isActive ? '#4CAF50' : '#f44336'" style="color: white">
+                            <mat-chip
+                                [style.background]="profile.company.isActive ? '#4CAF50' : '#f44336'"
+                                style="color: white"
+                            >
                                 {{ profile.company.isActive ? "Active" : "Inactive" }}
                             </mat-chip>
                         </div>
