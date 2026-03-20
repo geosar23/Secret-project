@@ -27,7 +27,6 @@ export interface ProfileEditDialogData {
 
 export interface ProfileEditDialogResult {
     payload: ProfileEditDialogPayload;
-    updatedUser: IUser;
 }
 
 export interface ProfileRouteContext {

@@ -19,7 +19,6 @@ import {
     ProfileRouteContext,
     ChangePasswordDialogResult,
 } from "../../core/interfaces/profile.interface";
-import { IUser } from "../../core/interfaces/user.interface";
 import { RoleUtils } from "../../core/utils/role.utils";
 import { UsersService } from "../../core/services/users.service";
 import { ToastService } from "../../core/services/toast.service";
@@ -143,26 +142,22 @@ export class ProfileComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe((result?: ProfileEditDialogResult) => {
                 if (!result) return;
-                this.onUpdateProfile(result.payload, result.updatedUser as IUser);
+                this.onUpdateProfile(result.payload);
             });
     }
 
-    onUpdateProfile(payload: ProfileEditDialogPayload, updatedUser: IUser): void {
+    onUpdateProfile(payload: ProfileEditDialogPayload): void {
         if (!this.profile) return;
 
         const updatedProfile = {
             ...this.profile,
             ...payload,
-            ...updatedUser,
         };
 
         this.profile = updatedProfile;
         if (this.isOwnProfile) {
             this.authService
-                .patchAndRefreshCurrentUser({
-                    ...payload,
-                    ...updatedUser,
-                })
+                .patchAndRefreshCurrentUser(payload)
                 .pipe(takeUntil(this.destroy$))
                 .subscribe({
                     next: user => {

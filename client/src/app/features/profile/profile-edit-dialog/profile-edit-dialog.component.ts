@@ -62,10 +62,7 @@ export class ProfileEditDialogComponent {
                     return;
                 }
 
-                this.dialogRef.close({
-                    payload,
-                    updatedUser: response.data.user,
-                });
+                this.dialogRef.close({ payload });
             },
             error: error => {
                 this.toast.error(error.error?.error || "Failed to update profile");
