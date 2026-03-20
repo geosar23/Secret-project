@@ -24,8 +24,8 @@ import {
     ProfileEditDialogData,
     ProfileEditDialogPayload,
     ProfileEditDialogResult,
-} from "./interfaces/profile-edit-dialog.interface";
-import { ChangePasswordDialogResult } from "./interfaces/change-password-dialog.interface";
+} from "../../core/interfaces/profile-edit-dialog.interface";
+import { ChangePasswordDialogResult } from "../../core/interfaces/change-password-dialog.interface";
 
 @Component({
     selector: "app-profile",

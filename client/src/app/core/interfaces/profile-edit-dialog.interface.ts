@@ -1,4 +1,4 @@
-import { IUser } from "../../../core/interfaces/user.interface";
+import { IUser } from "./user.interface";
 
 export interface ProfileEditDialogPayload {
     name: string;
