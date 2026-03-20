@@ -13,3 +13,30 @@ export interface ChangePasswordRequest {
     currentPassword: string;
     newPassword: string;
 }
+
+export interface ProfileEditDialogPayload {
+    name: string;
+    email: string;
+}
+
+export interface ProfileEditDialogData {
+    userId: string;
+    name: string;
+    email: string;
+}
+
+export interface ProfileEditDialogResult {
+    payload: ProfileEditDialogPayload;
+    updatedUser: IUser;
+}
+
+export interface ProfileRouteContext {
+    isOwnProfile: boolean;
+    pageTitle: string;
+    userId: string | null;
+}
+
+export interface ChangePasswordDialogResult {
+    currentPassword: string;
+    newPassword: string;
+}

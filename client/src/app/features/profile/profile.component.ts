@@ -11,7 +11,14 @@ import { MatDividerModule } from "@angular/material/divider";
 import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute } from "@angular/router";
 import { AuthService } from "../../core/services/auth.service";
-import { UserProfile } from "../../core/interfaces/profile.interface";
+import {
+    UserProfile,
+    ProfileEditDialogData,
+    ProfileEditDialogPayload,
+    ProfileEditDialogResult,
+    ProfileRouteContext,
+    ChangePasswordDialogResult,
+} from "../../core/interfaces/profile.interface";
 import { IUser } from "../../core/interfaces/user.interface";
 import { RoleUtils } from "../../core/utils/role.utils";
 import { UsersService } from "../../core/services/users.service";
@@ -20,14 +27,6 @@ import { Subject } from "rxjs";
 import { skipWhile, takeUntil } from "rxjs/operators";
 import { ProfileEditDialogComponent } from "./profile-edit-dialog/profile-edit-dialog.component";
 import { ChangePasswordDialogComponent } from "./change-password-dialog/change-password-dialog.component";
-import {
-    ProfileEditDialogData,
-    ProfileEditDialogPayload,
-    ProfileEditDialogResult,
-} from "../../core/interfaces/profile-edit-dialog.interface";
-import { ChangePasswordDialogResult } from "../../core/interfaces/change-password-dialog.interface";
-import { ProfileRouteContext } from "../../core/interfaces/profile-route-context.interface";
-
 @Component({
     selector: "app-profile",
     standalone: true,

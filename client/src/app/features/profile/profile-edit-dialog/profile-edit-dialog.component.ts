@@ -12,7 +12,7 @@ import {
     ProfileEditDialogData,
     ProfileEditDialogResult,
     ProfileEditDialogPayload,
-} from "../../../core/interfaces/profile-edit-dialog.interface";
+} from "../../../core/interfaces/profile.interface";
 
 @Component({
     selector: "app-profile-edit-dialog",

@@ -1,5 +1,5 @@
 import { ResolveFn } from "@angular/router";
-import { ProfileRouteContext } from "../../core/interfaces/profile-route-context.interface";
+import { ProfileRouteContext } from "../../core/interfaces/profile.interface";
 
 export const profileRouteContextResolver: ResolveFn<ProfileRouteContext> = route => {
     const routeUserId = route.paramMap.get("id");
