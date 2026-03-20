@@ -2,6 +2,7 @@ import { userRepository } from "../repositories/user.repository";
 import { IUser, IUsersQueryParams } from "../interfaces/user.interface";
 import { FilterQuery } from "mongoose";
 import { UserModel } from "../models/user.model";
+import bcrypt from "bcryptjs";
 
 export const UserService = {
     getUsers: async (params: IUsersQueryParams = {}, companyId: string) => {
@@ -111,5 +112,26 @@ export const UserService = {
         }
         const repo = userRepository(companyId);
         return repo.deleteOne({ _id: id });
+    },
+
+    changePassword: async (id: string, currentPassword: string, newPassword: string, companyId: string) => {
+        if (!companyId) {
+            throw new Error("Company ID is required for changing password");
+        }
+
+        const repo = userRepository(companyId);
+        const user = await repo.findById(id).select("password").lean();
+
+        if (!user || !user.password) {
+            throw new Error("User not found");
+        }
+
+        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+        if (!isCurrentPasswordValid) {
+            throw new Error("Current password is incorrect");
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await repo.updateOne({ _id: id }, { password: hashedPassword });
     },
 };

@@ -57,7 +57,7 @@ export class UserController {
             };
 
             const newUser = await UserService.create(params, requestingUser.companyId);
-            res.json(success(newUser));
+            res.json(success({ user: newUser }));
         } catch (error: any) {
             console.log("Error in UserController.create:", error, { decoded: req.decoded, body: req.body });
             res.json(softError(error.message, error));
@@ -146,9 +146,46 @@ export class UserController {
                 res.json(softError("User not found"));
                 return;
             }
-            res.json(success(updatedUser));
+            res.json(success({ user: updatedUser }));
         } catch (error: any) {
             console.log("Error in UserController.update:", error);
+            res.json(softError(error.message, error));
+        }
+    }
+
+    static async changePassword(req: AuthenticatedRequest, res: Response): Promise<void> {
+        try {
+            const requestingUser = req.decoded as tokenPayload;
+            if (!requestingUser.companyId) {
+                res.json(softError("Unauthorized"));
+                return;
+            }
+
+            const userId = req.params.id;
+            const { currentPassword, newPassword } = req.body as {
+                currentPassword?: string;
+                newPassword?: string;
+            };
+
+            if (requestingUser.id !== userId) {
+                res.json(softError("You can only change your own password"));
+                return;
+            }
+
+            if (!currentPassword || !newPassword) {
+                res.json(softError("Current password and new password are required"));
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                res.json(softError("New password must be at least 6 characters"));
+                return;
+            }
+
+            await UserService.changePassword(userId, currentPassword, newPassword, requestingUser.companyId);
+            res.json(success({}));
+        } catch (error: any) {
+            console.log("Error in UserController.changePassword:", error);
             res.json(softError(error.message, error));
         }
     }
