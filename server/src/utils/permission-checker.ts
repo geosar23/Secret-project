@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import { IUser } from "../interfaces/user.interface";
+import { AccessContext, PermissionKey } from "../interfaces/permission.interface";
 
 /**
  * Shape of a populated role object on IUser.
@@ -29,6 +30,22 @@ export function getEffectivePermissions(user: IUser): Set<string> {
 }
 
 /**
+ * Build the actor portion of an AccessContext from a fully-populated IUser.
+ * Exposed so policy functions can construct a context without re-computing
+ * effective permissions.
+ */
+export function buildActorContext(actor: IUser): AccessContext["actor"] {
+    const effective = getEffectivePermissions(actor);
+    return {
+        id: actor._id!.toString(),
+        companyId: (actor.company as unknown as Types.ObjectId | undefined)?.toString() ?? "",
+        departmentId: actor.department?.toString(),
+        managerId: actor.manager?.toString(),
+        permissions: effective as unknown as Set<PermissionKey>,
+    };
+}
+
+/**
  * Check whether an effective permission set covers a required key,
  * honouring wildcard segments ("*").
  *
@@ -40,7 +57,7 @@ export function getEffectivePermissions(user: IUser): Set<string> {
  * "usersManagement:*:*" and "usersManagement:read:*" all satisfy
  * a required "usersManagement:read:department".
  */
-function matchesWildcard(effectivePerms: Set<string>, required: string): boolean {
+export function matchesWildcard(effectivePerms: Set<string>, required: string): boolean {
     const parts = required.split(":");
     if (parts.length !== 3) return false;
 

@@ -1,26 +1,124 @@
-import { PermissionKeys } from "../enums/permissions.enum";
+import { PermissionKeys, PermissionScopes } from "../enums/permissions.enum";
 import { AccessContext } from "../interfaces/permission.interface";
 import { IUser } from "../interfaces/user.interface";
+import { buildActorContext, getEffectivePermissions, matchesWildcard } from "../utils/permission-checker";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function canViewUser(ctx: AccessContext<IUser>): boolean {
-    const { actor, resource } = ctx;
+/**
+ * Check whether the actor's scope restriction is satisfied for a specific target user.
+ *
+ * COUNTRY / DEPARTMENT_COUNTRY scopes require `actor.countryId` to be populated
+ * externally (e.g. from the actor's company document) — if absent they return false.
+ */
+export function canAccessUserByScope(actor: AccessContext["actor"], target: IUser, scope: PermissionScopes): boolean {
+    switch (scope) {
+        case PermissionScopes.ALL:
+            return true;
 
-    if (actor.permissions.has(PermissionKeys.USERS_MANAGEMENT_READ_ALL)) {
-        return true;
+        case PermissionScopes.COMPANY:
+            return !!actor.companyId && actor.companyId === target.company?.toString();
+
+        case PermissionScopes.DEPARTMENT:
+            return !!actor.departmentId && actor.departmentId === target.department?.toString();
+
+        case PermissionScopes.COUNTRY:
+            // Requires countryId on both actor and target (populated from company doc).
+            return !!actor.countryId && actor.countryId === (target as IUser & { countryId?: string }).countryId;
+
+        case PermissionScopes.DEPARTMENT_COUNTRY:
+            return (
+                !!actor.departmentId &&
+                actor.departmentId === target.department?.toString() &&
+                !!actor.countryId &&
+                actor.countryId === (target as IUser & { countryId?: string }).countryId
+            );
+
+        case PermissionScopes.MANAGED:
+            // Actor is the direct manager of the target.
+            return target.manager?.toString() === actor.id;
+
+        case PermissionScopes.OWN:
+            // "own" — actor's company is the owning entity (same as company scope here).
+            return !!actor.companyId && actor.companyId === target.company?.toString();
+
+        case PermissionScopes.SELF:
+            return actor.id === target._id?.toString();
+
+        default:
+            return false;
     }
+}
 
-    if (actor.permissions.has(PermissionKeys.USERS_MANAGEMENT_READ_SELF) && actor.id === resource._id?.toString()) {
-        return true;
-    }
+/**
+ * Scope-aware access check for a category.
+ * Iterates permission keys from broadest to narrowest scope.
+ * Multiple permissions are additive (OR semantics) — any passing scope grants access.
+ */
+function checkScopedAccess(actorUser: IUser, targetUser: IUser, scopePairs: [string, PermissionScopes][]): boolean {
+    const effective = getEffectivePermissions(actorUser);
+    const actorCtx = buildActorContext(actorUser);
 
-    if (
-        actor.permissions.has(PermissionKeys.USERS_MANAGEMENT_READ_DEPARTMENT) &&
-        actor.departmentId &&
-        actor.departmentId === resource.department?._id?.toString()
-    ) {
-        return true;
+    for (const [permKey, scope] of scopePairs) {
+        if (matchesWildcard(effective, permKey)) {
+            if (scope === PermissionScopes.ALL) return true;
+            if (canAccessUserByScope(actorCtx, targetUser, scope)) return true;
+        }
     }
 
     return false;
+}
+
+/** Can the actor read a target user (usersManagement category)? */
+export function canViewUser(actorUser: IUser, targetUser: IUser): boolean {
+    return checkScopedAccess(actorUser, targetUser, [
+        [PermissionKeys.USERS_MANAGEMENT_READ_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USERS_MANAGEMENT_READ_COMPANY, PermissionScopes.COMPANY],
+        [PermissionKeys.USERS_MANAGEMENT_READ_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USERS_MANAGEMENT_READ_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USERS_MANAGEMENT_READ_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USERS_MANAGEMENT_READ_MANAGED, PermissionScopes.MANAGED],
+        [PermissionKeys.USERS_MANAGEMENT_READ_OWN, PermissionScopes.OWN],
+        [PermissionKeys.USERS_MANAGEMENT_READ_SELF, PermissionScopes.SELF],
+    ]);
+}
+
+/** Can the actor fully manage (read + write) a target user (usersManagement category)? */
+export function canManageUser(actorUser: IUser, targetUser: IUser): boolean {
+    return checkScopedAccess(actorUser, targetUser, [
+        [PermissionKeys.USERS_MANAGEMENT_ALL_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USERS_MANAGEMENT_ALL_COMPANY, PermissionScopes.COMPANY],
+        [PermissionKeys.USERS_MANAGEMENT_ALL_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USERS_MANAGEMENT_ALL_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USERS_MANAGEMENT_ALL_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USERS_MANAGEMENT_ALL_MANAGED, PermissionScopes.MANAGED],
+        [PermissionKeys.USERS_MANAGEMENT_ALL_OWN, PermissionScopes.OWN],
+        [PermissionKeys.USERS_MANAGEMENT_ALL_SELF, PermissionScopes.SELF],
+    ]);
+}
+
+/** Can the actor read a target user's profile (userProfile category)? */
+export function canViewUserProfile(actorUser: IUser, targetUser: IUser): boolean {
+    return checkScopedAccess(actorUser, targetUser, [
+        [PermissionKeys.USER_PROFILE_READ_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USER_PROFILE_READ_COMPANY, PermissionScopes.COMPANY],
+        [PermissionKeys.USER_PROFILE_READ_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USER_PROFILE_READ_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USER_PROFILE_READ_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USER_PROFILE_READ_MANAGED, PermissionScopes.MANAGED],
+        [PermissionKeys.USER_PROFILE_READ_OWN, PermissionScopes.OWN],
+        [PermissionKeys.USER_PROFILE_READ_SELF, PermissionScopes.SELF],
+    ]);
+}
+
+/** Can the actor fully manage a target user's profile (userProfile category)? */
+export function canManageUserProfile(actorUser: IUser, targetUser: IUser): boolean {
+    return checkScopedAccess(actorUser, targetUser, [
+        [PermissionKeys.USER_PROFILE_ALL_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USER_PROFILE_ALL_COMPANY, PermissionScopes.COMPANY],
+        [PermissionKeys.USER_PROFILE_ALL_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USER_PROFILE_ALL_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USER_PROFILE_ALL_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USER_PROFILE_ALL_MANAGED, PermissionScopes.MANAGED],
+        [PermissionKeys.USER_PROFILE_ALL_OWN, PermissionScopes.OWN],
+        [PermissionKeys.USER_PROFILE_ALL_SELF, PermissionScopes.SELF],
+    ]);
 }
