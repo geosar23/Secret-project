@@ -1,0 +1,21 @@
+.full-width {
+    width: 100%;
+}
+
+.toggle-row {
+    padding: 8px 0 4px;
+}
+
+mat-dialog-content {
+    min-width: 400px;
+    padding: var(--spacing-lg);
+
+    @media (max-width: 768px) {
+        min-width: 280px;
+    }
+}
+
+mat-dialog-actions {
+    padding: var(--spacing-md) var(--spacing-lg);
+    gap: var(--spacing-sm);
+}

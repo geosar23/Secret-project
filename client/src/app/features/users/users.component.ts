@@ -17,6 +17,7 @@ import { Router } from "@angular/router";
 import { UsersService } from "../../core/services/users.service";
 import { IUser, IUsersListResponse, IUsersQueryParams } from "../../core/interfaces/user.interface";
 import { CreateUserDialogComponent } from "./create-user-dialog/create-user-dialog.component";
+import { EditUserDialogComponent, EditUserDialogData } from "./edit-user-dialog/edit-user-dialog.component";
 import { RoleUtils } from "../../core/utils/role.utils";
 import { JsonResponse } from "../../core/interfaces/generics.interface";
 import { ToastService } from "../../core/services/toast.service";
@@ -53,7 +54,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     searchControl = new FormControl("");
 
     public tableData: MatTableDataSource<IUserTableData> = new MatTableDataSource<IUserTableData>([]);
-    public displayedColumns: string[] = ["name", "email", "role", "companyId", "status", "createdAt"];
+    public displayedColumns: string[] = ["name", "email", "role", "companyId", "status", "createdAt", "actions"];
     private toast = inject(ToastService);
 
     loading = false;
@@ -164,6 +165,27 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             this.paginator.pageIndex = 0;
         }
         this.loadUsers();
+    }
+
+    openEditModal(user: IUser) {
+        const dialogRef = this.dialog.open(EditUserDialogComponent, {
+            width: "500px",
+            data: { user } as EditUserDialogData,
+        });
+
+        dialogRef.afterClosed().subscribe((updated?: IUser) => {
+            if (!updated) return;
+            this.tableData.data = this.tableData.data.map(u =>
+                u._id === updated._id
+                    ? {
+                          ...updated,
+                          roleColor: RoleUtils.getRoleColor(updated.role?.role),
+                          roleName: RoleUtils.getRoleName(updated.role?.role),
+                      }
+                    : u,
+            );
+            this.toast.success("User updated successfully");
+        });
     }
 
     openCreateModal() {

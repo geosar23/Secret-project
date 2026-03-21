@@ -1,10 +1,10 @@
-<h2 mat-dialog-title>Create New User</h2>
+<h2 mat-dialog-title>Edit User</h2>
 
 <mat-dialog-content>
     <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Name</mat-label>
-            <input matInput formControlName="name" placeholder="Enter full name" />
+            <input matInput formControlName="name" placeholder="Full name" />
             @if (userForm.get("name")?.hasError("required") && userForm.get("name")?.touched) {
                 <mat-error>Name is required</mat-error>
             }
@@ -20,28 +20,8 @@
                 <mat-error>Email is required</mat-error>
             }
             @if (userForm.get("email")?.hasError("email")) {
-                <mat-error>Please enter a valid email</mat-error>
+                <mat-error>Invalid email format</mat-error>
             }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Password</mat-label>
-            <input matInput type="password" formControlName="password" placeholder="Enter temporary password" />
-            @if (userForm.get("password")?.hasError("required") && userForm.get("password")?.touched) {
-                <mat-error>Password is required</mat-error>
-            }
-            @if (userForm.get("password")?.hasError("minlength")) {
-                <mat-error>Password must be at least 6 characters</mat-error>
-            }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Role</mat-label>
-            <mat-select formControlName="role">
-                @for (role of roles; track role.value) {
-                    <mat-option [value]="role.value">{{ role.label }}</mat-option>
-                }
-            </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
@@ -57,10 +37,9 @@
             </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Department ID</mat-label>
-            <input matInput formControlName="departmentId" placeholder="Optional: dept-hr" />
-        </mat-form-field>
+        <div class="toggle-row">
+            <mat-slide-toggle formControlName="isActive" color="primary">Active</mat-slide-toggle>
+        </div>
     </form>
 </mat-dialog-content>
 
@@ -75,9 +54,9 @@
     >
         @if (loading) {
             <mat-spinner diameter="20"></mat-spinner>
-            Creating...
+            Saving...
         } @else {
-            Create User
+            Save Changes
         }
     </button>
 </mat-dialog-actions>

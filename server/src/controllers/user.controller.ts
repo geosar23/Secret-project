@@ -125,10 +125,20 @@ export class UserController {
             }
 
             // Define allowed fields for update (prevent unauthorized field modifications)
-            const allowedFields: (keyof IUser)[] = ["name", "email", "department", "isActive"];
+            const allowedFields: (keyof IUser)[] = ["name", "email", "department", "isActive", "role"];
 
             // Sanitize input: only allow whitelisted fields
             const sanitizedData: Partial<IUser> = {};
+
+            // Handle companyId → company mapping
+            if ("companyId" in req.body && req.body.companyId !== undefined) {
+                const val = req.body.companyId;
+                if (typeof val === "string" && val.trim().length > 0) {
+                    (sanitizedData as Record<string, unknown>)["company"] = val.trim();
+                } else if (val === null || val === "") {
+                    (sanitizedData as Record<string, unknown>)["company"] = null;
+                }
+            }
 
             allowedFields.forEach(field => {
                 if (field in req.body && req.body[field] !== undefined) {

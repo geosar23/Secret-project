@@ -85,6 +85,14 @@ export class HeaderComponent implements OnInit {
             description: "Manage users",
         },
         {
+            id: "companies",
+            name: "Companies Management",
+            type: "route",
+            icon: "business",
+            route: "/companies",
+            description: "Manage companies",
+        },
+        {
             id: "permissions",
             name: "Permissions Management",
             type: "route",
@@ -107,6 +115,11 @@ export class HeaderComponent implements OnInit {
             label: "Users Management",
             icon: "people",
             route: "/users",
+        },
+        {
+            label: "Companies Management",
+            icon: "business",
+            route: "/companies",
         },
         {
             label: "Permissions Management",

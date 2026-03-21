@@ -6,3 +6,14 @@ export interface ICompany {
     createdAt?: Date;
     updatedAt?: Date;
 }
+
+export interface ICreateCompanyRequest {
+    name: string;
+    slug: string;
+}
+
+export interface IUpdateCompanyRequest {
+    name?: string;
+    slug?: string;
+    isActive?: boolean;
+}
