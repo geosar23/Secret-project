@@ -2,11 +2,18 @@
 import { NextFunction, Response } from "express";
 import { UserService } from "../services/user.service";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
-// import { DefaultUserRoles } from "../enums/user-role.enum";
 import { IUser, IUsersQueryParams } from "../interfaces/user.interface";
 import { success, softError } from "../util/response.util";
+import { buildUserVisibilityFilter } from "../policies/user.policy";
+import { PermissionKeys } from "../enums/permissions.enum";
 
 export class UserController {
+    private static isValidPermissionKey(permissionKey: string): boolean {
+        return Object.values(PermissionKeys).includes(
+            permissionKey as (typeof PermissionKeys)[keyof typeof PermissionKeys],
+        );
+    }
+
     static async getUsers(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
@@ -28,7 +35,23 @@ export class UserController {
                 isActive: req.query.isActive === "true" ? true : req.query.isActive === "false" ? false : undefined,
             };
 
-            const users = await UserService.getUsers(params, requestingUser.companyId);
+            const actorUser = await UserService.getById(requestingUser.id, requestingUser.companyId);
+            if (!actorUser) {
+                res.json(softError("Unauthorized"));
+                return;
+            }
+
+            const actor = actorUser as IUser;
+
+            const visibilityFilter = buildUserVisibilityFilter(actor);
+            if (visibilityFilter === null) {
+                res.json(
+                    success({ users: [], total: 0, page: params.page || 1, limit: params.limit || 10, totalPages: 0 }),
+                );
+                return;
+            }
+
+            const users = await UserService.getUsers(params, requestingUser.companyId, visibilityFilter);
             res.json(success(users));
         } catch (error: any) {
             console.log("Error in UserController.getUsers:", error, { decoded: req.decoded, query: req.query });
@@ -186,6 +209,76 @@ export class UserController {
             res.json(success({}));
         } catch (error: any) {
             console.log("Error in UserController.changePassword:", error);
+            res.json(softError(error.message, error));
+        }
+    }
+
+    static async grantPermission(req: AuthenticatedRequest, res: Response): Promise<void> {
+        try {
+            const requestingUser = req.decoded as tokenPayload;
+            if (!requestingUser.companyId) {
+                res.json(softError("Unauthorized"));
+                return;
+            }
+
+            const userId = req.params.id;
+            const permissionKey = String(req.body.permissionKey || "").trim();
+
+            if (!permissionKey) {
+                res.json(softError("permissionKey is required"));
+                return;
+            }
+
+            if (!UserController.isValidPermissionKey(permissionKey)) {
+                res.json(softError("Invalid permission key"));
+                return;
+            }
+
+            const targetUser = await UserService.getById(userId, requestingUser.companyId, ["_id"]);
+            if (!targetUser) {
+                res.json(softError("User not found"));
+                return;
+            }
+
+            await UserService.grantPermission(userId, permissionKey, requestingUser.companyId);
+            res.json(success({ userId, permissionKey }));
+        } catch (error: any) {
+            console.log("Error in UserController.grantPermission:", error);
+            res.json(softError(error.message, error));
+        }
+    }
+
+    static async revokePermission(req: AuthenticatedRequest, res: Response): Promise<void> {
+        try {
+            const requestingUser = req.decoded as tokenPayload;
+            if (!requestingUser.companyId) {
+                res.json(softError("Unauthorized"));
+                return;
+            }
+
+            const userId = req.params.id;
+            const permissionKey = String(req.body.permissionKey || "").trim();
+
+            if (!permissionKey) {
+                res.json(softError("permissionKey is required"));
+                return;
+            }
+
+            if (!UserController.isValidPermissionKey(permissionKey)) {
+                res.json(softError("Invalid permission key"));
+                return;
+            }
+
+            const targetUser = await UserService.getById(userId, requestingUser.companyId, ["_id"]);
+            if (!targetUser) {
+                res.json(softError("User not found"));
+                return;
+            }
+
+            await UserService.revokePermission(userId, permissionKey, requestingUser.companyId);
+            res.json(success({ userId, permissionKey }));
+        } catch (error: any) {
+            console.log("Error in UserController.revokePermission:", error);
             res.json(softError(error.message, error));
         }
     }

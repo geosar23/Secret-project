@@ -5,7 +5,7 @@ import { UserModel } from "../models/user.model";
 import bcrypt from "bcryptjs";
 
 export const UserService = {
-    getUsers: async (params: IUsersQueryParams = {}, companyId: string) => {
+    getUsers: async (params: IUsersQueryParams = {}, companyId: string, permissionsFilter?: FilterQuery<IUser>) => {
         // Validate and sanitize parameters (business rules)
         const page = Math.max(1, Math.min(params.page || 1, 1000));
         const limit = Math.max(1, Math.min(params.limit || 10, 100));
@@ -51,6 +51,11 @@ export const UserService = {
         if (!companyId) {
             return { users: [], total: 0, page, limit, totalPages: 0 };
         }
+
+        if (permissionsFilter && Object.keys(permissionsFilter).length > 0) {
+            filter.$and = [...(filter.$and || []), permissionsFilter];
+        }
+
         const repo = userRepository(companyId);
         const [users, total] = await Promise.all([
             repo
@@ -133,5 +138,33 @@ export const UserService = {
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         await repo.updateOne({ _id: id }, { password: hashedPassword });
+    },
+
+    grantPermission: async (id: string, permissionKey: string, companyId: string) => {
+        if (!companyId) {
+            throw new Error("Company ID is required for granting permissions");
+        }
+
+        const repo = userRepository(companyId);
+        const result = await repo.updateOne({ _id: id }, {
+            $addToSet: { grantedPermissions: permissionKey },
+            $pull: { revokedPermissions: permissionKey },
+        } as unknown as Partial<IUser>);
+
+        return result.modifiedCount > 0 || result.matchedCount > 0;
+    },
+
+    revokePermission: async (id: string, permissionKey: string, companyId: string) => {
+        if (!companyId) {
+            throw new Error("Company ID is required for revoking permissions");
+        }
+
+        const repo = userRepository(companyId);
+        const result = await repo.updateOne({ _id: id }, {
+            $addToSet: { revokedPermissions: permissionKey },
+            $pull: { grantedPermissions: permissionKey },
+        } as unknown as Partial<IUser>);
+
+        return result.modifiedCount > 0 || result.matchedCount > 0;
     },
 };

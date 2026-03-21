@@ -2,6 +2,67 @@ import { PermissionKeys, PermissionScopes } from "../enums/permissions.enum";
 import { AccessContext } from "../interfaces/permission.interface";
 import { IUser } from "../interfaces/user.interface";
 import { buildActorContext, getEffectivePermissions, matchesWildcard } from "../utils/permission-checker";
+import { FilterQuery } from "mongoose";
+
+/**
+ * Builds a MongoDB filter that limits which users the actor can see in list endpoints.
+ * Returns null when the actor has no list visibility for users.
+ */
+export function buildUserVisibilityFilter(actorUser: IUser): FilterQuery<IUser> | null {
+    const effective = getEffectivePermissions(actorUser);
+
+    if (matchesWildcard(effective, PermissionKeys.ALL)) {
+        return {};
+    }
+
+    if (matchesWildcard(effective, PermissionKeys.USERS_MANAGEMENT_READ_ALL)) {
+        return {};
+    }
+
+    const scopeFilters: FilterQuery<IUser>[] = [];
+
+    if (matchesWildcard(effective, PermissionKeys.USERS_MANAGEMENT_READ_COMPANY)) {
+        if (actorUser.company) {
+            scopeFilters.push({ company: actorUser.company });
+        }
+    }
+
+    if (matchesWildcard(effective, PermissionKeys.USERS_MANAGEMENT_READ_DEPARTMENT)) {
+        if (actorUser.department) {
+            scopeFilters.push({ department: actorUser.department });
+        }
+    }
+
+    if (matchesWildcard(effective, PermissionKeys.USERS_MANAGEMENT_READ_MANAGED)) {
+        if (actorUser._id) {
+            scopeFilters.push({ manager: actorUser._id });
+        }
+    }
+
+    if (matchesWildcard(effective, PermissionKeys.USERS_MANAGEMENT_READ_SELF)) {
+        if (actorUser._id) {
+            scopeFilters.push({ _id: actorUser._id });
+        }
+    }
+
+    if (matchesWildcard(effective, PermissionKeys.USERS_MANAGEMENT_READ_OWN)) {
+        if (actorUser.company) {
+            scopeFilters.push({ company: actorUser.company });
+        }
+    }
+
+    // COUNTRY and DEPARTMENT_COUNTRY need country data in IUser/UserModel.
+
+    if (scopeFilters.length === 0) {
+        return null;
+    }
+
+    if (scopeFilters.length === 1) {
+        return scopeFilters[0];
+    }
+
+    return { $or: scopeFilters };
+}
 
 /**
  * Check whether the actor's scope restriction is satisfied for a specific target user.
