@@ -4,7 +4,7 @@ import { UserService } from "../services/user.service";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { IUser, IUsersQueryParams } from "../interfaces/user.interface";
 import { success, softError } from "../util/response.util";
-import { buildUserVisibilityFilter } from "../policies/user.policy";
+import { buildUserSearchAccessQuery } from "../policies/user.policy";
 import { PermissionKeys } from "../enums/permissions.enum";
 
 export class UserController {
@@ -43,15 +43,15 @@ export class UserController {
 
             const actor = actorUser as IUser;
 
-            const visibilityFilter = buildUserVisibilityFilter(actor);
-            if (visibilityFilter === null) {
+            const searchAccessQuery = buildUserSearchAccessQuery(actor);
+            if (searchAccessQuery === null) {
                 res.json(
                     success({ users: [], total: 0, page: params.page || 1, limit: params.limit || 10, totalPages: 0 }),
                 );
                 return;
             }
 
-            const users = await UserService.getUsers(params, requestingUser.companyId, visibilityFilter);
+            const users = await UserService.getUsers(params, requestingUser.companyId, searchAccessQuery);
             res.json(success(users));
         } catch (error: any) {
             console.log("Error in UserController.getUsers:", error, { decoded: req.decoded, query: req.query });

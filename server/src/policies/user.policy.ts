@@ -3,66 +3,37 @@ import { AccessContext } from "../interfaces/permission.interface";
 import { IUser } from "../interfaces/user.interface";
 import { buildActorContext, getEffectivePermissions, matchesWildcard } from "../utils/permission-checker";
 import { FilterQuery } from "mongoose";
+import { buildSearchAccessQuery } from "./search-access.policy";
 
 /**
  * Builds a MongoDB filter that limits which users the actor can see in list endpoints.
  * Returns null when the actor has no list visibility for users.
  */
-export function buildUserVisibilityFilter(actorUser: IUser): FilterQuery<IUser> | null {
-    const effective = getEffectivePermissions(actorUser);
-
-    if (matchesWildcard(effective, PermissionKeys.ALL)) {
-        return {};
-    }
-
-    if (matchesWildcard(effective, PermissionKeys.USERS_MANAGEMENT_READ_ALL)) {
-        return {};
-    }
-
-    const scopeFilters: FilterQuery<IUser>[] = [];
-
-    if (matchesWildcard(effective, PermissionKeys.USERS_MANAGEMENT_READ_COMPANY)) {
-        if (actorUser.company) {
-            scopeFilters.push({ company: actorUser.company });
-        }
-    }
-
-    if (matchesWildcard(effective, PermissionKeys.USERS_MANAGEMENT_READ_DEPARTMENT)) {
-        if (actorUser.department) {
-            scopeFilters.push({ department: actorUser.department });
-        }
-    }
-
-    if (matchesWildcard(effective, PermissionKeys.USERS_MANAGEMENT_READ_MANAGED)) {
-        if (actorUser._id) {
-            scopeFilters.push({ manager: actorUser._id });
-        }
-    }
-
-    if (matchesWildcard(effective, PermissionKeys.USERS_MANAGEMENT_READ_SELF)) {
-        if (actorUser._id) {
-            scopeFilters.push({ _id: actorUser._id });
-        }
-    }
-
-    if (matchesWildcard(effective, PermissionKeys.USERS_MANAGEMENT_READ_OWN)) {
-        if (actorUser.company) {
-            scopeFilters.push({ company: actorUser.company });
-        }
-    }
-
-    // COUNTRY and DEPARTMENT_COUNTRY need country data in IUser/UserModel.
-
-    if (scopeFilters.length === 0) {
-        return null;
-    }
-
-    if (scopeFilters.length === 1) {
-        return scopeFilters[0];
-    }
-
-    return { $or: scopeFilters };
+export function buildUserSearchAccessQuery(actorUser: IUser): FilterQuery<IUser> | null {
+    return buildSearchAccessQuery<IUser>(actorUser, {
+        permissions: {
+            all: PermissionKeys.ALL,
+            readAll: PermissionKeys.USERS_MANAGEMENT_READ_ALL,
+            readCompany: PermissionKeys.USERS_MANAGEMENT_READ_COMPANY,
+            readDepartment: PermissionKeys.USERS_MANAGEMENT_READ_DEPARTMENT,
+            readCountry: PermissionKeys.USERS_MANAGEMENT_READ_COUNTRY,
+            readDepartmentCountry: PermissionKeys.USERS_MANAGEMENT_READ_DEPARTMENT_COUNTRY,
+            readManaged: PermissionKeys.USERS_MANAGEMENT_READ_MANAGED,
+            readSelf: PermissionKeys.USERS_MANAGEMENT_READ_SELF,
+            readOwn: PermissionKeys.USERS_MANAGEMENT_READ_OWN,
+        },
+        fields: {
+            company: "company",
+            department: "department",
+            country: "countryId",
+            manager: "manager",
+            id: "_id",
+        },
+    });
 }
+
+// Backwards-compatible alias; remove after call sites migrate.
+export const buildUserVisibilityFilter = buildUserSearchAccessQuery;
 
 /**
  * Check whether the actor's scope restriction is satisfied for a specific target user.
