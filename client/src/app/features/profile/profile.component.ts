@@ -11,21 +11,14 @@ import { MatDividerModule } from "@angular/material/divider";
 import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute } from "@angular/router";
 import { AuthService } from "../../core/services/auth.service";
-import {
-    UserProfile,
-    ProfileEditDialogData,
-    ProfileEditDialogPayload,
-    ProfileEditDialogResult,
-    ProfileRouteContext,
-    ChangePasswordDialogResult,
-} from "../../core/interfaces/profile.interface";
+import { UserProfile, ProfileRouteContext, ChangePasswordDialogResult } from "../../core/interfaces/profile.interface";
 import { RoleUtils } from "../../core/utils/role.utils";
 import { UsersService } from "../../core/services/users.service";
 import { ToastService } from "../../core/services/toast.service";
 import { Subject } from "rxjs";
 import { skipWhile, takeUntil } from "rxjs/operators";
-import { ProfileEditDialogComponent } from "./profile-edit-dialog/profile-edit-dialog.component";
 import { ChangePasswordDialogComponent } from "./change-password-dialog/change-password-dialog.component";
+import { EditUserDialogComponent, EditUserDialogData } from "../users/edit-user-dialog/edit-user-dialog.component";
 @Component({
     selector: "app-profile",
     standalone: true,
@@ -126,49 +119,32 @@ export class ProfileComponent implements OnInit, OnDestroy {
     openEditDialog(): void {
         if (!this.profile || this.loading) return;
 
-        const dialogData: ProfileEditDialogData = {
-            userId: this.profile._id as string,
-            name: this.profile.name,
-            email: this.profile.email,
-        };
-
         this.dialog
-            .open(ProfileEditDialogComponent, {
-                width: "460px",
+            .open(EditUserDialogComponent, {
+                width: "500px",
                 maxWidth: "95vw",
-                data: dialogData,
+                data: { user: this.profile } as EditUserDialogData,
             })
             .afterClosed()
             .pipe(takeUntil(this.destroy$))
-            .subscribe((result?: ProfileEditDialogResult) => {
-                if (!result) return;
-                this.onUpdateProfile(result.payload);
+            .subscribe(updatedUser => {
+                if (!updatedUser) return;
+                this.profile = updatedUser;
+                if (this.isOwnProfile) {
+                    this.authService
+                        .patchAndRefreshCurrentUser(updatedUser)
+                        .pipe(takeUntil(this.destroy$))
+                        .subscribe({
+                            next: user => {
+                                this.profile = user;
+                            },
+                            error: () => {
+                                return;
+                            },
+                        });
+                }
+                this.toast.success("Profile updated successfully");
             });
-    }
-
-    onUpdateProfile(payload: ProfileEditDialogPayload): void {
-        if (!this.profile) return;
-
-        const updatedProfile = {
-            ...this.profile,
-            ...payload,
-        };
-
-        this.profile = updatedProfile;
-        if (this.isOwnProfile) {
-            this.authService
-                .patchAndRefreshCurrentUser(payload)
-                .pipe(takeUntil(this.destroy$))
-                .subscribe({
-                    next: user => {
-                        this.profile = user;
-                    },
-                    error: () => {
-                        return;
-                    },
-                });
-        }
-        this.toast.success("Profile updated successfully");
     }
 
     openChangePasswordDialog(): void {
