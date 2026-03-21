@@ -27,7 +27,6 @@
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Company</mat-label>
             <mat-select formControlName="companyId">
-                <mat-option value="">— No company —</mat-option>
                 @if (companiesLoading) {
                     <mat-option disabled>Loading companies...</mat-option>
                 }
