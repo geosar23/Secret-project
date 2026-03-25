@@ -55,6 +55,19 @@
                 <mat-cell *matCellDef="let role" data-label="Description">{{ role.description || "-" }}</mat-cell>
             </ng-container>
 
+            <!-- Permissions Column -->
+            <ng-container matColumnDef="permissions">
+                <mat-header-cell *matHeaderCellDef>Permissions</mat-header-cell>
+                <mat-cell *matCellDef="let role" data-label="Permissions">
+                    <span
+                        class="badge badge-neutral"
+                        [matTooltip]="(role.permissions || []).join(', ') || 'No permissions'"
+                    >
+                        {{ (role.permissions || []).length }} assigned
+                    </span>
+                </mat-cell>
+            </ng-container>
+
             <!-- Type Column -->
             <ng-container matColumnDef="type">
                 <mat-header-cell *matHeaderCellDef>Type</mat-header-cell>

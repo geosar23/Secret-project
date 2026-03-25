@@ -12,6 +12,14 @@ import { MatChipsModule } from "@angular/material/chips";
 import { RoleService } from "../../../core/services/role.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { IRole } from "../../../core/interfaces/role.interface";
+import { PERMISSIONS, PermissionCategoriesStrings } from "../../../core/enums/permissions.enum";
+import { IPermissionDefinition } from "../../../core/interfaces/permission.interface";
+
+interface PermissionGroup {
+    category: string;
+    categoryLabel: string;
+    permissions: IPermissionDefinition[];
+}
 
 export interface RoleDialogData {
     mode: "create" | "edit";
@@ -46,12 +54,46 @@ export class RoleDialogComponent {
     loading = false;
     isEdit = this.data.mode === "edit";
 
+    readonly permissionGroups: PermissionGroup[] = this.buildPermissionGroups();
+
     form: FormGroup = this.fb.group({
         name: [this.data.role?.name ?? "", [Validators.required, Validators.minLength(2)]],
         description: [this.data.role?.description ?? "", [Validators.maxLength(255)]],
         isActive: [this.data.role?.isActive ?? true],
         permissions: [this.data.role?.permissions ?? []],
     });
+
+    get selectedPermissions(): string[] {
+        return (this.form.get("permissions")?.value as string[]) ?? [];
+    }
+
+    getSelectedPermissionLabel(permissionKey: string): string {
+        const definition = (Object.values(PERMISSIONS) as IPermissionDefinition[]).find(p => p.key === permissionKey);
+        return definition?.name ?? permissionKey;
+    }
+
+    clearPermissions(): void {
+        this.form.get("permissions")?.setValue([]);
+        this.form.get("permissions")?.markAsDirty();
+    }
+
+    private buildPermissionGroups(): PermissionGroup[] {
+        const grouped = new Map<string, IPermissionDefinition[]>();
+
+        (Object.values(PERMISSIONS) as IPermissionDefinition[]).forEach(permission => {
+            if (!grouped.has(permission.category)) {
+                grouped.set(permission.category, []);
+            }
+            grouped.get(permission.category)?.push(permission);
+        });
+
+        return Array.from(grouped.entries()).map(([category, permissions]) => ({
+            category,
+            categoryLabel:
+                PermissionCategoriesStrings[category as keyof typeof PermissionCategoriesStrings] ?? category,
+            permissions: permissions.sort((a, b) => a.name.localeCompare(b.name)),
+        }));
+    }
 
     onSubmit(): void {
         if (this.form.invalid) {

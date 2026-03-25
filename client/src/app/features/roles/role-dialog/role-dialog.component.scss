@@ -25,6 +25,29 @@
     }
 }
 
+.selected-permissions {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 10px;
+
+    .selected-permissions-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 13px;
+        color: #555;
+    }
+
+    mat-chip-set {
+        display: block;
+    }
+
+    mat-chip {
+        margin: 4px;
+    }
+}
+
 mat-dialog-actions {
     display: flex;
     gap: 10px;

@@ -22,6 +22,36 @@
                 }
             </mat-form-field>
 
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Permissions</mat-label>
+                <mat-select formControlName="permissions" multiple>
+                    @for (group of permissionGroups; track group.category) {
+                        <mat-optgroup [label]="group.categoryLabel">
+                            @for (permission of group.permissions; track permission.key) {
+                                <mat-option [value]="permission.key">
+                                    {{ permission.name }}
+                                </mat-option>
+                            }
+                        </mat-optgroup>
+                    }
+                </mat-select>
+                <mat-hint>Select one or more permissions for this role.</mat-hint>
+            </mat-form-field>
+
+            @if (selectedPermissions.length > 0) {
+                <div class="selected-permissions">
+                    <div class="selected-permissions-header">
+                        <span>Selected ({{ selectedPermissions.length }})</span>
+                        <button mat-button type="button" color="warn" (click)="clearPermissions()">Clear</button>
+                    </div>
+                    <mat-chip-set>
+                        @for (permissionKey of selectedPermissions; track permissionKey) {
+                            <mat-chip>{{ getSelectedPermissionLabel(permissionKey) }}</mat-chip>
+                        }
+                    </mat-chip-set>
+                </div>
+            }
+
             <div class="toggle-container">
                 <mat-slide-toggle formControlName="isActive" class="toggle">Is Active</mat-slide-toggle>
             </div>

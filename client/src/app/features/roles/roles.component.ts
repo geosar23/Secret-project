@@ -52,7 +52,7 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
     systemRoleFilterControl = new FormControl<"all" | "system" | "custom">("all", { nonNullable: true });
     allRoles: IRole[] = [];
     tableData = new MatTableDataSource<IRole>([]);
-    displayedColumns = ["name", "description", "type", "status", "createdAt", "actions"];
+    displayedColumns = ["name", "description", "permissions", "type", "status", "createdAt", "actions"];
 
     ngOnInit(): void {
         this.tableData.filterPredicate = (data: IRole, filter: string) => {
@@ -65,7 +65,8 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
             const matchesSearch =
                 data.name.toLowerCase().includes(term) ||
                 (data.description ?? "").toLowerCase().includes(term) ||
-                (data.role ?? "").toLowerCase().includes(term);
+                (data.role ?? "").toLowerCase().includes(term) ||
+                (data.permissions ?? []).join(" ").toLowerCase().includes(term);
 
             return matchesType && matchesSearch;
         };
