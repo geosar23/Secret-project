@@ -7,7 +7,7 @@ export interface IRole {
     name: string;
     description: string;
     level: number; // Hierarchy level (higher = more powerful)
-    permissions: string; // List of permission strings
+    permissions: string[]; // List of permission strings
     isSystemRole: boolean; // Cannot be deleted or modified
     companyId?: Types.ObjectId; // null for system-wide roles
     isActive: boolean;

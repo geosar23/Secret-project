@@ -93,6 +93,14 @@ export class HeaderComponent implements OnInit {
             description: "Manage companies",
         },
         {
+            id: "roles",
+            name: "Roles Management",
+            type: "route",
+            icon: "admin_panel_settings",
+            route: "/roles",
+            description: "Manage roles",
+        },
+        {
             id: "permissions",
             name: "Permissions Management",
             type: "route",
@@ -120,6 +128,11 @@ export class HeaderComponent implements OnInit {
             label: "Companies Management",
             icon: "business",
             route: "/companies",
+        },
+        {
+            label: "Roles Management",
+            icon: "admin_panel_settings",
+            route: "/roles",
         },
         {
             label: "Permissions Management",

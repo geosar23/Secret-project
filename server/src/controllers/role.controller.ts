@@ -1,192 +1,180 @@
-import { Request, Response } from "express";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Response, NextFunction } from "express";
 import { RoleService } from "../services/role.service";
-import { DefaultUserRoles } from "../enums/user-role.enum";
+import { success, softError } from "../util/response.util";
+import { IRole } from "../interfaces/role.interface";
+import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 
 /**
  * Controller for role management
  */
-export const RoleController = {
+export class RoleController {
     /**
      * Get all roles
      * GET /api/roles
      */
-    async getAllRoles(req: Request, res: Response) {
+    static async getAllRoles(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const roles = await RoleService.getAll();
-            res.json({
-                success: true,
-                data: roles,
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                error: error instanceof Error ? error.message : "Failed to fetch roles",
-            });
+            res.json(success(roles));
+        } catch (error: any) {
+            console.log("Error in RoleController.getAllRoles:", error);
+            res.json(softError(error.message, error));
+            next(error);
         }
-    },
+    }
 
     /**
      * Get role by ID
      * GET /api/roles/:id
      */
-    async getRoleById(req: Request, res: Response) {
+    static async getRoleById(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const { id } = req.params;
             const role = await RoleService.getById(id);
 
             if (!role) {
-                return res.status(404).json({
-                    success: false,
-                    error: "Role not found",
-                });
+                res.json(softError("Role not found"));
+                return;
             }
 
-            res.json({
-                success: true,
-                data: role,
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                error: error instanceof Error ? error.message : "Failed to fetch role",
-            });
+            res.json(success(role));
+        } catch (error: any) {
+            console.log("Error in RoleController.getRoleById:", error);
+            res.json(softError(error.message, error));
+            next(error);
         }
-    },
+    }
 
     /**
      * Get role hierarchy
      * GET /api/roles/hierarchy
      */
-    async getRoleHierarchy(req: Request, res: Response) {
+    static async getRoleHierarchy(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const hierarchy = await RoleService.getHierarchy();
-            res.json({
-                success: true,
-                data: hierarchy,
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                error: error instanceof Error ? error.message : "Failed to fetch role hierarchy",
-            });
+            res.json(success(hierarchy));
+        } catch (error: any) {
+            console.log("Error in RoleController.getRoleHierarchy:", error);
+            res.json(softError(error.message, error));
+            next(error);
         }
-    },
+    }
 
     /**
      * Get permissions for a specific role
      * GET /api/roles/:roleType/permissions
      */
-    async getRolePermissions(req: Request, res: Response) {
+    static async getRolePermissions(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             // const { roleType } = req.params;
             // const permissions = await RoleService.getPermissions(roleType as DefaultUserRoles);
 
-            res.json({
-                success: true,
-                // data: permissions,
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                error: error instanceof Error ? error.message : "Failed to fetch role permissions",
-            });
+            res.json(success({}));
+        } catch (error: any) {
+            console.log("Error in RoleController.getRolePermissions:", error);
+            res.json(softError(error.message, error));
+            next(error);
         }
-    },
+    }
 
     /**
-     * Create a custom role (company-specific)
+     * Create a custom role
      * POST /api/roles
      */
-    async createRole(req: Request, res: Response) {
+    static async createRole(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
-            const { name, description, permissions, companyId } = req.body;
+            const user = req.decoded as tokenPayload;
+            const { name, description, permissions } = req.body as {
+                name?: string;
+                description?: string;
+                permissions?: string[];
+            };
 
-            if (!name || !permissions) {
-                return res.status(400).json({
-                    success: false,
-                    error: "Name and permissions are required",
-                });
+            if (!name || typeof name !== "string" || name.trim().length < 2) {
+                res.json(softError("Role name is required (min 2 characters)"));
+                return;
             }
 
-            const newRole = await RoleService.create({
-                role: name.toLowerCase().replace(/ /g, "_") as DefaultUserRoles,
-                name,
-                description: description || "",
+            const roleData: Omit<IRole, "_id" | "updatedAt"> = {
+                role: name.toLowerCase().replace(/ /g, "_"),
+                name: name.trim(),
+                description: description?.trim() || "",
                 level: 55, // Custom roles default level
-                permissions,
+                permissions: (permissions || [])
+                    .filter((p: string) => typeof p === "string")
+                    .map((p: string) => p.trim()),
                 isSystemRole: false,
-                companyId,
+                companyId: user.companyId as any,
                 isActive: true,
                 createdAt: new Date(),
-            });
+            };
 
-            res.status(201).json({
-                success: true,
-                data: newRole,
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                error: error instanceof Error ? error.message : "Failed to create role",
-            });
+            const newRole = await RoleService.create(roleData);
+
+            res.status(201).json(success({ role: newRole }));
+        } catch (error: any) {
+            console.log("Error in RoleController.createRole:", error);
+            res.json(softError(error.message, error));
+            next(error);
         }
-    },
+    }
 
     /**
      * Update a custom role
      * PUT /api/roles/:id
      */
-    async updateRole(req: Request, res: Response) {
+    static async updateRole(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const { id } = req.params;
-            const updates = req.body;
+            const updates: Partial<IRole> = {};
+
+            if (typeof req.body.name === "string" && req.body.name.trim().length > 0) {
+                updates.name = req.body.name.trim();
+            }
+            if (typeof req.body.description === "string") {
+                updates.description = req.body.description.trim();
+            }
+            if (Array.isArray(req.body.permissions)) {
+                updates.permissions = req.body.permissions
+                    .filter((p: string) => typeof p === "string")
+                    .map((p: string) => p.trim());
+            }
+            if (typeof req.body.isActive === "boolean") {
+                updates.isActive = req.body.isActive;
+            }
+
+            if (Object.keys(updates).length === 0) {
+                res.json(softError("No valid fields provided for update"));
+                return;
+            }
 
             const updated = await RoleService.update(id, updates);
 
             if (!updated) {
-                return res.status(404).json({
-                    success: false,
-                    error: "Role not found",
-                });
+                res.json(softError("Role not found"));
+                return;
             }
 
-            res.json({
-                success: true,
-                data: updated,
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                error: error instanceof Error ? error.message : "Failed to update role",
-            });
+            res.json(success({ role: updated }));
+        } catch (error: any) {
+            console.log("Error in RoleController.updateRole:", error);
+            res.json(softError(error.message, error));
+            next(error);
         }
-    },
+    }
 
     /**
      * Delete a custom role
      * DELETE /api/roles/:id
      */
-    async deleteRole(req: Request, res: Response) {
+    static async deleteRole(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
-            const { id } = req.params;
-            const deleted = await RoleService.delete(id);
-
-            if (!deleted) {
-                return res.status(404).json({
-                    success: false,
-                    error: "Role not found",
-                });
-            }
-
-            res.json({
-                success: true,
-                message: "Role deleted successfully",
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                error: error instanceof Error ? error.message : "Failed to delete role",
-            });
+            res.json(softError("Role deletion is not allowed. Set role status to inactive instead."));
+        } catch (error: any) {
+            console.log("Error in RoleController.deleteRole:", error);
+            res.json(softError(error.message, error));
+            next(error);
         }
-    },
-};
+    }
+}

@@ -1,0 +1,41 @@
+<div class="dialog-container">
+    <h2 mat-dialog-title>{{ isEdit ? "Edit Role" : "Create Role" }}</h2>
+
+    <mat-dialog-content>
+        <form [formGroup]="form" class="form-content">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Role Name *</mat-label>
+                <input matInput formControlName="name" placeholder="e.g., Manager" />
+                @if (form.get("name")?.hasError("required")) {
+                    <mat-error>Name is required</mat-error>
+                }
+                @if (form.get("name")?.hasError("minlength")) {
+                    <mat-error>Minimum 2 characters</mat-error>
+                }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Description</mat-label>
+                <textarea matInput formControlName="description" placeholder="Role description" rows="3"></textarea>
+                @if (form.get("description")?.hasError("maxlength")) {
+                    <mat-error>Maximum 255 characters</mat-error>
+                }
+            </mat-form-field>
+
+            <div class="toggle-container">
+                <mat-slide-toggle formControlName="isActive" class="toggle">Is Active</mat-slide-toggle>
+            </div>
+        </form>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+        <button mat-button (click)="onCancel()" [disabled]="loading">Cancel</button>
+        <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="form.invalid || loading">
+            @if (loading) {
+                <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+                <span>{{ isEdit ? "Update" : "Create" }}</span>
+            }
+        </button>
+    </mat-dialog-actions>
+</div>

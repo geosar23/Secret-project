@@ -1,0 +1,137 @@
+.roles-container {
+    padding: var(--spacing-lg);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.filters-container {
+    margin-bottom: var(--spacing-lg);
+
+    h5 {
+        margin-bottom: var(--spacing-md);
+        color: var(--color-text-secondary);
+        font-weight: var(--font-weight-medium);
+        font-size: var(--font-size-sm);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .filters-row {
+        display: flex;
+        gap: var(--spacing-md);
+        align-items: center;
+
+        .search-field {
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .sort-select {
+            min-width: 200px;
+        }
+    }
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-xl) 0;
+
+    p {
+        margin: 0;
+        color: var(--color-text-secondary);
+    }
+}
+
+.table-container {
+    margin-top: 2rem;
+}
+
+.actions {
+    display: flex;
+    gap: 0.25rem;
+
+    button {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-success {
+    background-color: #c8e6c9;
+    color: #2e7d32;
+}
+
+.badge-error {
+    background-color: #ffccbc;
+    color: #d84315;
+}
+
+.badge-info {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+.badge-neutral {
+    background-color: #f1f8e9;
+    color: #33691e;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+
+    h3 {
+        margin: 0 0 0.5rem;
+    }
+
+    p {
+        margin: 0;
+        color: var(--color-text-secondary);
+    }
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+
+    .filters-container {
+        .filters-row {
+            flex-direction: column;
+            align-items: stretch;
+
+            .search-field {
+                max-width: 100%;
+            }
+
+            .sort-select {
+                min-width: 0;
+                width: 100%;
+            }
+        }
+    }
+}
