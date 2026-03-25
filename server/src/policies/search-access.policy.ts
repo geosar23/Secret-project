@@ -1,6 +1,7 @@
 import { FilterQuery } from "mongoose";
 import { IUser } from "../interfaces/user.interface";
 import { getEffectivePermissions, matchesWildcard } from "../utils/permission-checker";
+import { toIdString } from "../utils/general.util";
 
 interface SearchAccessPermissions {
     all: string;
@@ -52,21 +53,23 @@ export function buildSearchAccessQuery<TDocument>(
     const scopeFilters: FilterQuery<TDocument>[] = [];
 
     if (options.permissions.readCompany && matchesWildcard(effective, options.permissions.readCompany)) {
-        if (actorUser.company) {
-            scopeFilters.push({ [options.fields.company]: actorUser.company } as unknown as FilterQuery<TDocument>);
+        const actorCompanyId = toIdString(actorUser.company);
+        if (actorCompanyId) {
+            scopeFilters.push({ [options.fields.company]: actorCompanyId } as unknown as FilterQuery<TDocument>);
         }
     }
 
     if (options.permissions.readDepartment && matchesWildcard(effective, options.permissions.readDepartment)) {
-        if (actorUser.department && options.fields.department) {
+        const actorDepartmentId = toIdString(actorUser.department);
+        if (actorDepartmentId && options.fields.department) {
             scopeFilters.push({
-                [options.fields.department]: actorUser.department,
+                [options.fields.department]: actorDepartmentId,
             } as unknown as FilterQuery<TDocument>);
         }
     }
 
     if (options.permissions.readCountry && matchesWildcard(effective, options.permissions.readCountry)) {
-        const actorCountryId = (actorUser as IUser & { countryId?: unknown }).countryId;
+        const actorCountryId = toIdString((actorUser as IUser & { countryId?: unknown }).countryId);
         if (actorCountryId && options.fields.country) {
             scopeFilters.push({ [options.fields.country]: actorCountryId } as unknown as FilterQuery<TDocument>);
         }
@@ -76,11 +79,12 @@ export function buildSearchAccessQuery<TDocument>(
         options.permissions.readDepartmentCountry &&
         matchesWildcard(effective, options.permissions.readDepartmentCountry)
     ) {
-        const actorCountryId = (actorUser as IUser & { countryId?: unknown }).countryId;
-        if (actorUser.department && options.fields.department && actorCountryId && options.fields.country) {
+        const actorCountryId = toIdString((actorUser as IUser & { countryId?: unknown }).countryId);
+        const actorDepartmentId = toIdString(actorUser.department);
+        if (actorDepartmentId && options.fields.department && actorCountryId && options.fields.country) {
             scopeFilters.push({
                 $and: [
-                    { [options.fields.department]: actorUser.department },
+                    { [options.fields.department]: actorDepartmentId },
                     { [options.fields.country]: actorCountryId },
                 ],
             } as unknown as FilterQuery<TDocument>);
@@ -88,20 +92,23 @@ export function buildSearchAccessQuery<TDocument>(
     }
 
     if (options.permissions.readManaged && matchesWildcard(effective, options.permissions.readManaged)) {
-        if (actorUser._id && options.fields.manager) {
-            scopeFilters.push({ [options.fields.manager]: actorUser._id } as unknown as FilterQuery<TDocument>);
+        const actorId = toIdString(actorUser._id);
+        if (actorId && options.fields.manager) {
+            scopeFilters.push({ [options.fields.manager]: actorId } as unknown as FilterQuery<TDocument>);
         }
     }
 
     if (options.permissions.readSelf && matchesWildcard(effective, options.permissions.readSelf)) {
-        if (actorUser._id && options.fields.id) {
-            scopeFilters.push({ [options.fields.id]: actorUser._id } as unknown as FilterQuery<TDocument>);
+        const actorId = toIdString(actorUser._id);
+        if (actorId && options.fields.id) {
+            scopeFilters.push({ [options.fields.id]: actorId } as unknown as FilterQuery<TDocument>);
         }
     }
 
     if (options.permissions.readOwn && matchesWildcard(effective, options.permissions.readOwn)) {
-        if (actorUser.company) {
-            scopeFilters.push({ [options.fields.company]: actorUser.company } as unknown as FilterQuery<TDocument>);
+        const actorCompanyId = toIdString(actorUser.company);
+        if (actorCompanyId) {
+            scopeFilters.push({ [options.fields.company]: actorCompanyId } as unknown as FilterQuery<TDocument>);
         }
     }
 

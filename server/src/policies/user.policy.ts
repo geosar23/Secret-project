@@ -2,6 +2,7 @@ import { PermissionKeys, PermissionScopes } from "../enums/permissions.enum";
 import { AccessContext } from "../interfaces/permission.interface";
 import { IUser } from "../interfaces/user.interface";
 import { buildActorContext, getEffectivePermissions, matchesWildcard } from "../utils/permission-checker";
+import { toIdString } from "../utils/general.util";
 import { FilterQuery } from "mongoose";
 import { buildSearchAccessQuery } from "./search-access.policy";
 
@@ -47,33 +48,36 @@ export function canAccessUserByScope(actor: AccessContext["actor"], target: IUse
             return true;
 
         case PermissionScopes.COMPANY:
-            return !!actor.companyId && actor.companyId === target.company?.toString();
+            return !!actor.companyId && actor.companyId === toIdString(target.company);
 
         case PermissionScopes.DEPARTMENT:
-            return !!actor.departmentId && actor.departmentId === target.department?.toString();
+            return !!actor.departmentId && actor.departmentId === toIdString(target.department);
 
         case PermissionScopes.COUNTRY:
             // Requires countryId on both actor and target (populated from company doc).
-            return !!actor.countryId && actor.countryId === (target as IUser & { countryId?: string }).countryId;
+            return (
+                !!actor.countryId &&
+                actor.countryId === toIdString((target as IUser & { countryId?: unknown }).countryId)
+            );
 
         case PermissionScopes.DEPARTMENT_COUNTRY:
             return (
                 !!actor.departmentId &&
-                actor.departmentId === target.department?.toString() &&
+                actor.departmentId === toIdString(target.department) &&
                 !!actor.countryId &&
-                actor.countryId === (target as IUser & { countryId?: string }).countryId
+                actor.countryId === toIdString((target as IUser & { countryId?: unknown }).countryId)
             );
 
         case PermissionScopes.MANAGED:
             // Actor is the direct manager of the target.
-            return target.manager?.toString() === actor.id;
+            return toIdString(target.manager) === actor.id;
 
         case PermissionScopes.OWN:
             // "own" — actor's company is the owning entity (same as company scope here).
-            return !!actor.companyId && actor.companyId === target.company?.toString();
+            return !!actor.companyId && actor.companyId === toIdString(target.company);
 
         case PermissionScopes.SELF:
-            return actor.id === target._id?.toString();
+            return actor.id === toIdString(target._id);
 
         default:
             return false;

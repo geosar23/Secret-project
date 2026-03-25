@@ -6,12 +6,16 @@ export enum PermissionCategories {
     ALL = "*",
     USERS_MANAGEMENT = "usersManagement",
     USER_PROFILE = "userProfile",
+    COMPANIES_MANAGEMENT = "companiesManagement",
+    ROLES_MANAGEMENT = "rolesManagement",
 }
 
 export const PermissionCategoriesStrings: Record<PermissionCategories, string> = {
     [PermissionCategories.ALL]: "All",
     [PermissionCategories.USERS_MANAGEMENT]: "Users Management",
     [PermissionCategories.USER_PROFILE]: "User Profile",
+    [PermissionCategories.COMPANIES_MANAGEMENT]: "Companies Management",
+    [PermissionCategories.ROLES_MANAGEMENT]: "Roles Management",
 };
 
 export enum PermissionScopes {
@@ -28,6 +32,8 @@ export enum PermissionScopes {
 export enum PermissionActions {
     ALL = "*",
     READ = "read",
+    WRITE = "write",
+    DELETE = "delete",
 }
 
 //PermissionCategory:PermissionAction:PermissionScope
@@ -71,6 +77,17 @@ export const PermissionKeys = {
     USER_PROFILE_ALL_MANAGED: `${PermissionCategories.USER_PROFILE}:${PermissionActions.ALL}:${PermissionScopes.MANAGED}`,
     USER_PROFILE_ALL_OWN: `${PermissionCategories.USER_PROFILE}:${PermissionActions.ALL}:${PermissionScopes.OWN}`,
     USER_PROFILE_ALL_SELF: `${PermissionCategories.USER_PROFILE}:${PermissionActions.ALL}:${PermissionScopes.SELF}`,
+
+    COMPANIES_MANAGEMENT_READ_ALL: `${PermissionCategories.COMPANIES_MANAGEMENT}:${PermissionActions.READ}:${PermissionScopes.ALL}`,
+    COMPANIES_MANAGEMENT_WRITE_ALL: `${PermissionCategories.COMPANIES_MANAGEMENT}:${PermissionActions.WRITE}:${PermissionScopes.ALL}`,
+    COMPANIES_MANAGEMENT_DELETE_ALL: `${PermissionCategories.COMPANIES_MANAGEMENT}:${PermissionActions.DELETE}:${PermissionScopes.ALL}`,
+
+    ROLES_MANAGEMENT_READ_ALL: `${PermissionCategories.ROLES_MANAGEMENT}:${PermissionActions.READ}:${PermissionScopes.ALL}`,
+    ROLES_MANAGEMENT_READ_COMPANY: `${PermissionCategories.ROLES_MANAGEMENT}:${PermissionActions.READ}:${PermissionScopes.COMPANY}`,
+    ROLES_MANAGEMENT_WRITE_ALL: `${PermissionCategories.ROLES_MANAGEMENT}:${PermissionActions.WRITE}:${PermissionScopes.ALL}`,
+    ROLES_MANAGEMENT_WRITE_COMPANY: `${PermissionCategories.ROLES_MANAGEMENT}:${PermissionActions.WRITE}:${PermissionScopes.COMPANY}`,
+    ROLES_MANAGEMENT_DELETE_ALL: `${PermissionCategories.ROLES_MANAGEMENT}:${PermissionActions.DELETE}:${PermissionScopes.ALL}`,
+    ROLES_MANAGEMENT_DELETE_COMPANY: `${PermissionCategories.ROLES_MANAGEMENT}:${PermissionActions.DELETE}:${PermissionScopes.COMPANY}`,
 } as const;
 
 export const PERMISSIONS: Record<PermissionKey, PermissionDefinition> = {
@@ -375,5 +392,86 @@ export const PERMISSIONS: Record<PermissionKey, PermissionDefinition> = {
         scopes: [PermissionScopes.SELF],
         name: "Manage own profile",
         description: "Full management of own user profile",
+    },
+
+    [PermissionKeys.COMPANIES_MANAGEMENT_READ_ALL]: {
+        key: PermissionKeys.COMPANIES_MANAGEMENT_READ_ALL,
+        category: PermissionCategories.COMPANIES_MANAGEMENT,
+        action: PermissionActions.READ,
+        scopes: [PermissionScopes.ALL],
+        name: "View all companies",
+        description: "Can view all companies",
+    },
+
+    [PermissionKeys.COMPANIES_MANAGEMENT_WRITE_ALL]: {
+        key: PermissionKeys.COMPANIES_MANAGEMENT_WRITE_ALL,
+        category: PermissionCategories.COMPANIES_MANAGEMENT,
+        action: PermissionActions.WRITE,
+        scopes: [PermissionScopes.ALL],
+        name: "Manage companies",
+        description: "Can create and update all companies",
+    },
+
+    [PermissionKeys.COMPANIES_MANAGEMENT_DELETE_ALL]: {
+        key: PermissionKeys.COMPANIES_MANAGEMENT_DELETE_ALL,
+        category: PermissionCategories.COMPANIES_MANAGEMENT,
+        action: PermissionActions.DELETE,
+        scopes: [PermissionScopes.ALL],
+        name: "Delete companies",
+        description: "Can delete companies",
+    },
+
+    [PermissionKeys.ROLES_MANAGEMENT_READ_ALL]: {
+        key: PermissionKeys.ROLES_MANAGEMENT_READ_ALL,
+        category: PermissionCategories.ROLES_MANAGEMENT,
+        action: PermissionActions.READ,
+        scopes: [PermissionScopes.ALL],
+        name: "View all roles",
+        description: "Can view all roles across all companies",
+    },
+
+    [PermissionKeys.ROLES_MANAGEMENT_READ_COMPANY]: {
+        key: PermissionKeys.ROLES_MANAGEMENT_READ_COMPANY,
+        category: PermissionCategories.ROLES_MANAGEMENT,
+        action: PermissionActions.READ,
+        scopes: [PermissionScopes.COMPANY],
+        name: "View company roles",
+        description: "Can view roles within own company",
+    },
+
+    [PermissionKeys.ROLES_MANAGEMENT_WRITE_ALL]: {
+        key: PermissionKeys.ROLES_MANAGEMENT_WRITE_ALL,
+        category: PermissionCategories.ROLES_MANAGEMENT,
+        action: PermissionActions.WRITE,
+        scopes: [PermissionScopes.ALL],
+        name: "Manage all roles",
+        description: "Can create and update all roles",
+    },
+
+    [PermissionKeys.ROLES_MANAGEMENT_WRITE_COMPANY]: {
+        key: PermissionKeys.ROLES_MANAGEMENT_WRITE_COMPANY,
+        category: PermissionCategories.ROLES_MANAGEMENT,
+        action: PermissionActions.WRITE,
+        scopes: [PermissionScopes.COMPANY],
+        name: "Manage company roles",
+        description: "Can create and update roles within own company",
+    },
+
+    [PermissionKeys.ROLES_MANAGEMENT_DELETE_ALL]: {
+        key: PermissionKeys.ROLES_MANAGEMENT_DELETE_ALL,
+        category: PermissionCategories.ROLES_MANAGEMENT,
+        action: PermissionActions.DELETE,
+        scopes: [PermissionScopes.ALL],
+        name: "Delete all roles",
+        description: "Can delete all roles",
+    },
+
+    [PermissionKeys.ROLES_MANAGEMENT_DELETE_COMPANY]: {
+        key: PermissionKeys.ROLES_MANAGEMENT_DELETE_COMPANY,
+        category: PermissionCategories.ROLES_MANAGEMENT,
+        action: PermissionActions.DELETE,
+        scopes: [PermissionScopes.COMPANY],
+        name: "Delete company roles",
+        description: "Can delete roles within own company",
     },
 };

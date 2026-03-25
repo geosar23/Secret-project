@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Response, NextFunction, Request } from "express";
-import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
+import { Response, NextFunction } from "express";
+import { AuthenticatedRequest } from "../interfaces/auth.interface";
 import { CompanyService } from "../services/company.service";
 import { success, softError } from "../util/response.util";
 
 export class CompanyController {
-    static async getAll(_req: Request, res: Response, next: NextFunction): Promise<void> {
+    static async getAll(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const companies = await CompanyService.getAll();
             res.json(success(companies));
@@ -16,7 +16,7 @@ export class CompanyController {
         }
     }
 
-    static async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
+    static async getById(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const company = await CompanyService.getById(req.params.id);
             if (!company) {
@@ -55,12 +55,6 @@ export class CompanyController {
 
     static async update(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
-            const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const companyId = req.params.id;
 
             const sanitized: { name?: string; slug?: string; isActive?: boolean } = {};

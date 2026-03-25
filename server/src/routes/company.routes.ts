@@ -1,12 +1,19 @@
 import { Router } from "express";
 import { CompanyController } from "../controllers/company.controller";
+import { userHasAnyPermission } from "../middleware/permission.middleware";
+import { PermissionKeys } from "../enums/permissions.enum";
 
 const router = Router();
 
-router.get("/", CompanyController.getAll);
-router.post("/", CompanyController.create);
-router.get("/:id", CompanyController.getById);
-router.put("/:id", CompanyController.update);
-router.delete("/:id", CompanyController.delete);
+// All company endpoints require companies management permission
+const readPermissions = [PermissionKeys.COMPANIES_MANAGEMENT_READ_ALL];
+const writePermissions = [PermissionKeys.COMPANIES_MANAGEMENT_WRITE_ALL];
+const deletePermissions = [PermissionKeys.COMPANIES_MANAGEMENT_DELETE_ALL];
+
+router.get("/", userHasAnyPermission(readPermissions), CompanyController.getAll);
+router.get("/:id", userHasAnyPermission(readPermissions), CompanyController.getById);
+router.post("/", userHasAnyPermission(writePermissions), CompanyController.create);
+router.put("/:id", userHasAnyPermission(writePermissions), CompanyController.update);
+router.delete("/:id", userHasAnyPermission(deletePermissions), CompanyController.delete);
 
 export default router;

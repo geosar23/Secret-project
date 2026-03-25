@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 import { IUser } from "../interfaces/user.interface";
 import { AccessContext, PermissionKey } from "../interfaces/permission.interface";
+import { toIdString } from "./general.util";
 
 /**
  * Shape of a populated role object on IUser.
@@ -37,10 +38,10 @@ export function getEffectivePermissions(user: IUser): Set<string> {
 export function buildActorContext(actor: IUser): AccessContext["actor"] {
     const effective = getEffectivePermissions(actor);
     return {
-        id: actor._id!.toString(),
-        companyId: (actor.company as unknown as Types.ObjectId | undefined)?.toString() ?? "",
-        departmentId: actor.department?.toString(),
-        managerId: actor.manager?.toString(),
+        id: toIdString(actor._id) ?? "",
+        companyId: toIdString(actor.company) ?? "",
+        departmentId: toIdString(actor.department),
+        managerId: toIdString(actor.manager),
         permissions: effective as unknown as Set<PermissionKey>,
     };
 }

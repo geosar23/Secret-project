@@ -146,6 +146,170 @@ The backend provides REST API endpoints under `/api`:
 - Code formatting and linting automation
 - Git hooks for commit quality (Husky + Commitlint)
 
+## Permission System Architecture
+
+The application uses a **scope-aware, wildcard-based permission system** that combines role-based permissions with fine-grained grants and revocations.
+
+### How Permissions Work
+
+#### 1. **Permission Composition**
+
+A user's effective permissions are calculated as:
+
+```
+Effective Permissions = Role Permissions ∪ Granted Permissions \ Revoked Permissions
+```
+
+Example:
+
+- **Role**: Has `USERS_MANAGEMENT_READ_COMPANY` permission
+- **Granted**: `USER_PROFILE_ALL_COMPANY` (user manually granted)
+- **Revoked**: `USERS_MANAGEMENT_ALL_SELF` (user manually revoked from role)
+- **Result**: User can do everything in their company except manage their own profile
+
+#### 2. **Permission Format**
+
+Permissions follow the pattern: `category:action:scope`
+
+**Categories** (e.g., from `server/src/enums/permissions.enum.ts`):
+
+- `ALL` — System-wide access
+- `USERS_MANAGEMENT` — User CRUD operations
+- `USER_PROFILE` — User profile/settings operations
+
+**Actions**:
+
+- `READ` — View/retrieve data
+- `WRITE` — Create/update data
+- `ALL` — Any action
+
+**Scopes**:
+
+- `ALL` — Access across all companies/departments
+- `COMPANY` — Limited to own company
+- `DEPARTMENT` — Limited to own department
+- `COUNTRY` — Limited to own country
+- `MANAGED` — Only users they manage
+- `OWN` — Only users they own/supervise
+- `SELF` — Only their own user
+
+#### 3. **Wildcard Permission Matching**
+
+Permissions use **wildcard matching** across all three segments. A broader permission satisfies more specific checks.
+
+**Example 1: `ALL_COMPANY` Permission**
+
+```
+User has: ALL:*:COMPANY  (* means wildcard)
+
+Required checks:
+✓ USERS_MANAGEMENT:READ:COMPANY     — Matches (wildcard covers all)
+✓ USER_PROFILE:WRITE:COMPANY        — Matches (wildcard covers all)
+✓ USERS_MANAGEMENT:READ:ALL         — ✗ Does not match (COMPANY scope doesn't cover ALL)
+```
+
+**Example 2: `USERS_MANAGEMENT_READ_COMPANY` Permission**
+
+```
+User has: USERS_MANAGEMENT:READ:COMPANY
+
+Required checks:
+✓ USERS_MANAGEMENT:READ:COMPANY     — Exact match
+✗ USERS_MANAGEMENT:WRITE:COMPANY    — Does not match (READ doesn't cover WRITE)
+✗ USER_PROFILE:READ:COMPANY         — Does not match (different category)
+```
+
+**Example 3: Broader Permission Subset**
+
+```
+User has: ALL:*:COMPANY  (broadest applicable permission)
+          USERS_MANAGEMENT:READ:COMPANY  (more specific)
+
+When checking "Can user read all users in company?"
+→ ALL:*:COMPANY matches first → ✓ Allowed
+→ No need to check the more specific permission
+```
+
+#### 4. **Permission Keys Reference**
+
+Common permission constants defined in `server/src/enums/permissions.enum.ts`:
+
+- `ALL` — Full system access
+- `ALL_COMPANY` — Full access within own company
+- `USERS_MANAGEMENT_READ_ALL` — Read all users globally
+- `USERS_MANAGEMENT_READ_COMPANY` — Read users in own company
+- `USERS_MANAGEMENT_ALL_ALL` — Full user management globally
+- `USERS_MANAGEMENT_ALL_COMPANY` — Full user management in own company
+- `USER_PROFILE_*_*` — Variants for profile management
+
+#### 5. **Authorization Enforcement**
+
+All sensitive endpoints enforce authorization checks:
+
+**Example: Get User Endpoint**
+
+```typescript
+// Checks performed:
+1. Is user authenticated? (JWT valid)
+2. Can user VIEW this specific user?
+   - Requires canViewUser() check in policies
+   - Validates user scope vs target user scope
+3. Scope-aware filtering applied
+```
+
+**Scope Evaluation Logic:**
+For user with `USERS_MANAGEMENT_READ_COMPANY`:
+
+- ✓ Can view users in their own company
+- ✗ Cannot view users in other companies
+- ✓ Can search/filter their company only
+
+### Adding New Features (New Permissions)
+
+When building a new feature:
+
+1. **Define permissions** in `server/src/enums/permissions.enum.ts`
+
+    ```typescript
+    export enum PermissionCategories {
+        NEW_FEATURE = "new_feature",
+    }
+
+    export const PermissionKeys = {
+        NEW_FEATURE_READ_ALL: `new_feature:read:all`,
+        NEW_FEATURE_ALL_COMPANY: `new_feature:*:company`,
+        // ... more combinations for read/write/all + scopes
+    };
+    ```
+
+2. **Create authorization policy** in `server/src/policies/`
+
+    ```typescript
+    export function canAccessFeature(actor: IUser, target: any) {
+        return matchesWildcard(
+            getEffectivePermissions(actor),
+            "new_feature:read:all", // required permission
+            buildActorContext(actor),
+        );
+    }
+    ```
+
+3. **Enforce in controllers** before business logic
+    ```typescript
+    const actor = await getActorUser(req);
+    if (!canAccessFeature(actor, resource)) {
+        return res.status(403).json({ message: "Access denied" });
+    }
+    ```
+
+### Relevant Code Files
+
+- **Permission Definitions**: [server/src/enums/permissions.enum.ts](server/src/enums/permissions.enum.ts)
+- **Permission Checker**: [server/src/utils/permission-checker.ts](server/src/utils/permission-checker.ts) — Wildcard matching & effective permission calculation
+- **Authorization Policies**: [server/src/policies/](server/src/policies/) — Feature-specific access rules
+- **User Policy**: [server/src/policies/user.policy.ts](server/src/policies/user.policy.ts) — Scope-aware user access rules
+- **Auth Request Util**: [server/src/utils/auth-request.util.ts](server/src/utils/auth-request.util.ts) — Actor context loading & company ID extraction
+
 ## Troubleshooting
 
 **Backend won't start**

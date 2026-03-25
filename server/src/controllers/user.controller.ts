@@ -4,8 +4,9 @@ import { UserService } from "../services/user.service";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { IUser, IUsersQueryParams } from "../interfaces/user.interface";
 import { success, softError } from "../util/response.util";
-import { buildUserSearchAccessQuery } from "../policies/user.policy";
+import { buildUserSearchAccessQuery, canManageUser, canViewUser } from "../policies/user.policy";
 import { PermissionKeys } from "../enums/permissions.enum";
+import { getActorUser } from "../utils/auth-request.util";
 
 export class UserController {
     private static isValidPermissionKey(permissionKey: string): boolean {
@@ -35,7 +36,7 @@ export class UserController {
                 isActive: req.query.isActive === "true" ? true : req.query.isActive === "false" ? false : undefined,
             };
 
-            const actorUser = await UserService.getById(requestingUser.id, requestingUser.companyId);
+            const actorUser = await getActorUser(req);
             if (!actorUser) {
                 res.json(softError("Unauthorized"));
                 return;
@@ -45,9 +46,7 @@ export class UserController {
 
             const searchAccessQuery = buildUserSearchAccessQuery(actor);
             if (searchAccessQuery === null) {
-                res.json(
-                    success({ users: [], total: 0, page: params.page || 1, limit: params.limit || 10, totalPages: 0 }),
-                );
+                res.status(403).json(softError("Insufficient permissions"));
                 return;
             }
 
@@ -68,12 +67,29 @@ export class UserController {
                 return;
             }
 
+            const actorUser = await getActorUser(req);
+            if (!actorUser) {
+                res.status(401).json(softError("Unauthorized"));
+                return;
+            }
+
+            const scopedTarget = {
+                company: requestingUser.companyId,
+                department: req.body.departmentId,
+                manager: req.body.managerId,
+            } as unknown as IUser;
+
+            if (!canManageUser(actorUser, scopedTarget)) {
+                res.status(403).json(softError("Insufficient permissions"));
+                return;
+            }
+
             const params: Omit<IUser, "_id"> = {
                 name: req.body.name,
                 email: req.body.email,
                 password: req.body.password,
                 role: req.body.role,
-                company: req.body.companyId,
+                company: requestingUser.companyId as unknown as IUser["company"],
                 department: req.body.departmentId,
                 manager: req.body.managerId,
                 isActive: true,
@@ -96,11 +112,30 @@ export class UserController {
             }
             const userId = req.params.id;
             const selectFields = req.query.fields ? (req.query.fields as string).split(",") : undefined;
-            const user = await UserService.getById(userId, requestingUser.companyId, selectFields);
-            if (!user) {
+
+            const actorUser = await getActorUser(req);
+            if (!actorUser) {
+                res.status(401).json(softError("Unauthorized"));
+                return;
+            }
+
+            const targetUser = await UserService.getById(userId, requestingUser.companyId);
+            if (!targetUser) {
                 res.json(softError("User not found"));
                 return;
             }
+
+            if (!canViewUser(actorUser, targetUser as IUser)) {
+                res.status(403).json(softError("Insufficient permissions"));
+                return;
+            }
+
+            if (!selectFields || selectFields.length === 0) {
+                res.json(success(targetUser));
+                return;
+            }
+
+            const user = await UserService.getById(userId, requestingUser.companyId, selectFields);
             res.json(success(user));
         } catch (error: any) {
             console.log("Error in UserController.getById:", error);
@@ -118,9 +153,20 @@ export class UserController {
 
             const userId = req.params.id;
 
+            const actorUser = await getActorUser(req);
+            if (!actorUser) {
+                res.status(401).json(softError("Unauthorized"));
+                return;
+            }
+
             const user = await UserService.getById(userId, requestingUser.companyId);
             if (!user) {
                 res.json(softError("User not found"));
+                return;
+            }
+
+            if (!canManageUser(actorUser, user as IUser)) {
+                res.status(403).json(softError("Insufficient permissions"));
                 return;
             }
 
@@ -129,16 +175,6 @@ export class UserController {
 
             // Sanitize input: only allow whitelisted fields
             const sanitizedData: Partial<IUser> = {};
-
-            // Handle companyId → company mapping
-            if ("companyId" in req.body && req.body.companyId !== undefined) {
-                const val = req.body.companyId;
-                if (typeof val === "string" && val.trim().length > 0) {
-                    (sanitizedData as Record<string, unknown>)["company"] = val.trim();
-                } else if (val === null || val === "") {
-                    (sanitizedData as Record<string, unknown>)["company"] = null;
-                }
-            }
 
             allowedFields.forEach(field => {
                 if (field in req.body && req.body[field] !== undefined) {
@@ -171,6 +207,16 @@ export class UserController {
 
             if (Object.keys(sanitizedData).length === 0) {
                 res.json(softError("No valid fields provided for update"));
+                return;
+            }
+
+            const nextTarget = {
+                ...(user as IUser),
+                ...sanitizedData,
+            } as IUser;
+
+            if (!canManageUser(actorUser, nextTarget)) {
+                res.status(403).json(softError("Insufficient permissions"));
                 return;
             }
 
@@ -232,6 +278,13 @@ export class UserController {
             }
 
             const userId = req.params.id;
+
+            const actorUser = await getActorUser(req);
+            if (!actorUser) {
+                res.status(401).json(softError("Unauthorized"));
+                return;
+            }
+
             const permissionKey = String(req.body.permissionKey || "").trim();
 
             if (!permissionKey) {
@@ -244,9 +297,14 @@ export class UserController {
                 return;
             }
 
-            const targetUser = await UserService.getById(userId, requestingUser.companyId, ["_id"]);
+            const targetUser = await UserService.getById(userId, requestingUser.companyId);
             if (!targetUser) {
                 res.json(softError("User not found"));
+                return;
+            }
+
+            if (!canManageUser(actorUser, targetUser as IUser)) {
+                res.status(403).json(softError("Insufficient permissions"));
                 return;
             }
 
@@ -267,6 +325,13 @@ export class UserController {
             }
 
             const userId = req.params.id;
+
+            const actorUser = await getActorUser(req);
+            if (!actorUser) {
+                res.status(401).json(softError("Unauthorized"));
+                return;
+            }
+
             const permissionKey = String(req.body.permissionKey || "").trim();
 
             if (!permissionKey) {
@@ -279,9 +344,14 @@ export class UserController {
                 return;
             }
 
-            const targetUser = await UserService.getById(userId, requestingUser.companyId, ["_id"]);
+            const targetUser = await UserService.getById(userId, requestingUser.companyId);
             if (!targetUser) {
                 res.json(softError("User not found"));
+                return;
+            }
+
+            if (!canManageUser(actorUser, targetUser as IUser)) {
+                res.status(403).json(softError("Insufficient permissions"));
                 return;
             }
 
