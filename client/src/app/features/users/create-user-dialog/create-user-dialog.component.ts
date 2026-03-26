@@ -10,8 +10,10 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { UsersService } from "../../../core/services/users.service";
 import { CompanyService } from "../../../core/services/company.service";
+import { EmploymentTitleService } from "../../../core/services/employment-title.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { ICompany } from "../../../core/interfaces/company.interface";
+import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 
 @Component({
     selector: "app-create-user-dialog",
@@ -34,13 +36,16 @@ export class CreateUserDialogComponent implements OnInit {
     private fb = inject(FormBuilder);
     private usersService = inject(UsersService);
     private companyService = inject(CompanyService);
+    private employmentTitleService = inject(EmploymentTitleService);
     private dialogRef = inject(MatDialogRef<CreateUserDialogComponent>);
     private toast = inject(ToastService);
 
     loading = false;
     hidePassword = true;
     companiesLoading = false;
+    employmentTitlesLoading = false;
     companies: ICompany[] = [];
+    employmentTitles: IEmploymentTitle[] = [];
 
     userForm: FormGroup = this.fb.group({
         name: ["", [Validators.required, Validators.minLength(2)]],
@@ -48,6 +53,7 @@ export class CreateUserDialogComponent implements OnInit {
         password: ["", [Validators.required, Validators.minLength(6)]],
         role: ["employee", Validators.required],
         companyId: [""],
+        employmentTitleId: [""],
         departmentId: [""],
     });
 
@@ -62,6 +68,8 @@ export class CreateUserDialogComponent implements OnInit {
 
     ngOnInit(): void {
         this.companiesLoading = true;
+        this.employmentTitlesLoading = true;
+
         this.companyService.getCompanies().subscribe({
             next: res => {
                 this.companies = res.data ?? [];
@@ -69,6 +77,16 @@ export class CreateUserDialogComponent implements OnInit {
             },
             error: () => {
                 this.companiesLoading = false;
+            },
+        });
+
+        this.employmentTitleService.getEmploymentTitles().subscribe({
+            next: res => {
+                this.employmentTitles = res.data ?? [];
+                this.employmentTitlesLoading = false;
+            },
+            error: () => {
+                this.employmentTitlesLoading = false;
             },
         });
     }

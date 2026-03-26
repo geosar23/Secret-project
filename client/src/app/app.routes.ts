@@ -29,6 +29,23 @@ export const routes: Routes = [
                 loadComponent: () => import("./features/roles/roles.component").then(m => m.RolesComponent),
             },
             {
+                path: "departments",
+                loadComponent: () =>
+                    import("./features/departments/departments.component").then(m => m.DepartmentsComponent),
+            },
+            {
+                path: "sub-departments",
+                loadComponent: () =>
+                    import("./features/sub-departments/sub-departments.component").then(m => m.SubDepartmentsComponent),
+            },
+            {
+                path: "employment-titles",
+                loadComponent: () =>
+                    import("./features/employment-titles/employment-titles.component").then(
+                        m => m.EmploymentTitlesComponent,
+                    ),
+            },
+            {
                 path: "permissions",
                 loadComponent: () =>
                     import("./features/permissions/permissions.component").then(m => m.PermissionsComponent),

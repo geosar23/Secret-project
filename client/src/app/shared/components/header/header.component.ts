@@ -101,6 +101,30 @@ export class HeaderComponent implements OnInit {
             description: "Manage roles",
         },
         {
+            id: "departments",
+            name: "Departments Management",
+            type: "route",
+            icon: "account_tree",
+            route: "/departments",
+            description: "Manage departments",
+        },
+        {
+            id: "sub-departments",
+            name: "Sub-Departments Management",
+            type: "route",
+            icon: "schema",
+            route: "/sub-departments",
+            description: "Manage sub-departments",
+        },
+        {
+            id: "employment-titles",
+            name: "Employment Titles Management",
+            type: "route",
+            icon: "badge",
+            route: "/employment-titles",
+            description: "Manage employment titles",
+        },
+        {
             id: "permissions",
             name: "Permissions Management",
             type: "route",
@@ -133,6 +157,21 @@ export class HeaderComponent implements OnInit {
             label: "Roles Management",
             icon: "admin_panel_settings",
             route: "/roles",
+        },
+        {
+            label: "Departments Management",
+            icon: "account_tree",
+            route: "/departments",
+        },
+        {
+            label: "Sub-Departments Management",
+            icon: "schema",
+            route: "/sub-departments",
+        },
+        {
+            label: "Employment Titles Management",
+            icon: "badge",
+            route: "/employment-titles",
         },
         {
             label: "Permissions Management",

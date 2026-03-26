@@ -9,6 +9,7 @@ export interface IUser {
     role: Types.ObjectId; // Can be default roles or custom roles
     company?: Types.ObjectId; // null only for GOD role
     department?: Types.ObjectId;
+    employmentTitle?: Types.ObjectId;
     manager?: Types.ObjectId; // Direct manager's user ID
     managedDepartments?: Types.ObjectId[]; // For managers - departments they manage
     // Custom permissions

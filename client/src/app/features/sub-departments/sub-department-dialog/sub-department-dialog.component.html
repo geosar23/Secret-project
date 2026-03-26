@@ -1,0 +1,54 @@
+<h2 mat-dialog-title>{{ isEdit ? "Edit Sub-Department" : "Create Sub-Department" }}</h2>
+
+<mat-dialog-content>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Sub-Department Name</mat-label>
+            <input matInput formControlName="name" placeholder="Backend" />
+            @if (form.get("name")?.hasError("required") && form.get("name")?.touched) {
+                <mat-error>Sub-department name is required</mat-error>
+            }
+            @if (form.get("name")?.hasError("minlength")) {
+                <mat-error>Name must be at least 2 characters</mat-error>
+            }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Department</mat-label>
+            <mat-select formControlName="departmentId">
+                @if (departmentsLoading) {
+                    <mat-option disabled>Loading departments...</mat-option>
+                }
+                @for (department of departments; track department._id) {
+                    <mat-option [value]="department._id">{{ department.name }}</mat-option>
+                }
+            </mat-select>
+            @if (form.get("departmentId")?.hasError("required") && form.get("departmentId")?.touched) {
+                <mat-error>Department is required</mat-error>
+            }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" rows="3" placeholder="Optional"></textarea>
+        </mat-form-field>
+
+        @if (isEdit) {
+            <div class="toggle-row">
+                <mat-slide-toggle formControlName="isActive" color="primary">Active</mat-slide-toggle>
+            </div>
+        }
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()" [disabled]="loading">Cancel</button>
+    <button mat-raised-button color="primary" type="button" (click)="onSubmit()" [disabled]="form.invalid || loading">
+        @if (loading) {
+            <mat-spinner diameter="20"></mat-spinner>
+            Saving...
+        } @else {
+            {{ isEdit ? "Save Changes" : "Create" }}
+        }
+    </button>
+</mat-dialog-actions>

@@ -48,6 +48,18 @@
             </mat-select>
         </mat-form-field>
 
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Employment Title</mat-label>
+            <mat-select formControlName="employmentTitleId">
+                @if (employmentTitlesLoading) {
+                    <mat-option disabled>Loading employment titles...</mat-option>
+                }
+                @for (employmentTitle of employmentTitles; track employmentTitle._id) {
+                    <mat-option [value]="employmentTitle._id">{{ employmentTitle.name }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
         <div class="toggle-row">
             <mat-slide-toggle formControlName="isActive" color="primary">Active</mat-slide-toggle>
         </div>

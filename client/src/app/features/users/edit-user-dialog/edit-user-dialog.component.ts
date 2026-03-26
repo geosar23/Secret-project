@@ -10,10 +10,12 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { UsersService } from "../../../core/services/users.service";
 import { CompanyService } from "../../../core/services/company.service";
+import { EmploymentTitleService } from "../../../core/services/employment-title.service";
 import { RoleService } from "../../../core/services/role.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { IUser } from "../../../core/interfaces/user.interface";
 import { ICompany } from "../../../core/interfaces/company.interface";
+import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 import { IRole } from "../../../core/interfaces/role.interface";
 
 export interface EditUserDialogData {
@@ -41,6 +43,7 @@ export class EditUserDialogComponent implements OnInit {
     private fb = inject(FormBuilder);
     private usersService = inject(UsersService);
     private companyService = inject(CompanyService);
+    private employmentTitleService = inject(EmploymentTitleService);
     private roleService = inject(RoleService);
     private toast = inject(ToastService);
     private dialogRef = inject(MatDialogRef<EditUserDialogComponent, IUser | undefined>);
@@ -49,20 +52,24 @@ export class EditUserDialogComponent implements OnInit {
     loading = false;
     companiesLoading = false;
     rolesLoading = false;
+    employmentTitlesLoading = false;
     companies: ICompany[] = [];
     roles: IRole[] = [];
+    employmentTitles: IEmploymentTitle[] = [];
 
     userForm: FormGroup = this.fb.group({
         name: [this.data.user.name, [Validators.required, Validators.minLength(2)]],
         email: [this.data.user.email, [Validators.required, Validators.email]],
         role: [this.data.user.role?._id ?? "", Validators.required],
         companyId: [this.data.user.company?._id ?? ""],
+        employmentTitleId: [this.data.user.employmentTitle?._id ?? ""],
         isActive: [this.data.user.isActive ?? true],
     });
 
     ngOnInit(): void {
         this.companiesLoading = true;
         this.rolesLoading = true;
+        this.employmentTitlesLoading = true;
 
         this.companyService.getCompanies().subscribe({
             next: res => {
@@ -83,6 +90,16 @@ export class EditUserDialogComponent implements OnInit {
                 this.rolesLoading = false;
             },
         });
+
+        this.employmentTitleService.getEmploymentTitles().subscribe({
+            next: res => {
+                this.employmentTitles = res.data ?? [];
+                this.employmentTitlesLoading = false;
+            },
+            error: () => {
+                this.employmentTitlesLoading = false;
+            },
+        });
     }
 
     onSubmit(): void {
@@ -94,8 +111,15 @@ export class EditUserDialogComponent implements OnInit {
         this.loading = true;
         this.dialogRef.disableClose = true;
 
-        const { name, email, role, companyId, isActive } = this.userForm.value;
-        const payload = { name, email, role: role || undefined, companyId: companyId || undefined, isActive };
+        const { name, email, role, companyId, employmentTitleId, isActive } = this.userForm.value;
+        const payload = {
+            name,
+            email,
+            role: role || undefined,
+            companyId: companyId || undefined,
+            employmentTitleId: employmentTitleId || undefined,
+            isActive,
+        };
 
         this.usersService.updateUser(this.data.user._id as string, payload).subscribe({
             next: res => {
@@ -113,6 +137,8 @@ export class EditUserDialogComponent implements OnInit {
                     isActive,
                     role: this.roles.find(r => r._id === role) ?? this.data.user.role,
                     company: this.companies.find(c => c._id === companyId) ?? this.data.user.company,
+                    employmentTitle:
+                        this.employmentTitles.find(t => t._id === employmentTitleId) ?? this.data.user.employmentTitle,
                 };
                 this.dialogRef.close(updatedUser);
             },

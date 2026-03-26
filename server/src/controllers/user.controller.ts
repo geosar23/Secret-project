@@ -76,6 +76,7 @@ export class UserController {
                 role: req.body.role,
                 company: req.body.companyId,
                 department: req.body.departmentId,
+                employmentTitle: req.body.employmentTitleId,
                 manager: req.body.managerId,
                 isActive: true,
             };
@@ -145,7 +146,14 @@ export class UserController {
             }
 
             // Define allowed fields for update (prevent unauthorized field modifications)
-            const allowedFields: (keyof IUser)[] = ["name", "email", "department", "isActive", "role"];
+            const allowedFields: (keyof IUser)[] = [
+                "name",
+                "email",
+                "department",
+                "employmentTitle",
+                "isActive",
+                "role",
+            ];
 
             // Sanitize input: only allow whitelisted fields
             const sanitizedData: Partial<IUser> = {};
@@ -157,6 +165,16 @@ export class UserController {
                     (sanitizedData as Record<string, unknown>)["company"] = val.trim();
                 } else if (val === null || val === "") {
                     (sanitizedData as Record<string, unknown>)["company"] = null;
+                }
+            }
+
+            // Handle employmentTitleId -> employmentTitle mapping
+            if ("employmentTitleId" in req.body && req.body.employmentTitleId !== undefined) {
+                const val = req.body.employmentTitleId;
+                if (typeof val === "string" && val.trim().length > 0) {
+                    (sanitizedData as Record<string, unknown>)["employmentTitle"] = val.trim();
+                } else if (val === null || val === "") {
+                    (sanitizedData as Record<string, unknown>)["employmentTitle"] = null;
                 }
             }
 

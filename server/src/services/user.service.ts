@@ -62,6 +62,11 @@ export const UserService = {
                 .find(filter)
                 .populate("role", "role name")
                 .populate("company")
+                .populate({
+                    path: "employmentTitle",
+                    select: "_id name subDepartment",
+                    populate: { path: "subDepartment", select: "_id name department" },
+                })
                 .sort(sortOptions)
                 .skip(skip)
                 .limit(limit)
@@ -84,7 +89,17 @@ export const UserService = {
             throw new Error("Company ID is required for fetching user by ID");
         }
         const repo = userRepository(companyId);
-        let query = repo.findById(id).populate("role").populate("company").select("-password").lean();
+        let query = repo
+            .findById(id)
+            .populate("role")
+            .populate("company")
+            .populate({
+                path: "employmentTitle",
+                select: "_id name subDepartment",
+                populate: { path: "subDepartment", select: "_id name department" },
+            })
+            .select("-password")
+            .lean();
         if (selectFields && selectFields.length > 0) {
             query = query.select("-password " + selectFields.join(" "));
         }

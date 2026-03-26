@@ -5,6 +5,7 @@ export default {
             2,
             "always",
             [
+                "epic", // Large feature that may span multiple releases
                 "feat", // New feature
                 "fix", // Bug fix
                 "style", // UI/styling changes

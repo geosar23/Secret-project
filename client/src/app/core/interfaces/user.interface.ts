@@ -1,4 +1,5 @@
 import { ICompany } from "./company.interface";
+import { IEmploymentTitle } from "./employment-title.interface";
 import { IRole } from "./role.interface";
 
 export interface IUser {
@@ -10,6 +11,7 @@ export interface IUser {
     // Role & Organization
     role: IRole;
     company?: ICompany; // null only for GOD role
+    employmentTitle?: IEmploymentTitle;
     department?: string;
     manager?: string; // Direct manager's user ID
     managedDepartments?: string[]; // For managers - departments they manage
@@ -29,6 +31,7 @@ export interface ICreateUserRequest {
     password: string;
     role: string;
     companyId?: string;
+    employmentTitleId?: string;
     departmentId?: string;
     managerId?: string;
 }
@@ -38,6 +41,7 @@ export interface IUpdateUserRequest {
     email?: string;
     role?: string;
     companyId?: string;
+    employmentTitleId?: string;
     departmentId?: string;
     managerId?: string;
     isActive?: boolean;
