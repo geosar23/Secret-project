@@ -9,6 +9,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { AuthService } from "../../../core/services/auth.service";
+import { ToastService } from "../../../core/services/toast.service";
 
 @Component({
     selector: "app-login",
@@ -30,6 +31,7 @@ export class LoginComponent {
     private fb = inject(FormBuilder);
     private authService = inject(AuthService);
     private router = inject(Router);
+    private toast = inject(ToastService);
 
     loginForm: FormGroup;
     loading = false;
@@ -56,7 +58,9 @@ export class LoginComponent {
                 this.router.navigate(["/dashboard"]);
             },
             error: error => {
-                this.errorMessage = error.error?.message || "Login failed. Please try again.";
+                const errMsg = error.error?.message || "Login failed. Please try again.";
+                this.errorMessage = errMsg;
+                this.toast.error(errMsg);
                 this.loading = false;
             },
             complete: () => {

@@ -4,7 +4,7 @@ import { UserService } from "../services/user.service";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { IUser, IUsersQueryParams } from "../interfaces/user.interface";
 import { success, softError } from "../util/response.util";
-import { buildUserSearchAccessQuery } from "../policies/user.policy";
+import { buildUserSearchAccessQuery, canManageUser } from "../policies/user.policy";
 import { PermissionKeys } from "../enums/permissions.enum";
 
 export class UserController {
@@ -111,16 +111,27 @@ export class UserController {
     static async update(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
+            if (!requestingUser.companyId || !requestingUser.id) {
                 res.json(softError("Unauthorized"));
                 return;
             }
 
             const userId = req.params.id;
 
+            const actorUser = await UserService.getById(requestingUser.id, requestingUser.companyId);
+            if (!actorUser) {
+                res.json(softError("Unauthorized"));
+                return;
+            }
+
             const user = await UserService.getById(userId, requestingUser.companyId);
             if (!user) {
                 res.json(softError("User not found"));
+                return;
+            }
+
+            if (!canManageUser(actorUser as IUser, user as IUser)) {
+                res.json(softError("Insufficient permissions to update this user"));
                 return;
             }
 
