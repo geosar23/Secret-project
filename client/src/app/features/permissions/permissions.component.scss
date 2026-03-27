@@ -33,14 +33,14 @@
     }
 
     ::ng-deep mat-chip {
-        color: white !important;
+        color: var(--color-text-on-primary) !important;
         font-weight: 600;
         font-size: 0.875rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
 
         .mdc-evolution-chip__text-label {
-            color: white !important;
+            color: var(--color-text-on-primary) !important;
         }
     }
 }
@@ -171,14 +171,14 @@
         margin-bottom: var(--spacing-lg);
 
         ::ng-deep mat-chip {
-            color: white !important;
+            color: var(--color-text-on-primary) !important;
             font-weight: 600;
             font-size: 0.875rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
 
             .mdc-evolution-chip__text-label {
-                color: white !important;
+                color: var(--color-text-on-primary) !important;
             }
         }
 

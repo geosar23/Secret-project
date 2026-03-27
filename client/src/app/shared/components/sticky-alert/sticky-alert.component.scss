@@ -2,7 +2,7 @@
 .alert-sticky {
     position: sticky;
     top: 60px;
-    color: white;
+    color: var(--color-text-on-primary);
     padding: var(--spacing-md) var(--spacing-lg);
     z-index: var(--z-sticky);
     box-shadow: var(--shadow-lg);
@@ -27,7 +27,7 @@
                 font-size: 24px;
                 width: 24px;
                 height: 24px;
-                color: white;
+                color: var(--color-text-on-primary);
             }
         }
 
@@ -48,13 +48,13 @@
             }
 
             ::ng-deep mat-chip {
-                background-color: rgba(255, 255, 255, 0.25) !important;
-                color: white !important;
-                border: 1px solid rgba(255, 255, 255, 0.5);
+                background-color: rgba(var(--color-white-rgb), 0.25) !important;
+                color: var(--color-text-on-primary) !important;
+                border: 1px solid rgba(var(--color-white-rgb), 0.5);
                 font-weight: 600;
 
                 .mdc-evolution-chip__text-label {
-                    color: white !important;
+                    color: var(--color-text-on-primary) !important;
                 }
             }
         }
@@ -63,14 +63,14 @@
             position: absolute;
             top: var(--spacing-sm);
             right: var(--spacing-sm);
-            color: white;
+            color: var(--color-text-on-primary);
 
             mat-icon {
-                color: white;
+                color: var(--color-text-on-primary);
             }
 
             &:hover {
-                background-color: rgba(255, 255, 255, 0.2);
+                background-color: rgba(var(--color-white-rgb), 0.2);
             }
         }
     }

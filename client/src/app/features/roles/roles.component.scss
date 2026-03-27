@@ -79,23 +79,23 @@
 }
 
 .badge-success {
-    background-color: #c8e6c9;
-    color: #2e7d32;
+    background-color: var(--color-success-light);
+    color: var(--color-success);
 }
 
 .badge-error {
-    background-color: #ffccbc;
-    color: #d84315;
+    background-color: var(--color-error-light);
+    color: var(--color-error);
 }
 
 .badge-info {
-    background-color: #e3f2fd;
-    color: #1565c0;
+    background-color: var(--color-info-light);
+    color: var(--color-info);
 }
 
 .badge-neutral {
-    background-color: #f1f8e9;
-    color: #33691e;
+    background-color: var(--color-gray-100);
+    color: var(--color-gray-700);
 }
 
 .empty-state {

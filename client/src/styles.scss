@@ -51,6 +51,7 @@ body {
     --color-primary-300: #f06292;
     --color-primary-400: #ec407a;
     --color-primary-500: #e91e63; // Main rose
+    --color-primary-500-rgb: 233, 30, 99;
     --color-primary-600: #d81b60;
     --color-primary-700: #c2185b;
     --color-primary-800: #ad1457;
@@ -70,6 +71,7 @@ body {
 
     // Semantic Colors
     --color-success: #4caf50;
+    --color-success-rgb: 76, 175, 80;
     --color-success-light: #e8f5e9;
     --color-warning: #ff9800;
     --color-warning-light: #fff3e0;
@@ -95,6 +97,8 @@ body {
     --color-text-secondary: #666666;
     --color-text-disabled: #9e9e9e;
     --color-text-on-primary: #ffffff;
+    --color-white-rgb: 255, 255, 255;
+    --color-black-rgb: 0, 0, 0;
 
     // Background Colors
     --color-bg-primary: #fafafa;
@@ -339,7 +343,7 @@ p {
     color: var(--color-text-on-primary);
 
     &:hover:not(:disabled) {
-        background: #45a049;
+        background: var(--color-success);
     }
 }
 
@@ -348,7 +352,7 @@ p {
     color: var(--color-text-on-primary);
 
     &:hover:not(:disabled) {
-        background: #fb8c00;
+        background: var(--color-warning);
     }
 }
 
@@ -357,7 +361,7 @@ p {
     color: var(--color-text-on-primary);
 
     &:hover:not(:disabled) {
-        background: #e53935;
+        background: var(--color-error);
     }
 }
 
@@ -1232,43 +1236,43 @@ $breakpoints: (
 
 .toast-success .mdc-snackbar__surface {
     background-color: var(--color-success) !important;
-    color: #fff !important;
+    color: var(--color-text-on-primary) !important;
 
     .mdc-snackbar__label,
     .mat-mdc-snack-bar-label {
-        color: #fff !important;
+        color: var(--color-text-on-primary) !important;
     }
 
     .mat-mdc-button.mat-mdc-snack-bar-action {
-        color: rgba(255, 255, 255, 0.85) !important;
+        color: rgba(var(--color-white-rgb), 0.85) !important;
     }
 }
 
 .toast-error .mdc-snackbar__surface {
     background-color: var(--color-error) !important;
-    color: #fff !important;
+    color: var(--color-text-on-primary) !important;
 
     .mdc-snackbar__label,
     .mat-mdc-snack-bar-label {
-        color: #fff !important;
+        color: var(--color-text-on-primary) !important;
     }
 
     .mat-mdc-button.mat-mdc-snack-bar-action {
-        color: rgba(255, 255, 255, 0.85) !important;
+        color: rgba(var(--color-white-rgb), 0.85) !important;
     }
 }
 
 .toast-info .mdc-snackbar__surface {
     background-color: var(--color-info) !important;
-    color: #fff !important;
+    color: var(--color-text-on-primary) !important;
 
     .mdc-snackbar__label,
     .mat-mdc-snack-bar-label {
-        color: #fff !important;
+        color: var(--color-text-on-primary) !important;
     }
 
     .mat-mdc-button.mat-mdc-snack-bar-action {
-        color: rgba(255, 255, 255, 0.85) !important;
+        color: rgba(var(--color-white-rgb), 0.85) !important;
     }
 }
 

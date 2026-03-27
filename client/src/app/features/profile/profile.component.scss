@@ -81,13 +81,13 @@
         }
 
         ::ng-deep mat-chip {
-            color: white !important;
+            color: var(--color-text-on-primary) !important;
             font-weight: var(--font-weight-semibold);
             text-transform: uppercase;
             width: fit-content;
 
             .mdc-evolution-chip__text-label {
-                color: white !important;
+                color: var(--color-text-on-primary) !important;
             }
         }
 
