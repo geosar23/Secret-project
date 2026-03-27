@@ -3,20 +3,26 @@ import { SubDepartmentModel } from "../models/sub-department.model";
 import { departmentRepository } from "../repositories/department.repository";
 
 export const DepartmentService = {
-    getAll: (companyId: string) => departmentRepository(companyId).find().sort({ name: 1 }).lean(),
+    getAll: (companyId: string) =>
+        departmentRepository(companyId).find().populate("company", "_id name").sort({ name: 1 }).lean(),
 
-    getById: (id: string, companyId: string) => departmentRepository(companyId).findById(id).lean(),
+    getById: (id: string, companyId: string) =>
+        departmentRepository(companyId).findById(id).populate("company", "_id name").lean(),
 
-    create: (data: Omit<IDepartment, "_id" | "company" | "createdAt" | "updatedAt">, companyId: string) =>
-        departmentRepository(companyId).create({
+    create: async (data: Omit<IDepartment, "_id" | "company" | "createdAt" | "updatedAt">, companyId: string) => {
+        const repository = departmentRepository(companyId);
+        const created = await repository.create({
             ...data,
             isActive: data.isActive ?? true,
-        }),
+        });
+
+        return repository.findById(created._id).populate("company", "_id name").lean();
+    },
 
     update: async (id: string, data: Partial<IDepartment>, companyId: string) => {
         const repository = departmentRepository(companyId);
         await repository.updateOne({ _id: id }, data);
-        return repository.findById(id).lean();
+        return repository.findById(id).populate("company", "_id name").lean();
     },
 
     delete: async (id: string, companyId: string) => {

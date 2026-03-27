@@ -41,6 +41,11 @@
                 <mat-cell *matCellDef="let d" data-label="Description">{{ d.description || "-" }}</mat-cell>
             </ng-container>
 
+            <ng-container matColumnDef="company">
+                <mat-header-cell *matHeaderCellDef>Company</mat-header-cell>
+                <mat-cell *matCellDef="let d" data-label="Company">{{ d.company?.name || "-" }}</mat-cell>
+            </ng-container>
+
             <ng-container matColumnDef="status">
                 <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
                 <mat-cell *matCellDef="let d" data-label="Status">

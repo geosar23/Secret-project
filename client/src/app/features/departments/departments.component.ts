@@ -47,7 +47,7 @@ export class DepartmentsComponent implements OnInit, AfterViewInit, OnDestroy {
     searchControl = new FormControl("");
     allDepartments: IDepartment[] = [];
     tableData = new MatTableDataSource<IDepartment>([]);
-    displayedColumns = ["name", "description", "status", "createdAt", "actions"];
+    displayedColumns = ["name", "description", "company", "status", "createdAt", "actions"];
 
     ngOnInit(): void {
         this.loadDepartments();
