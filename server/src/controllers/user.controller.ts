@@ -5,19 +5,13 @@ import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface
 import { IUser, IUsersQueryParams } from "../interfaces/user.interface";
 import { success, softError } from "../util/response.util";
 import { buildUserSearchAccessQuery, canManageUser } from "../policies/user.policy";
-import { PermissionKeys } from "../enums/permissions.enum";
 import { DefaultUserRoles } from "../enums/user-role.enum";
 import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";
+import { isValidPermissionKey } from "../utils/permission-checker";
 
 type UserFieldMap = FieldMap<IUser>;
 
 export class UserController {
-    private static isValidPermissionKey(permissionKey: string): boolean {
-        return Object.values(PermissionKeys).includes(
-            permissionKey as (typeof PermissionKeys)[keyof typeof PermissionKeys],
-        );
-    }
-
     static async getUsers(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
@@ -299,7 +293,7 @@ export class UserController {
                 return;
             }
 
-            if (!UserController.isValidPermissionKey(permissionKey)) {
+            if (!isValidPermissionKey(permissionKey)) {
                 res.json(softError("Invalid permission key"));
                 return;
             }
@@ -334,7 +328,7 @@ export class UserController {
                 return;
             }
 
-            if (!UserController.isValidPermissionKey(permissionKey)) {
+            if (!isValidPermissionKey(permissionKey)) {
                 res.json(softError("Invalid permission key"));
                 return;
             }

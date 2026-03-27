@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 import { IUser } from "../interfaces/user.interface";
 import { AccessContext, PermissionKey } from "../interfaces/permission.interface";
+import { PermissionKeys } from "../enums/permissions.enum";
 
 /**
  * Shape of a populated role object on IUser.
@@ -104,3 +105,9 @@ export const PermissionChecker = {
         return permissions.every(perm => matchesWildcard(effective, perm));
     },
 };
+
+export function isValidPermissionKey(permissionKey: string): boolean {
+    return Object.values(PermissionKeys).includes(
+        permissionKey as (typeof PermissionKeys)[keyof typeof PermissionKeys],
+    );
+}
