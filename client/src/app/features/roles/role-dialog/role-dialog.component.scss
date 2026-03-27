@@ -1,13 +1,13 @@
 .dialog-container {
-    min-width: 400px;
-    max-width: 500px;
+    min-width: 25rem;
+    max-width: 31.25rem;
 }
 
 .form-content {
     display: flex;
     flex-direction: column;
-    gap: 20px;
-    padding: 20px 0;
+    gap: var(--spacing-lg-minus);
+    padding: var(--spacing-lg-minus) 0;
 }
 
 .full-width {
@@ -18,7 +18,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 0;
+    padding: var(--spacing-sm-plus) 0;
 
     .toggle {
         margin: 0;
@@ -26,16 +26,16 @@
 }
 
 .selected-permissions {
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    padding: 10px;
+    border: var(--spacing-3xs) solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm-plus);
 
     .selected-permissions-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 8px;
-        font-size: 13px;
+        margin-bottom: var(--spacing-sm);
+        font-size: var(--font-size-sm-minus);
         color: var(--color-text-secondary);
     }
 
@@ -44,17 +44,17 @@
     }
 
     mat-chip {
-        margin: 4px;
+        margin: var(--spacing-xs);
     }
 }
 
 mat-dialog-actions {
     display: flex;
-    gap: 10px;
-    padding-top: 20px;
+    gap: var(--spacing-sm-plus);
+    padding-top: var(--spacing-lg-minus);
 }
 
 mat-spinner {
     display: inline-block;
-    margin-right: 10px;
+    margin-right: var(--spacing-sm-plus);
 }

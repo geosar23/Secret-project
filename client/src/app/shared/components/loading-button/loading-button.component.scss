@@ -1,11 +1,11 @@
 .loading-button {
-    min-height: 36px;
+    min-height: calc(var(--spacing-xl) + var(--spacing-xs));
 }
 
 .content {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    min-height: 20px;
+    gap: var(--spacing-sm);
+    min-height: var(--spacing-lg-minus);
 }

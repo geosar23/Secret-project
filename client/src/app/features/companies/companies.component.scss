@@ -1,6 +1,6 @@
 .companies-container {
     padding: var(--spacing-lg);
-    max-width: 1200px;
+    max-width: var(--layout-page-max-width);
     margin: 0 auto;
 }
 
@@ -16,7 +16,7 @@
 
     .search-field {
         width: 100%;
-        max-width: 400px;
+        max-width: 25rem;
     }
 }
 
@@ -35,7 +35,7 @@
 
 .action-buttons {
     display: flex;
-    gap: 4px;
+    gap: var(--spacing-xs);
 }
 
 .empty-state {

@@ -3,15 +3,15 @@
 }
 
 .toggle-row {
-    padding: 8px 0 4px;
+    padding: var(--spacing-sm) 0 var(--spacing-xs);
 }
 
 mat-dialog-content {
-    min-width: 400px;
+    min-width: 25rem;
     padding: var(--spacing-lg);
 
     @media (max-width: 768px) {
-        min-width: 280px;
+        min-width: 17.5rem;
     }
 }
 

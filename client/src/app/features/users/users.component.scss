@@ -1,6 +1,6 @@
 .users-container {
     padding: var(--spacing-lg);
-    max-width: 1400px;
+    max-width: var(--layout-page-max-width);
     margin: 0 auto;
 }
 
@@ -20,7 +20,7 @@
         font-weight: var(--font-weight-medium);
         font-size: var(--font-size-sm);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: var(--letter-spacing-tight);
     }
 
     .filters-row {
@@ -30,21 +30,21 @@
 
         .search-field {
             flex: 1;
-            max-width: 400px;
+            max-width: 25rem;
         }
 
         .sort-select {
-            min-width: 200px;
+            min-width: 12.5rem;
         }
     }
 }
 
 ::ng-deep mat-chip {
     color: var(--color-text-on-primary) !important;
-    font-weight: 600;
-    font-size: 0.875rem;
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-sm);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: var(--letter-spacing-tight);
 
     .mdc-evolution-chip__text-label {
         color: var(--color-text-on-primary) !important;
@@ -53,24 +53,24 @@
 
 .actions {
     display: flex;
-    gap: 0.25rem;
+    gap: var(--spacing-xs);
 
     button {
-        width: 36px;
-        height: 36px;
+        width: calc(var(--spacing-xl) + var(--spacing-xs));
+        height: calc(var(--spacing-xl) + var(--spacing-xs));
     }
 }
 
 .table-container {
-    margin-top: 2rem;
+    margin-top: var(--spacing-xl);
 }
 
 .name-link {
     color: var(--color-primary-500);
     text-decoration: none;
     cursor: pointer;
-    font-weight: 500;
-    transition: color 0.2s ease;
+    font-weight: var(--font-weight-medium);
+    transition: color var(--transition-standard);
 
     &:hover {
         color: var(--color-primary-700);

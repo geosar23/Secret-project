@@ -1,7 +1,7 @@
 // Sticky Alert Banner
 .alert-sticky {
     position: sticky;
-    top: 60px;
+    top: 3.75rem;
     color: var(--color-text-on-primary);
     padding: var(--spacing-md) var(--spacing-lg);
     z-index: var(--z-sticky);
@@ -15,7 +15,7 @@
         align-items: center;
         gap: var(--spacing-md);
         position: relative;
-        max-width: 1400px;
+        max-width: 87.5rem;
         margin: 0 auto;
 
         .alert-icon {
@@ -24,9 +24,9 @@
             align-items: center;
 
             mat-icon {
-                font-size: 24px;
-                width: 24px;
-                height: 24px;
+                font-size: var(--font-size-2xl);
+                width: var(--font-size-2xl);
+                height: var(--font-size-2xl);
                 color: var(--color-text-on-primary);
             }
         }
@@ -39,19 +39,19 @@
             flex-wrap: wrap;
 
             strong {
-                font-weight: 700;
-                font-size: 1rem;
+                font-weight: var(--font-weight-bold);
+                font-size: var(--font-size-base);
             }
 
             span {
-                font-weight: 500;
+                font-weight: var(--font-weight-medium);
             }
 
             ::ng-deep mat-chip {
                 background-color: rgba(var(--color-white-rgb), 0.25) !important;
                 color: var(--color-text-on-primary) !important;
-                border: 1px solid rgba(var(--color-white-rgb), 0.5);
-                font-weight: 600;
+                border: var(--spacing-3xs) solid rgba(var(--color-white-rgb), 0.5);
+                font-weight: var(--font-weight-semibold);
 
                 .mdc-evolution-chip__text-label {
                     color: var(--color-text-on-primary) !important;

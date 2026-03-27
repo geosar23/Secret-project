@@ -1,6 +1,6 @@
 .permissions-container {
     padding: var(--spacing-xl);
-    max-width: 1400px;
+    max-width: var(--layout-page-max-width);
     margin: 0 auto;
     min-height: 100vh;
 }
@@ -16,7 +16,7 @@
 
         h1 {
             margin: 0;
-            font-size: 2rem;
+            font-size: var(--font-size-3xl);
             color: var(--color-text-primary);
         }
     }
@@ -28,16 +28,16 @@
     gap: var(--spacing-md);
 
     .user-name {
-        font-weight: 500;
+        font-weight: var(--font-weight-medium);
         color: var(--color-text-secondary);
     }
 
     ::ng-deep mat-chip {
         color: var(--color-text-on-primary) !important;
-        font-weight: 600;
-        font-size: 0.875rem;
+        font-weight: var(--font-weight-semibold);
+        font-size: var(--font-size-sm);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: var(--letter-spacing-tight);
 
         .mdc-evolution-chip__text-label {
             color: var(--color-text-on-primary) !important;
@@ -47,7 +47,7 @@
 
 .permissions-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(25rem, 1fr));
     gap: var(--spacing-lg);
     margin-bottom: var(--spacing-xl);
 }
@@ -56,7 +56,7 @@
     transition: transform var(--transition-base);
 
     &:hover {
-        transform: translateY(-2px);
+        transform: translateY(calc(-1 * var(--spacing-3xs)));
         box-shadow: var(--shadow-lg);
     }
 
@@ -66,9 +66,9 @@
 
     .category-title {
         margin: 0 0 var(--spacing-md) 0;
-        font-size: 1.25rem;
+        font-size: var(--font-size-xl);
         color: var(--color-text-primary);
-        border-bottom: 2px solid var(--color-border);
+        border-bottom: var(--spacing-3xs) solid var(--color-border);
         padding-bottom: var(--spacing-sm);
     }
 }
@@ -103,7 +103,7 @@
 
         .permission-name {
             color: var(--color-success);
-            font-weight: 500;
+            font-weight: var(--font-weight-medium);
         }
     }
 
@@ -125,9 +125,9 @@
     flex-shrink: 0;
 
     mat-icon {
-        width: 24px;
-        height: 24px;
-        font-size: 24px;
+        width: var(--font-size-2xl);
+        height: var(--font-size-2xl);
+        font-size: var(--font-size-2xl);
     }
 }
 
@@ -135,12 +135,12 @@
     flex: 1;
 
     .permission-name {
-        font-size: 0.938rem;
-        margin-bottom: 0.25rem;
+        font-size: var(--font-size-sm-plus);
+        margin-bottom: var(--spacing-xs);
     }
 
     .permission-code {
-        font-size: 0.75rem;
+        font-size: var(--font-size-xs);
         color: var(--color-text-secondary);
         font-family: "Courier New", monospace;
         background: var(--color-bg-hover);
@@ -151,7 +151,7 @@
 }
 
 .legend {
-    margin-bottom: 2rem;
+    margin-bottom: var(--spacing-xl);
 
     mat-card-content {
         padding: var(--spacing-lg) !important;
@@ -159,7 +159,7 @@
 
     h3 {
         margin: 0 0 var(--spacing-md) 0;
-        font-size: 1.125rem;
+        font-size: var(--font-size-lg);
         color: var(--color-text-primary);
     }
 
@@ -172,10 +172,10 @@
 
         ::ng-deep mat-chip {
             color: var(--color-text-on-primary) !important;
-            font-weight: 600;
-            font-size: 0.875rem;
+            font-weight: var(--font-weight-semibold);
+            font-size: var(--font-size-sm);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: var(--letter-spacing-tight);
 
             .mdc-evolution-chip__text-label {
                 color: var(--color-text-on-primary) !important;
@@ -183,7 +183,7 @@
         }
 
         .arrow {
-            font-size: 1.5rem;
+            font-size: var(--font-size-2xl);
             color: var(--color-gray-500);
         }
     }

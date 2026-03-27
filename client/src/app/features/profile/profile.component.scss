@@ -1,6 +1,6 @@
 .profile-container {
     padding: var(--spacing-xl);
-    max-width: 900px;
+    max-width: var(--layout-page-max-width);
     margin: 0 auto;
     min-height: 100vh;
 }
@@ -9,7 +9,7 @@
     margin-bottom: var(--spacing-xl);
 
     h1 {
-        font-size: 2rem;
+        font-size: var(--font-size-3xl);
         color: var(--color-text-primary);
         margin: 0;
     }
@@ -25,9 +25,9 @@
         color: var(--color-error);
 
         mat-icon {
-            font-size: 2rem;
-            width: 2rem;
-            height: 2rem;
+            font-size: var(--font-size-3xl);
+            width: var(--font-size-3xl);
+            height: var(--font-size-3xl);
         }
 
         p {
@@ -48,7 +48,7 @@
             display: flex;
             align-items: center;
             gap: var(--spacing-sm);
-            font-size: 1.5rem;
+            font-size: var(--font-size-2xl);
             color: var(--color-text-primary);
 
             mat-icon {
@@ -72,12 +72,12 @@
         .label {
             font-weight: var(--font-weight-semibold);
             color: var(--color-text-secondary);
-            font-size: 0.875rem;
+            font-size: var(--font-size-sm);
         }
 
         .value {
             color: var(--color-text-primary);
-            font-size: 1rem;
+            font-size: var(--font-size-base);
         }
 
         ::ng-deep mat-chip {
@@ -97,7 +97,7 @@
             gap: var(--spacing-sm);
 
             ::ng-deep mat-chip {
-                font-size: 0.85rem;
+                font-size: var(--font-size-sm);
             }
         }
     }
@@ -108,7 +108,7 @@
         gap: var(--spacing-sm);
         margin-top: var(--spacing-md);
         margin-bottom: var(--spacing-md);
-        font-size: 1.1rem;
+        font-size: var(--font-size-lg);
         font-weight: var(--font-weight-semibold);
         color: var(--color-text-primary);
 
@@ -162,7 +162,7 @@
     color: var(--color-error);
     border-radius: var(--radius-md);
     font-size: var(--font-size-sm);
-    border-left: 4px solid var(--color-error);
+    border-left: var(--spacing-xs) solid var(--color-error);
 }
 
 .success-message {
@@ -175,7 +175,7 @@
     color: var(--color-success);
     border-radius: var(--radius-md);
     font-size: var(--font-size-sm);
-    border-left: 4px solid var(--color-success);
+    border-left: var(--spacing-xs) solid var(--color-success);
 
     mat-icon {
         font-size: var(--font-size-xl);

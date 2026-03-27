@@ -114,24 +114,42 @@ body {
     --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
     --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+    --shadow-search: 0 var(--spacing-3xs) var(--spacing-xs) rgba(var(--color-black-rgb), 0.1);
+    --shadow-search-hover: 0 var(--spacing-xs) var(--spacing-sm) rgba(var(--color-black-rgb), 0.15);
+    --shadow-search-focus: 0 var(--spacing-xs-plus) var(--spacing-md) rgba(var(--color-black-rgb), 0.2);
+    --shadow-search-panel: 0 var(--spacing-sm) var(--spacing-xl) rgba(var(--color-black-rgb), 0.15);
 
     // Spacing Scale
+    --spacing-3xs: 0.125rem; // 2px
+    --spacing-2xs: 0.1875rem; // 3px
     --spacing-xs: 0.25rem; // 4px
+    --spacing-xs-plus: 0.375rem; // 6px
     --spacing-sm: 0.5rem; // 8px
+    --spacing-sm-plus: 0.625rem; // 10px
+    --spacing-md-minus: 0.75rem; // 12px
     --spacing-md: 1rem; // 16px
+    --spacing-lg-minus: 1.25rem; // 20px
     --spacing-lg: 1.5rem; // 24px
     --spacing-xl: 2rem; // 32px
     --spacing-2xl: 3rem; // 48px
 
     // Border Radius
     --radius-sm: 4px;
+    --radius-sm-plus: 6px;
     --radius-md: 8px;
     --radius-lg: 12px;
+    --radius-xl: 20px;
+    --radius-pill: 28px;
     --radius-full: 9999px;
 
     // Font Sizes
+    --font-size-2xs: 0.5625rem; // 9px
+    --font-size-xxs: 0.625rem; // 10px
+    --font-size-xs-plus: 0.6875rem; // 11px
     --font-size-xs: 0.75rem; // 12px
+    --font-size-sm-minus: 0.8125rem; // 13px
     --font-size-sm: 0.875rem; // 14px
+    --font-size-sm-plus: 0.938rem; // 15px
     --font-size-base: 1rem; // 16px
     --font-size-lg: 1.125rem; // 18px
     --font-size-xl: 1.25rem; // 20px
@@ -150,10 +168,16 @@ body {
     --line-height-normal: 1.5;
     --line-height-relaxed: 1.75;
 
+    // Letter Spacing
+    --letter-spacing-tight: 0.03125rem; // 0.5px
+    --letter-spacing-normal: 0;
+
     // Transitions
     --transition-fast: 150ms ease;
     --transition-base: 200ms ease;
     --transition-slow: 300ms ease;
+    --transition-emphasis: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-standard: 200ms ease;
 
     // Z-index Scale
     --z-dropdown: 1000;
@@ -163,6 +187,9 @@ body {
     --z-modal: 1050;
     --z-popover: 1060;
     --z-tooltip: 1070;
+
+    // Layout
+    --layout-page-max-width: 87.5rem;
 }
 
 // ============================================================================

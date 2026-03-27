@@ -13,7 +13,7 @@
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    max-width: 1400px;
+    max-width: 87.5rem;
     margin: 0 auto;
     padding: 0 var(--spacing-md);
     gap: var(--spacing-lg);
@@ -35,7 +35,7 @@
         color: var(--color-text-on-primary);
         cursor: pointer;
         user-select: none;
-        letter-spacing: 0.5px;
+        letter-spacing: var(--letter-spacing-tight);
 
         &:hover {
             opacity: 0.9;
@@ -48,7 +48,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    max-width: 500px;
+    max-width: 31.25rem;
     margin: 0 var(--spacing-md);
 }
 
@@ -60,35 +60,35 @@
 .search-container {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--spacing-sm);
     background: rgba(var(--color-white-rgb), 0.95);
-    border-radius: 28px;
-    padding: 0 16px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 4px rgba(var(--color-black-rgb), 0.1);
+    border-radius: var(--radius-pill);
+    padding: 0 var(--spacing-md);
+    transition: all var(--transition-emphasis);
+    box-shadow: var(--shadow-search);
     position: relative;
     z-index: 10;
 
     &:hover {
         background: rgba(var(--color-white-rgb), 1);
-        box-shadow: 0 4px 8px rgba(var(--color-black-rgb), 0.15);
+        box-shadow: var(--shadow-search-hover);
     }
 
     &:focus-within {
         background: rgba(var(--color-white-rgb), 1);
-        box-shadow: 0 6px 16px rgba(var(--color-black-rgb), 0.2);
-        border: var(--color-success) 1px solid;
+        box-shadow: var(--shadow-search-focus);
+        border: var(--spacing-3xs) solid var(--color-success);
     }
 }
 
 .search-icon {
     color: var(--color-primary-500);
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
+    font-size: var(--font-size-xl);
+    width: var(--spacing-lg-minus);
+    height: var(--spacing-lg-minus);
     flex-shrink: 0;
     opacity: 0.8;
-    transition: opacity 0.2s ease;
+    transition: opacity var(--transition-standard);
 }
 
 .search-container:focus-within .search-icon {
@@ -100,14 +100,14 @@
     border: none;
     background: transparent;
     outline: none;
-    font-size: 14px;
-    padding: 12px 0;
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-md-minus) 0;
     color: rgba(var(--color-black-rgb), 0.87);
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
 
     &::placeholder {
         color: rgba(var(--color-black-rgb), 0.4);
-        font-weight: 400;
+        font-weight: var(--font-weight-normal);
     }
 
     &::-webkit-search-cancel-button {
@@ -116,13 +116,13 @@
 }
 
 .clear-btn {
-    width: 32px;
-    height: 32px;
+    width: var(--spacing-xl);
+    height: var(--spacing-xl);
     display: flex;
     align-items: center;
     justify-content: center;
     color: rgba(var(--color-black-rgb), 0.54);
-    transition: all 0.2s ease;
+    transition: all var(--transition-standard);
 
     &:hover {
         color: var(--color-primary-500);
@@ -130,22 +130,22 @@
     }
 
     mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
+        font-size: var(--font-size-lg);
+        width: var(--font-size-lg);
+        height: var(--font-size-lg);
     }
 }
 
 .search-autocomplete {
-    max-width: 500px !important;
-    border-radius: 12px;
+    max-width: 31.25rem !important;
+    border-radius: var(--radius-lg);
     overflow: hidden;
-    box-shadow: 0 8px 32px rgba(var(--color-black-rgb), 0.15) !important;
-    margin-top: 8px;
+    box-shadow: var(--shadow-search-panel) !important;
+    margin-top: var(--spacing-sm);
 
     ::ng-deep {
         .mdc-menu-surface {
-            border-radius: 12px;
+            border-radius: var(--radius-lg);
         }
 
         .mat-mdc-autocomplete-panel {
@@ -156,8 +156,8 @@
 }
 
 .autocomplete-header {
-    padding: 12px 16px;
-    border-bottom: 1px solid rgba(var(--color-black-rgb), 0.08);
+    padding: var(--spacing-md-minus) var(--spacing-md);
+    border-bottom: var(--spacing-3xs) solid rgba(var(--color-black-rgb), 0.08);
     background: linear-gradient(
         135deg,
         rgba(var(--color-primary-500-rgb), 0.05),
@@ -166,18 +166,18 @@
 }
 
 .result-count {
-    font-size: 12px;
-    font-weight: 600;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
     color: var(--color-primary-500);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: var(--letter-spacing-tight);
 }
 
 .search-option {
     height: auto;
-    padding: 12px 16px !important;
-    border-bottom: 1px solid rgba(var(--color-black-rgb), 0.04);
-    transition: all 0.2s ease;
+    padding: var(--spacing-md-minus) var(--spacing-md) !important;
+    border-bottom: var(--spacing-3xs) solid rgba(var(--color-black-rgb), 0.04);
+    transition: all var(--transition-standard);
 
     &:last-child {
         border-bottom: none;
@@ -204,7 +204,7 @@
 
         .option-arrow {
             opacity: 1;
-            transform: translateX(4px);
+            transform: translateX(var(--spacing-xs));
         }
     }
 
@@ -216,26 +216,26 @@
 .option-container {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--spacing-md-minus);
     width: 100%;
 }
 
 .option-icon-wrapper {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
     background: rgba(var(--color-primary-500-rgb), 0.1);
     flex-shrink: 0;
-    transition: all 0.2s ease;
+    transition: all var(--transition-standard);
 }
 
 .option-icon {
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
+    font-size: var(--font-size-xl);
+    width: var(--spacing-lg-minus);
+    height: var(--spacing-lg-minus);
     color: var(--color-primary-500);
 }
 
@@ -245,29 +245,29 @@
 }
 
 .option-title {
-    font-size: 14px;
-    font-weight: 500;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
     color: rgba(var(--color-black-rgb), 0.87);
-    margin-bottom: 4px;
+    margin-bottom: var(--spacing-xs);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .option-subtitle {
-    font-size: 12px;
+    font-size: var(--font-size-xs);
     color: rgba(var(--color-black-rgb), 0.6);
-    margin-bottom: 6px;
+    margin-bottom: var(--spacing-xs-plus);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .option-badge {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 4px 8px;
-    border-radius: 4px;
+    font-size: var(--font-size-xs-plus);
+    font-weight: var(--font-weight-semibold);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
     background: rgba(var(--color-primary-500-rgb), 0.1);
     color: var(--color-primary-500);
     display: inline-block;
@@ -275,18 +275,18 @@
 }
 
 .option-arrow {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
+    font-size: var(--font-size-lg);
+    width: var(--font-size-lg);
+    height: var(--font-size-lg);
     color: var(--color-primary-500);
     opacity: 0;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all var(--transition-base) cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
 }
 
 .no-results-option {
     height: auto;
-    padding: 24px 16px !important;
+    padding: var(--spacing-lg) var(--spacing-md) !important;
 
     &:hover {
         background: transparent !important;
@@ -298,33 +298,33 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: var(--spacing-sm);
     color: rgba(var(--color-black-rgb), 0.54);
     text-align: center;
 
     mat-icon {
-        font-size: 32px;
-        width: 32px;
-        height: 32px;
+        font-size: var(--spacing-xl);
+        width: var(--spacing-xl);
+        height: var(--spacing-xl);
         opacity: 0.6;
     }
 
     span:first-of-type {
-        font-size: 14px;
-        font-weight: 500;
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-medium);
     }
 }
 
 .no-results-hint {
     display: block !important;
-    font-size: 12px;
+    font-size: var(--font-size-xs);
     color: rgba(var(--color-black-rgb), 0.4) !important;
-    margin-top: 4px;
+    margin-top: var(--spacing-xs);
 }
 
 .hint-option {
     height: auto;
-    padding: 16px !important;
+    padding: var(--spacing-md) !important;
 
     &:hover {
         background: transparent !important;
@@ -334,14 +334,14 @@
 .hint-content {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--spacing-sm);
     color: rgba(var(--color-black-rgb), 0.54);
-    font-size: 13px;
+    font-size: var(--font-size-sm-minus);
 
     mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
+        font-size: var(--font-size-lg);
+        width: var(--font-size-lg);
+        height: var(--font-size-lg);
     }
 }
 
@@ -370,13 +370,13 @@
         }
 
         mat-icon:first-child {
-            font-size: 28px;
-            width: 28px;
-            height: 28px;
+            font-size: var(--radius-pill);
+            width: var(--radius-pill);
+            height: var(--radius-pill);
         }
 
         mat-icon:last-child {
-            margin-left: -4px;
+            margin-left: calc(-1 * var(--spacing-xs));
         }
     }
 }
@@ -384,23 +384,23 @@
 // Mobile responsive
 @media (max-width: 1200px) {
     .header-center {
-        max-width: 350px;
+        max-width: 21.875rem;
     }
 
     .search-container {
-        padding: 0 12px;
+        padding: 0 var(--spacing-md-minus);
     }
 
     .search-input {
-        font-size: 13px;
+        font-size: var(--font-size-sm-minus);
     }
 
     .option-title {
-        font-size: 13px;
+        font-size: var(--font-size-sm-minus);
     }
 
     .option-subtitle {
-        font-size: 11px;
+        font-size: var(--font-size-xs-plus);
     }
 }
 
@@ -436,8 +436,8 @@
     }
 
     .search-container {
-        padding: 0 10px;
-        gap: 6px;
+        padding: 0 var(--spacing-sm-plus);
+        gap: var(--spacing-xs-plus);
 
         &:focus-within {
             transform: none;
@@ -445,28 +445,28 @@
     }
 
     .search-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
+        font-size: var(--font-size-lg);
+        width: var(--font-size-lg);
+        height: var(--font-size-lg);
     }
 
     .search-input {
-        font-size: 12px;
-        padding: 10px 0;
+        font-size: var(--font-size-xs);
+        padding: var(--spacing-sm-plus) 0;
 
         &::placeholder {
-            font-size: 12px;
+            font-size: var(--font-size-xs);
         }
     }
 
     .clear-btn {
-        width: 28px;
-        height: 28px;
+        width: var(--radius-pill);
+        height: var(--radius-pill);
 
         mat-icon {
-            font-size: 16px;
-            width: 16px;
-            height: 16px;
+            font-size: var(--font-size-base);
+            width: var(--font-size-base);
+            height: var(--font-size-base);
         }
     }
 
@@ -477,45 +477,45 @@
     }
 
     .option-container {
-        gap: 8px;
+        gap: var(--spacing-sm);
     }
 
     .option-icon-wrapper {
-        width: 32px;
-        height: 32px;
+        width: var(--spacing-xl);
+        height: var(--spacing-xl);
     }
 
     .option-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
+        font-size: var(--font-size-base);
+        width: var(--font-size-base);
+        height: var(--font-size-base);
     }
 
     .option-title {
-        font-size: 12px;
+        font-size: var(--font-size-xs);
     }
 
     .option-subtitle {
-        font-size: 10px;
+        font-size: var(--font-size-xxs);
     }
 
     .option-badge {
-        font-size: 10px;
-        padding: 3px 6px;
+        font-size: var(--font-size-xxs);
+        padding: var(--spacing-2xs) var(--spacing-xs-plus);
     }
 
     .option-arrow {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
+        font-size: var(--font-size-base);
+        width: var(--font-size-base);
+        height: var(--font-size-base);
     }
 
     .autocomplete-header {
-        padding: 10px 12px;
+        padding: var(--spacing-sm-plus) var(--spacing-md-minus);
     }
 
     .result-count {
-        font-size: 11px;
+        font-size: var(--font-size-xs-plus);
     }
 
     .user-button {
@@ -546,75 +546,75 @@
     }
 
     .search-container {
-        border-radius: 20px;
-        padding: 0 8px;
+        border-radius: var(--radius-xl);
+        padding: 0 var(--spacing-sm);
     }
 
     .search-input {
-        font-size: 11px;
-        padding: 8px 0;
+        font-size: var(--font-size-xs-plus);
+        padding: var(--spacing-sm) 0;
     }
 
     .search-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
+        font-size: var(--font-size-base);
+        width: var(--font-size-base);
+        height: var(--font-size-base);
     }
 
     .clear-btn {
-        width: 24px;
-        height: 24px;
+        width: var(--spacing-lg);
+        height: var(--spacing-lg);
 
         mat-icon {
-            font-size: 14px;
-            width: 14px;
-            height: 14px;
+            font-size: var(--font-size-sm);
+            width: var(--font-size-sm);
+            height: var(--font-size-sm);
         }
     }
 
     .search-autocomplete {
-        max-width: calc(100vw - 20px) !important;
-        width: calc(100vw - 20px) !important;
-        margin-left: calc(-50vw + 10px) !important;
+        max-width: calc(100vw - 1.25rem) !important;
+        width: calc(100vw - 1.25rem) !important;
+        margin-left: calc(-50vw + 0.625rem) !important;
     }
 
     .search-option {
-        padding: 10px 12px !important;
+        padding: var(--spacing-sm-plus) var(--spacing-md-minus) !important;
     }
 
     .option-container {
-        gap: 6px;
+        gap: var(--spacing-xs-plus);
     }
 
     .option-icon-wrapper {
-        width: 28px;
-        height: 28px;
-        border-radius: 6px;
+        width: var(--radius-pill);
+        height: var(--radius-pill);
+        border-radius: var(--radius-sm-plus);
     }
 
     .option-icon {
-        font-size: 14px;
-        width: 14px;
-        height: 14px;
+        font-size: var(--font-size-sm);
+        width: var(--font-size-sm);
+        height: var(--font-size-sm);
     }
 
     .option-content {
-        gap: 2px;
+        gap: var(--spacing-3xs);
     }
 
     .option-title {
-        font-size: 11px;
-        margin-bottom: 2px;
+        font-size: var(--font-size-xs-plus);
+        margin-bottom: var(--spacing-3xs);
     }
 
     .option-subtitle {
-        font-size: 9px;
-        margin-bottom: 4px;
+        font-size: var(--font-size-2xs);
+        margin-bottom: var(--spacing-xs);
     }
 
     .option-badge {
-        font-size: 9px;
-        padding: 2px 4px;
+        font-size: var(--font-size-2xs);
+        padding: var(--spacing-3xs) var(--spacing-xs);
     }
 
     .option-arrow {
@@ -622,31 +622,31 @@
     }
 
     .no-results-content {
-        gap: 6px;
+        gap: var(--spacing-xs-plus);
 
         mat-icon {
-            font-size: 24px;
-            width: 24px;
-            height: 24px;
+            font-size: var(--spacing-lg);
+            width: var(--spacing-lg);
+            height: var(--spacing-lg);
         }
 
         span:first-of-type {
-            font-size: 12px;
+            font-size: var(--font-size-xs);
         }
     }
 
     .no-results-hint {
-        font-size: 10px !important;
+        font-size: var(--font-size-xxs) !important;
     }
 
     .hint-content {
-        gap: 6px;
-        font-size: 12px;
+        gap: var(--spacing-xs-plus);
+        font-size: var(--font-size-xs);
 
         mat-icon {
-            font-size: 16px;
-            width: 16px;
-            height: 16px;
+            font-size: var(--font-size-base);
+            width: var(--font-size-base);
+            height: var(--font-size-base);
         }
     }
 
@@ -654,7 +654,7 @@
         gap: var(--spacing-xs);
 
         button {
-            padding: 4px;
+            padding: var(--spacing-xs);
         }
     }
 }
