@@ -10,9 +10,11 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { UsersService } from "../../../core/services/users.service";
 import { CompanyService } from "../../../core/services/company.service";
+import { CountryService } from "../../../core/services/country.service";
 import { EmploymentTitleService } from "../../../core/services/employment-title.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { ICompany } from "../../../core/interfaces/company.interface";
+import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 
 @Component({
@@ -36,6 +38,7 @@ export class CreateUserDialogComponent implements OnInit {
     private fb = inject(FormBuilder);
     private usersService = inject(UsersService);
     private companyService = inject(CompanyService);
+    private countryService = inject(CountryService);
     private employmentTitleService = inject(EmploymentTitleService);
     private dialogRef = inject(MatDialogRef<CreateUserDialogComponent>);
     private toast = inject(ToastService);
@@ -43,8 +46,10 @@ export class CreateUserDialogComponent implements OnInit {
     loading = false;
     hidePassword = true;
     companiesLoading = false;
+    countriesLoading = false;
     employmentTitlesLoading = false;
     companies: ICompany[] = [];
+    countries: ICountry[] = [];
     employmentTitles: IEmploymentTitle[] = [];
 
     userForm: FormGroup = this.fb.group({
@@ -53,6 +58,7 @@ export class CreateUserDialogComponent implements OnInit {
         password: ["", [Validators.required, Validators.minLength(6)]],
         role: ["employee", Validators.required],
         companyId: [""],
+        countryId: [""],
         employmentTitleId: [""],
         departmentId: [""],
     });
@@ -68,6 +74,7 @@ export class CreateUserDialogComponent implements OnInit {
 
     ngOnInit(): void {
         this.companiesLoading = true;
+        this.countriesLoading = true;
         this.employmentTitlesLoading = true;
 
         this.companyService.getCompanies().subscribe({
@@ -87,6 +94,16 @@ export class CreateUserDialogComponent implements OnInit {
             },
             error: () => {
                 this.employmentTitlesLoading = false;
+            },
+        });
+
+        this.countryService.getCountries().subscribe({
+            next: res => {
+                this.countries = res.data ?? [];
+                this.countriesLoading = false;
+            },
+            error: () => {
+                this.countriesLoading = false;
             },
         });
     }

@@ -72,6 +72,18 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Country</mat-label>
+            <mat-select formControlName="countryId">
+                @if (countriesLoading) {
+                    <mat-option disabled>Loading countries...</mat-option>
+                }
+                @for (country of countries; track country._id) {
+                    <mat-option [value]="country._id">{{ country.name }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
             <mat-label>Employment Title</mat-label>
             <mat-select formControlName="employmentTitleId">
                 @if (employmentTitlesLoading) {

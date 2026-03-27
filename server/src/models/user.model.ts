@@ -13,6 +13,7 @@ const UserSchema = new Schema<IUser>(
         role: { type: Schema.Types.ObjectId, ref: "Roles", required: true },
         company: { type: Schema.Types.ObjectId, ref: "Companies", required: true },
         department: { type: Schema.Types.ObjectId, ref: "Departments" },
+        country: { type: Schema.Types.ObjectId, ref: "Countries" },
         employmentTitle: { type: Schema.Types.ObjectId, ref: "EmploymentTitles" },
         manager: { type: Schema.Types.ObjectId, ref: "Users" },
 

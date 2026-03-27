@@ -40,6 +40,7 @@ export function buildActorContext(actor: IUser): AccessContext["actor"] {
         id: actor._id!.toString(),
         companyId: (actor.company as unknown as Types.ObjectId | undefined)?.toString() ?? "",
         departmentId: actor.department?.toString(),
+        countryId: actor.country?.toString(),
         managerId: actor.manager?.toString(),
         permissions: effective as unknown as Set<PermissionKey>,
     };

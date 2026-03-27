@@ -81,6 +81,11 @@
                 <mat-cell *matCellDef="let user" data-label="Company ID">{{ user.company?.name || "N/A" }}</mat-cell>
             </ng-container>
 
+            <ng-container matColumnDef="country">
+                <mat-header-cell *matHeaderCellDef>Country</mat-header-cell>
+                <mat-cell *matCellDef="let user" data-label="Country">{{ user.country?.name || "N/A" }}</mat-cell>
+            </ng-container>
+
             <!-- Status Column -->
             <ng-container matColumnDef="status">
                 <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>

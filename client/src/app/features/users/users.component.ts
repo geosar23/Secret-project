@@ -218,7 +218,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
         }
 
         // Define CSV headers
-        const headers = ["Name", "Email", "Role", "Company", "Status", "Created Date"];
+        const headers = ["Name", "Email", "Role", "Company", "Country", "Status", "Created Date"];
 
         // Map table data to CSV rows
         const rows = this.tableData.data.map(user => [
@@ -226,6 +226,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             user.email,
             user.roleName || user.role?.role || "N/A",
             user.company?.name || "N/A",
+            user.country?.name || "N/A",
             user.isActive ? "Active" : "Inactive",
             user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A",
         ]);

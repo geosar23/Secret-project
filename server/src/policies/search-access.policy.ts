@@ -66,7 +66,7 @@ export function buildSearchAccessQuery<TDocument>(
     }
 
     if (options.permissions.readCountry && matchesWildcard(effective, options.permissions.readCountry)) {
-        const actorCountryId = (actorUser as IUser & { countryId?: unknown }).countryId;
+        const actorCountryId = actorUser.country;
         if (actorCountryId && options.fields.country) {
             scopeFilters.push({ [options.fields.country]: actorCountryId } as unknown as FilterQuery<TDocument>);
         }
@@ -76,7 +76,7 @@ export function buildSearchAccessQuery<TDocument>(
         options.permissions.readDepartmentCountry &&
         matchesWildcard(effective, options.permissions.readDepartmentCountry)
     ) {
-        const actorCountryId = (actorUser as IUser & { countryId?: unknown }).countryId;
+        const actorCountryId = actorUser.country;
         if (actorUser.department && options.fields.department && actorCountryId && options.fields.country) {
             scopeFilters.push({
                 $and: [

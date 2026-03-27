@@ -5,12 +5,14 @@ import type { PermissionDefinition, PermissionKey } from "../interfaces/permissi
 export enum PermissionCategories {
     ALL = "*",
     USERS_MANAGEMENT = "usersManagement",
+    COUNTRIES_MANAGEMENT = "countriesManagement",
     USER_PROFILE = "userProfile",
 }
 
 export const PermissionCategoriesStrings: Record<PermissionCategories, string> = {
     [PermissionCategories.ALL]: "All",
     [PermissionCategories.USERS_MANAGEMENT]: "Users Management",
+    [PermissionCategories.COUNTRIES_MANAGEMENT]: "Countries Management",
     [PermissionCategories.USER_PROFILE]: "User Profile",
 };
 
@@ -53,6 +55,12 @@ export const PermissionKeys = {
     USERS_MANAGEMENT_ALL_MANAGED: `${PermissionCategories.USERS_MANAGEMENT}:${PermissionActions.ALL}:${PermissionScopes.MANAGED}`,
     USERS_MANAGEMENT_ALL_OWN: `${PermissionCategories.USERS_MANAGEMENT}:${PermissionActions.ALL}:${PermissionScopes.OWN}`,
     USERS_MANAGEMENT_ALL_SELF: `${PermissionCategories.USERS_MANAGEMENT}:${PermissionActions.ALL}:${PermissionScopes.SELF}`,
+
+    COUNTRIES_MANAGEMENT_READ_ALL: `${PermissionCategories.COUNTRIES_MANAGEMENT}:${PermissionActions.READ}:${PermissionScopes.ALL}`,
+    COUNTRIES_MANAGEMENT_READ_COMPANY: `${PermissionCategories.COUNTRIES_MANAGEMENT}:${PermissionActions.READ}:${PermissionScopes.COMPANY}`,
+
+    COUNTRIES_MANAGEMENT_ALL_ALL: `${PermissionCategories.COUNTRIES_MANAGEMENT}:${PermissionActions.ALL}:${PermissionScopes.ALL}`,
+    COUNTRIES_MANAGEMENT_ALL_COMPANY: `${PermissionCategories.COUNTRIES_MANAGEMENT}:${PermissionActions.ALL}:${PermissionScopes.COMPANY}`,
 
     USER_PROFILE_READ_ALL: `${PermissionCategories.USER_PROFILE}:${PermissionActions.READ}:${PermissionScopes.ALL}`,
     USER_PROFILE_READ_COMPANY: `${PermissionCategories.USER_PROFILE}:${PermissionActions.READ}:${PermissionScopes.COMPANY}`,
@@ -231,6 +239,42 @@ export const PERMISSIONS: Record<PermissionKey, PermissionDefinition> = {
         scopes: [PermissionScopes.SELF],
         name: "Manage own profile",
         description: "Full management of own user profile",
+    },
+
+    [PermissionKeys.COUNTRIES_MANAGEMENT_READ_ALL]: {
+        key: PermissionKeys.COUNTRIES_MANAGEMENT_READ_ALL,
+        category: PermissionCategories.COUNTRIES_MANAGEMENT,
+        action: PermissionActions.READ,
+        scopes: [PermissionScopes.ALL],
+        name: "View all countries",
+        description: "Can view all countries across the company",
+    },
+
+    [PermissionKeys.COUNTRIES_MANAGEMENT_READ_COMPANY]: {
+        key: PermissionKeys.COUNTRIES_MANAGEMENT_READ_COMPANY,
+        category: PermissionCategories.COUNTRIES_MANAGEMENT,
+        action: PermissionActions.READ,
+        scopes: [PermissionScopes.COMPANY],
+        name: "View company countries",
+        description: "Can view countries within own company",
+    },
+
+    [PermissionKeys.COUNTRIES_MANAGEMENT_ALL_ALL]: {
+        key: PermissionKeys.COUNTRIES_MANAGEMENT_ALL_ALL,
+        category: PermissionCategories.COUNTRIES_MANAGEMENT,
+        action: PermissionActions.ALL,
+        scopes: [PermissionScopes.ALL],
+        name: "Manage all countries",
+        description: "Full management of countries across the company",
+    },
+
+    [PermissionKeys.COUNTRIES_MANAGEMENT_ALL_COMPANY]: {
+        key: PermissionKeys.COUNTRIES_MANAGEMENT_ALL_COMPANY,
+        category: PermissionCategories.COUNTRIES_MANAGEMENT,
+        action: PermissionActions.ALL,
+        scopes: [PermissionScopes.COMPANY],
+        name: "Manage company countries",
+        description: "Full management of countries within own company",
     },
 
     [PermissionKeys.USER_PROFILE_READ_ALL]: {

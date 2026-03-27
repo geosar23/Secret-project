@@ -9,6 +9,7 @@ export interface IUser {
     role: Types.ObjectId; // Can be default roles or custom roles
     company?: Types.ObjectId; // null only for GOD role
     department?: Types.ObjectId;
+    country?: Types.ObjectId;
     employmentTitle?: Types.ObjectId;
     manager?: Types.ObjectId; // Direct manager's user ID
     managedDepartments?: Types.ObjectId[]; // For managers - departments they manage
@@ -27,6 +28,7 @@ export interface IUsersQueryParams {
     roleId?: string;
     companyId?: string | null;
     departmentId?: string;
+    countryId?: string;
     isActive?: boolean;
     sortBy?: string;
     sortOrder?: "asc" | "desc";

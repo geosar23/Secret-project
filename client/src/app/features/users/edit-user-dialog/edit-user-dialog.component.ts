@@ -10,11 +10,13 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { UsersService } from "../../../core/services/users.service";
 import { CompanyService } from "../../../core/services/company.service";
+import { CountryService } from "../../../core/services/country.service";
 import { EmploymentTitleService } from "../../../core/services/employment-title.service";
 import { RoleService } from "../../../core/services/role.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { IUser } from "../../../core/interfaces/user.interface";
 import { ICompany } from "../../../core/interfaces/company.interface";
+import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 import { IRole } from "../../../core/interfaces/role.interface";
 
@@ -43,6 +45,7 @@ export class EditUserDialogComponent implements OnInit {
     private fb = inject(FormBuilder);
     private usersService = inject(UsersService);
     private companyService = inject(CompanyService);
+    private countryService = inject(CountryService);
     private employmentTitleService = inject(EmploymentTitleService);
     private roleService = inject(RoleService);
     private toast = inject(ToastService);
@@ -51,9 +54,11 @@ export class EditUserDialogComponent implements OnInit {
 
     loading = false;
     companiesLoading = false;
+    countriesLoading = false;
     rolesLoading = false;
     employmentTitlesLoading = false;
     companies: ICompany[] = [];
+    countries: ICountry[] = [];
     roles: IRole[] = [];
     employmentTitles: IEmploymentTitle[] = [];
 
@@ -62,12 +67,14 @@ export class EditUserDialogComponent implements OnInit {
         email: [this.data.user.email, [Validators.required, Validators.email]],
         role: [this.data.user.role?._id ?? "", Validators.required],
         companyId: [this.data.user.company?._id ?? ""],
+        countryId: [this.data.user.country?._id ?? ""],
         employmentTitleId: [this.data.user.employmentTitle?._id ?? ""],
         isActive: [this.data.user.isActive ?? true],
     });
 
     ngOnInit(): void {
         this.companiesLoading = true;
+        this.countriesLoading = true;
         this.rolesLoading = true;
         this.employmentTitlesLoading = true;
 
@@ -91,6 +98,16 @@ export class EditUserDialogComponent implements OnInit {
             },
         });
 
+        this.countryService.getCountries().subscribe({
+            next: res => {
+                this.countries = res.data ?? [];
+                this.countriesLoading = false;
+            },
+            error: () => {
+                this.countriesLoading = false;
+            },
+        });
+
         this.employmentTitleService.getEmploymentTitles().subscribe({
             next: res => {
                 this.employmentTitles = res.data ?? [];
@@ -111,12 +128,13 @@ export class EditUserDialogComponent implements OnInit {
         this.loading = true;
         this.dialogRef.disableClose = true;
 
-        const { name, email, role, companyId, employmentTitleId, isActive } = this.userForm.value;
+        const { name, email, role, companyId, countryId, employmentTitleId, isActive } = this.userForm.value;
         const payload = {
             name,
             email,
             role: role || undefined,
             companyId: companyId || undefined,
+            countryId: countryId || undefined,
             employmentTitleId: employmentTitleId || undefined,
             isActive,
         };
@@ -137,6 +155,7 @@ export class EditUserDialogComponent implements OnInit {
                     isActive,
                     role: this.roles.find(r => r._id === role) ?? this.data.user.role,
                     company: this.companies.find(c => c._id === companyId) ?? this.data.user.company,
+                    country: this.countries.find(c => c._id === countryId) ?? this.data.user.country,
                     employmentTitle:
                         this.employmentTitles.find(t => t._id === employmentTitleId) ?? this.data.user.employmentTitle,
                 };

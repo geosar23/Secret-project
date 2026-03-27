@@ -16,6 +16,7 @@ export const UserService = {
         const role = params.roleId;
         const company = params.companyId;
         const department = params.departmentId;
+        const country = params.countryId;
         const isActive = params.isActive;
 
         // Build filter query
@@ -35,6 +36,10 @@ export const UserService = {
 
         if (department) {
             filter.department = department;
+        }
+
+        if (country) {
+            filter.country = country;
         }
 
         if (isActive !== undefined) {
@@ -62,6 +67,7 @@ export const UserService = {
                 .find(filter)
                 .populate("role", "role name")
                 .populate("company")
+                .populate("country", "_id name")
                 .populate({
                     path: "employmentTitle",
                     select: "_id name subDepartment",
@@ -93,6 +99,7 @@ export const UserService = {
             .findById(id)
             .populate("role")
             .populate("company")
+            .populate("country", "_id name")
             .populate({
                 path: "employmentTitle",
                 select: "_id name subDepartment",

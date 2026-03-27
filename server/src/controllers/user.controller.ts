@@ -33,6 +33,7 @@ export class UserController {
                 roleId: req.query.roleId as string,
                 companyId: req.query.companyId as string,
                 departmentId: req.query.departmentId as string,
+                countryId: req.query.countryId as string,
                 isActive: req.query.isActive === "true" ? true : req.query.isActive === "false" ? false : undefined,
             };
 
@@ -76,6 +77,7 @@ export class UserController {
                 role: req.body.role,
                 company: req.body.companyId,
                 department: req.body.departmentId,
+                country: req.body.countryId,
                 employmentTitle: req.body.employmentTitleId,
                 manager: req.body.managerId,
                 isActive: true,
@@ -150,6 +152,7 @@ export class UserController {
                 "name",
                 "email",
                 "department",
+                "country",
                 "employmentTitle",
                 "isActive",
                 "role",
@@ -175,6 +178,16 @@ export class UserController {
                     (sanitizedData as Record<string, unknown>)["employmentTitle"] = val.trim();
                 } else if (val === null || val === "") {
                     (sanitizedData as Record<string, unknown>)["employmentTitle"] = null;
+                }
+            }
+
+            // Handle countryId -> country mapping
+            if ("countryId" in req.body && req.body.countryId !== undefined) {
+                const val = req.body.countryId;
+                if (typeof val === "string" && val.trim().length > 0) {
+                    (sanitizedData as Record<string, unknown>)["country"] = val.trim();
+                } else if (val === null || val === "") {
+                    (sanitizedData as Record<string, unknown>)["country"] = null;
                 }
             }
 

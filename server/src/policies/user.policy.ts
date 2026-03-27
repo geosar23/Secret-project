@@ -25,7 +25,7 @@ export function buildUserSearchAccessQuery(actorUser: IUser): FilterQuery<IUser>
         fields: {
             company: "company",
             department: "department",
-            country: "countryId",
+            country: "country",
             manager: "manager",
             id: "_id",
         },
@@ -54,14 +54,14 @@ export function canAccessUserByScope(actor: AccessContext["actor"], target: IUse
 
         case PermissionScopes.COUNTRY:
             // Requires countryId on both actor and target (populated from company doc).
-            return !!actor.countryId && actor.countryId === (target as IUser & { countryId?: string }).countryId;
+            return !!actor.countryId && actor.countryId === target.country?.toString();
 
         case PermissionScopes.DEPARTMENT_COUNTRY:
             return (
                 !!actor.departmentId &&
                 actor.departmentId === target.department?.toString() &&
                 !!actor.countryId &&
-                actor.countryId === (target as IUser & { countryId?: string }).countryId
+                actor.countryId === target.country?.toString()
             );
 
         case PermissionScopes.MANAGED:
