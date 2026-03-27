@@ -77,7 +77,6 @@
     &:focus-within {
         background: rgba(var(--color-white-rgb), 1);
         box-shadow: var(--shadow-search-focus);
-        border: var(--spacing-3xs) solid var(--color-success);
     }
 }
 
