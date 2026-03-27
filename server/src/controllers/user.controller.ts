@@ -9,6 +9,10 @@ import { PermissionKeys } from "../enums/permissions.enum";
 import { DefaultUserRoles } from "../enums/user-role.enum";
 
 export class UserController {
+    private static isValidObjectId(value: unknown): value is string {
+        return typeof value === "string" && /^[a-fA-F0-9]{24}$/.test(value.trim());
+    }
+
     private static isValidPermissionKey(permissionKey: string): boolean {
         return Object.values(PermissionKeys).includes(
             permissionKey as (typeof PermissionKeys)[keyof typeof PermissionKeys],
@@ -70,16 +74,47 @@ export class UserController {
                 return;
             }
 
+            const roleId = typeof req.body.role === "string" ? req.body.role.trim() : "";
+            if (!UserController.isValidObjectId(roleId)) {
+                res.json(softError("Valid role is required"));
+                return;
+            }
+
+            const requestedCompanyId = typeof req.body.companyId === "string" ? req.body.companyId.trim() : "";
+            const companyId = requestedCompanyId || requestingUser.companyId;
+            if (!UserController.isValidObjectId(companyId)) {
+                res.json(softError("Valid companyId is required"));
+                return;
+            }
+
+            const departmentId =
+                typeof req.body.departmentId === "string" && UserController.isValidObjectId(req.body.departmentId)
+                    ? req.body.departmentId.trim()
+                    : undefined;
+            const countryId =
+                typeof req.body.countryId === "string" && UserController.isValidObjectId(req.body.countryId)
+                    ? req.body.countryId.trim()
+                    : undefined;
+            const employmentTitleId =
+                typeof req.body.employmentTitleId === "string" &&
+                UserController.isValidObjectId(req.body.employmentTitleId)
+                    ? req.body.employmentTitleId.trim()
+                    : undefined;
+            const managerId =
+                typeof req.body.managerId === "string" && UserController.isValidObjectId(req.body.managerId)
+                    ? req.body.managerId.trim()
+                    : undefined;
+
             const params: Omit<IUser, "_id"> = {
                 name: req.body.name,
                 email: req.body.email,
                 password: req.body.password,
-                role: req.body.role,
-                company: req.body.companyId,
-                department: req.body.departmentId,
-                country: req.body.countryId,
-                employmentTitle: req.body.employmentTitleId,
-                manager: req.body.managerId,
+                role: roleId as any,
+                company: companyId as any,
+                department: departmentId as any,
+                country: countryId as any,
+                employmentTitle: employmentTitleId as any,
+                manager: managerId as any,
                 isActive: true,
             };
 

@@ -80,19 +80,12 @@
 
 <mat-dialog-actions align="end">
     <button mat-button type="button" (click)="onCancel()" [disabled]="loading">Cancel</button>
-    <button
-        mat-raised-button
-        color="primary"
-        class="save-button"
-        type="button"
-        (click)="onSubmit()"
-        [disabled]="userForm.invalid || loading"
-    >
-        <span class="save-button-content">
-            @if (loading) {
-                <mat-spinner diameter="18"></mat-spinner>
-            }
-            <span>{{ loading ? "Saving..." : "Save Changes" }}</span>
-        </span>
-    </button>
+    <app-loading-button
+        label="Save Changes"
+        loadingLabel="Saving..."
+        [loading]="loading"
+        [disabled]="userForm.invalid"
+        [minWidth]="'150px'"
+        (buttonClick)="onSubmit()"
+    ></app-loading-button>
 </mat-dialog-actions>

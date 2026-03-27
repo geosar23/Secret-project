@@ -1,0 +1,16 @@
+<button
+    mat-raised-button
+    [color]="color"
+    [type]="type"
+    [disabled]="disabled || loading"
+    class="loading-button"
+    [style.min-width]="minWidth"
+    (click)="onClick($event)"
+>
+    <span class="content">
+        @if (loading) {
+            <mat-spinner diameter="18"></mat-spinner>
+        }
+        <span>{{ loading ? loadingLabel : label }}</span>
+    </span>
+</button>

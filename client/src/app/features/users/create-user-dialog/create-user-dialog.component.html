@@ -53,8 +53,11 @@
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Role</mat-label>
             <mat-select formControlName="role">
-                @for (role of roles; track role.value) {
-                    <mat-option [value]="role.value">{{ role.label }}</mat-option>
+                @if (rolesLoading) {
+                    <mat-option disabled>Loading roles...</mat-option>
+                }
+                @for (role of roles; track role._id) {
+                    <mat-option [value]="role._id">{{ role.name }}</mat-option>
                 }
             </mat-select>
         </mat-form-field>

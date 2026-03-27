@@ -6,7 +6,6 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatSelectModule } from "@angular/material/select";
 import { MatButtonModule } from "@angular/material/button";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { UsersService } from "../../../core/services/users.service";
 import { CompanyService } from "../../../core/services/company.service";
@@ -19,6 +18,7 @@ import { ICompany } from "../../../core/interfaces/company.interface";
 import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 import { IRole } from "../../../core/interfaces/role.interface";
+import { LoadingButtonComponent } from "../../../shared/components/loading-button/loading-button.component";
 
 export interface EditUserDialogData {
     user: IUser;
@@ -35,8 +35,8 @@ export interface EditUserDialogData {
         MatInputModule,
         MatSelectModule,
         MatButtonModule,
-        MatProgressSpinnerModule,
         MatSlideToggleModule,
+        LoadingButtonComponent,
     ],
     templateUrl: "./edit-user-dialog.component.html",
     styleUrls: ["./edit-user-dialog.component.scss"],

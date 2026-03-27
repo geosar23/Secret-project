@@ -1,10 +1,8 @@
 import { Schema, model, UpdateQuery } from "mongoose";
 import { IUser } from "../interfaces/user.interface";
-import { CompanyFields } from "./company.model";
 
 const UserSchema = new Schema<IUser>(
     {
-        ...CompanyFields,
         name: { type: String, required: true, trim: true },
         email: { type: String, required: true, unique: true, trim: true, match: /.+@.+\..+/ },
         password: { type: String, required: true },
