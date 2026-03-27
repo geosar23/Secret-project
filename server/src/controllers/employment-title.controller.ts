@@ -8,11 +8,6 @@ export class EmploymentTitleController {
     static async getAll(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const titles = await EmploymentTitleService.getAll(requestingUser.companyId);
             res.json(success(titles));
         } catch (error: any) {
@@ -25,11 +20,6 @@ export class EmploymentTitleController {
     static async getById(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const title = await EmploymentTitleService.getById(req.params.id, requestingUser.companyId);
             if (!title) {
                 res.json(softError("Employment title not found"));
@@ -47,11 +37,6 @@ export class EmploymentTitleController {
     static async create(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const { name, description, subDepartmentId } = req.body as {
                 name?: string;
                 description?: string;
@@ -88,11 +73,6 @@ export class EmploymentTitleController {
     static async update(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const sanitized: { name?: string; description?: string; isActive?: boolean; subDepartment?: string } = {};
 
             if (typeof req.body.name === "string" && req.body.name.trim().length > 0) {
@@ -134,11 +114,6 @@ export class EmploymentTitleController {
     static async delete(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const result = await EmploymentTitleService.delete(req.params.id, requestingUser.companyId);
             if (result.deletedCount === 0) {
                 res.json(softError("Employment title not found"));

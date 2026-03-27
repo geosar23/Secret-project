@@ -8,11 +8,6 @@ export class SubDepartmentController {
     static async getAll(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const subDepartments = await SubDepartmentService.getAll(requestingUser.companyId);
             res.json(success(subDepartments));
         } catch (error: any) {
@@ -25,11 +20,6 @@ export class SubDepartmentController {
     static async getById(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const subDepartment = await SubDepartmentService.getById(req.params.id, requestingUser.companyId);
             if (!subDepartment) {
                 res.json(softError("Sub-department not found"));
@@ -47,11 +37,6 @@ export class SubDepartmentController {
     static async create(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const { name, description, departmentId } = req.body as {
                 name?: string;
                 description?: string;
@@ -88,11 +73,6 @@ export class SubDepartmentController {
     static async update(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const sanitized: { name?: string; description?: string; isActive?: boolean; department?: string } = {};
 
             if (typeof req.body.name === "string" && req.body.name.trim().length > 0) {
@@ -134,11 +114,6 @@ export class SubDepartmentController {
     static async delete(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const result = await SubDepartmentService.delete(req.params.id, requestingUser.companyId);
             if (result.deletedCount === 0) {
                 res.json(softError("Sub-department not found"));

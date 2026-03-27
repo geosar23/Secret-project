@@ -8,11 +8,6 @@ export class CountryController {
     static async getAll(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const countries = await CountryService.getAll(requestingUser.companyId);
             res.json(success(countries));
         } catch (error: any) {
@@ -25,11 +20,6 @@ export class CountryController {
     static async getById(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const country = await CountryService.getById(req.params.id, requestingUser.companyId);
             if (!country) {
                 res.json(softError("Country not found"));
@@ -47,11 +37,6 @@ export class CountryController {
     static async create(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const { name, description } = req.body as { name?: string; description?: string };
             if (!name || typeof name !== "string" || name.trim().length < 2) {
                 res.json(softError("Country name is required (min 2 characters)"));
@@ -78,11 +63,6 @@ export class CountryController {
     static async update(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const sanitized: { name?: string; description?: string; isActive?: boolean } = {};
 
             if (typeof req.body.name === "string" && req.body.name.trim().length > 0) {
@@ -117,11 +97,6 @@ export class CountryController {
     static async delete(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const result = await CountryService.delete(req.params.id, requestingUser.companyId);
             if (result.deletedCount === 0) {
                 res.json(softError("Country not found"));

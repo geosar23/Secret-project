@@ -20,11 +20,6 @@ export class RoleController {
     static async getAllRoles(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const user = req.decoded as tokenPayload;
-            if (!user.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const roles = await RoleService.getAll(user.companyId);
             res.json(success(roles));
         } catch (error: any) {
@@ -41,11 +36,6 @@ export class RoleController {
     static async getRoleById(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const user = req.decoded as tokenPayload;
-            if (!user.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const { id } = req.params;
             const role = await RoleService.getById(id, user.companyId);
 
@@ -69,11 +59,6 @@ export class RoleController {
     static async getRoleHierarchy(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const user = req.decoded as tokenPayload;
-            if (!user.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const hierarchy = await RoleService.getHierarchy(user.companyId);
             res.json(success(hierarchy));
         } catch (error: any) {
@@ -178,11 +163,6 @@ export class RoleController {
     static async updateRole(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const user = req.decoded as tokenPayload;
-            if (!user.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const { id } = req.params;
             const updates: Partial<IRole> = {};
 
@@ -253,11 +233,6 @@ export class RoleController {
     static async deleteRole(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const user = req.decoded as tokenPayload;
-            if (!user.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const { id } = req.params;
             const deleted = await RoleService.delete(id, user.companyId);
             if (!deleted) {

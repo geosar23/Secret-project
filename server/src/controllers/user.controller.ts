@@ -15,11 +15,6 @@ export class UserController {
     static async getUsers(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             // Parse query parameters
             const params: IUsersQueryParams = {
                 page: req.query.page ? parseInt(req.query.page as string) : undefined,
@@ -62,11 +57,6 @@ export class UserController {
     static async create(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const params: Partial<IUser> = { isActive: true };
 
             const USER_CREATE_REQUIRED_FIELDS: UserFieldMap = {
@@ -129,10 +119,6 @@ export class UserController {
     static async getById(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
             const userId = req.params.id;
             const selectFields = req.query.fields ? (req.query.fields as string).split(",") : undefined;
             const user = await UserService.getById(userId, requestingUser.companyId, selectFields);
@@ -150,7 +136,7 @@ export class UserController {
     static async update(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId || !requestingUser.id) {
+            if (!requestingUser.id) {
                 res.json(softError("Unauthorized"));
                 return;
             }
@@ -243,11 +229,6 @@ export class UserController {
     static async changePassword(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const userId = req.params.id;
             const { currentPassword, newPassword } = req.body as {
                 currentPassword?: string;
@@ -280,11 +261,6 @@ export class UserController {
     static async grantPermission(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const userId = req.params.id;
             const permissionKey = String(req.body.permissionKey || "").trim();
 
@@ -315,11 +291,6 @@ export class UserController {
     static async revokePermission(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const userId = req.params.id;
             const permissionKey = String(req.body.permissionKey || "").trim();
 

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Response, NextFunction, Request } from "express";
-import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
+import { AuthenticatedRequest } from "../interfaces/auth.interface";
 import { CompanyService } from "../services/company.service";
 import { success, softError } from "../util/response.util";
 
@@ -55,12 +55,6 @@ export class CompanyController {
 
     static async update(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
-            const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
             const companyId = req.params.id;
 
             const sanitized: { name?: string; slug?: string; isActive?: boolean } = {};

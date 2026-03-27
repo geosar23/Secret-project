@@ -6,10 +6,17 @@ import { AuthenticatedRequest } from "../interfaces/auth.interface";
 export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const token = req.headers.authorization?.split(" ")[1];
 
-    if (!token) return res.status(401).json({ message: "Unauthorized" });
+    if (!token) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET!) as tokenPayload;
+
+        if (!decoded?.companyId) {
+            return res.status(403).json({ message: "Invalid token" });
+        }
+
         req.decoded = decoded;
         next();
     } catch {
