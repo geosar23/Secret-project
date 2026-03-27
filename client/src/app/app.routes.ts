@@ -34,6 +34,10 @@ export const routes: Routes = [
                     import("./features/departments/departments.component").then(m => m.DepartmentsComponent),
             },
             {
+                path: "countries",
+                loadComponent: () => import("./features/countries/countries.component").then(m => m.CountriesComponent),
+            },
+            {
                 path: "sub-departments",
                 loadComponent: () =>
                     import("./features/sub-departments/sub-departments.component").then(m => m.SubDepartmentsComponent),

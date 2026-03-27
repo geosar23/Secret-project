@@ -1,0 +1,39 @@
+<h2 mat-dialog-title>{{ isEdit ? "Edit Country" : "Create Country" }}</h2>
+
+<mat-dialog-content>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Country Name</mat-label>
+            <input matInput formControlName="name" placeholder="Germany" />
+            @if (form.get("name")?.hasError("required") && form.get("name")?.touched) {
+                <mat-error>Country name is required</mat-error>
+            }
+            @if (form.get("name")?.hasError("minlength")) {
+                <mat-error>Name must be at least 2 characters</mat-error>
+            }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" rows="3" placeholder="Optional"></textarea>
+        </mat-form-field>
+
+        @if (isEdit) {
+            <div class="toggle-row">
+                <mat-slide-toggle formControlName="isActive" color="primary">Active</mat-slide-toggle>
+            </div>
+        }
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()" [disabled]="loading">Cancel</button>
+    <button mat-raised-button color="primary" type="button" (click)="onSubmit()" [disabled]="form.invalid || loading">
+        @if (loading) {
+            <mat-spinner diameter="20"></mat-spinner>
+            Saving...
+        } @else {
+            {{ isEdit ? "Save Changes" : "Create" }}
+        }
+    </button>
+</mat-dialog-actions>

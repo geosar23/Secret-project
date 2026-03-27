@@ -109,6 +109,14 @@ export class HeaderComponent implements OnInit {
             description: "Manage departments",
         },
         {
+            id: "countries",
+            name: "Countries Management",
+            type: "route",
+            icon: "public",
+            route: "/countries",
+            description: "Manage countries",
+        },
+        {
             id: "sub-departments",
             name: "Sub-Departments Management",
             type: "route",
@@ -162,6 +170,11 @@ export class HeaderComponent implements OnInit {
             label: "Departments Management",
             icon: "account_tree",
             route: "/departments",
+        },
+        {
+            label: "Countries Management",
+            icon: "public",
+            route: "/countries",
         },
         {
             label: "Sub-Departments Management",
