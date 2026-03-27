@@ -1,8 +1,11 @@
+import { ICompany } from "./company.interface";
+
 export interface IRole {
     _id: string;
     name: string;
     description?: string;
     role: string;
+    company?: ICompany;
     permissions?: string[];
     isSystemRole?: boolean;
     isSytemRole?: boolean;

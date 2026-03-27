@@ -2,19 +2,21 @@ import { RoleModel } from "../models/role.model";
 import { IRole } from "../interfaces/role.interface";
 import { DefaultUserRoles } from "../enums/user-role.enum";
 
+const roleCompanyPopulate = { path: "company", select: "_id name" } as const;
+
 export const RoleService = {
     /**
      * Get all roles
      */
     getAll: (): Promise<IRole[]> => {
-        return RoleModel.find().exec();
+        return RoleModel.find().populate(roleCompanyPopulate).exec();
     },
 
     /**
      * Get role by ID
      */
     getById: (id: string): Promise<IRole | null> => {
-        return RoleModel.findById(id).exec();
+        return RoleModel.findById(id).populate(roleCompanyPopulate).exec();
     },
 
     getByRole: (slug: DefaultUserRoles | string): Promise<IRole | null> => {
@@ -26,22 +28,25 @@ export const RoleService = {
      */
     getByCompany: (companyId?: string): Promise<IRole[]> => {
         return RoleModel.find({
-            $or: [{ companyId }, { companyId: { $exists: false } }],
-        }).exec();
+            $or: [{ company: companyId }, { company: { $exists: false } }],
+        })
+            .populate(roleCompanyPopulate)
+            .exec();
     },
 
     /**
      * Get role hierarchy (sorted by level)
      */
     getHierarchy: (): Promise<IRole[]> => {
-        return RoleModel.find().sort({ level: -1 }).exec();
+        return RoleModel.find().populate(roleCompanyPopulate).sort({ level: -1 }).exec();
     },
 
     /**
      * Create a custom role
      */
-    create: (data: Omit<IRole, "_id">): Promise<IRole> => {
-        return RoleModel.create(data);
+    create: async (data: Omit<IRole, "_id">): Promise<IRole> => {
+        const role = await RoleModel.create(data);
+        return (await RoleModel.findById(role._id).populate(roleCompanyPopulate).exec()) as IRole;
     },
 
     /**
@@ -54,7 +59,7 @@ export const RoleService = {
             throw new Error("Cannot modify system roles");
         }
 
-        return RoleModel.findByIdAndUpdate(id, data, { new: true }).exec();
+        return RoleModel.findByIdAndUpdate(id, data, { new: true }).populate(roleCompanyPopulate).exec();
     },
 
     /**
