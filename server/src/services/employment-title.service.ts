@@ -1,11 +1,12 @@
 import { IEmploymentTitle } from "../interfaces/employment-title.interface";
-import { EmploymentTitleModel } from "../models/employment-title.model";
-import { SubDepartmentModel } from "../models/sub-department.model";
-import { UserModel } from "../models/user.model";
+import { employmentTitleRepository } from "../repositories/employment-title.repository";
+import { subDepartmentRepository } from "../repositories/sub-department.repository";
+import { userRepository } from "../repositories/user.repository";
 
 export const EmploymentTitleService = {
     getAll: (companyId: string) =>
-        EmploymentTitleModel.find({ company: companyId })
+        employmentTitleRepository(companyId)
+            .find()
             .populate({
                 path: "subDepartment",
                 select: "_id name department",
@@ -15,7 +16,8 @@ export const EmploymentTitleService = {
             .lean(),
 
     getById: (id: string, companyId: string) =>
-        EmploymentTitleModel.findOne({ _id: id, company: companyId })
+        employmentTitleRepository(companyId)
+            .findById(id)
             .populate({
                 path: "subDepartment",
                 select: "_id name department",
@@ -24,31 +26,30 @@ export const EmploymentTitleService = {
             .lean(),
 
     create: async (data: Omit<IEmploymentTitle, "_id" | "company" | "createdAt" | "updatedAt">, companyId: string) => {
-        const subDepartment = await SubDepartmentModel.findOne({ _id: data.subDepartment, company: companyId }).lean();
+        const subDepartment = await subDepartmentRepository(companyId).findById(String(data.subDepartment)).lean();
         if (!subDepartment) {
             throw new Error("Invalid sub-department for this company");
         }
 
-        return EmploymentTitleModel.create({
+        return employmentTitleRepository(companyId).create({
             ...data,
-            company: companyId,
             isActive: data.isActive ?? true,
         });
     },
 
     update: async (id: string, data: Partial<IEmploymentTitle>, companyId: string) => {
+        const repository = employmentTitleRepository(companyId);
+
         if (data.subDepartment) {
-            const subDepartment = await SubDepartmentModel.findOne({
-                _id: data.subDepartment,
-                company: companyId,
-            }).lean();
+            const subDepartment = await subDepartmentRepository(companyId).findById(String(data.subDepartment)).lean();
             if (!subDepartment) {
                 throw new Error("Invalid sub-department for this company");
             }
         }
 
-        await EmploymentTitleModel.updateOne({ _id: id, company: companyId }, data);
-        return EmploymentTitleModel.findOne({ _id: id, company: companyId })
+        await repository.updateOne({ _id: id }, data);
+        return repository
+            .findById(id)
             .populate({
                 path: "subDepartment",
                 select: "_id name department",
@@ -58,11 +59,11 @@ export const EmploymentTitleService = {
     },
 
     delete: async (id: string, companyId: string) => {
-        const assignedUsers = await UserModel.countDocuments({ company: companyId, employmentTitle: id });
+        const assignedUsers = await userRepository(companyId).count({ employmentTitle: id });
         if (assignedUsers > 0) {
             throw new Error("Cannot delete employment title assigned to users");
         }
 
-        return EmploymentTitleModel.deleteOne({ _id: id, company: companyId });
+        return employmentTitleRepository(companyId).deleteOne({ _id: id });
     },
 };

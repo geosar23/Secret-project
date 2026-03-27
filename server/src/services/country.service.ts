@@ -1,22 +1,22 @@
 import { ICountry } from "../interfaces/country.interface";
-import { CountryModel } from "../models/country.model";
+import { countryRepository } from "../repositories/country.repository";
 
 export const CountryService = {
-    getAll: (companyId: string) => CountryModel.find({ company: companyId }).sort({ name: 1 }).lean(),
+    getAll: (companyId: string) => countryRepository(companyId).find().sort({ name: 1 }).lean(),
 
-    getById: (id: string, companyId: string) => CountryModel.findOne({ _id: id, company: companyId }).lean(),
+    getById: (id: string, companyId: string) => countryRepository(companyId).findById(id).lean(),
 
     create: (data: Omit<ICountry, "_id" | "company" | "createdAt" | "updatedAt">, companyId: string) =>
-        CountryModel.create({
+        countryRepository(companyId).create({
             ...data,
-            company: companyId,
             isActive: data.isActive ?? true,
         }),
 
     update: async (id: string, data: Partial<ICountry>, companyId: string) => {
-        await CountryModel.updateOne({ _id: id, company: companyId }, data);
-        return CountryModel.findOne({ _id: id, company: companyId }).lean();
+        const repository = countryRepository(companyId);
+        await repository.updateOne({ _id: id }, data);
+        return repository.findById(id).lean();
     },
 
-    delete: (id: string, companyId: string) => CountryModel.deleteOne({ _id: id, company: companyId }),
+    delete: (id: string, companyId: string) => countryRepository(companyId).deleteOne({ _id: id }),
 };

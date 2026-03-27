@@ -1,6 +1,7 @@
 import { RoleModel } from "../models/role.model";
 import { IRole } from "../interfaces/role.interface";
 import { DefaultUserRoles } from "../enums/user-role.enum";
+import { roleRepository } from "../repositories/role.repository";
 
 const roleCompanyPopulate = { path: "company", select: "_id name" } as const;
 
@@ -8,15 +9,15 @@ export const RoleService = {
     /**
      * Get all roles
      */
-    getAll: (): Promise<IRole[]> => {
-        return RoleModel.find().populate(roleCompanyPopulate).exec();
+    getAll: (companyId: string): Promise<IRole[]> => {
+        return roleRepository(companyId).find().populate(roleCompanyPopulate).exec();
     },
 
     /**
      * Get role by ID
      */
-    getById: (id: string): Promise<IRole | null> => {
-        return RoleModel.findById(id).populate(roleCompanyPopulate).exec();
+    getById: (id: string, companyId: string): Promise<IRole | null> => {
+        return roleRepository(companyId).findById(id).populate(roleCompanyPopulate).exec();
     },
 
     getByRole: (slug: DefaultUserRoles | string): Promise<IRole | null> => {
@@ -26,54 +27,57 @@ export const RoleService = {
     /**
      * Get roles by company (includes system roles)
      */
-    getByCompany: (companyId?: string): Promise<IRole[]> => {
-        return RoleModel.find({
-            $or: [{ company: companyId }, { company: { $exists: false } }],
-        })
-            .populate(roleCompanyPopulate)
-            .exec();
+    getByCompany: (companyId: string): Promise<IRole[]> => {
+        return roleRepository(companyId).find().populate(roleCompanyPopulate).exec();
     },
 
     /**
      * Get role hierarchy (sorted by level)
      */
-    getHierarchy: (): Promise<IRole[]> => {
-        return RoleModel.find().populate(roleCompanyPopulate).sort({ level: -1 }).exec();
+    getHierarchy: (companyId: string): Promise<IRole[]> => {
+        return roleRepository(companyId).find().populate(roleCompanyPopulate).sort({ level: -1 }).exec();
     },
 
     /**
      * Create a custom role
      */
-    create: async (data: Omit<IRole, "_id">): Promise<IRole> => {
-        const role = await RoleModel.create(data);
-        return (await RoleModel.findById(role._id).populate(roleCompanyPopulate).exec()) as IRole;
+    create: async (data: Omit<IRole, "_id">, companyId: string): Promise<IRole> => {
+        const role = await roleRepository(companyId).create(data);
+        return (await roleRepository(companyId)
+            .findById(role._id.toString())
+            .populate(roleCompanyPopulate)
+            .exec()) as IRole;
     },
 
     /**
      * Update a role
      */
-    update: async (id: string, data: Partial<IRole>): Promise<IRole | null> => {
+    update: async (id: string, data: Partial<IRole>, companyId: string): Promise<IRole | null> => {
+        const repository = roleRepository(companyId);
+
         // Prevent modification of system roles
-        const role = await RoleModel.findById(id).exec();
+        const role = await repository.findById(id).exec();
         if (role?.isSystemRole) {
             throw new Error("Cannot modify system roles");
         }
 
-        return RoleModel.findByIdAndUpdate(id, data, { new: true }).populate(roleCompanyPopulate).exec();
+        return repository.findOneAndUpdate({ _id: id }, data, { new: true }).populate(roleCompanyPopulate).exec();
     },
 
     /**
      * Delete a role
      */
-    delete: async (id: string): Promise<boolean> => {
+    delete: async (id: string, companyId: string): Promise<boolean> => {
+        const repository = roleRepository(companyId);
+
         // Prevent deletion of system roles
-        const role = await RoleModel.findById(id).exec();
+        const role = await repository.findById(id).exec();
         if (role?.isSystemRole) {
             throw new Error("Cannot delete system roles");
         }
 
-        const result = await RoleModel.findByIdAndDelete(id).exec();
-        return !!result;
+        const result = await repository.deleteOne({ _id: id });
+        return result.deletedCount > 0;
     },
 
     /**

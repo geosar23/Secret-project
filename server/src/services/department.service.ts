@@ -1,22 +1,22 @@
 import { IDepartment } from "../interfaces/department.interface";
-import { DepartmentModel } from "../models/department.model";
 import { SubDepartmentModel } from "../models/sub-department.model";
+import { departmentRepository } from "../repositories/department.repository";
 
 export const DepartmentService = {
-    getAll: (companyId: string) => DepartmentModel.find({ company: companyId }).sort({ name: 1 }).lean(),
+    getAll: (companyId: string) => departmentRepository(companyId).find().sort({ name: 1 }).lean(),
 
-    getById: (id: string, companyId: string) => DepartmentModel.findOne({ _id: id, company: companyId }).lean(),
+    getById: (id: string, companyId: string) => departmentRepository(companyId).findById(id).lean(),
 
     create: (data: Omit<IDepartment, "_id" | "company" | "createdAt" | "updatedAt">, companyId: string) =>
-        DepartmentModel.create({
+        departmentRepository(companyId).create({
             ...data,
-            company: companyId,
             isActive: data.isActive ?? true,
         }),
 
     update: async (id: string, data: Partial<IDepartment>, companyId: string) => {
-        await DepartmentModel.updateOne({ _id: id, company: companyId }, data);
-        return DepartmentModel.findOne({ _id: id, company: companyId }).lean();
+        const repository = departmentRepository(companyId);
+        await repository.updateOne({ _id: id }, data);
+        return repository.findById(id).lean();
     },
 
     delete: async (id: string, companyId: string) => {
@@ -25,6 +25,6 @@ export const DepartmentService = {
             throw new Error("Cannot delete department with existing sub-departments");
         }
 
-        return DepartmentModel.deleteOne({ _id: id, company: companyId });
+        return departmentRepository(companyId).deleteOne({ _id: id });
     },
 };

@@ -19,7 +19,13 @@ export class RoleController {
      */
     static async getAllRoles(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
-            const roles = await RoleService.getAll();
+            const user = req.decoded as tokenPayload;
+            if (!user.companyId) {
+                res.json(softError("Unauthorized"));
+                return;
+            }
+
+            const roles = await RoleService.getAll(user.companyId);
             res.json(success(roles));
         } catch (error: any) {
             console.log("Error in RoleController.getAllRoles:", error);
@@ -34,8 +40,14 @@ export class RoleController {
      */
     static async getRoleById(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
+            const user = req.decoded as tokenPayload;
+            if (!user.companyId) {
+                res.json(softError("Unauthorized"));
+                return;
+            }
+
             const { id } = req.params;
-            const role = await RoleService.getById(id);
+            const role = await RoleService.getById(id, user.companyId);
 
             if (!role) {
                 res.json(softError("Role not found"));
@@ -56,7 +68,13 @@ export class RoleController {
      */
     static async getRoleHierarchy(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
-            const hierarchy = await RoleService.getHierarchy();
+            const user = req.decoded as tokenPayload;
+            if (!user.companyId) {
+                res.json(softError("Unauthorized"));
+                return;
+            }
+
+            const hierarchy = await RoleService.getHierarchy(user.companyId);
             res.json(success(hierarchy));
         } catch (error: any) {
             console.log("Error in RoleController.getRoleHierarchy:", error);
@@ -143,7 +161,7 @@ export class RoleController {
                 createdAt: new Date(),
             };
 
-            const newRole = await RoleService.create(roleData);
+            const newRole = await RoleService.create(roleData, user.companyId);
 
             res.status(201).json(success({ role: newRole }));
         } catch (error: any) {
@@ -160,6 +178,11 @@ export class RoleController {
     static async updateRole(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const user = req.decoded as tokenPayload;
+            if (!user.companyId) {
+                res.json(softError("Unauthorized"));
+                return;
+            }
+
             const { id } = req.params;
             const updates: Partial<IRole> = {};
 
@@ -208,7 +231,7 @@ export class RoleController {
                 return;
             }
 
-            const updated = await RoleService.update(id, updates);
+            const updated = await RoleService.update(id, updates, user.companyId);
 
             if (!updated) {
                 res.json(softError("Role not found"));
@@ -229,7 +252,20 @@ export class RoleController {
      */
     static async deleteRole(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
-            res.json(softError("Role deletion is not allowed. Set role status to inactive instead."));
+            const user = req.decoded as tokenPayload;
+            if (!user.companyId) {
+                res.json(softError("Unauthorized"));
+                return;
+            }
+
+            const { id } = req.params;
+            const deleted = await RoleService.delete(id, user.companyId);
+            if (!deleted) {
+                res.json(softError("Role not found"));
+                return;
+            }
+
+            res.json(success({}));
         } catch (error: any) {
             console.log("Error in RoleController.deleteRole:", error);
             res.json(softError(error.message, error));
