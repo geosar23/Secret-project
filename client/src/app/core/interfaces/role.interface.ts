@@ -18,11 +18,13 @@ export interface ICreateRoleRequest {
     name: string;
     description?: string;
     permissions?: string[];
+    companyId?: string;
 }
 
 export interface IUpdateRoleRequest {
     name?: string;
     description?: string;
     permissions?: string[];
+    companyId?: string;
     isActive?: boolean;
 }

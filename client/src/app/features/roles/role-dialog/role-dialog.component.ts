@@ -1,4 +1,4 @@
-import { Component, inject } from "@angular/core";
+import { Component, inject, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
@@ -10,9 +10,13 @@ import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatSelectModule } from "@angular/material/select";
 import { MatChipsModule } from "@angular/material/chips";
 import { RoleService } from "../../../core/services/role.service";
+import { CompanyService } from "../../../core/services/company.service";
+import { AuthService } from "../../../core/services/auth.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { IRole } from "../../../core/interfaces/role.interface";
+import { ICompany } from "../../../core/interfaces/company.interface";
 import { PERMISSIONS, PermissionCategoriesStrings } from "../../../core/enums/permissions.enum";
+import { PermissionKeys } from "../../../core/enums/permissions.enum";
 import { IPermissionDefinition } from "../../../core/interfaces/permission.interface";
 
 interface PermissionGroup {
@@ -44,24 +48,48 @@ export interface RoleDialogData {
     templateUrl: "./role-dialog.component.html",
     styleUrls: ["./role-dialog.component.scss"],
 })
-export class RoleDialogComponent {
+export class RoleDialogComponent implements OnInit {
     private fb = inject(FormBuilder);
     private roleService = inject(RoleService);
+    private companyService = inject(CompanyService);
+    private authService = inject(AuthService);
     private toast = inject(ToastService);
     private dialogRef = inject(MatDialogRef<RoleDialogComponent, IRole | undefined>);
     data = inject<RoleDialogData>(MAT_DIALOG_DATA);
 
     loading = false;
+    companiesLoading = false;
     isEdit = this.data.mode === "edit";
+    companies: ICompany[] = [];
 
     readonly permissionGroups: PermissionGroup[] = this.buildPermissionGroups();
+    readonly canSelectCompany = this.canAssignRolesAcrossCompanies();
 
     form: FormGroup = this.fb.group({
         name: [this.data.role?.name ?? "", [Validators.required, Validators.minLength(2)]],
         description: [this.data.role?.description ?? "", [Validators.maxLength(255)]],
+        companyId: [this.data.role?.company?._id ?? this.authService.getLocalUser()?.company?._id ?? ""],
         isActive: [this.data.role?.isActive ?? true],
         permissions: [this.data.role?.permissions ?? []],
     });
+
+    ngOnInit(): void {
+        if (!this.canSelectCompany) {
+            return;
+        }
+
+        this.companiesLoading = true;
+        this.companyService.getCompanies().subscribe({
+            next: res => {
+                this.companies = res.data ?? [];
+                this.companiesLoading = false;
+            },
+            error: () => {
+                this.companiesLoading = false;
+                this.toast.error("Failed to load companies");
+            },
+        });
+    }
 
     get selectedPermissions(): string[] {
         return (this.form.get("permissions")?.value as string[]) ?? [];
@@ -75,6 +103,22 @@ export class RoleDialogComponent {
     clearPermissions(): void {
         this.form.get("permissions")?.setValue([]);
         this.form.get("permissions")?.markAsDirty();
+    }
+
+    private canAssignRolesAcrossCompanies(): boolean {
+        const currentUser = this.authService.getLocalUser();
+        if (!currentUser) {
+            return false;
+        }
+
+        const rolePermissions = currentUser.role?.permissions ?? [];
+        const grantedPermissions = currentUser.grantedPermissions ?? [];
+        const revokedPermissions = new Set(currentUser.revokedPermissions ?? []);
+        const effective = new Set(
+            [...rolePermissions, ...grantedPermissions].filter(permission => !revokedPermissions.has(permission)),
+        );
+
+        return effective.has(PermissionKeys.ALL) || effective.has(PermissionKeys.USERS_MANAGEMENT_ALL_ALL);
     }
 
     private buildPermissionGroups(): PermissionGroup[] {
@@ -104,9 +148,10 @@ export class RoleDialogComponent {
         this.loading = true;
         this.dialogRef.disableClose = true;
 
-        const { name, description, isActive, permissions } = this.form.value as {
+        const { name, description, companyId, isActive, permissions } = this.form.value as {
             name: string;
             description: string;
+            companyId?: string;
             isActive: boolean;
             permissions: string[];
         };
@@ -115,10 +160,16 @@ export class RoleDialogComponent {
             ? this.roleService.updateRole(this.data.role!._id as string, {
                   name,
                   description,
+                  companyId: this.canSelectCompany ? companyId || undefined : undefined,
                   isActive,
                   permissions,
               })
-            : this.roleService.createRole({ name, description, permissions });
+            : this.roleService.createRole({
+                  name,
+                  description,
+                  permissions,
+                  companyId: this.canSelectCompany ? companyId || undefined : undefined,
+              });
 
         request$.subscribe({
             next: res => {
