@@ -1,5 +1,6 @@
 import { Schema, model, UpdateQuery } from "mongoose";
 import { IUser } from "../interfaces/user.interface";
+import bcrypt from "bcryptjs";
 
 const UserSchema = new Schema<IUser>(
     {
@@ -25,6 +26,13 @@ const UserSchema = new Schema<IUser>(
 );
 
 UserSchema.pre("save", async function (next) {
+    if (this.isModified("password") && typeof this.password === "string") {
+        const isAlreadyHashed = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/.test(this.password);
+        if (!isAlreadyHashed) {
+            this.password = await bcrypt.hash(this.password, 10);
+        }
+    }
+
     // Only validate if role is present and modified
     if (this.isModified("role") || this.isNew) {
         const roleValue = this.role;

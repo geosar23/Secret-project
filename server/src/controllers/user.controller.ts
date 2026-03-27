@@ -7,12 +7,11 @@ import { success, softError } from "../util/response.util";
 import { buildUserSearchAccessQuery, canManageUser } from "../policies/user.policy";
 import { PermissionKeys } from "../enums/permissions.enum";
 import { DefaultUserRoles } from "../enums/user-role.enum";
+import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";
+
+type UserFieldMap = FieldMap<IUser>;
 
 export class UserController {
-    private static isValidObjectId(value: unknown): value is string {
-        return typeof value === "string" && /^[a-fA-F0-9]{24}$/.test(value.trim());
-    }
-
     private static isValidPermissionKey(permissionKey: string): boolean {
         return Object.values(PermissionKeys).includes(
             permissionKey as (typeof PermissionKeys)[keyof typeof PermissionKeys],
@@ -74,51 +73,58 @@ export class UserController {
                 return;
             }
 
-            const roleId = typeof req.body.role === "string" ? req.body.role.trim() : "";
-            if (!UserController.isValidObjectId(roleId)) {
-                res.json(softError("Valid role is required"));
-                return;
-            }
+            const params: Partial<IUser> = { isActive: true };
 
-            const requestedCompanyId = typeof req.body.companyId === "string" ? req.body.companyId.trim() : "";
-            const companyId = requestedCompanyId || requestingUser.companyId;
-            if (!UserController.isValidObjectId(companyId)) {
-                res.json(softError("Valid companyId is required"));
-                return;
-            }
-
-            const departmentId =
-                typeof req.body.departmentId === "string" && UserController.isValidObjectId(req.body.departmentId)
-                    ? req.body.departmentId.trim()
-                    : undefined;
-            const countryId =
-                typeof req.body.countryId === "string" && UserController.isValidObjectId(req.body.countryId)
-                    ? req.body.countryId.trim()
-                    : undefined;
-            const employmentTitleId =
-                typeof req.body.employmentTitleId === "string" &&
-                UserController.isValidObjectId(req.body.employmentTitleId)
-                    ? req.body.employmentTitleId.trim()
-                    : undefined;
-            const managerId =
-                typeof req.body.managerId === "string" && UserController.isValidObjectId(req.body.managerId)
-                    ? req.body.managerId.trim()
-                    : undefined;
-
-            const params: Omit<IUser, "_id"> = {
-                name: req.body.name,
-                email: req.body.email,
-                password: req.body.password,
-                role: roleId as any,
-                company: companyId as any,
-                department: departmentId as any,
-                country: countryId as any,
-                employmentTitle: employmentTitleId as any,
-                manager: managerId as any,
-                isActive: true,
+            const USER_CREATE_REQUIRED_FIELDS: UserFieldMap = {
+                name: { type: "string", targetField: "name", required: true },
+                email: { type: "string", targetField: "email", required: true, isEmail: true },
+                password: { type: "string", targetField: "password", required: true, minLength: 6, toBeHashed: true },
+                role: { type: "string", targetField: "role", isPointer: true, pointerClass: "Roles", required: true },
+                companyId: {
+                    type: "string",
+                    targetField: "company",
+                    isPointer: true,
+                    pointerClass: "Companies",
+                    required: true,
+                },
             };
 
-            const newUser = await UserService.create(params, requestingUser.companyId);
+            setMappedFields(params, USER_CREATE_REQUIRED_FIELDS, req.body as Record<string, unknown>);
+
+            const USER_OPTIONAL_FIELDS: UserFieldMap = {
+                departmentId: {
+                    type: "string",
+                    targetField: "department",
+                    isPointer: true,
+                    pointerClass: "Departments",
+                    allowUnset: true,
+                },
+                countryId: {
+                    type: "string",
+                    targetField: "country",
+                    isPointer: true,
+                    pointerClass: "Countries",
+                    allowUnset: true,
+                },
+                employmentTitleId: {
+                    type: "string",
+                    targetField: "employmentTitle",
+                    isPointer: true,
+                    pointerClass: "EmploymentTitles",
+                    allowUnset: true,
+                },
+                managerId: {
+                    type: "string",
+                    targetField: "manager",
+                    isPointer: true,
+                    pointerClass: "Users",
+                    allowUnset: true,
+                },
+            };
+
+            setMappedFields(params, USER_OPTIONAL_FIELDS, req.body as Record<string, unknown>);
+
+            const newUser = await UserService.create(params as Omit<IUser, "_id">, requestingUser.companyId);
             res.json(success({ user: newUser }));
         } catch (error: any) {
             console.log("Error in UserController.create:", error, { decoded: req.decoded, body: req.body });
@@ -182,83 +188,51 @@ export class UserController {
                 return;
             }
 
-            // Define allowed fields for update (prevent unauthorized field modifications)
-            const allowedFields: (keyof IUser)[] = [
-                "name",
-                "email",
-                "department",
-                "country",
-                "employmentTitle",
-                "isActive",
-                "role",
-            ];
-
-            // Sanitize input: only allow whitelisted fields
             const sanitizedData: Partial<IUser> = {};
 
-            // Handle companyId → company mapping
-            if ("companyId" in req.body && req.body.companyId !== undefined) {
-                const val = req.body.companyId;
-                if (typeof val === "string" && val.trim().length > 0) {
-                    (sanitizedData as Record<string, unknown>)["company"] = val.trim();
-                } else if (val === null || val === "") {
-                    (sanitizedData as Record<string, unknown>)["company"] = null;
-                }
-            }
+            const USER_UPDATE_FIELDS: UserFieldMap = {
+                name: { type: "string", targetField: "name" },
+                email: { type: "string", targetField: "email", isEmail: true },
+                role: { type: "string", targetField: "role", isPointer: true, pointerClass: "Roles" },
+                companyId: {
+                    type: "string",
+                    targetField: "company",
+                    isPointer: true,
+                    pointerClass: "Companies",
+                    allowUnset: true,
+                },
+                departmentId: {
+                    type: "string",
+                    targetField: "department",
+                    isPointer: true,
+                    pointerClass: "Departments",
+                    allowUnset: true,
+                },
+                countryId: {
+                    type: "string",
+                    targetField: "country",
+                    isPointer: true,
+                    pointerClass: "Countries",
+                    allowUnset: true,
+                },
+                employmentTitleId: {
+                    type: "string",
+                    targetField: "employmentTitle",
+                    isPointer: true,
+                    pointerClass: "EmploymentTitles",
+                    allowUnset: true,
+                },
+                managerId: {
+                    type: "string",
+                    targetField: "manager",
+                    isPointer: true,
+                    pointerClass: "Users",
+                    allowUnset: true,
+                },
+                isActive: { type: "boolean", targetField: "isActive" },
+            };
 
-            // Handle employmentTitleId -> employmentTitle mapping
-            if ("employmentTitleId" in req.body && req.body.employmentTitleId !== undefined) {
-                const val = req.body.employmentTitleId;
-                if (typeof val === "string" && val.trim().length > 0) {
-                    (sanitizedData as Record<string, unknown>)["employmentTitle"] = val.trim();
-                } else if (val === null || val === "") {
-                    (sanitizedData as Record<string, unknown>)["employmentTitle"] = null;
-                }
-            }
-
-            // Handle countryId -> country mapping
-            if ("countryId" in req.body && req.body.countryId !== undefined) {
-                const val = req.body.countryId;
-                if (typeof val === "string" && val.trim().length > 0) {
-                    (sanitizedData as Record<string, unknown>)["country"] = val.trim();
-                } else if (val === null || val === "") {
-                    (sanitizedData as Record<string, unknown>)["country"] = null;
-                }
-            }
-
-            allowedFields.forEach(field => {
-                if (field in req.body && req.body[field] !== undefined) {
-                    const value = req.body[field];
-
-                    // Allow email validation
-                    if (field === "email" && typeof value === "string") {
-                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                        if (emailRegex.test(value.trim())) {
-                            (sanitizedData as Record<string, string | boolean>)[field] = value.trim();
-                        }
-                    }
-                    // Sanitize string fields (trim whitespace, prevent empty strings)
-                    else if (typeof value === "string") {
-                        const trimmed = String(value).trim();
-                        if (trimmed.length > 0) {
-                            (sanitizedData as Record<string, string | boolean>)[field] = trimmed;
-                        }
-                    }
-                    // Allow boolean values
-                    else if (typeof value === "boolean") {
-                        (sanitizedData as Record<string, string | boolean>)[field] = value;
-                    }
-                    // Allow other valid types
-                    else if (value !== null && value !== undefined) {
-                        (sanitizedData as Record<string, string | boolean>)[field] = value;
-                    }
-                }
-            });
-
-            if (Object.keys(sanitizedData).length === 0) {
-                res.json(softError("No valid fields provided for update"));
-                return;
-            }
+            setMappedFields(sanitizedData, USER_UPDATE_FIELDS, req.body as Record<string, unknown>);
 
             const updatedUser = await UserService.update(userId, sanitizedData, requestingUser.companyId);
             if (!updatedUser) {
