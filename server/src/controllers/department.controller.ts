@@ -54,7 +54,7 @@ export class DepartmentController {
 
             res.json(success({ department }));
         } catch (error: any) {
-            console.log("Error in DepartmentController.create:", error);
+            console.log("Error in DepartmentController.create:", error, req.body);
             res.json(softError(error.message, error));
             next(error);
         }
