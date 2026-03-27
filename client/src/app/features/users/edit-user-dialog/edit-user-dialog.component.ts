@@ -14,7 +14,7 @@ import { CountryService } from "../../../core/services/country.service";
 import { EmploymentTitleService } from "../../../core/services/employment-title.service";
 import { RoleService } from "../../../core/services/role.service";
 import { ToastService } from "../../../core/services/toast.service";
-import { IUser } from "../../../core/interfaces/user.interface";
+import { IUser, IUpdateUserRequest } from "../../../core/interfaces/user.interface";
 import { ICompany } from "../../../core/interfaces/company.interface";
 import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
@@ -72,6 +72,16 @@ export class EditUserDialogComponent implements OnInit {
         isActive: [this.data.user.isActive ?? true],
     });
 
+    private initialUpdateValues = {
+        name: (this.data.user.name ?? "").trim(),
+        email: (this.data.user.email ?? "").trim(),
+        role: this.data.user.role?._id ?? undefined,
+        companyId: this.data.user.company?._id ?? undefined,
+        countryId: this.data.user.country?._id ?? undefined,
+        employmentTitleId: this.data.user.employmentTitle?._id ?? undefined,
+        isActive: this.data.user.isActive ?? true,
+    };
+
     ngOnInit(): void {
         this.companiesLoading = true;
         this.countriesLoading = true;
@@ -125,19 +135,40 @@ export class EditUserDialogComponent implements OnInit {
             return;
         }
 
-        this.loading = true;
-        this.dialogRef.disableClose = true;
+        const { name, email, role, companyId, countryId, employmentTitleId, isActive } = this.userForm.value as {
+            name: string;
+            email: string;
+            role?: string;
+            companyId?: string;
+            countryId?: string;
+            employmentTitleId?: string;
+            isActive: boolean;
+        };
 
-        const { name, email, role, companyId, countryId, employmentTitleId, isActive } = this.userForm.value;
-        const payload = {
-            name,
-            email,
+        const currentValues = {
+            name: (name ?? "").trim(),
+            email: (email ?? "").trim(),
             role: role || undefined,
             companyId: companyId || undefined,
             countryId: countryId || undefined,
             employmentTitleId: employmentTitleId || undefined,
-            isActive,
+            isActive: !!isActive,
         };
+
+        const payload: IUpdateUserRequest = {};
+        (Object.keys(currentValues) as Array<keyof typeof currentValues>).forEach(key => {
+            if (currentValues[key] !== this.initialUpdateValues[key]) {
+                (payload as Record<string, string | boolean | undefined>)[key] = currentValues[key];
+            }
+        });
+
+        if (Object.keys(payload).length === 0) {
+            this.toast.info("No changes to save");
+            return;
+        }
+
+        this.loading = true;
+        this.dialogRef.disableClose = true;
 
         this.usersService.updateUser(this.data.user._id as string, payload).subscribe({
             next: res => {
@@ -150,14 +181,15 @@ export class EditUserDialogComponent implements OnInit {
                 // Return an updated user object merging the form changes
                 const updatedUser: IUser = {
                     ...this.data.user,
-                    name,
-                    email,
-                    isActive,
-                    role: this.roles.find(r => r._id === role) ?? this.data.user.role,
-                    company: this.companies.find(c => c._id === companyId) ?? this.data.user.company,
-                    country: this.countries.find(c => c._id === countryId) ?? this.data.user.country,
+                    name: currentValues.name,
+                    email: currentValues.email,
+                    isActive: currentValues.isActive,
+                    role: this.roles.find(r => r._id === currentValues.role) ?? this.data.user.role,
+                    company: this.companies.find(c => c._id === currentValues.companyId) ?? this.data.user.company,
+                    country: this.countries.find(c => c._id === currentValues.countryId) ?? this.data.user.country,
                     employmentTitle:
-                        this.employmentTitles.find(t => t._id === employmentTitleId) ?? this.data.user.employmentTitle,
+                        this.employmentTitles.find(t => t._id === currentValues.employmentTitleId) ??
+                        this.data.user.employmentTitle,
                 };
                 this.dialogRef.close(updatedUser);
             },

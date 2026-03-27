@@ -83,15 +83,16 @@
     <button
         mat-raised-button
         color="primary"
+        class="save-button"
         type="button"
         (click)="onSubmit()"
         [disabled]="userForm.invalid || loading"
     >
-        @if (loading) {
-            <mat-spinner diameter="20"></mat-spinner>
-            Saving...
-        } @else {
-            Save Changes
-        }
+        <span class="save-button-content">
+            @if (loading) {
+                <mat-spinner diameter="18"></mat-spinner>
+            }
+            <span>{{ loading ? "Saving..." : "Save Changes" }}</span>
+        </span>
     </button>
 </mat-dialog-actions>

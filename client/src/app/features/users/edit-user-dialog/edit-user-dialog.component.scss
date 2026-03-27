@@ -19,3 +19,15 @@ mat-dialog-actions {
     padding: var(--spacing-md) var(--spacing-lg);
     gap: var(--spacing-sm);
 }
+
+.save-button {
+    min-width: 140px;
+}
+
+.save-button-content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 20px;
+}
