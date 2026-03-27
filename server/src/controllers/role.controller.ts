@@ -105,7 +105,7 @@ export class RoleController {
                     .filter((p: string) => typeof p === "string")
                     .map((p: string) => p.trim()),
                 isSystemRole: false,
-                companyId: user.companyId as any,
+                company: user.companyId as any,
                 isActive: true,
                 createdAt: new Date(),
             };

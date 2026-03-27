@@ -1,11 +1,9 @@
 import { Schema, model } from "mongoose";
 import { IRole } from "../interfaces/role.interface";
 import { DefaultUserRoles } from "../enums/user-role.enum";
-import { CompanyFields } from "./company.model";
 
 const RoleSchema = new Schema<IRole>(
     {
-        ...CompanyFields,
         role: {
             type: String,
             required: true,
@@ -29,16 +27,16 @@ const RoleSchema = new Schema<IRole>(
         level: { type: Number, required: true },
         permissions: [{ type: String, trim: true }],
         isSystemRole: { type: Boolean, default: false },
-        companyId: {
+        company: {
             type: Schema.Types.ObjectId,
             ref: "Companies",
-            // companyId is required for custom roles, not allowed for system roles
+            // company is required for custom roles, not allowed for system roles
             validate: {
                 validator: function (this: IRole, value: string | undefined) {
                     if (this.isSystemRole) {
-                        return !value; // System roles should not have companyId
+                        return !value; // System roles should not have a company
                     }
-                    return !!value; // Custom roles must have companyId
+                    return !!value; // Custom roles must be assigned to a company
                 },
                 message: (props: { value: string }) =>
                     props.value
