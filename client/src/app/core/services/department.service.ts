@@ -32,12 +32,4 @@ export class DepartmentService {
     deleteDepartment(id: string): Observable<JsonResponse<void>> {
         return this.apiService.delete<JsonResponse<void>>(`departments/${id}`);
     }
-
-    seedExamples(): Observable<
-        JsonResponse<{ departments: number; subDepartments: number; employmentTitles: number }>
-    > {
-        return this.apiService.post<
-            JsonResponse<{ departments: number; subDepartments: number; employmentTitles: number }>
-        >("departments/seed-examples", {});
-    }
 }

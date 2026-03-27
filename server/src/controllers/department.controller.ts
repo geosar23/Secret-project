@@ -135,21 +135,4 @@ export class DepartmentController {
             next(error);
         }
     }
-
-    static async seedExamples(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
-        try {
-            const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.companyId) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
-            const summary = await DepartmentService.seedExamples(requestingUser.companyId);
-            res.json(success(summary));
-        } catch (error: any) {
-            console.log("Error in DepartmentController.seedExamples:", error);
-            res.json(softError(error.message, error));
-            next(error);
-        }
-    }
 }

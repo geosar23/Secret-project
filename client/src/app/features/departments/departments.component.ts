@@ -88,22 +88,6 @@ export class DepartmentsComponent implements OnInit, AfterViewInit, OnDestroy {
         });
     }
 
-    seedExamples(): void {
-        this.departmentService.seedExamples().subscribe({
-            next: res => {
-                if (!res.success) {
-                    this.toast.error(res.message || "Failed to seed examples");
-                    return;
-                }
-                this.toast.success("Example departments, sub-departments, and titles created");
-                this.loadDepartments();
-            },
-            error: err => {
-                this.toast.error(err.error?.message || "Failed to seed examples");
-            },
-        });
-    }
-
     openCreateDialog(): void {
         this.dialog
             .open(DepartmentDialogComponent, {
