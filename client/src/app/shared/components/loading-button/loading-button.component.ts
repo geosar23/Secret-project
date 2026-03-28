@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, EventEmitter, Input, Output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, input, output } from "@angular/core";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 
@@ -9,17 +9,18 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
     imports: [CommonModule, MatButtonModule, MatProgressSpinnerModule],
     templateUrl: "./loading-button.component.html",
     styleUrls: ["./loading-button.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoadingButtonComponent {
-    @Input() label = "Save";
-    @Input() loadingLabel = "Saving...";
-    @Input() loading = false;
-    @Input() disabled = false;
-    @Input() color: "primary" | "accent" | "warn" = "primary";
-    @Input() type: "button" | "submit" = "button";
-    @Input() minWidth = "140px";
+    label = input("Save");
+    loadingLabel = input("Saving...");
+    loading = input(false);
+    disabled = input(false);
+    color = input<"primary" | "accent" | "warn">("primary");
+    type = input<"button" | "submit">("button");
+    minWidth = input("140px");
 
-    @Output() buttonClick = new EventEmitter<MouseEvent>();
+    buttonClick = output<MouseEvent>();
 
     onClick(event: MouseEvent): void {
         this.buttonClick.emit(event);
