@@ -11,7 +11,7 @@ import { MatDividerModule } from "@angular/material/divider";
 import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute } from "@angular/router";
 import { AuthService } from "../../core/services/auth.service";
-import { UserProfile, ProfileRouteContext, ChangePasswordDialogResult } from "../../core/interfaces/profile.interface";
+import { ChangePasswordDialogData, UserProfile, ProfileRouteContext } from "../../core/interfaces/profile.interface";
 import { RoleUtils } from "../../core/utils/role.utils";
 import { UsersService } from "../../core/services/users.service";
 import { ToastService } from "../../core/services/toast.service";
@@ -148,35 +148,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     openChangePasswordDialog(): void {
-        if (!this.profile || this.loading) return;
+        if (!this.profile || !this.profile._id || this.loading) return;
 
-        this.dialog
-            .open(ChangePasswordDialogComponent, {
-                width: "460px",
-                maxWidth: "95vw",
-            })
-            .afterClosed()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe((result?: ChangePasswordDialogResult) => {
-                if (!result) return;
-                this.onChangePassword(result);
-            });
-    }
-
-    onChangePassword(payload: ChangePasswordDialogResult): void {
-        if (!this.profile) return;
-
-        this.loading = true;
-
-        this.usersService.changePassword(this.profile._id as string, payload).subscribe({
-            next: () => {
-                this.toast.success("Password changed successfully");
-                this.loading = false;
-            },
-            error: error => {
-                this.toast.error(error.error?.error || "Failed to change password");
-                this.loading = false;
-            },
+        this.dialog.open(ChangePasswordDialogComponent, {
+            width: "460px",
+            maxWidth: "95vw",
+            data: { userId: this.profile._id as string } as ChangePasswordDialogData,
         });
     }
 

@@ -39,3 +39,7 @@ export interface ChangePasswordDialogResult {
     currentPassword: string;
     newPassword: string;
 }
+
+export interface ChangePasswordDialogData {
+    userId: string;
+}

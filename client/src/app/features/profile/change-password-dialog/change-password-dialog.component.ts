@@ -8,13 +8,16 @@ import {
     ValidationErrors,
     Validators,
 } from "@angular/forms";
-import { MatDialogModule, MatDialogRef } from "@angular/material/dialog";
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatIconModule } from "@angular/material/icon";
-import { ChangePasswordDialogResult } from "../../../core/interfaces/profile.interface";
+import { ChangePasswordDialogData } from "../../../core/interfaces/profile.interface";
+import { UsersService } from "../../../core/services/users.service";
+import { ToastService } from "../../../core/services/toast.service";
+import { JsonResponse } from "../../../core/interfaces/generics.interface";
 
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
     const newPassword = control.get("newPassword")?.value;
@@ -40,9 +43,15 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
 })
 export class ChangePasswordDialogComponent {
     private fb = inject(FormBuilder);
-    private dialogRef = inject(MatDialogRef<ChangePasswordDialogComponent, ChangePasswordDialogResult>);
+    private usersService = inject(UsersService);
+    private toast = inject(ToastService);
+    private dialogRef = inject(MatDialogRef<ChangePasswordDialogComponent, boolean>);
+    data = inject<ChangePasswordDialogData>(MAT_DIALOG_DATA);
 
     loading = false;
+    hideCurrentPassword = true;
+    hideNewPassword = true;
+    hideConfirmPassword = true;
 
     passwordForm: FormGroup = this.fb.group(
         {
@@ -59,11 +68,45 @@ export class ChangePasswordDialogComponent {
             return;
         }
 
+        if (!this.data?.userId) {
+            this.toast.error("User profile is not loaded");
+            return;
+        }
+
         const { currentPassword, newPassword } = this.passwordForm.value;
-        this.dialogRef.close({ currentPassword, newPassword });
+        this.loading = true;
+        this.usersService.changePassword(this.data.userId, { currentPassword, newPassword }).subscribe({
+            next: (response: JsonResponse<void>) => {
+                if (!response.success) {
+                    this.toast.warning(response.message || "Failed to change password");
+                    this.loading = false;
+                    return;
+                }
+                this.toast.success("Password changed successfully");
+                this.dialogRef.close(true);
+            },
+            error: error => {
+                this.toast.error(error.error?.error || "Failed to change password");
+                this.loading = false;
+            },
+            complete: () => {
+                this.loading = false;
+            },
+        });
     }
 
     onCancel(): void {
         this.dialogRef.close();
+    }
+
+    hasPasswordMismatch(): boolean {
+        const confirmPassword = this.passwordForm.get("confirmPassword");
+        const newPassword = this.passwordForm.get("newPassword");
+        return (
+            !!this.passwordForm.hasError("passwordMismatch") &&
+            !!confirmPassword &&
+            !!newPassword &&
+            (confirmPassword.touched || confirmPassword.dirty || newPassword.touched || newPassword.dirty)
+        );
     }
 }
