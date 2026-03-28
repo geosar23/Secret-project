@@ -1,13 +1,6 @@
 import { Component, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import {
-    AbstractControl,
-    FormBuilder,
-    FormGroup,
-    ReactiveFormsModule,
-    ValidationErrors,
-    Validators,
-} from "@angular/forms";
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
@@ -16,12 +9,7 @@ import { UsersService } from "../../../core/services/users.service";
 import { PasswordInputComponent } from "../../../shared/components/password-input/password-input.component";
 import { ToastService } from "../../../core/services/toast.service";
 import { JsonResponse } from "../../../core/interfaces/generics.interface";
-
-function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
-    const newPassword = control.get("newPassword")?.value;
-    const confirmPassword = control.get("confirmPassword")?.value;
-    return newPassword && confirmPassword && newPassword !== confirmPassword ? { passwordMismatch: true } : null;
-}
+import { passwordMatchValidator } from "../../../core/validators/generic.validators";
 
 @Component({
     selector: "app-change-password-dialog",
@@ -54,6 +42,11 @@ export class ChangePasswordDialogComponent {
         },
         { validators: passwordMatchValidator },
     );
+
+    hasPasswordMismatch(): boolean {
+        const confirmPassword = this.passwordForm.get("confirmPassword");
+        return !!confirmPassword?.touched && !!confirmPassword?.hasError("passwordMismatch");
+    }
 
     onSubmit(): void {
         if (this.passwordForm.invalid) {
@@ -90,16 +83,5 @@ export class ChangePasswordDialogComponent {
 
     onCancel(): void {
         this.dialogRef.close();
-    }
-
-    hasPasswordMismatch(): boolean {
-        const confirmPassword = this.passwordForm.get("confirmPassword");
-        const newPassword = this.passwordForm.get("newPassword");
-        return (
-            !!this.passwordForm.hasError("passwordMismatch") &&
-            !!confirmPassword &&
-            !!newPassword &&
-            (confirmPassword.touched || confirmPassword.dirty || newPassword.touched || newPassword.dirty)
-        );
     }
 }
