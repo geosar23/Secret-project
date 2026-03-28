@@ -1,20 +1,25 @@
-@if (isActive) {
-    <div class="alert-sticky" [style.background]="backgroundColor" [style.opacity]="opacity" [style.z-index]="zIndex">
+@if (isActive()) {
+    <div
+        class="alert-sticky"
+        [style.background]="backgroundColor()"
+        [style.opacity]="opacity()"
+        [style.z-index]="zIndex()"
+    >
         <div class="alert-content">
             <div class="alert-icon">
-                <mat-icon>{{ icon }}</mat-icon>
+                <mat-icon>{{ icon() }}</mat-icon>
             </div>
             <div class="alert-message">
-                <strong>{{ title }}</strong>
-                <span>{{ message }}</span>
-                @if (contentLabel && contentColor) {
-                    <mat-chip [style.background]="contentColor">
-                        {{ contentLabel }}
+                <strong>{{ title() }}</strong>
+                <span>{{ message() }}</span>
+                @if (contentLabel() && contentColor()) {
+                    <mat-chip [style.background]="contentColor()">
+                        {{ contentLabel() }}
                     </mat-chip>
                 }
             </div>
-            @if (showCloseButton) {
-                <button mat-icon-button (click)="closeAlert()" [disabled]="isLoading" class="close-btn">
+            @if (showCloseButton()) {
+                <button mat-icon-button (click)="closeAlert()" [disabled]="isLoading()" class="close-btn">
                     <mat-icon>close</mat-icon>
                 </button>
             }

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from "@angular/core";
+import { ChangeDetectionStrategy, Component, input, output } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatIconModule } from "@angular/material/icon";
 import { MatButtonModule } from "@angular/material/button";
@@ -10,20 +10,21 @@ import { MatChipsModule } from "@angular/material/chips";
     imports: [CommonModule, MatIconModule, MatButtonModule, MatChipsModule],
     templateUrl: "./sticky-alert.component.html",
     styleUrls: ["./sticky-alert.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StickyAlertComponent {
-    @Input() isActive: boolean = false;
-    @Input() isLoading: boolean = false;
-    @Input() title: string = "";
-    @Input() message: string = "";
-    @Input() backgroundColor: string = "linear-gradient(135deg, #f59e0b, #ec4899)";
-    @Input() opacity: number = 1;
-    @Input() zIndex: number = 1000;
-    @Input() icon: string = "info";
-    @Input() contentLabel?: string;
-    @Input() contentColor?: string;
-    @Input() showCloseButton: boolean = true;
-    @Output() onClose = new EventEmitter<void>();
+    isActive = input(false);
+    isLoading = input(false);
+    title = input("");
+    message = input("");
+    backgroundColor = input("linear-gradient(135deg, #f59e0b, #ec4899)");
+    opacity = input(1);
+    zIndex = input(1000);
+    icon = input("info");
+    contentLabel = input<string | undefined>(undefined);
+    contentColor = input<string | undefined>(undefined);
+    showCloseButton = input(true);
+    onClose = output<void>();
 
     closeAlert(): void {
         this.onClose.emit();
