@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, input, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, input, signal } from "@angular/core";
 import { ControlContainer, FormControl, FormGroupDirective, ReactiveFormsModule } from "@angular/forms";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
@@ -12,6 +12,7 @@ import { MatButtonModule } from "@angular/material/button";
     imports: [CommonModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule],
     templateUrl: "./password-input.component.html",
     styleUrls: ["./password-input.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     viewProviders: [{ provide: ControlContainer, useExisting: FormGroupDirective }],
 })
 export class PasswordInputComponent {

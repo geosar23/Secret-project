@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { Router, RouterModule } from "@angular/router";
 import { MatToolbarModule } from "@angular/material/toolbar";
@@ -56,6 +56,7 @@ interface SearchResult {
     ],
     templateUrl: "./header.component.html",
     styleUrls: ["./header.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderComponent implements OnInit {
     private authService = inject(AuthService);
@@ -63,7 +64,7 @@ export class HeaderComponent implements OnInit {
     private usersService = inject(UsersService);
 
     searchControl = new FormControl("");
-    filteredResults: SearchResult[] = [];
+    filteredResults = signal<SearchResult[]>([]);
 
     localUser$ = this.authService.localUser$;
 
@@ -229,7 +230,7 @@ export class HeaderComponent implements OnInit {
                 switchMap(searchTerm => Promise.resolve(this.getSearchResults(searchTerm || ""))),
             )
             .subscribe((results: SearchResult[]) => {
-                this.filteredResults = results;
+                this.filteredResults.set(results);
             });
     }
 
@@ -260,10 +261,10 @@ export class HeaderComponent implements OnInit {
                     description: user.email,
                 }));
 
-                this.filteredResults = [...routeResults, ...userResults].slice(0, 8);
+                this.filteredResults.set([...routeResults, ...userResults].slice(0, 8));
             },
             () => {
-                this.filteredResults = routeResults.slice(0, 8);
+                this.filteredResults.set(routeResults.slice(0, 8));
             },
         );
 
@@ -272,18 +273,18 @@ export class HeaderComponent implements OnInit {
 
     selectResult(resultId: string | SearchResult): void {
         // Handle both string ID and SearchResult object for compatibility
-        const result = typeof resultId === "string" ? this.filteredResults.find(r => r.id === resultId) : resultId;
+        const result = typeof resultId === "string" ? this.filteredResults().find(r => r.id === resultId) : resultId;
 
         if (result && result.route) {
             this.router.navigate([result.route]);
             this.searchControl.setValue("");
-            this.filteredResults = [];
+            this.filteredResults.set([]);
         }
     }
 
     clearSearch(): void {
         this.searchControl.setValue("");
-        this.filteredResults = [];
+        this.filteredResults.set([]);
     }
 
     handleMenuClick(item: MenuItem): void {

@@ -40,16 +40,16 @@
                     class="search-autocomplete"
                     (optionSelected)="selectResult($event.option.value)"
                 >
-                    @if (filteredResults.length > 0) {
+                    @if (filteredResults().length > 0) {
                         <div class="autocomplete-header">
                             <span class="result-count"
-                                >{{ filteredResults.length }} result{{
-                                    filteredResults.length !== 1 ? "s" : ""
+                                >{{ filteredResults().length }} result{{
+                                    filteredResults().length !== 1 ? "s" : ""
                                 }}
                                 found</span
                             >
                         </div>
-                        @for (result of filteredResults; track result.id) {
+                        @for (result of filteredResults(); track result.id) {
                             <mat-option [value]="result.id" class="search-option" [ngClass]="'type-' + result.type">
                                 <div class="option-container">
                                     <div class="option-icon-wrapper">
