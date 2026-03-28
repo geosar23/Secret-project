@@ -1275,6 +1275,20 @@ $breakpoints: (
     }
 }
 
+.toast-warning .mdc-snackbar__surface {
+    background-color: var(--color-warning) !important;
+    color: var(--color-text-on-primary) !important;
+
+    .mdc-snackbar__label,
+    .mat-mdc-snack-bar-label {
+        color: var(--color-text-on-primary) !important;
+    }
+
+    .mat-mdc-button.mat-mdc-snack-bar-action {
+        color: rgba(var(--color-white-rgb), 0.85) !important;
+    }
+}
+
 .toast-error .mdc-snackbar__surface {
     background-color: var(--color-error) !important;
     color: var(--color-text-on-primary) !important;
