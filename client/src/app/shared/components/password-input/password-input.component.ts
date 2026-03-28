@@ -1,5 +1,5 @@
 import { CommonModule } from "@angular/common";
-import { Component, input } from "@angular/core";
+import { Component, input, signal } from "@angular/core";
 import { ControlContainer, FormControl, FormGroupDirective, ReactiveFormsModule } from "@angular/forms";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatIconModule } from "@angular/material/icon";
@@ -24,7 +24,7 @@ export class PasswordInputComponent {
     mismatchVisible = input(false);
     mismatchMessage = input("Passwords do not match");
 
-    hidden = true;
+    hidden = signal(true);
 
     constructor(private formGroupDirective: FormGroupDirective) {}
 
