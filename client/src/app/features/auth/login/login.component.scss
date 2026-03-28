@@ -66,23 +66,6 @@
     font-size: var(--font-size-sm);
 }
 
-.register-link {
-    text-align: center;
-    margin: 0;
-    padding: var(--spacing-md);
-    color: var(--mat-sys-on-surface-variant);
-
-    a {
-        color: var(--mat-sys-primary);
-        text-decoration: none;
-        font-weight: var(--font-weight-medium);
-
-        &:hover {
-            text-decoration: underline;
-        }
-    }
-}
-
 .help-text {
     text-align: center;
     color: var(--color-text-secondary);

@@ -9,13 +9,11 @@ import {
     Validators,
 } from "@angular/forms";
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
-import { MatFormFieldModule } from "@angular/material/form-field";
-import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatIconModule } from "@angular/material/icon";
 import { ChangePasswordDialogData } from "../../../core/interfaces/profile.interface";
 import { UsersService } from "../../../core/services/users.service";
+import { PasswordInputComponent } from "../../../shared/components/password-input/password-input.component";
 import { ToastService } from "../../../core/services/toast.service";
 import { JsonResponse } from "../../../core/interfaces/generics.interface";
 
@@ -32,11 +30,9 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
         CommonModule,
         ReactiveFormsModule,
         MatDialogModule,
-        MatFormFieldModule,
-        MatInputModule,
         MatButtonModule,
         MatProgressSpinnerModule,
-        MatIconModule,
+        PasswordInputComponent,
     ],
     templateUrl: "./change-password-dialog.component.html",
     styleUrls: ["./change-password-dialog.component.scss"],
@@ -49,9 +45,6 @@ export class ChangePasswordDialogComponent {
     data = inject<ChangePasswordDialogData>(MAT_DIALOG_DATA);
 
     loading = false;
-    hideCurrentPassword = true;
-    hideNewPassword = true;
-    hideConfirmPassword = true;
 
     passwordForm: FormGroup = this.fb.group(
         {

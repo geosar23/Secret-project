@@ -6,9 +6,9 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatSelectModule } from "@angular/material/select";
 import { MatButtonModule } from "@angular/material/button";
-import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { UsersService } from "../../../core/services/users.service";
+import { PasswordInputComponent } from "../../../shared/components/password-input/password-input.component";
 import { CompanyService } from "../../../core/services/company.service";
 import { CountryService } from "../../../core/services/country.service";
 import { EmploymentTitleService } from "../../../core/services/employment-title.service";
@@ -30,8 +30,8 @@ import { IRole } from "../../../core/interfaces/role.interface";
         MatInputModule,
         MatSelectModule,
         MatButtonModule,
-        MatIconModule,
         MatProgressSpinnerModule,
+        PasswordInputComponent,
     ],
     templateUrl: "./create-user-dialog.component.html",
     styleUrls: ["./create-user-dialog.component.scss"],
@@ -47,7 +47,6 @@ export class CreateUserDialogComponent implements OnInit {
     private toast = inject(ToastService);
 
     loading = false;
-    hidePassword = true;
     companiesLoading = false;
     countriesLoading = false;
     rolesLoading = false;

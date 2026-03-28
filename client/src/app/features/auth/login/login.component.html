@@ -29,37 +29,14 @@
                     }
                 </mat-form-field>
 
-                <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Password</mat-label>
-                    <input
-                        matInput
-                        [type]="hidePassword ? 'password' : 'text'"
-                        formControlName="password"
-                        placeholder="Enter your password"
-                        autocomplete="current-password"
-                        name="password"
-                    />
-                    <button
-                        mat-icon-button
-                        matSuffix
-                        type="button"
-                        (click)="hidePassword = !hidePassword"
-                        [attr.aria-label]="'Hide password'"
-                        [attr.aria-pressed]="hidePassword"
-                    >
-                        <mat-icon>{{ hidePassword ? "visibility_off" : "visibility" }}</mat-icon>
-                    </button>
-                    @if (password?.invalid && password?.touched) {
-                        <mat-error>
-                            @if (password?.errors?.["required"]) {
-                                Password is required
-                            }
-                            @if (password?.errors?.["minlength"]) {
-                                Password must be at least 6 characters
-                            }
-                        </mat-error>
-                    }
-                </mat-form-field>
+                <app-password-input
+                    controlName="password"
+                    label="Password"
+                    placeholder="Enter your password"
+                    autocomplete="current-password"
+                    requiredMessage="Password is required"
+                    minlengthMessage="Password must be at least 6 characters"
+                />
 
                 <button
                     mat-raised-button
