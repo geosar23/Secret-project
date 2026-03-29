@@ -3,7 +3,7 @@
         <h1>{{ pageTitle }}</h1>
     </div>
 
-    @if (loading && !profile) {
+    @if (loading() && !profile) {
         <div class="loading-container">
             <mat-spinner></mat-spinner>
         </div>
@@ -213,12 +213,12 @@
             </mat-card-header>
             <mat-card-content>
                 <div class="action-buttons">
-                    <button mat-raised-button color="primary" (click)="openEditDialog()" [disabled]="loading">
+                    <button mat-raised-button color="primary" (click)="openEditDialog()" [disabled]="loading()">
                         <mat-icon>edit</mat-icon>
                         Edit
                     </button>
                     @if (isOwnProfile) {
-                        <button mat-raised-button (click)="openChangePasswordDialog()" [disabled]="loading">
+                        <button mat-raised-button (click)="openChangePasswordDialog()" [disabled]="loading()">
                             <mat-icon>lock_reset</mat-icon>
                             Change Password
                         </button>

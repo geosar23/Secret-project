@@ -1,0 +1,36 @@
+<div class="image-upload-section">
+    <label class="image-upload-label">{{ label }}</label>
+
+    <div class="image-preview-wrapper">
+        @if (displayedImageUrl) {
+            <img [src]="displayedImageUrl" alt="Profile image" class="image-preview" />
+        } @else {
+            <div class="image-preview-placeholder">No profile image</div>
+        }
+    </div>
+
+    <input #fileInput type="file" accept="image/*" class="hidden-file-input" (change)="onFileChange($event)" />
+
+    <div class="image-upload-actions">
+        <button mat-stroked-button type="button" (click)="openPicker()" [disabled]="disabled || loading">
+            Choose Image
+        </button>
+        <button
+            mat-button
+            type="button"
+            (click)="onClearSelection()"
+            [disabled]="(!selectedPreviewUrl && !removeCurrentRequested) || disabled || loading"
+        >
+            Clear Selection
+        </button>
+        @if (showRemoveCurrentAction) {
+            <button mat-button color="warn" type="button" (click)="onRemoveCurrent()" [disabled]="disabled || loading">
+                Remove Current Image
+            </button>
+        }
+    </div>
+
+    @if (removeCurrentRequested) {
+        <p class="selected-image-name">Current image will be removed on save.</p>
+    }
+</div>

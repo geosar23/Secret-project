@@ -48,7 +48,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     profile: UserProfile | null = null;
     profileImageUrl: string | null = null;
     imageLoading = signal(false);
-    loading = false;
+    loading = signal(false);
     isOwnProfile = true;
     pageTitle = "My Profile";
 
@@ -79,7 +79,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     loadOwnProfile(): void {
-        this.loading = true;
+        this.loading.set(true);
 
         this.authService.localUser$
             .pipe(
@@ -89,7 +89,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             .subscribe(user => {
                 if (!user || !user._id) {
                     this.toast.error("Failed to load profile");
-                    this.loading = false;
+                    this.loading.set(false);
                     return;
                 }
 
@@ -97,35 +97,35 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 if (this.profile?._id) {
                     this.loadProfileImageUrl(this.profile._id);
                 }
-                this.loading = false;
+                this.loading.set(false);
             });
     }
 
     loadUserProfile(userId: string): void {
-        this.loading = true;
+        this.loading.set(true);
 
         this.usersService.getUserById(userId).subscribe({
             next: response => {
                 if (!response.success || !response.data) {
                     this.toast.error(response.message || "User not found");
-                    this.loading = false;
+                    this.loading.set(false);
                     return;
                 }
                 this.profile = response.data;
                 if (this.profile?._id) {
                     this.loadProfileImageUrl(this.profile._id);
                 }
-                this.loading = false;
+                this.loading.set(false);
             },
             error: error => {
                 this.toast.error(error.error?.error || "Failed to load user profile");
-                this.loading = false;
+                this.loading.set(false);
             },
         });
     }
 
     openEditDialog(): void {
-        if (!this.profile || this.loading) return;
+        if (!this.profile || this.loading()) return;
 
         this.dialog
             .open(EditUserDialogComponent, {
@@ -159,7 +159,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     openChangePasswordDialog(): void {
-        if (!this.profile || !this.profile._id || this.loading) return;
+        if (!this.profile || !this.profile._id || this.loading()) return;
 
         this.dialog.open(ChangePasswordDialogComponent, {
             width: "460px",

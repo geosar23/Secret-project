@@ -324,11 +324,6 @@ export class UserController {
             const requestingUser = req.decoded as tokenPayload;
             const userId = req.params.id;
 
-            if (requestingUser.id !== userId) {
-                res.json(softError("You can only upload your own profile image"));
-                return;
-            }
-
             if (!req.file) {
                 res.json(softError("Image file is required"));
                 return;
@@ -385,11 +380,6 @@ export class UserController {
             const requestingUser = req.decoded as tokenPayload;
             const userId = req.params.id;
 
-            if (requestingUser.id !== userId) {
-                res.json(softError("You can only access your own profile image"));
-                return;
-            }
-
             const user = await UserService.getProfileImageMetadata(userId, requestingUser.companyId);
             if (!user) {
                 res.json(softError("User not found"));
@@ -414,11 +404,6 @@ export class UserController {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const userId = req.params.id;
-
-            if (requestingUser.id !== userId) {
-                res.json(softError("You can only delete your own profile image"));
-                return;
-            }
 
             const user = await UserService.getProfileImageMetadata(userId, requestingUser.companyId);
             if (!user) {

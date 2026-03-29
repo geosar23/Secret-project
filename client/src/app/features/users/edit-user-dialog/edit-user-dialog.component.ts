@@ -21,6 +21,7 @@ import { IRole } from "../../../core/interfaces/role.interface";
 import { LoadingButtonComponent } from "../../../shared/components/loading-button/loading-button.component";
 import { UserRole } from "../../../core/enums/user-role.enum";
 import { firstValueFrom } from "rxjs";
+import { ProfileImageUploadComponent } from "../../../shared/components/profile-image-upload/profile-image-upload.component";
 
 export interface EditUserDialogData {
     user: IUser;
@@ -39,6 +40,7 @@ export interface EditUserDialogData {
         MatButtonModule,
         MatSlideToggleModule,
         LoadingButtonComponent,
+        ProfileImageUploadComponent,
     ],
     templateUrl: "./edit-user-dialog.component.html",
     styleUrls: ["./edit-user-dialog.component.scss"],
@@ -247,6 +249,7 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
 
                 this.currentProfileImageUrl = this.selectedProfileImagePreviewUrl;
                 this.selectedProfileImagePreviewUrl = null;
+                this.selectedProfileImage = null;
             }
 
             if (this.removeProfileImageRequested) {
@@ -271,32 +274,7 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
         }
     }
 
-    onProfileImageSelected(event: Event): void {
-        const input = event.target as HTMLInputElement;
-        const file = input.files?.[0] || null;
-
-        if (!file) {
-            this.selectedProfileImage = null;
-            this.selectedProfileImagePreviewUrl = null;
-            return;
-        }
-
-        if (!file.type.startsWith("image/")) {
-            this.toast.warning("Please select an image file");
-            input.value = "";
-            this.selectedProfileImage = null;
-            this.selectedProfileImagePreviewUrl = null;
-            return;
-        }
-
-        if (file.size > 5 * 1024 * 1024) {
-            this.toast.warning("Image must be smaller than 5MB");
-            input.value = "";
-            this.selectedProfileImage = null;
-            this.selectedProfileImagePreviewUrl = null;
-            return;
-        }
-
+    onProfileImageSelected(file: File): void {
         if (this.selectedProfileImagePreviewUrl) {
             URL.revokeObjectURL(this.selectedProfileImagePreviewUrl);
         }
@@ -306,17 +284,16 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
         this.removeProfileImageRequested = false;
     }
 
-    clearSelectedProfileImage(fileInput: HTMLInputElement): void {
-        fileInput.value = "";
+    clearSelectedProfileImage(): void {
         this.selectedProfileImage = null;
         if (this.selectedProfileImagePreviewUrl) {
             URL.revokeObjectURL(this.selectedProfileImagePreviewUrl);
         }
         this.selectedProfileImagePreviewUrl = null;
+        this.removeProfileImageRequested = false;
     }
 
-    requestProfileImageRemoval(fileInput: HTMLInputElement): void {
-        fileInput.value = "";
+    requestProfileImageRemoval(): void {
         this.selectedProfileImage = null;
         if (this.selectedProfileImagePreviewUrl) {
             URL.revokeObjectURL(this.selectedProfileImagePreviewUrl);
@@ -331,6 +308,15 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
         }
 
         return this.selectedProfileImagePreviewUrl || this.currentProfileImageUrl;
+    }
+
+    onProfileImageValidationError(message: string): void {
+        this.selectedProfileImage = null;
+        if (this.selectedProfileImagePreviewUrl) {
+            URL.revokeObjectURL(this.selectedProfileImagePreviewUrl);
+        }
+        this.selectedProfileImagePreviewUrl = null;
+        this.toast.warning(message);
     }
 
     private loadCurrentProfileImage(): void {

@@ -22,6 +22,7 @@ import { IRole } from "../../../core/interfaces/role.interface";
 import { IUser } from "../../../core/interfaces/user.interface";
 import { first } from "rxjs";
 import { UserRole } from "../../../core/enums/user-role.enum";
+import { ProfileImageUploadComponent } from "../../../shared/components/profile-image-upload/profile-image-upload.component";
 
 @Component({
     selector: "app-create-user-dialog",
@@ -36,6 +37,7 @@ import { UserRole } from "../../../core/enums/user-role.enum";
         MatButtonModule,
         MatProgressSpinnerModule,
         PasswordInputComponent,
+        ProfileImageUploadComponent,
     ],
     templateUrl: "./create-user-dialog.component.html",
     styleUrls: ["./create-user-dialog.component.scss"],
@@ -267,40 +269,20 @@ export class CreateUserDialogComponent implements OnInit {
             });
     }
 
-    onProfileImageSelected(event: Event): void {
-        const input = event.target as HTMLInputElement;
-        const file = input.files?.[0] || null;
-
-        if (!file) {
-            this.selectedProfileImage.set(null);
-            this.selectedProfileImagePreviewUrl.set(null);
-            return;
-        }
-
-        if (!file.type.startsWith("image/")) {
-            this.toast.warning("Please select an image file");
-            input.value = "";
-            this.selectedProfileImage.set(null);
-            this.selectedProfileImagePreviewUrl.set(null);
-            return;
-        }
-
-        if (file.size > 5 * 1024 * 1024) {
-            this.toast.warning("Image must be smaller than 5MB");
-            input.value = "";
-            this.selectedProfileImage.set(null);
-            this.selectedProfileImagePreviewUrl.set(null);
-            return;
-        }
-
+    onProfileImageSelected(file: File): void {
         this.selectedProfileImage.set(file);
         this.selectedProfileImagePreviewUrl.set(URL.createObjectURL(file));
     }
 
-    clearSelectedProfileImage(fileInput: HTMLInputElement): void {
-        fileInput.value = "";
+    clearSelectedProfileImage(): void {
         this.selectedProfileImage.set(null);
         this.selectedProfileImagePreviewUrl.set(null);
+    }
+
+    onProfileImageValidationError(message: string): void {
+        this.selectedProfileImage.set(null);
+        this.selectedProfileImagePreviewUrl.set(null);
+        this.toast.warning(message);
     }
 
     onCancel(): void {

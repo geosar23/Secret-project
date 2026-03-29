@@ -90,54 +90,24 @@
         </div>
 
         <div class="image-upload-section">
-            <label class="image-upload-label">Profile Image</label>
-            <div class="image-preview-wrapper">
-                @if (getDisplayedProfileImageUrl()) {
-                    <img [src]="getDisplayedProfileImageUrl()!" alt="Current profile image" class="image-preview" />
-                } @else {
-                    <div class="image-preview-placeholder">
-                        @if (profileImageLoading) {
-                            Loading image...
-                        } @else {
-                            No profile image
-                        }
-                    </div>
-                }
-            </div>
-            <input
-                #editProfileImageInput
-                type="file"
-                accept="image/*"
-                class="hidden-file-input"
-                (change)="onProfileImageSelected($event)"
-            />
-            <div class="image-upload-actions">
-                <button mat-stroked-button type="button" (click)="editProfileImageInput.click()" [disabled]="loading">
-                    Choose Image
-                </button>
-                <button
-                    mat-button
-                    type="button"
-                    (click)="clearSelectedProfileImage(editProfileImageInput)"
-                    [disabled]="!selectedProfileImage || loading"
-                >
-                    Clear Selection
-                </button>
-                <button
-                    mat-button
-                    color="warn"
-                    type="button"
-                    (click)="requestProfileImageRemoval(editProfileImageInput)"
-                    [disabled]="loading"
-                >
-                    Remove Current Image
-                </button>
-            </div>
+            <app-profile-image-upload
+                [label]="'Profile Image'"
+                [selectedPreviewUrl]="selectedProfileImagePreviewUrl"
+                [currentImageUrl]="currentProfileImageUrl"
+                [removeCurrentRequested]="removeProfileImageRequested"
+                [loading]="loading || profileImageLoading"
+                [disabled]="loading"
+                (fileSelected)="onProfileImageSelected($event)"
+                (clearSelection)="clearSelectedProfileImage()"
+                (removeCurrent)="requestProfileImageRemoval()"
+                (validationError)="onProfileImageValidationError($event)"
+            ></app-profile-image-upload>
+
+            @if (profileImageLoading && !getDisplayedProfileImageUrl()) {
+                <p class="selected-image-name">Loading image...</p>
+            }
             @if (selectedProfileImage) {
                 <p class="selected-image-name">Selected: {{ selectedProfileImage.name }}</p>
-            }
-            @if (removeProfileImageRequested) {
-                <p class="selected-image-name">Current image will be removed on save.</p>
             }
         </div>
     </form>
