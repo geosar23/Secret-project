@@ -66,9 +66,9 @@ export class EditUserDialogComponent implements OnInit {
         name: [this.data.user.name, [Validators.required, Validators.minLength(2)]],
         email: [this.data.user.email, [Validators.required, Validators.email]],
         role: [this.data.user.role?._id ?? "", Validators.required],
-        companyId: [this.data.user.company?._id ?? ""],
-        countryId: [this.data.user.country?._id ?? ""],
-        employmentTitleId: [this.data.user.employmentTitle?._id ?? ""],
+        companyId: [this.data.user.company?._id ?? "", Validators.required],
+        countryId: [this.data.user.country?._id ?? "", Validators.required],
+        employmentTitleId: [this.data.user.employmentTitle?._id ?? "", Validators.required],
         isActive: [this.data.user.isActive ?? true],
     });
 
