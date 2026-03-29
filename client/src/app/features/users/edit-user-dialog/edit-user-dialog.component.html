@@ -72,6 +72,18 @@
             </mat-select>
         </mat-form-field>
 
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Department</mat-label>
+            <mat-select formControlName="departmentId">
+                @if (departmentsLoading) {
+                    <mat-option disabled>Loading departments...</mat-option>
+                }
+                @for (department of departments; track department._id) {
+                    <mat-option [value]="department._id">{{ department.name }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
         <div class="toggle-row">
             <mat-slide-toggle formControlName="isActive" color="primary">Active</mat-slide-toggle>
         </div>
