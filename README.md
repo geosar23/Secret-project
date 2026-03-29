@@ -15,6 +15,8 @@ A full-stack HR management system built with modern web technologies. This monor
 
 - **Node.js** >= 24.14.0 and **npm**
 - **MongoDB** (local or cloud instance)
+- **Supabase project** with Storage enabled
+- **Supabase Storage bucket** (example: `hrms-saas`)
 - Optional: **Angular CLI** for enhanced frontend development
 
 ## Project Structure
