@@ -28,12 +28,12 @@
 
 <mat-dialog-actions align="end">
     <button mat-button type="button" (click)="onCancel()" [disabled]="loading">Cancel</button>
-    <button mat-raised-button color="primary" type="button" (click)="onSubmit()" [disabled]="form.invalid || loading">
-        @if (loading) {
-            <mat-spinner diameter="20"></mat-spinner>
-            Saving...
-        } @else {
-            {{ isEdit ? "Save Changes" : "Create" }}
-        }
-    </button>
+    <app-loading-button
+        [label]="isEdit ? 'Save Changes' : 'Create'"
+        [loadingLabel]="isEdit ? 'Saving...' : 'Creating...'"
+        [loading]="loading"
+        [disabled]="form.invalid || loading"
+        [minWidth]="'150px'"
+        (buttonClick)="onSubmit()"
+    ></app-loading-button>
 </mat-dialog-actions>

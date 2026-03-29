@@ -10,6 +10,7 @@ import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { DepartmentService } from "../../../core/services/department.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { IDepartment } from "../../../core/interfaces/department.interface";
+import { LoadingButtonComponent } from "../../../shared/components/loading-button/loading-button.component";
 
 export interface DepartmentDialogData {
     mode: "create" | "edit";
@@ -28,6 +29,7 @@ export interface DepartmentDialogData {
         MatButtonModule,
         MatProgressSpinnerModule,
         MatSlideToggleModule,
+        LoadingButtonComponent,
     ],
     templateUrl: "./department-dialog.component.html",
     styleUrls: ["./department-dialog.component.scss"],
