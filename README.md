@@ -6,6 +6,7 @@ A full-stack HR management system built with modern web technologies. This monor
 
 - **Frontend**: Angular 21 with Material Design
 - **Backend**: Node.js + Express + TypeScript with MongoDB
+- **File Storage**: Supabase Storage (profiles images, etc)
 - **Authentication**: JWT-based with bcryptjs hashing
 - **Security**: Helmet, CORS, rate limiting, and validation
 - **Development Tools**: Prettier, ESLint, Husky, Commitlint
@@ -56,7 +57,15 @@ PORT=3000
 MONGO_URI=mongodb://localhost:27017/hrms
 JWT_SECRET=your-secret-key-here
 NODE_ENV=development
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_STORAGE_BUCKET=hrms-saas
 ```
+
+Important:
+
+- `SUPABASE_URL` must be the project HTTP URL (`https://...supabase.co`), not a Postgres connection string.
+- Keep `SUPABASE_SERVICE_ROLE_KEY` server-side only.
 
 **Security Note**: Do NOT commit `.env` files. The `.env` file is included in `.gitignore`.
 
@@ -134,6 +143,9 @@ The backend provides REST API endpoints under `/api`:
 - **Health**: `/api/health` — Basic API health and uptime
 - **Auth**: `/api/auth/*` — Login and authenticated user context (`/me`)
 - **Users**: `/api/users/*` — User CRUD, password change, permission grant/revoke
+- **User Profile Images (Upload)**: `POST /api/users/:id/profile-image` — Upload profile image (multipart field: `image`, max 5MB, images only)
+- **User Profile Images (Signed URL)**: `GET /api/users/:id/profile-image-url` — Get signed URL for profile image
+- **User Profile Images (Delete)**: `DELETE /api/users/:id/profile-image` — Remove profile image
 - **Roles**: `/api/roles/*` — Role CRUD, hierarchy, role permissions
 - **Companies**: `/api/companies/*` — Company CRUD
 - **Countries**: `/api/countries/*` — Country CRUD (permission-guarded)
@@ -150,6 +162,7 @@ The backend provides REST API endpoints under `/api`:
 - Secure session handling with JWT
 - Granular permission assignment and revocation per user
 - Profile editing and change-password flow
+- Profile image upload/delete with signed URL delivery
 - Advanced user filtering (role, department, country)
 - Company-scoped data repositories for HR entities
 - API rate limiting and request validation
@@ -162,6 +175,7 @@ The backend provides REST API endpoints under `/api`:
 - Expanded user administration with manager assignment, richer edit/create forms, and stronger validation.
 - Added user-level permission grant/revoke endpoints and UI integrations.
 - Introduced profile route context resolution and integrated profile editing/change-password workflows.
+- Added Supabase Storage integration for profile images with metadata stored in MongoDB user records.
 - Improved frontend responsiveness and layout behavior in tables and filter sections.
 
 ## Troubleshooting
@@ -170,7 +184,14 @@ The backend provides REST API endpoints under `/api`:
 
 - Verify MongoDB is running and `MONGO_URI` is correct
 - Check that port 3000 is not in use
+- Verify Supabase storage env vars are present and valid (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET`)
 - Review error logs in the terminal
+
+**Profile image upload fails (`fetch failed` or invalid URL errors)**
+
+- Ensure `SUPABASE_URL` is your project URL like `https://<project-ref>.supabase.co`
+- Do not use Postgres URI format (`postgresql://...`) for `SUPABASE_URL`
+- Confirm the storage bucket exists and matches `SUPABASE_STORAGE_BUCKET`
 
 **Frontend won't connect to backend**
 
