@@ -1,5 +1,6 @@
 import { ICompany } from "./company.interface";
 import { ICountry } from "./country.interface";
+import { IDepartment } from "./department.interface";
 import { IEmploymentTitle } from "./employment-title.interface";
 import { IRole } from "./role.interface";
 
@@ -14,9 +15,9 @@ export interface IUser {
     company?: ICompany; // null only for GOD role
     country?: ICountry;
     employmentTitle?: IEmploymentTitle;
-    department?: string;
-    manager?: string; // Direct manager's user ID
-    managedDepartments?: string[]; // For managers - departments they manage
+    department?: IDepartment;
+    manager?: IUser; // Direct manager's user ID
+    managedDepartments?: IDepartment[]; // For managers - departments they manage
 
     // Custom permissions
     grantedPermissions?: string[]; // Additional permissions granted
