@@ -66,15 +66,15 @@
                     <mat-option value="false">Inactive</mat-option>
                 </mat-select>
             </mat-form-field>
+            <mat-form-field appearance="outline" class="sort-select">
+                <mat-label>Sort By</mat-label>
+                <mat-select [(value)]="selectedSort" (selectionChange)="onSortChange($event.value)">
+                    @for (option of sortOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
         </div>
-        <mat-form-field appearance="outline" class="sort-select">
-            <mat-label>Sort By</mat-label>
-            <mat-select [(value)]="selectedSort" (selectionChange)="onSortChange($event.value)">
-                @for (option of sortOptions; track option.value) {
-                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
-                }
-            </mat-select>
-        </mat-form-field>
     </div>
 
     @if (loading) {

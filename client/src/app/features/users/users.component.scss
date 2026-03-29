@@ -24,21 +24,21 @@
     }
 
     .filters-row {
-        display: flex;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
         gap: var(--spacing-md);
-        align-items: center;
 
         .search-field {
-            flex: 1;
-            max-width: 20rem;
+            grid-column: 1 / -1;
+
+            @media (min-width: 600px) {
+                grid-column: span 2;
+            }
         }
 
-        .sort-select {
-            min-width: 12.5rem;
-        }
-
+        .sort-select,
         .filter-select {
-            min-width: 10rem;
+            width: 100%;
         }
     }
 }
