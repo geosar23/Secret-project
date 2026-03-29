@@ -80,6 +80,18 @@
                 }
             </mat-select>
         </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Manager</mat-label>
+            <mat-select formControlName="managerId">
+                @if (usersLoading) {
+                    <mat-option disabled>Loading users...</mat-option>
+                }
+                @for (user of users; track user._id) {
+                    <mat-option [value]="user._id">{{ user.name }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
     </form>
 </mat-dialog-content>
 

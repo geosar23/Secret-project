@@ -36,7 +36,6 @@ export interface ICreateUserRequest {
     companyId?: string;
     countryId?: string;
     employmentTitleId?: string;
-    departmentId?: string;
     managerId?: string;
 }
 
@@ -47,7 +46,6 @@ export interface IUpdateUserRequest {
     companyId?: string;
     countryId?: string;
     employmentTitleId?: string;
-    departmentId?: string;
     managerId?: string;
     isActive?: boolean;
 }

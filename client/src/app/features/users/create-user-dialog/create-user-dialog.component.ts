@@ -14,10 +14,13 @@ import { CountryService } from "../../../core/services/country.service";
 import { EmploymentTitleService } from "../../../core/services/employment-title.service";
 import { RoleService } from "../../../core/services/role.service";
 import { ToastService } from "../../../core/services/toast.service";
+import { AuthService } from "../../../core/services/auth.service";
 import { ICompany } from "../../../core/interfaces/company.interface";
 import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 import { IRole } from "../../../core/interfaces/role.interface";
+import { IUser } from "../../../core/interfaces/user.interface";
+import { UserRole } from "../../../core/enums/user-role.enum";
 
 @Component({
     selector: "app-create-user-dialog",
@@ -45,26 +48,31 @@ export class CreateUserDialogComponent implements OnInit {
     private roleService = inject(RoleService);
     private dialogRef = inject(MatDialogRef<CreateUserDialogComponent>);
     private toast = inject(ToastService);
+    private authService = inject(AuthService);
+
+    private localUser = this.authService.getLocalUser();
 
     loading = false;
     companiesLoading = false;
     countriesLoading = false;
     rolesLoading = false;
     employmentTitlesLoading = false;
+    usersLoading = false;
     companies: ICompany[] = [];
     countries: ICountry[] = [];
     roles: IRole[] = [];
     employmentTitles: IEmploymentTitle[] = [];
+    users: IUser[] = [];
 
     userForm: FormGroup = this.fb.group({
         name: ["", [Validators.required, Validators.minLength(2)]],
         email: ["", [Validators.required, Validators.email]],
         password: ["", [Validators.required, Validators.minLength(6)]],
         role: ["", Validators.required],
-        companyId: [""],
-        countryId: [""],
-        employmentTitleId: [""],
-        departmentId: [""],
+        companyId: [{ value: this.localUser?.company?._id ?? "", disabled: true }, Validators.required],
+        countryId: ["", Validators.required],
+        employmentTitleId: ["", Validators.required],
+        managerId: ["", Validators.required],
     });
 
     private toObjectIdOrUndefined(value: unknown): string | undefined {
@@ -74,6 +82,10 @@ export class CreateUserDialogComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        if (this.localUser?.role.role !== UserRole.GOD) {
+            //undisable company field for non-GOD users and set their company as the value
+            this.userForm.get("companyId")?.enable();
+        }
         this.companiesLoading = true;
         this.countriesLoading = true;
         this.rolesLoading = true;
@@ -122,6 +134,20 @@ export class CreateUserDialogComponent implements OnInit {
                 this.rolesLoading = false;
             },
         });
+
+        const companyId = this.localUser?.company?._id;
+        if (companyId) {
+            this.usersLoading = true;
+            this.usersService.getUsers({ companyId, limit: 200 }).subscribe({
+                next: res => {
+                    this.users = res.data?.users ?? [];
+                    this.usersLoading = false;
+                },
+                error: () => {
+                    this.usersLoading = false;
+                },
+            });
+        }
     }
 
     onSubmit(): void {
@@ -132,15 +158,15 @@ export class CreateUserDialogComponent implements OnInit {
 
         this.loading = true;
 
-        const formValue = this.userForm.value as {
+        const formValue = this.userForm.getRawValue() as {
             name: string;
             email: string;
             password: string;
             role: string;
-            companyId?: string;
-            countryId?: string;
-            employmentTitleId?: string;
-            departmentId?: string;
+            companyId: string;
+            countryId: string;
+            employmentTitleId: string;
+            managerId: string;
         };
 
         const payload = {
@@ -151,7 +177,7 @@ export class CreateUserDialogComponent implements OnInit {
             companyId: this.toObjectIdOrUndefined(formValue.companyId),
             countryId: this.toObjectIdOrUndefined(formValue.countryId),
             employmentTitleId: this.toObjectIdOrUndefined(formValue.employmentTitleId),
-            departmentId: this.toObjectIdOrUndefined(formValue.departmentId),
+            managerId: this.toObjectIdOrUndefined(formValue.managerId),
         };
 
         if (!payload.role) {
