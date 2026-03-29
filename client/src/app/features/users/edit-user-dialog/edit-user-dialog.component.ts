@@ -81,7 +81,6 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
         companyId: [{ value: this.localUser?.company?._id ?? "", disabled: true }, Validators.required],
         countryId: [this.data.user.country?._id ?? "", Validators.required],
         employmentTitleId: [this.data.user.employmentTitle?._id ?? "", Validators.required],
-        departmentId: [this.data.user.department?._id ?? "", Validators.required],
         managerId: [this.data.user.manager?._id ?? ""],
         isActive: [this.data.user.isActive ?? true],
     });
