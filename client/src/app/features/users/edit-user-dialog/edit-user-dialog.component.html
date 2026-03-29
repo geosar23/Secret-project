@@ -72,6 +72,19 @@
             </mat-select>
         </mat-form-field>
 
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Manager</mat-label>
+            <mat-select formControlName="managerId">
+                <mat-option value="">No manager</mat-option>
+                @if (usersLoading) {
+                    <mat-option disabled>Loading users...</mat-option>
+                }
+                @for (user of users; track user._id) {
+                    <mat-option [value]="user._id">{{ user.name }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
         <div class="toggle-row">
             <mat-slide-toggle formControlName="isActive" color="primary">Active</mat-slide-toggle>
         </div>

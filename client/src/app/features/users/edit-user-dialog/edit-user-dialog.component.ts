@@ -8,11 +8,11 @@ import { MatSelectModule } from "@angular/material/select";
 import { MatButtonModule } from "@angular/material/button";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { UsersService } from "../../../core/services/users.service";
-import { CompanyService } from "../../../core/services/company.service";
 import { CountryService } from "../../../core/services/country.service";
 import { EmploymentTitleService } from "../../../core/services/employment-title.service";
 import { RoleService } from "../../../core/services/role.service";
 import { ToastService } from "../../../core/services/toast.service";
+import { AuthService } from "../../../core/services/auth.service";
 import { IUser, IUpdateUserRequest } from "../../../core/interfaces/user.interface";
 import { ICompany } from "../../../core/interfaces/company.interface";
 import { ICountry } from "../../../core/interfaces/country.interface";
@@ -44,32 +44,36 @@ export interface EditUserDialogData {
 export class EditUserDialogComponent implements OnInit {
     private fb = inject(FormBuilder);
     private usersService = inject(UsersService);
-    private companyService = inject(CompanyService);
     private countryService = inject(CountryService);
     private employmentTitleService = inject(EmploymentTitleService);
     private roleService = inject(RoleService);
     private toast = inject(ToastService);
+    private authService = inject(AuthService);
     private dialogRef = inject(MatDialogRef<EditUserDialogComponent, IUser | undefined>);
     data = inject<EditUserDialogData>(MAT_DIALOG_DATA);
+    private localUser = this.authService.getLocalUser();
 
     loading = false;
     companiesLoading = false;
     countriesLoading = false;
     rolesLoading = false;
     employmentTitlesLoading = false;
-    companies: ICompany[] = [];
+    usersLoading = false;
+    companies: ICompany[] = this.localUser?.company ? [this.localUser.company] : [];
     countries: ICountry[] = [];
     roles: IRole[] = [];
     employmentTitles: IEmploymentTitle[] = [];
+    users: IUser[] = [];
 
     userForm: FormGroup = this.fb.group({
         name: [this.data.user.name, [Validators.required, Validators.minLength(2)]],
         email: [this.data.user.email, [Validators.required, Validators.email]],
         role: [this.data.user.role?._id ?? "", Validators.required],
-        companyId: [this.data.user.company?._id ?? "", Validators.required],
+        companyId: [{ value: this.localUser?.company?._id ?? "", disabled: true }, Validators.required],
         countryId: [this.data.user.country?._id ?? "", Validators.required],
         employmentTitleId: [this.data.user.employmentTitle?._id ?? "", Validators.required],
         departmentId: [this.data.user.department?._id ?? "", Validators.required],
+        managerId: [this.data.user.manager?._id ?? ""],
         isActive: [this.data.user.isActive ?? true],
     });
 
@@ -77,27 +81,32 @@ export class EditUserDialogComponent implements OnInit {
         name: (this.data.user.name ?? "").trim(),
         email: (this.data.user.email ?? "").trim(),
         role: this.data.user.role?._id ?? undefined,
-        companyId: this.data.user.company?._id ?? undefined,
+        companyId: this.localUser?.company?._id ?? undefined,
         countryId: this.data.user.country?._id ?? undefined,
         employmentTitleId: this.data.user.employmentTitle?._id ?? undefined,
+        managerId: this.data.user.manager?._id ?? undefined,
         isActive: this.data.user.isActive ?? true,
     };
 
     ngOnInit(): void {
-        this.companiesLoading = true;
+        this.userForm.get("companyId")?.disable();
         this.countriesLoading = true;
         this.rolesLoading = true;
         this.employmentTitlesLoading = true;
 
-        this.companyService.getCompanies().subscribe({
-            next: res => {
-                this.companies = res.data ?? [];
-                this.companiesLoading = false;
-            },
-            error: () => {
-                this.companiesLoading = false;
-            },
-        });
+        const companyId = this.localUser?.company?._id;
+        if (companyId) {
+            this.usersLoading = true;
+            this.usersService.getUsers({ companyId, limit: 200 }).subscribe({
+                next: res => {
+                    this.users = (res.data?.users ?? []).filter(u => u._id !== this.data.user._id);
+                    this.usersLoading = false;
+                },
+                error: () => {
+                    this.usersLoading = false;
+                },
+            });
+        }
 
         this.roleService.getAllRoles().subscribe({
             next: res => {
@@ -136,15 +145,17 @@ export class EditUserDialogComponent implements OnInit {
             return;
         }
 
-        const { name, email, role, companyId, countryId, employmentTitleId, isActive } = this.userForm.value as {
-            name: string;
-            email: string;
-            role?: string;
-            companyId?: string;
-            countryId?: string;
-            employmentTitleId?: string;
-            isActive: boolean;
-        };
+        const { name, email, role, companyId, countryId, employmentTitleId, managerId, isActive } =
+            this.userForm.getRawValue() as {
+                name: string;
+                email: string;
+                role?: string;
+                companyId?: string;
+                countryId?: string;
+                employmentTitleId?: string;
+                managerId?: string;
+                isActive: boolean;
+            };
 
         const currentValues = {
             name: (name ?? "").trim(),
@@ -153,6 +164,7 @@ export class EditUserDialogComponent implements OnInit {
             companyId: companyId || undefined,
             countryId: countryId || undefined,
             employmentTitleId: employmentTitleId || undefined,
+            managerId: managerId || undefined,
             isActive: !!isActive,
         };
 
@@ -191,6 +203,7 @@ export class EditUserDialogComponent implements OnInit {
                     employmentTitle:
                         this.employmentTitles.find(t => t._id === currentValues.employmentTitleId) ??
                         this.data.user.employmentTitle,
+                    manager: this.users.find(u => u._id === currentValues.managerId) ?? this.data.user.manager,
                 };
                 this.dialogRef.close(updatedUser);
             },
