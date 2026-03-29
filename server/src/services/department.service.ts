@@ -9,13 +9,13 @@ export const DepartmentService = {
     getById: (id: string, companyId: string) =>
         departmentRepository(companyId).findById(id).populate("company", "_id name").lean(),
 
-    create: async (data: Omit<IDepartment, "_id" | "company" | "createdAt" | "updatedAt">, companyId: string) => {
-        const repository = departmentRepository(companyId);
-        const created = await repository.create({
-            ...data,
-            isActive: data.isActive ?? true,
-        });
+    create: async (data: Omit<IDepartment, "_id" | "createdAt" | "updatedAt">, companyId: string) => {
+        if (!companyId) {
+            throw new Error("Company ID is required for creating department");
+        }
 
+        const repository = departmentRepository(companyId);
+        const created = await repository.create(data as Partial<IDepartment>);
         return repository.findById(created._id).populate("company", "_id name").lean();
     },
 

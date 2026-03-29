@@ -1,8 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Response } from "express";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
+import { IDepartment } from "../interfaces/department.interface";
 import { DepartmentService } from "../services/department.service";
 import { softError, success } from "../util/response.util";
+import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";
+
+type DepartmentFieldMap = FieldMap<IDepartment>;
 
 export class DepartmentController {
     static async getAll(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
@@ -37,18 +41,37 @@ export class DepartmentController {
     static async create(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            const { name, description } = req.body as { name?: string; description?: string };
-            if (!name || typeof name !== "string" || name.trim().length < 2) {
+            const params: Partial<IDepartment> = { isActive: true };
+
+            const DEPARTMENT_CREATE_REQUIRED_FIELDS: DepartmentFieldMap = {
+                name: { type: "string", targetField: "name", required: true, minLength: 2 },
+                companyId: {
+                    type: "string",
+                    targetField: "company",
+                    isPointer: true,
+                    pointerClass: "Companies",
+                    required: true,
+                },
+            };
+
+            setMappedFields(params, DEPARTMENT_CREATE_REQUIRED_FIELDS, {
+                ...(req.body as Record<string, unknown>),
+                companyId: requestingUser.companyId,
+            });
+
+            const DEPARTMENT_CREATE_OPTIONAL_FIELDS: DepartmentFieldMap = {
+                description: { type: "string", targetField: "description" },
+            };
+
+            setMappedFields(params, DEPARTMENT_CREATE_OPTIONAL_FIELDS, req.body as Record<string, unknown>);
+
+            if (!params.name) {
                 res.json(softError("Department name is required (min 2 characters)"));
                 return;
             }
 
             const department = await DepartmentService.create(
-                {
-                    name: name.trim(),
-                    description: typeof description === "string" ? description.trim() : "",
-                    isActive: true,
-                },
+                params as Omit<IDepartment, "_id" | "createdAt" | "updatedAt">,
                 requestingUser.companyId,
             );
 
