@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { MatDialogModule, MatDialogRef } from "@angular/material/dialog";
@@ -20,6 +20,7 @@ import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 import { IRole } from "../../../core/interfaces/role.interface";
 import { IUser } from "../../../core/interfaces/user.interface";
+import { first } from "rxjs";
 import { UserRole } from "../../../core/enums/user-role.enum";
 
 @Component({
@@ -38,6 +39,7 @@ import { UserRole } from "../../../core/enums/user-role.enum";
     ],
     templateUrl: "./create-user-dialog.component.html",
     styleUrls: ["./create-user-dialog.component.scss"],
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateUserDialogComponent implements OnInit {
     private fb = inject(FormBuilder);
@@ -52,17 +54,17 @@ export class CreateUserDialogComponent implements OnInit {
 
     private localUser = this.authService.getLocalUser();
 
-    loading = false;
-    companiesLoading = false;
-    countriesLoading = false;
-    rolesLoading = false;
-    employmentTitlesLoading = false;
-    usersLoading = false;
-    companies: ICompany[] = [];
-    countries: ICountry[] = [];
-    roles: IRole[] = [];
-    employmentTitles: IEmploymentTitle[] = [];
-    users: IUser[] = [];
+    loading = signal(false);
+    companiesLoading = signal(false);
+    countriesLoading = signal(false);
+    rolesLoading = signal(false);
+    employmentTitlesLoading = signal(false);
+    usersLoading = signal(false);
+    companies = signal<ICompany[]>([]);
+    countries = signal<ICountry[]>([]);
+    roles = signal<IRole[]>([]);
+    employmentTitles = signal<IEmploymentTitle[]>([]);
+    users = signal<IUser[]>([]);
 
     userForm: FormGroup = this.fb.group({
         name: ["", [Validators.required, Validators.minLength(2)]],
@@ -86,68 +88,84 @@ export class CreateUserDialogComponent implements OnInit {
             //undisable company field for non-GOD users and set their company as the value
             this.userForm.get("companyId")?.enable();
         }
-        this.companiesLoading = true;
-        this.countriesLoading = true;
-        this.rolesLoading = true;
-        this.employmentTitlesLoading = true;
-        this.companyService.getCompanies().subscribe({
-            next: res => {
-                this.companies = res.data ?? [];
-                this.companiesLoading = false;
-            },
-            error: () => {
-                this.companiesLoading = false;
-            },
-        });
+        this.loadInitialData();
+    }
 
-        this.employmentTitleService.getEmploymentTitles().subscribe({
-            next: res => {
-                this.employmentTitles = res.data ?? [];
-                this.employmentTitlesLoading = false;
-            },
-            error: () => {
-                this.employmentTitlesLoading = false;
-            },
-        });
+    private loadInitialData(): void {
+        this.companiesLoading.set(true);
+        this.countriesLoading.set(true);
+        this.rolesLoading.set(true);
+        this.employmentTitlesLoading.set(true);
+        this.usersLoading.set(true);
 
-        this.countryService.getCountries().subscribe({
-            next: res => {
-                this.countries = res.data ?? [];
-                this.countriesLoading = false;
-            },
-            error: () => {
-                this.countriesLoading = false;
-            },
-        });
-
-        this.roleService.getAllRoles().subscribe({
-            next: res => {
-                this.roles = res.data ?? [];
-                this.rolesLoading = false;
-
-                const employeeRoleId = this.roles.find(r => r.role === "employee")?._id;
-                if (employeeRoleId) {
-                    this.userForm.patchValue({ role: employeeRoleId });
-                }
-            },
-            error: () => {
-                this.rolesLoading = false;
-            },
-        });
-
-        const companyId = this.localUser?.company?._id;
-        if (companyId) {
-            this.usersLoading = true;
-            this.usersService.getUsers({ companyId, limit: 200 }).subscribe({
+        this.companyService
+            .getCompanies()
+            .pipe(first())
+            .subscribe({
                 next: res => {
-                    this.users = res.data?.users ?? [];
-                    this.usersLoading = false;
+                    this.companies.set(res.data ?? []);
+                    this.companiesLoading.set(false);
                 },
                 error: () => {
-                    this.usersLoading = false;
+                    this.companiesLoading.set(false);
                 },
             });
-        }
+
+        this.employmentTitleService
+            .getEmploymentTitles()
+            .pipe(first())
+            .subscribe({
+                next: res => {
+                    this.employmentTitles.set(res.data ?? []);
+                    this.employmentTitlesLoading.set(false);
+                },
+                error: () => {
+                    this.employmentTitlesLoading.set(false);
+                },
+            });
+
+        this.countryService
+            .getCountries()
+            .pipe(first())
+            .subscribe({
+                next: res => {
+                    this.countries.set(res.data ?? []);
+                    this.countriesLoading.set(false);
+                },
+                error: () => {
+                    this.countriesLoading.set(false);
+                },
+            });
+
+        this.roleService
+            .getAllRoles()
+            .pipe(first())
+            .subscribe({
+                next: res => {
+                    this.roles.set(res.data ?? []);
+                    this.rolesLoading.set(false);
+
+                    const employeeRoleId = this.roles().find(r => r.role === "employee")?._id;
+                    if (employeeRoleId) {
+                        this.userForm.patchValue({ role: employeeRoleId });
+                    }
+                },
+                error: () => {
+                    this.rolesLoading.set(false);
+                },
+            });
+        this.usersService
+            .getUsers({ companyId: this.localUser?.company?._id ?? "", limit: 200 })
+            .pipe(first())
+            .subscribe({
+                next: res => {
+                    this.users.set(res.data?.users ?? []);
+                    this.usersLoading.set(false);
+                },
+                error: () => {
+                    this.usersLoading.set(false);
+                },
+            });
     }
 
     onSubmit(): void {
@@ -156,7 +174,7 @@ export class CreateUserDialogComponent implements OnInit {
             return;
         }
 
-        this.loading = true;
+        this.loading.set(true);
 
         const formValue = this.userForm.getRawValue() as {
             name: string;
@@ -182,7 +200,7 @@ export class CreateUserDialogComponent implements OnInit {
 
         if (!payload.role) {
             this.toast.error("Please select a valid role");
-            this.loading = false;
+            this.loading.set(false);
             return;
         }
 
@@ -191,28 +209,31 @@ export class CreateUserDialogComponent implements OnInit {
             role: payload.role,
         };
 
-        this.usersService.createUser(createPayload).subscribe({
-            next: response => {
-                if (!response.success) {
-                    this.toast.error(response.message || "Failed to create user");
-                    this.loading = false;
-                    return;
-                }
+        this.usersService
+            .createUser(createPayload)
+            .pipe(first())
+            .subscribe({
+                next: response => {
+                    if (!response.success) {
+                        this.toast.error(response.message || "Failed to create user");
+                        this.loading.set(false);
+                        return;
+                    }
 
-                const createdUser = response.data?.user;
-                if (!createdUser) {
-                    this.toast.error(response.message || "User was created but response payload was empty");
-                    this.loading = false;
-                    return;
-                }
+                    const createdUser = response.data?.user;
+                    if (!createdUser) {
+                        this.toast.error(response.message || "User was created but response payload was empty");
+                        this.loading.set(false);
+                        return;
+                    }
 
-                this.dialogRef.close(createdUser);
-            },
-            error: err => {
-                this.toast.error(err.error?.message || "Failed to create user");
-                this.loading = false;
-            },
-        });
+                    this.dialogRef.close(createdUser);
+                },
+                error: err => {
+                    this.toast.error(err.error?.message || "Failed to create user");
+                    this.loading.set(false);
+                },
+            });
     }
 
     onCancel(): void {
