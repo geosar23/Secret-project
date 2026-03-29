@@ -82,8 +82,15 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Department ID</mat-label>
-            <input matInput formControlName="departmentId" placeholder="Optional: dept-hr" />
+            <mat-label>Department</mat-label>
+            <mat-select formControlName="departmentId">
+                @if (departmentsLoading) {
+                    <mat-option disabled>Loading departments...</mat-option>
+                }
+                @for (department of departments; track department._id) {
+                    <mat-option [value]="department._id">{{ department.name }}</mat-option>
+                }
+            </mat-select>
         </mat-form-field>
     </form>
 </mat-dialog-content>
