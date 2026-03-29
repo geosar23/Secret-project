@@ -30,11 +30,15 @@
 
         .search-field {
             flex: 1;
-            max-width: 25rem;
+            max-width: 20rem;
         }
 
         .sort-select {
             min-width: 12.5rem;
+        }
+
+        .filter-select {
+            min-width: 10rem;
         }
     }
 }

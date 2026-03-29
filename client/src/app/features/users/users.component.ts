@@ -21,6 +21,12 @@ import { EditUserDialogComponent, EditUserDialogData } from "./edit-user-dialog/
 import { RoleUtils } from "../../core/utils/role.utils";
 import { JsonResponse } from "../../core/interfaces/generics.interface";
 import { ToastService } from "../../core/services/toast.service";
+import { RoleService } from "../../core/services/role.service";
+import { CountryService } from "../../core/services/country.service";
+import { DepartmentService } from "../../core/services/department.service";
+import { IRole } from "../../core/interfaces/role.interface";
+import { ICountry } from "../../core/interfaces/country.interface";
+import { IDepartment } from "../../core/interfaces/department.interface";
 
 interface IUserTableData extends IUser {
     roleColor?: string;
@@ -59,6 +65,14 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
 
     loading = false;
 
+    roles: IRole[] = [];
+    departments: IDepartment[] = [];
+    countries: ICountry[] = [];
+    roleControl = new FormControl<string>("");
+    departmentControl = new FormControl<string>("");
+    countryControl = new FormControl<string>("");
+    isActiveControl = new FormControl<string>("");
+
     // Sorting options
     sortOptions = [
         { value: "name:asc", label: "Name (A-Z)" },
@@ -86,10 +100,14 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
         private usersService: UsersService,
         private dialog: MatDialog,
         private router: Router,
+        private roleService: RoleService,
+        private countryService: CountryService,
+        private departmentService: DepartmentService,
     ) {}
 
     ngOnInit() {
         this.loadUsers();
+        this.loadFilterOptions();
 
         // Listen to search input with debounce
         this.searchControl.valueChanges
@@ -102,6 +120,29 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
                 this.loadUsers();
             });
+
+        const filterControls: { control: FormControl<string | null>; key: "roleId" | "departmentId" | "countryId" }[] =
+            [
+                { control: this.roleControl, key: "roleId" },
+                { control: this.departmentControl, key: "departmentId" },
+                { control: this.countryControl, key: "countryId" },
+            ];
+
+        for (const { control, key } of filterControls) {
+            control.valueChanges.pipe(takeUntil(this.destroy$), distinctUntilChanged()).subscribe(value => {
+                this.queryParams[key] = value || undefined;
+                this.queryParams.page = 1;
+                if (this.paginator) this.paginator.pageIndex = 0;
+                this.loadUsers();
+            });
+        }
+
+        this.isActiveControl.valueChanges.pipe(takeUntil(this.destroy$), distinctUntilChanged()).subscribe(value => {
+            this.queryParams.isActive = value === "" ? undefined : value === "true";
+            this.queryParams.page = 1;
+            if (this.paginator) this.paginator.pageIndex = 0;
+            this.loadUsers();
+        });
     }
 
     ngAfterViewInit() {
@@ -119,6 +160,35 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     ngOnDestroy() {
         this.destroy$.next();
         this.destroy$.complete();
+    }
+
+    private loadFilterOptions() {
+        this.roleService
+            .getAllRoles()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: res => {
+                    if (res.success && res.data) this.roles = res.data;
+                },
+            });
+
+        this.countryService
+            .getCountries()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: res => {
+                    if (res.success && res.data) this.countries = res.data;
+                },
+            });
+
+        this.departmentService
+            .getDepartments()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: res => {
+                    if (res.success && res.data) this.departments = res.data;
+                },
+            });
     }
 
     loadUsers() {

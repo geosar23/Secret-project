@@ -23,7 +23,7 @@
         <div class="filters-row">
             <mat-form-field appearance="outline" class="search-field">
                 <mat-label>Search</mat-label>
-                <input matInput [formControl]="searchControl" placeholder="Search by name or email..." />
+                <input matInput [formControl]="searchControl" placeholder="Search by name or email" />
                 <mat-icon matPrefix>search</mat-icon>
                 @if (searchControl.value) {
                     <button matSuffix mat-icon-button aria-label="Clear" (click)="searchControl.setValue('')">
@@ -31,15 +31,50 @@
                     </button>
                 }
             </mat-form-field>
-            <mat-form-field appearance="outline" class="sort-select">
-                <mat-label>Sort By</mat-label>
-                <mat-select [(value)]="selectedSort" (selectionChange)="onSortChange($event.value)">
-                    @for (option of sortOptions; track option.value) {
-                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+            <mat-form-field appearance="outline" class="filter-select">
+                <mat-label>Role</mat-label>
+                <mat-select [formControl]="roleControl">
+                    <mat-option value="">All Roles</mat-option>
+                    @for (role of roles; track role._id) {
+                        <mat-option [value]="role._id">{{ role.name }}</mat-option>
                     }
                 </mat-select>
             </mat-form-field>
+            <mat-form-field appearance="outline" class="filter-select">
+                <mat-label>Department</mat-label>
+                <mat-select [formControl]="departmentControl">
+                    <mat-option value="">All Departments</mat-option>
+                    @for (dept of departments; track dept._id) {
+                        <mat-option [value]="dept._id">{{ dept.name }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="filter-select">
+                <mat-label>Country</mat-label>
+                <mat-select [formControl]="countryControl">
+                    <mat-option value="">All Countries</mat-option>
+                    @for (country of countries; track country._id) {
+                        <mat-option [value]="country._id">{{ country.name }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="filter-select">
+                <mat-label>Status</mat-label>
+                <mat-select [formControl]="isActiveControl">
+                    <mat-option value="">All</mat-option>
+                    <mat-option value="true">Active</mat-option>
+                    <mat-option value="false">Inactive</mat-option>
+                </mat-select>
+            </mat-form-field>
         </div>
+        <mat-form-field appearance="outline" class="sort-select">
+            <mat-label>Sort By</mat-label>
+            <mat-select [(value)]="selectedSort" (selectionChange)="onSortChange($event.value)">
+                @for (option of sortOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
     </div>
 
     @if (loading) {
