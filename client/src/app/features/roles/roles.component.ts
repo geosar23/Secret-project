@@ -153,7 +153,7 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     isSystemRole(role: IRole): boolean {
-        return Boolean(role.isSystemRole ?? role.isSytemRole);
+        return Boolean(role.isSystemRole);
     }
 
     private applyFilters(): void {

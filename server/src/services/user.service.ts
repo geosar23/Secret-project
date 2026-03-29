@@ -65,13 +65,13 @@ export const UserService = {
         const [users, total] = await Promise.all([
             repo
                 .find(filter)
-                .populate("role", "role name")
-                .populate("company", "_id name")
-                .populate("country", "_id name")
+                .populate("role")
+                .populate("company")
+                .populate("country")
+                .populate("manager")
                 .populate({
                     path: "employmentTitle",
-                    select: "_id name subDepartment",
-                    populate: { path: "subDepartment", select: "_id name department" },
+                    populate: { path: "subDepartment", populate: { path: "department" } },
                 })
                 .sort(sortOptions)
                 .skip(skip)
@@ -99,11 +99,11 @@ export const UserService = {
             .findById(id)
             .populate("role")
             .populate("company")
-            .populate("country", "_id name")
+            .populate("country")
+            .populate("manager")
             .populate({
                 path: "employmentTitle",
-                select: "_id name subDepartment",
-                populate: { path: "subDepartment", select: "_id name department" },
+                populate: { path: "subDepartment", populate: { path: "department" } },
             })
             .select("-password")
             .lean();

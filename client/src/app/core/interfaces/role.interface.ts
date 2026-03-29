@@ -8,7 +8,6 @@ export interface IRole {
     company?: ICompany;
     permissions?: string[];
     isSystemRole?: boolean;
-    isSytemRole?: boolean;
     isActive?: boolean;
     createdAt?: Date;
     updatedAt?: Date;
