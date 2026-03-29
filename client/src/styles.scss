@@ -1101,19 +1101,23 @@ select.form-control {
     }
 
     .mat-mdc-row {
-        display: block;
+        display: flex;
+        flex-direction: column;
         margin-bottom: var(--spacing-md);
         border: 1px solid var(--color-border);
         border-radius: var(--radius-md);
         box-shadow: var(--shadow-sm);
         background: var(--color-bg-primary);
+        padding: var(--spacing-sm) 0;
     }
 
     .mat-mdc-cell {
-        display: block;
-        text-align: right;
-        padding: var(--spacing-sm) var(--spacing-md);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-xs) var(--spacing-md);
         border-bottom: 1px solid var(--color-divider);
+        text-align: right;
 
         &:last-child {
             border-bottom: none;
@@ -1121,11 +1125,14 @@ select.form-control {
 
         &::before {
             content: attr(data-label);
-            float: left;
             font-weight: var(--font-weight-semibold);
             color: var(--color-text-secondary);
+            font-size: var(--font-size-sm);
             text-transform: uppercase;
-            font-size: var(--font-size-xs);
+            letter-spacing: var(--letter-spacing-tight);
+            margin-right: var(--spacing-md);
+            white-space: nowrap;
+            flex-shrink: 0;
         }
     }
 }
