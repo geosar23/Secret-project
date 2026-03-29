@@ -19,6 +19,15 @@ const UserSchema = new Schema<IUser>(
         grantedPermissions: [{ type: String, trim: true }],
         revokedPermissions: [{ type: String, trim: true }],
 
+        profileImage: {
+            bucket: { type: String, trim: true },
+            path: { type: String, trim: true },
+            originalName: { type: String, trim: true },
+            mimeType: { type: String, trim: true },
+            size: { type: Number },
+            uploadedAt: { type: Date },
+        },
+
         isActive: { type: Boolean, default: true },
     },
     { timestamps: true, collection: "Users", autoIndex: false },

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from "@angular/core";
+import { Component, OnInit, OnDestroy, inject, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatCardModule } from "@angular/material/card";
 import { MatFormFieldModule } from "@angular/material/form-field";
@@ -46,6 +46,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
     profile: UserProfile | null = null;
+    profileImageUrl: string | null = null;
+    imageLoading = signal(false);
     loading = false;
     isOwnProfile = true;
     pageTitle = "My Profile";
@@ -92,6 +94,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 }
 
                 this.profile = user;
+                if (this.profile?._id) {
+                    this.loadProfileImageUrl(this.profile._id);
+                }
                 this.loading = false;
             });
     }
@@ -107,6 +112,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     return;
                 }
                 this.profile = response.data;
+                if (this.profile?._id) {
+                    this.loadProfileImageUrl(this.profile._id);
+                }
                 this.loading = false;
             },
             error: error => {
@@ -130,6 +138,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
             .subscribe(updatedUser => {
                 if (!updatedUser) return;
                 this.profile = updatedUser;
+                if (this.profile?._id) {
+                    this.loadProfileImageUrl(this.profile._id);
+                }
                 if (this.isOwnProfile) {
                     this.authService
                         .patchAndRefreshCurrentUser(updatedUser)
@@ -159,5 +170,98 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     getRoleColor(role: string): string {
         return RoleUtils.getRoleColor(role);
+    }
+
+    onProfileImageSelected(event: Event): void {
+        if (!this.profile?._id || this.imageLoading()) return;
+
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+
+        if (!file) {
+            return;
+        }
+
+        if (!file.type.startsWith("image/")) {
+            this.toast.warning("Please select an image file");
+            input.value = "";
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            this.toast.warning("Image must be smaller than 5MB");
+            input.value = "";
+            return;
+        }
+
+        this.imageLoading.set(true);
+
+        this.usersService.uploadProfileImage(this.profile._id, file).subscribe({
+            next: response => {
+                if (!response.success || !response.data?.user) {
+                    this.toast.error(response.message || "Failed to upload profile image");
+                    this.imageLoading.set(false);
+                    input.value = "";
+                    return;
+                }
+
+                this.profile = { ...this.profile!, ...response.data.user };
+                this.loadProfileImageUrl(this.profile._id as string);
+                this.toast.success("Profile image uploaded");
+                this.imageLoading.set(false);
+                input.value = "";
+            },
+            error: error => {
+                this.toast.error(error.error?.message || "Failed to upload profile image");
+                this.imageLoading.set(false);
+                input.value = "";
+            },
+        });
+    }
+
+    removeProfileImage(): void {
+        if (!this.profile?._id || this.imageLoading()) return;
+
+        this.imageLoading.set(true);
+        this.usersService.deleteProfileImage(this.profile._id).subscribe({
+            next: response => {
+                if (!response.success) {
+                    this.toast.error(response.message || "Failed to remove profile image");
+                    this.imageLoading.set(false);
+                    return;
+                }
+
+                this.profileImageUrl = null;
+                if (this.profile) {
+                    this.profile.profileImage = undefined;
+                }
+                this.toast.success("Profile image removed");
+                this.imageLoading.set(false);
+            },
+            error: error => {
+                this.toast.error(error.error?.message || "Failed to remove profile image");
+                this.imageLoading.set(false);
+            },
+        });
+    }
+
+    private loadProfileImageUrl(userId: string): void {
+        this.imageLoading.set(true);
+        this.usersService.getProfileImageUrl(userId).subscribe({
+            next: response => {
+                if (!response.success || !response.data?.url) {
+                    this.profileImageUrl = null;
+                    this.imageLoading.set(false);
+                    return;
+                }
+
+                this.profileImageUrl = response.data.url;
+                this.imageLoading.set(false);
+            },
+            error: () => {
+                this.profileImageUrl = null;
+                this.imageLoading.set(false);
+            },
+        });
     }
 }

@@ -9,6 +9,7 @@ import {
     IUserResponse,
     IUsersQueryParams,
     IUser,
+    IProfileImageUrlResponse,
 } from "../interfaces/user.interface";
 
 @Injectable({
@@ -44,6 +45,20 @@ export class UsersService {
         payload: { currentPassword: string; newPassword: string },
     ): Observable<JsonResponse<void>> {
         return this.apiService.put<JsonResponse<void>>(`users/${userId}/change-password`, payload);
+    }
+
+    uploadProfileImage(userId: string, file: File): Observable<JsonResponse<IUserResponse>> {
+        const formData = new FormData();
+        formData.append("image", file);
+        return this.apiService.post<JsonResponse<IUserResponse>>(`users/${userId}/profile-image`, formData);
+    }
+
+    getProfileImageUrl(userId: string): Observable<JsonResponse<IProfileImageUrlResponse>> {
+        return this.apiService.get<JsonResponse<IProfileImageUrlResponse>>(`users/${userId}/profile-image-url`);
+    }
+
+    deleteProfileImage(userId: string): Observable<JsonResponse<void>> {
+        return this.apiService.delete<JsonResponse<void>>(`users/${userId}/profile-image`);
     }
 
     // deleteUser(userId: string): Observable<{ message: string }> {

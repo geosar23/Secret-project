@@ -8,6 +8,7 @@ import { buildUserSearchAccessQuery, canManageUser } from "../policies/user.poli
 import { DefaultUserRoles } from "../enums/user-role.enum";
 import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";
 import { isValidPermissionKey } from "../utils/permission-checker";
+import { StorageService } from "../services/storage.service";
 
 type UserFieldMap = FieldMap<IUser>;
 
@@ -314,6 +315,129 @@ export class UserController {
             res.json(success({ userId, permissionKey }));
         } catch (error: any) {
             console.log("Error in UserController.revokePermission:", error);
+            res.json(softError(error.message, error));
+        }
+    }
+
+    static async uploadProfileImage(req: AuthenticatedRequest, res: Response): Promise<void> {
+        try {
+            const requestingUser = req.decoded as tokenPayload;
+            const userId = req.params.id;
+
+            if (requestingUser.id !== userId) {
+                res.json(softError("You can only upload your own profile image"));
+                return;
+            }
+
+            if (!req.file) {
+                res.json(softError("Image file is required"));
+                return;
+            }
+
+            const user = await UserService.getProfileImageMetadata(userId, requestingUser.companyId);
+            if (!user) {
+                res.json(softError("User not found"));
+                return;
+            }
+
+            const oldPath = (user as IUser).profileImage?.path;
+
+            const uploadResult = await StorageService.uploadUserProfileImage({
+                companyId: requestingUser.companyId,
+                userId,
+                fileBuffer: req.file.buffer,
+                originalName: req.file.originalname,
+                mimeType: req.file.mimetype,
+            });
+
+            const profileImage = {
+                bucket: uploadResult.bucket,
+                path: uploadResult.path,
+                originalName: req.file.originalname,
+                mimeType: req.file.mimetype,
+                size: req.file.size,
+                uploadedAt: new Date(),
+            };
+
+            const updatedUser = await UserService.updateProfileImageMetadata(
+                userId,
+                profileImage,
+                requestingUser.companyId,
+            );
+
+            if (oldPath) {
+                try {
+                    await StorageService.removeFile(oldPath);
+                } catch (deleteError) {
+                    console.warn("Failed to remove old profile image", deleteError);
+                }
+            }
+
+            res.json(success({ user: updatedUser }));
+        } catch (error: any) {
+            console.log("Error in UserController.uploadProfileImage:", error);
+            res.json(softError(error.message, error));
+        }
+    }
+
+    static async getProfileImageUrl(req: AuthenticatedRequest, res: Response): Promise<void> {
+        try {
+            const requestingUser = req.decoded as tokenPayload;
+            const userId = req.params.id;
+
+            if (requestingUser.id !== userId) {
+                res.json(softError("You can only access your own profile image"));
+                return;
+            }
+
+            const user = await UserService.getProfileImageMetadata(userId, requestingUser.companyId);
+            if (!user) {
+                res.json(softError("User not found"));
+                return;
+            }
+
+            const imagePath = (user as IUser).profileImage?.path;
+            if (!imagePath) {
+                res.json(softError("Profile image not found"));
+                return;
+            }
+
+            const signed = await StorageService.createSignedUrl(imagePath);
+            res.json(success({ ...signed }));
+        } catch (error: any) {
+            console.log("Error in UserController.getProfileImageUrl:", error);
+            res.json(softError(error.message, error));
+        }
+    }
+
+    static async deleteProfileImage(req: AuthenticatedRequest, res: Response): Promise<void> {
+        try {
+            const requestingUser = req.decoded as tokenPayload;
+            const userId = req.params.id;
+
+            if (requestingUser.id !== userId) {
+                res.json(softError("You can only delete your own profile image"));
+                return;
+            }
+
+            const user = await UserService.getProfileImageMetadata(userId, requestingUser.companyId);
+            if (!user) {
+                res.json(softError("User not found"));
+                return;
+            }
+
+            const imagePath = (user as IUser).profileImage?.path;
+            if (!imagePath) {
+                res.json(success({}));
+                return;
+            }
+
+            await StorageService.removeFile(imagePath);
+            await UserService.updateProfileImageMetadata(userId, undefined, requestingUser.companyId);
+
+            res.json(success({}));
+        } catch (error: any) {
+            console.log("Error in UserController.deleteProfileImage:", error);
             res.json(softError(error.message, error));
         }
     }

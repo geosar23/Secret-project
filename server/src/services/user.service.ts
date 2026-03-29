@@ -1,5 +1,5 @@
 import { userRepository } from "../repositories/user.repository";
-import { IUser, IUsersQueryParams } from "../interfaces/user.interface";
+import { IProfileImageMetadata, IUser, IUsersQueryParams } from "../interfaces/user.interface";
 import { FilterQuery } from "mongoose";
 import { UserModel } from "../models/user.model";
 import bcrypt from "bcryptjs";
@@ -188,5 +188,32 @@ export const UserService = {
         } as unknown as Partial<IUser>);
 
         return result.modifiedCount > 0 || result.matchedCount > 0;
+    },
+
+    updateProfileImageMetadata: async (
+        id: string,
+        profileImage: IProfileImageMetadata | undefined,
+        companyId: string,
+    ) => {
+        if (!companyId) {
+            throw new Error("Company ID is required for updating user profile image");
+        }
+
+        const repo = userRepository(companyId);
+        if (!profileImage) {
+            await repo.updateOne({ _id: id }, { $unset: { profileImage: 1 } } as unknown as Partial<IUser>);
+        } else {
+            await repo.updateOne({ _id: id }, { $set: { profileImage } } as unknown as Partial<IUser>);
+        }
+        return repo.findById(id).select("_id profileImage").lean();
+    },
+
+    getProfileImageMetadata: async (id: string, companyId: string) => {
+        if (!companyId) {
+            throw new Error("Company ID is required for reading user profile image");
+        }
+
+        const repo = userRepository(companyId);
+        return repo.findById(id).select("_id profileImage").lean();
     },
 };

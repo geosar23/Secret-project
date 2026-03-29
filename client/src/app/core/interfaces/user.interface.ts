@@ -4,6 +4,15 @@ import { IDepartment } from "./department.interface";
 import { IEmploymentTitle } from "./employment-title.interface";
 import { IRole } from "./role.interface";
 
+export interface IProfileImage {
+    bucket: string;
+    path: string;
+    originalName: string;
+    mimeType: string;
+    size: number;
+    uploadedAt: Date;
+}
+
 export interface IUser {
     _id?: string;
     name: string;
@@ -22,6 +31,7 @@ export interface IUser {
     // Custom permissions
     grantedPermissions?: string[]; // Additional permissions granted
     revokedPermissions?: string[]; // Role permissions that are revoked
+    profileImage?: IProfileImage;
 
     isActive?: boolean;
     createdAt?: Date;
@@ -59,6 +69,11 @@ export interface IUsersListResponse {
 
 export interface IUserResponse {
     user: IUser;
+}
+
+export interface IProfileImageUrlResponse {
+    url: string;
+    expiresIn: number;
 }
 
 export interface IUsersQueryParams {

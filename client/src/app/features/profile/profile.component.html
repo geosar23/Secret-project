@@ -20,6 +20,56 @@
             </mat-card-header>
             <mat-card-content>
                 <div class="profile-info">
+                    <div class="profile-image-section">
+                        <div class="profile-image-wrapper">
+                            @if (profileImageUrl) {
+                                <img [src]="profileImageUrl" alt="Profile image" class="profile-image" />
+                            } @else {
+                                <div class="profile-image-placeholder">
+                                    <mat-icon>person</mat-icon>
+                                </div>
+                            }
+
+                            @if (imageLoading()) {
+                                <div class="profile-image-overlay">
+                                    <mat-spinner diameter="30"></mat-spinner>
+                                </div>
+                            }
+                        </div>
+
+                        @if (isOwnProfile) {
+                            <div class="profile-image-actions">
+                                <input
+                                    #profileImageInput
+                                    type="file"
+                                    accept="image/*"
+                                    class="hidden-file-input"
+                                    (change)="onProfileImageSelected($event)"
+                                />
+                                <button
+                                    mat-stroked-button
+                                    color="primary"
+                                    type="button"
+                                    (click)="profileImageInput.click()"
+                                    [disabled]="imageLoading()"
+                                >
+                                    <mat-icon>upload</mat-icon>
+                                    Upload Photo
+                                </button>
+                                <button
+                                    mat-button
+                                    color="warn"
+                                    type="button"
+                                    (click)="removeProfileImage()"
+                                    [disabled]="!profileImageUrl || imageLoading()"
+                                >
+                                    <mat-icon>delete</mat-icon>
+                                    Remove
+                                </button>
+                            </div>
+                        }
+                    </div>
+
                     <!-- Basic User Information -->
                     <div class="info-row">
                         <span class="label">Name:</span>

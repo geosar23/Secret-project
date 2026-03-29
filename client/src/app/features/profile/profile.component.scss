@@ -132,6 +132,67 @@
     }
 }
 
+.profile-image-section {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+}
+
+.profile-image-wrapper {
+    position: relative;
+    width: 96px;
+    height: 96px;
+}
+
+.profile-image,
+.profile-image-placeholder {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 2px solid var(--color-border-primary);
+    object-fit: cover;
+}
+
+.profile-image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-background-secondary);
+
+    mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        color: var(--color-text-secondary);
+    }
+}
+
+.profile-image-overlay {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-image-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+
+    button {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+    }
+}
+
+.hidden-file-input {
+    display: none;
+}
+
 .full-width {
     width: 100%;
     margin-bottom: var(--spacing-md);
@@ -217,5 +278,10 @@ form {
         button {
             width: 100%;
         }
+    }
+
+    .profile-image-section {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }

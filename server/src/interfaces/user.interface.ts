@@ -1,4 +1,14 @@
 import { Types } from "mongoose";
+
+export interface IProfileImageMetadata {
+    bucket: string;
+    path: string;
+    originalName: string;
+    mimeType: string;
+    size: number;
+    uploadedAt: Date;
+}
+
 export interface IUser {
     _id?: Types.ObjectId;
     name: string;
@@ -16,6 +26,7 @@ export interface IUser {
     // Custom permissions
     grantedPermissions?: string[]; // Additional permissions granted
     revokedPermissions?: string[]; // Role permissions that are revoked
+    profileImage?: IProfileImageMetadata;
 
     isActive?: boolean;
     createdAt?: Date;
