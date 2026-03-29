@@ -12,7 +12,7 @@ A full-stack HR management system built with modern web technologies. This monor
 
 ## Prerequisites
 
-- **Node.js** >= 16 and **npm**
+- **Node.js** >= 24.14.0 and **npm**
 - **MongoDB** (local or cloud instance)
 - Optional: **Angular CLI** for enhanced frontend development
 
@@ -131,20 +131,38 @@ npm run build    # Angular → dist/
 
 The backend provides REST API endpoints under `/api`:
 
-- **Auth**: `/api/auth/*` — Login, logout, token refresh
-- **Users**: `/api/users/*` — User management
-- **Roles**: `/api/roles/*` — Role-based access control
-- **Companies**: `/api/companies/*` — Company data
+- **Health**: `/api/health` — Basic API health and uptime
+- **Auth**: `/api/auth/*` — Login and authenticated user context (`/me`)
+- **Users**: `/api/users/*` — User CRUD, password change, permission grant/revoke
+- **Roles**: `/api/roles/*` — Role CRUD, hierarchy, role permissions
+- **Companies**: `/api/companies/*` — Company CRUD
+- **Countries**: `/api/countries/*` — Country CRUD (permission-guarded)
+- **Departments**: `/api/departments/*` — Department CRUD
+- **Sub-Departments**: `/api/sub-departments/*` — Sub-department CRUD
+- **Employment Titles**: `/api/employment-titles/*` — Employment title CRUD
 
 ## Key Features
 
 - User authentication and authorization
 - Role-based access control (RBAC)
 - Company and employee management
+- Country, department, sub-department, and employment title management
 - Secure session handling with JWT
+- Granular permission assignment and revocation per user
+- Profile editing and change-password flow
+- Advanced user filtering (role, department, country)
+- Company-scoped data repositories for HR entities
 - API rate limiting and request validation
 - Code formatting and linting automation
 - Git hooks for commit quality (Husky + Commitlint)
+
+## Recent Functional Updates
+
+- Added dedicated management modules for countries, departments, sub-departments, and employment titles.
+- Expanded user administration with manager assignment, richer edit/create forms, and stronger validation.
+- Added user-level permission grant/revoke endpoints and UI integrations.
+- Introduced profile route context resolution and integrated profile editing/change-password workflows.
+- Improved frontend responsiveness and layout behavior in tables and filter sections.
 
 ## Troubleshooting
 
