@@ -19,6 +19,7 @@ import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 import { IRole } from "../../../core/interfaces/role.interface";
 import { LoadingButtonComponent } from "../../../shared/components/loading-button/loading-button.component";
+import { UserRole } from "../../../core/enums/user-role.enum";
 
 export interface EditUserDialogData {
     user: IUser;
@@ -89,7 +90,10 @@ export class EditUserDialogComponent implements OnInit {
     };
 
     ngOnInit(): void {
-        this.userForm.get("companyId")?.disable();
+        if (this.localUser?.role.role !== UserRole.GOD) {
+            //undisable company field for non-GOD users and set their company as the value
+            this.userForm.get("companyId")?.enable();
+        }
         this.countriesLoading = true;
         this.rolesLoading = true;
         this.employmentTitlesLoading = true;
