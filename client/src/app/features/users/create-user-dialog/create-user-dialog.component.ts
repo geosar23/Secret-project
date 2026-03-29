@@ -18,8 +18,6 @@ import { ICompany } from "../../../core/interfaces/company.interface";
 import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 import { IRole } from "../../../core/interfaces/role.interface";
-import { DepartmentService } from "../../../core/services/department.service";
-import { IDepartment } from "../../../core/interfaces/department.interface";
 
 @Component({
     selector: "app-create-user-dialog",
@@ -43,7 +41,6 @@ export class CreateUserDialogComponent implements OnInit {
     private usersService = inject(UsersService);
     private companyService = inject(CompanyService);
     private countryService = inject(CountryService);
-    private departmentService = inject(DepartmentService);
     private employmentTitleService = inject(EmploymentTitleService);
     private roleService = inject(RoleService);
     private dialogRef = inject(MatDialogRef<CreateUserDialogComponent>);
@@ -54,12 +51,10 @@ export class CreateUserDialogComponent implements OnInit {
     countriesLoading = false;
     rolesLoading = false;
     employmentTitlesLoading = false;
-    departmentsLoading = false;
     companies: ICompany[] = [];
     countries: ICountry[] = [];
     roles: IRole[] = [];
     employmentTitles: IEmploymentTitle[] = [];
-    departments: IDepartment[] = [];
 
     userForm: FormGroup = this.fb.group({
         name: ["", [Validators.required, Validators.minLength(2)]],
@@ -83,7 +78,6 @@ export class CreateUserDialogComponent implements OnInit {
         this.countriesLoading = true;
         this.rolesLoading = true;
         this.employmentTitlesLoading = true;
-        this.departmentsLoading = true;
         this.companyService.getCompanies().subscribe({
             next: res => {
                 this.companies = res.data ?? [];
@@ -126,16 +120,6 @@ export class CreateUserDialogComponent implements OnInit {
             },
             error: () => {
                 this.rolesLoading = false;
-            },
-        });
-
-        this.departmentService.getDepartments().subscribe({
-            next: res => {
-                this.departments = res.data ?? [];
-                this.departmentsLoading = false;
-            },
-            error: () => {
-                this.departmentsLoading = false;
             },
         });
     }

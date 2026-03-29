@@ -19,8 +19,6 @@ import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 import { IRole } from "../../../core/interfaces/role.interface";
 import { LoadingButtonComponent } from "../../../shared/components/loading-button/loading-button.component";
-import { DepartmentService } from "../../../core/services/department.service";
-import { IDepartment } from "../../../core/interfaces/department.interface";
 
 export interface EditUserDialogData {
     user: IUser;
@@ -49,7 +47,6 @@ export class EditUserDialogComponent implements OnInit {
     private companyService = inject(CompanyService);
     private countryService = inject(CountryService);
     private employmentTitleService = inject(EmploymentTitleService);
-    private departmentService = inject(DepartmentService);
     private roleService = inject(RoleService);
     private toast = inject(ToastService);
     private dialogRef = inject(MatDialogRef<EditUserDialogComponent, IUser | undefined>);
@@ -60,12 +57,10 @@ export class EditUserDialogComponent implements OnInit {
     countriesLoading = false;
     rolesLoading = false;
     employmentTitlesLoading = false;
-    departmentsLoading = false;
     companies: ICompany[] = [];
     countries: ICountry[] = [];
     roles: IRole[] = [];
     employmentTitles: IEmploymentTitle[] = [];
-    departments: IDepartment[] = [];
 
     userForm: FormGroup = this.fb.group({
         name: [this.data.user.name, [Validators.required, Validators.minLength(2)]],
@@ -131,16 +126,6 @@ export class EditUserDialogComponent implements OnInit {
             },
             error: () => {
                 this.employmentTitlesLoading = false;
-            },
-        });
-
-        this.departmentService.getDepartments().subscribe({
-            next: res => {
-                this.departments = res.data ?? [];
-                this.departmentsLoading = false;
-            },
-            error: () => {
-                this.departmentsLoading = false;
             },
         });
     }
