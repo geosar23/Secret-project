@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from "@angular/core";
+import { Component, inject, OnDestroy, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
@@ -20,6 +20,7 @@ import { IEmploymentTitle } from "../../../core/interfaces/employment-title.inte
 import { IRole } from "../../../core/interfaces/role.interface";
 import { LoadingButtonComponent } from "../../../shared/components/loading-button/loading-button.component";
 import { UserRole } from "../../../core/enums/user-role.enum";
+import { firstValueFrom } from "rxjs";
 
 export interface EditUserDialogData {
     user: IUser;
@@ -42,7 +43,7 @@ export interface EditUserDialogData {
     templateUrl: "./edit-user-dialog.component.html",
     styleUrls: ["./edit-user-dialog.component.scss"],
 })
-export class EditUserDialogComponent implements OnInit {
+export class EditUserDialogComponent implements OnInit, OnDestroy {
     private fb = inject(FormBuilder);
     private usersService = inject(UsersService);
     private countryService = inject(CountryService);
@@ -65,6 +66,11 @@ export class EditUserDialogComponent implements OnInit {
     roles: IRole[] = [];
     employmentTitles: IEmploymentTitle[] = [];
     users: IUser[] = [];
+    selectedProfileImage: File | null = null;
+    removeProfileImageRequested = false;
+    currentProfileImageUrl: string | null = null;
+    selectedProfileImagePreviewUrl: string | null = null;
+    profileImageLoading = false;
 
     userForm: FormGroup = this.fb.group({
         name: [this.data.user.name, [Validators.required, Validators.minLength(2)]],
@@ -141,9 +147,17 @@ export class EditUserDialogComponent implements OnInit {
                 this.employmentTitlesLoading = false;
             },
         });
+
+        this.loadCurrentProfileImage();
     }
 
-    onSubmit(): void {
+    ngOnDestroy(): void {
+        if (this.selectedProfileImagePreviewUrl) {
+            URL.revokeObjectURL(this.selectedProfileImagePreviewUrl);
+        }
+    }
+
+    async onSubmit(): Promise<void> {
         if (this.userForm.invalid) {
             this.userForm.markAllAsTouched();
             return;
@@ -179,7 +193,9 @@ export class EditUserDialogComponent implements OnInit {
             }
         });
 
-        if (Object.keys(payload).length === 0) {
+        const hasImageChanges = !!this.selectedProfileImage || this.removeProfileImageRequested;
+
+        if (Object.keys(payload).length === 0 && !hasImageChanges) {
             this.toast.info("No changes to save");
             return;
         }
@@ -187,34 +203,156 @@ export class EditUserDialogComponent implements OnInit {
         this.loading = true;
         this.dialogRef.disableClose = true;
 
-        this.usersService.updateUser(this.data.user._id as string, payload).subscribe({
-            next: res => {
-                if (!res.success) {
-                    this.toast.error(res.message || "Failed to update user");
+        try {
+            const userId = this.data.user._id as string;
+
+            if (Object.keys(payload).length > 0) {
+                const updateResponse = await firstValueFrom(this.usersService.updateUser(userId, payload));
+                if (!updateResponse.success) {
+                    this.toast.error(updateResponse.message || "Failed to update user");
                     this.loading = false;
                     this.dialogRef.disableClose = false;
                     return;
                 }
-                // Return an updated user object merging the form changes
-                const updatedUser: IUser = {
-                    ...this.data.user,
-                    name: currentValues.name,
-                    email: currentValues.email,
-                    isActive: currentValues.isActive,
-                    role: this.roles.find(r => r._id === currentValues.role) ?? this.data.user.role,
-                    company: this.companies.find(c => c._id === currentValues.companyId) ?? this.data.user.company,
-                    country: this.countries.find(c => c._id === currentValues.countryId) ?? this.data.user.country,
-                    employmentTitle:
-                        this.employmentTitles.find(t => t._id === currentValues.employmentTitleId) ??
-                        this.data.user.employmentTitle,
-                    manager: this.users.find(u => u._id === currentValues.managerId) ?? this.data.user.manager,
-                };
-                this.dialogRef.close(updatedUser);
+            }
+
+            const updatedUser: IUser = {
+                ...this.data.user,
+                name: currentValues.name,
+                email: currentValues.email,
+                isActive: currentValues.isActive,
+                role: this.roles.find(r => r._id === currentValues.role) ?? this.data.user.role,
+                company: this.companies.find(c => c._id === currentValues.companyId) ?? this.data.user.company,
+                country: this.countries.find(c => c._id === currentValues.countryId) ?? this.data.user.country,
+                employmentTitle:
+                    this.employmentTitles.find(t => t._id === currentValues.employmentTitleId) ??
+                    this.data.user.employmentTitle,
+                manager: this.users.find(u => u._id === currentValues.managerId) ?? this.data.user.manager,
+            };
+
+            if (this.selectedProfileImage) {
+                const uploadResponse = await firstValueFrom(
+                    this.usersService.uploadProfileImage(userId, this.selectedProfileImage),
+                );
+                if (!uploadResponse.success) {
+                    this.toast.error(uploadResponse.message || "Failed to upload profile image");
+                    this.loading = false;
+                    this.dialogRef.disableClose = false;
+                    return;
+                }
+
+                if (uploadResponse.data?.user?.profileImage) {
+                    updatedUser.profileImage = uploadResponse.data.user.profileImage;
+                }
+
+                this.currentProfileImageUrl = this.selectedProfileImagePreviewUrl;
+                this.selectedProfileImagePreviewUrl = null;
+            }
+
+            if (this.removeProfileImageRequested) {
+                const deleteResponse = await firstValueFrom(this.usersService.deleteProfileImage(userId));
+                if (!deleteResponse.success) {
+                    this.toast.error(deleteResponse.message || "Failed to remove profile image");
+                    this.loading = false;
+                    this.dialogRef.disableClose = false;
+                    return;
+                }
+
+                updatedUser.profileImage = undefined;
+                this.currentProfileImageUrl = null;
+            }
+
+            this.dialogRef.close(updatedUser);
+        } catch (err: unknown) {
+            const error = err as { error?: { error?: string; message?: string } };
+            this.toast.error(error?.error?.error || error?.error?.message || "Failed to update user");
+            this.loading = false;
+            this.dialogRef.disableClose = false;
+        }
+    }
+
+    onProfileImageSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0] || null;
+
+        if (!file) {
+            this.selectedProfileImage = null;
+            this.selectedProfileImagePreviewUrl = null;
+            return;
+        }
+
+        if (!file.type.startsWith("image/")) {
+            this.toast.warning("Please select an image file");
+            input.value = "";
+            this.selectedProfileImage = null;
+            this.selectedProfileImagePreviewUrl = null;
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            this.toast.warning("Image must be smaller than 5MB");
+            input.value = "";
+            this.selectedProfileImage = null;
+            this.selectedProfileImagePreviewUrl = null;
+            return;
+        }
+
+        if (this.selectedProfileImagePreviewUrl) {
+            URL.revokeObjectURL(this.selectedProfileImagePreviewUrl);
+        }
+
+        this.selectedProfileImage = file;
+        this.selectedProfileImagePreviewUrl = URL.createObjectURL(file);
+        this.removeProfileImageRequested = false;
+    }
+
+    clearSelectedProfileImage(fileInput: HTMLInputElement): void {
+        fileInput.value = "";
+        this.selectedProfileImage = null;
+        if (this.selectedProfileImagePreviewUrl) {
+            URL.revokeObjectURL(this.selectedProfileImagePreviewUrl);
+        }
+        this.selectedProfileImagePreviewUrl = null;
+    }
+
+    requestProfileImageRemoval(fileInput: HTMLInputElement): void {
+        fileInput.value = "";
+        this.selectedProfileImage = null;
+        if (this.selectedProfileImagePreviewUrl) {
+            URL.revokeObjectURL(this.selectedProfileImagePreviewUrl);
+        }
+        this.selectedProfileImagePreviewUrl = null;
+        this.removeProfileImageRequested = true;
+    }
+
+    getDisplayedProfileImageUrl(): string | null {
+        if (this.removeProfileImageRequested) {
+            return null;
+        }
+
+        return this.selectedProfileImagePreviewUrl || this.currentProfileImageUrl;
+    }
+
+    private loadCurrentProfileImage(): void {
+        if (!this.data.user._id || !this.data.user.profileImage) {
+            return;
+        }
+
+        this.profileImageLoading = true;
+        this.usersService.getProfileImageUrl(this.data.user._id).subscribe({
+            next: response => {
+                if (!response.success || !response.data?.url) {
+                    this.currentProfileImageUrl = null;
+                    this.profileImageLoading = false;
+                    return;
+                }
+
+                this.currentProfileImageUrl = response.data.url;
+                this.profileImageLoading = false;
             },
-            error: err => {
-                this.toast.error(err.error?.error || "Failed to update user");
-                this.loading = false;
-                this.dialogRef.disableClose = false;
+            error: () => {
+                this.currentProfileImageUrl = null;
+                this.profileImageLoading = false;
             },
         });
     }

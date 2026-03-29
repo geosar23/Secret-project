@@ -36,38 +36,6 @@
                                 </div>
                             }
                         </div>
-
-                        @if (isOwnProfile) {
-                            <div class="profile-image-actions">
-                                <input
-                                    #profileImageInput
-                                    type="file"
-                                    accept="image/*"
-                                    class="hidden-file-input"
-                                    (change)="onProfileImageSelected($event)"
-                                />
-                                <button
-                                    mat-stroked-button
-                                    color="primary"
-                                    type="button"
-                                    (click)="profileImageInput.click()"
-                                    [disabled]="imageLoading()"
-                                >
-                                    <mat-icon>upload</mat-icon>
-                                    Upload Photo
-                                </button>
-                                <button
-                                    mat-button
-                                    color="warn"
-                                    type="button"
-                                    (click)="removeProfileImage()"
-                                    [disabled]="!profileImageUrl || imageLoading()"
-                                >
-                                    <mat-icon>delete</mat-icon>
-                                    Remove
-                                </button>
-                            </div>
-                        }
                     </div>
 
                     <!-- Basic User Information -->

@@ -65,6 +65,8 @@ export class CreateUserDialogComponent implements OnInit {
     roles = signal<IRole[]>([]);
     employmentTitles = signal<IEmploymentTitle[]>([]);
     users = signal<IUser[]>([]);
+    selectedProfileImage = signal<File | null>(null);
+    selectedProfileImagePreviewUrl = signal<string | null>(null);
 
     userForm: FormGroup = this.fb.group({
         name: ["", [Validators.required, Validators.minLength(2)]],
@@ -227,13 +229,78 @@ export class CreateUserDialogComponent implements OnInit {
                         return;
                     }
 
-                    this.dialogRef.close(createdUser);
+                    const selectedImage = this.selectedProfileImage();
+                    if (!selectedImage || !createdUser._id) {
+                        this.dialogRef.close(createdUser);
+                        return;
+                    }
+
+                    this.usersService
+                        .uploadProfileImage(createdUser._id, selectedImage)
+                        .pipe(first())
+                        .subscribe({
+                            next: uploadResponse => {
+                                if (!uploadResponse.success) {
+                                    this.toast.warning(
+                                        uploadResponse.message || "User created but profile image upload failed",
+                                    );
+                                    this.dialogRef.close(createdUser);
+                                    return;
+                                }
+
+                                const uploadedProfileImage = uploadResponse.data?.user?.profileImage;
+                                this.dialogRef.close({
+                                    ...createdUser,
+                                    ...(uploadedProfileImage ? { profileImage: uploadedProfileImage } : {}),
+                                });
+                            },
+                            error: () => {
+                                this.toast.warning("User created but profile image upload failed");
+                                this.dialogRef.close(createdUser);
+                            },
+                        });
                 },
                 error: err => {
                     this.toast.error(err.error?.message || "Failed to create user");
                     this.loading.set(false);
                 },
             });
+    }
+
+    onProfileImageSelected(event: Event): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0] || null;
+
+        if (!file) {
+            this.selectedProfileImage.set(null);
+            this.selectedProfileImagePreviewUrl.set(null);
+            return;
+        }
+
+        if (!file.type.startsWith("image/")) {
+            this.toast.warning("Please select an image file");
+            input.value = "";
+            this.selectedProfileImage.set(null);
+            this.selectedProfileImagePreviewUrl.set(null);
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            this.toast.warning("Image must be smaller than 5MB");
+            input.value = "";
+            this.selectedProfileImage.set(null);
+            this.selectedProfileImagePreviewUrl.set(null);
+            return;
+        }
+
+        this.selectedProfileImage.set(file);
+        this.selectedProfileImagePreviewUrl.set(URL.createObjectURL(file));
+    }
+
+    clearSelectedProfileImage(fileInput: HTMLInputElement): void {
+        fileInput.value = "";
+        this.selectedProfileImage.set(null);
+        this.selectedProfileImagePreviewUrl.set(null);
     }
 
     onCancel(): void {

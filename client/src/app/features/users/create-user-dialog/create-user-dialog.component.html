@@ -92,6 +92,45 @@
                 }
             </mat-select>
         </mat-form-field>
+
+        <div class="image-upload-section">
+            <label class="image-upload-label">Profile Image (optional)</label>
+            <div class="image-preview-wrapper">
+                @if (selectedProfileImagePreviewUrl()) {
+                    <img [src]="selectedProfileImagePreviewUrl()" alt="Selected profile image" class="image-preview" />
+                } @else {
+                    <div class="image-preview-placeholder">No image selected</div>
+                }
+            </div>
+            <input
+                #createProfileImageInput
+                type="file"
+                accept="image/*"
+                class="hidden-file-input"
+                (change)="onProfileImageSelected($event)"
+            />
+            <div class="image-upload-actions">
+                <button
+                    mat-stroked-button
+                    type="button"
+                    (click)="createProfileImageInput.click()"
+                    [disabled]="loading()"
+                >
+                    Choose Image
+                </button>
+                <button
+                    mat-button
+                    type="button"
+                    (click)="clearSelectedProfileImage(createProfileImageInput)"
+                    [disabled]="!selectedProfileImage() || loading()"
+                >
+                    Clear
+                </button>
+            </div>
+            @if (selectedProfileImage()) {
+                <p class="selected-image-name">{{ selectedProfileImage()!.name }}</p>
+            }
+        </div>
     </form>
 </mat-dialog-content>
 

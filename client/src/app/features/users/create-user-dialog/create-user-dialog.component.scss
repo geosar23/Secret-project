@@ -32,3 +32,57 @@ mat-dialog-actions {
         }
     }
 }
+
+.image-upload-section {
+    margin-top: var(--spacing-sm);
+}
+
+.image-upload-label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.image-upload-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.selected-image-name {
+    margin-top: var(--spacing-sm);
+    margin-bottom: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.hidden-file-input {
+    display: none;
+}
+
+.image-preview-wrapper {
+    margin-bottom: var(--spacing-sm);
+}
+
+.image-preview,
+.image-preview-placeholder {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 50%;
+}
+
+.image-preview {
+    object-fit: cover;
+    border: 1px solid var(--color-border-primary);
+}
+
+.image-preview-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    background-color: var(--color-background-secondary);
+    text-align: center;
+    padding: var(--spacing-xs);
+}
