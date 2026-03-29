@@ -66,7 +66,7 @@ export const UserService = {
             repo
                 .find(filter)
                 .populate("role", "role name")
-                .populate("company")
+                .populate("company", "_id name")
                 .populate("country", "_id name")
                 .populate({
                     path: "employmentTitle",
