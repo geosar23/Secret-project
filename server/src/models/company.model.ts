@@ -2,15 +2,6 @@ import { Schema, model } from "mongoose";
 import { ICompany } from "../interfaces/company.interface";
 import { Model, FilterQuery } from "mongoose";
 
-export const CompanyFields = {
-    companyId: {
-        type: Schema.Types.ObjectId,
-        ref: "Companies",
-        required: true,
-        index: true,
-    },
-};
-
 const CompanySchema = new Schema<ICompany>(
     {
         name: { type: String, required: true, unique: true, trim: true },
