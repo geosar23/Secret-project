@@ -16,6 +16,4 @@ const SubDepartmentSchema = new Schema<ISubDepartment>(
     },
 );
 
-SubDepartmentSchema.index({ company: 1, department: 1, name: 1 }, { unique: true });
-
 export const SubDepartmentModel = model<ISubDepartment>("SubDepartments", SubDepartmentSchema);

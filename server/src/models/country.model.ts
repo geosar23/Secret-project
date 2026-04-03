@@ -5,7 +5,7 @@ const CountrySchema = new Schema<ICountry>(
     {
         name: { type: String, required: true, trim: true },
         description: { type: String, trim: true, default: "" },
-        company: { type: Schema.Types.ObjectId, ref: "Companies", required: true, index: true },
+        company: { type: Schema.Types.ObjectId, ref: "Companies", required: true },
         isActive: { type: Boolean, default: true },
     },
     {
@@ -14,7 +14,5 @@ const CountrySchema = new Schema<ICountry>(
         autoIndex: false,
     },
 );
-
-CountrySchema.index({ company: 1, name: 1 }, { unique: true });
 
 export const CountryModel = model<ICountry>("Countries", CountrySchema);
