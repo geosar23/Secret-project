@@ -211,7 +211,14 @@ export class RoleController {
                 return;
             }
 
-            const updated = await RoleService.update(id, updates, user.companyId);
+            const canEditSystemRoles = await PermissionChecker.hasAnyPermission(actor, [
+                PermissionKeys.ROLES_MANAGEMENT_ALL_ALL,
+                PermissionKeys.ROLES_MANAGEMENT_ALL_COMPANY,
+            ]);
+
+            const updated = await RoleService.update(id, updates, user.companyId, {
+                allowSystemRoleModification: canEditSystemRoles,
+            });
 
             if (!updated) {
                 res.json(softError("Role not found"));

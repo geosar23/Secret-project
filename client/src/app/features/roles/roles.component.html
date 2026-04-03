@@ -111,7 +111,7 @@
             <ng-container matColumnDef="actions">
                 <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
                 <mat-cell *matCellDef="let role" data-label="Actions" class="actions">
-                    @if (!isSystemRole(role)) {
+                    @if (!isSystemRole(role) || canEditSystemRoles()) {
                         <button
                             mat-icon-button
                             (click)="openEditDialog(role)"

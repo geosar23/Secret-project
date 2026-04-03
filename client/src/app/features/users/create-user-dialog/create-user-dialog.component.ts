@@ -70,12 +70,15 @@ export class CreateUserDialogComponent implements OnInit {
     selectedProfileImage = signal<File | null>(null);
     selectedProfileImagePreviewUrl = signal<string | null>(null);
 
+    //Permissions
+    canCreateUsersForAllCompanies = signal(this.localUser?.role.role === UserRole.GOD);
+
     userForm: FormGroup = this.fb.group({
         name: ["", [Validators.required, Validators.minLength(2)]],
         email: ["", [Validators.required, Validators.email]],
         password: ["", [Validators.required, Validators.minLength(6)]],
         role: ["", Validators.required],
-        companyId: [{ value: this.localUser?.company?._id ?? "", disabled: true }, Validators.required],
+        companyId: [this.localUser?.company?._id ?? "", Validators.required],
         countryId: ["", Validators.required],
         employmentTitleId: ["", Validators.required],
         managerId: ["", Validators.required],
@@ -88,10 +91,7 @@ export class CreateUserDialogComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        if (this.localUser?.role.role !== UserRole.GOD) {
-            //undisable company field for non-GOD users and set their company as the value
-            this.userForm.get("companyId")?.enable();
-        }
+        console.log("canCreateUsersForAllCompanies", this.canCreateUsersForAllCompanies());
         this.loadInitialData();
     }
 

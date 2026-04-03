@@ -5,6 +5,7 @@ export enum PermissionCategories {
     USERS_MANAGEMENT = "usersManagement",
     COUNTRIES_MANAGEMENT = "countriesManagement",
     USER_PROFILE = "userProfile",
+    ROLES_MANAGEMENT = "rolesManagement",
 }
 
 export const PermissionCategoriesStrings: Record<PermissionCategories, string> = {
@@ -12,6 +13,7 @@ export const PermissionCategoriesStrings: Record<PermissionCategories, string> =
     [PermissionCategories.USERS_MANAGEMENT]: "Users Management",
     [PermissionCategories.COUNTRIES_MANAGEMENT]: "Countries Management",
     [PermissionCategories.USER_PROFILE]: "User Profile",
+    [PermissionCategories.ROLES_MANAGEMENT]: "Roles Management",
 };
 
 export enum PermissionScopes {
@@ -77,6 +79,11 @@ export const PermissionKeys = {
     USER_PROFILE_ALL_MANAGED: `${PermissionCategories.USER_PROFILE}:${PermissionActions.ALL}:${PermissionScopes.MANAGED}`,
     USER_PROFILE_ALL_OWN: `${PermissionCategories.USER_PROFILE}:${PermissionActions.ALL}:${PermissionScopes.OWN}`,
     USER_PROFILE_ALL_SELF: `${PermissionCategories.USER_PROFILE}:${PermissionActions.ALL}:${PermissionScopes.SELF}`,
+
+    ROLES_MANAGEMENT_ALL_ALL: `${PermissionCategories.ROLES_MANAGEMENT}:${PermissionActions.ALL}:${PermissionScopes.ALL}`,
+    ROLES_MANAGEMENT_ALL_COMPANY: `${PermissionCategories.ROLES_MANAGEMENT}:${PermissionActions.ALL}:${PermissionScopes.COMPANY}`,
+    ROLES_MANAGEMENT_VIEW_ALL: `${PermissionCategories.ROLES_MANAGEMENT}:${PermissionActions.READ}:${PermissionScopes.ALL}`,
+    ROLES_MANAGEMENT_VIEW_COMPANY: `${PermissionCategories.ROLES_MANAGEMENT}:${PermissionActions.READ}:${PermissionScopes.COMPANY}`,
 } as const;
 
 export const PERMISSIONS: Record<PermissionKey, IPermissionDefinition> = {
@@ -417,5 +424,41 @@ export const PERMISSIONS: Record<PermissionKey, IPermissionDefinition> = {
         scopes: [PermissionScopes.SELF],
         name: "Manage own profile",
         description: "Full management of own user profile",
+    },
+
+    [PermissionKeys.ROLES_MANAGEMENT_ALL_ALL]: {
+        key: PermissionKeys.ROLES_MANAGEMENT_ALL_ALL,
+        category: PermissionCategories.ROLES_MANAGEMENT,
+        action: PermissionActions.ALL,
+        scopes: [PermissionScopes.ALL],
+        name: "Manage all roles",
+        description: "Full management of all roles across the company",
+    },
+
+    [PermissionKeys.ROLES_MANAGEMENT_ALL_COMPANY]: {
+        key: PermissionKeys.ROLES_MANAGEMENT_ALL_COMPANY,
+        category: PermissionCategories.ROLES_MANAGEMENT,
+        action: PermissionActions.ALL,
+        scopes: [PermissionScopes.COMPANY],
+        name: "Manage company roles",
+        description: "Full management of roles within own company",
+    },
+
+    [PermissionKeys.ROLES_MANAGEMENT_VIEW_ALL]: {
+        key: PermissionKeys.ROLES_MANAGEMENT_VIEW_ALL,
+        category: PermissionCategories.ROLES_MANAGEMENT,
+        action: PermissionActions.READ,
+        scopes: [PermissionScopes.ALL],
+        name: "View all roles",
+        description: "Can view all roles across the company",
+    },
+
+    [PermissionKeys.ROLES_MANAGEMENT_VIEW_COMPANY]: {
+        key: PermissionKeys.ROLES_MANAGEMENT_VIEW_COMPANY,
+        category: PermissionCategories.ROLES_MANAGEMENT,
+        action: PermissionActions.READ,
+        scopes: [PermissionScopes.COMPANY],
+        name: "View company roles",
+        description: "Can view roles within own company",
     },
 };

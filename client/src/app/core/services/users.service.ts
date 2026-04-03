@@ -61,6 +61,10 @@ export class UsersService {
         return this.apiService.delete<JsonResponse<void>>(`users/${userId}/profile-image`);
     }
 
+    getEffectivePermissions(): Observable<JsonResponse<{ permissions: string[] }>> {
+        return this.apiService.get<JsonResponse<{ permissions: string[] }>>("users/effective-permissions");
+    }
+
     // deleteUser(userId: string): Observable<{ message: string }> {
     //     return this.apiService.delete<{ message: string }>(`users/${userId}`);
     // }

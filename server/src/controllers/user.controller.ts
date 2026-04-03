@@ -9,6 +9,7 @@ import { DefaultUserRoles } from "../enums/user-role.enum";
 import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";
 import { isValidPermissionKey } from "../utils/permission-checker";
 import { StorageService } from "../services/storage.service";
+import { getEffectivePermissions } from "../utils/permission-checker";
 
 type UserFieldMap = FieldMap<IUser>;
 
@@ -255,6 +256,25 @@ export class UserController {
             res.json(success({}));
         } catch (error: any) {
             console.log("Error in UserController.changePassword:", error);
+            res.json(softError(error.message, error));
+        }
+    }
+
+    static async getEffectivePermissions(req: AuthenticatedRequest, res: Response): Promise<void> {
+        try {
+            const requestingUser = req.decoded as tokenPayload;
+            const userId = requestingUser.id;
+
+            const user = await UserService.getById(userId, requestingUser.companyId, ["_id"]);
+            if (!user) {
+                res.json(softError("User not found"));
+                return;
+            }
+
+            const effectivePermissions = [...getEffectivePermissions(user as IUser)];
+            res.json(success({ permissions: effectivePermissions }));
+        } catch (error: any) {
+            console.log("Error in UserController.getEffectivePermissions:", error);
             res.json(softError(error.message, error));
         }
     }
