@@ -22,6 +22,7 @@ import { RoleDialogComponent, RoleDialogData } from "./role-dialog/role-dialog.c
 import { AuthService } from "../../core/services/auth.service";
 import { IUser } from "../../core/interfaces/user.interface";
 import { PermissionKeys } from "../../core/enums/permissions.enum";
+import { hasPermission } from "../../core/utils/permission.utils";
 
 @Component({
     selector: "app-roles",
@@ -79,7 +80,7 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
                     }
                     const effectivePermissions = res.data.permissions;
                     this.canEditSystemRoles.set(
-                        this.hasPermission(effectivePermissions, PermissionKeys.ROLES_MANAGEMENT_ALL_ALL),
+                        hasPermission(effectivePermissions, PermissionKeys.ROLES_MANAGEMENT_ALL_ALL),
                     );
                     console.log("canEditSystemRoles:", this.canEditSystemRoles());
                 },
@@ -162,7 +163,7 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     openEditDialog(role: IRole): void {
-        if (this.isSystemRole(role) && !this.canEditSystemRoles) {
+        if (this.isSystemRole(role) && !this.canEditSystemRoles()) {
             this.toast.error("System roles cannot be edited");
             return;
         }
@@ -186,31 +187,6 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
 
     isSystemRole(role: IRole): boolean {
         return Boolean(role.isSystemRole);
-    }
-
-    private hasPermission(effectivePermissions: string[], required: string): boolean {
-        if (!Array.isArray(effectivePermissions) || !required) return false;
-
-        const effectiveSet = new Set(effectivePermissions);
-        const parts = required.split(":");
-        if (parts.length !== 3) {
-            return effectiveSet.has(required);
-        }
-
-        const [category, action, scope] = parts;
-        const wildcard = "*";
-        const candidates = [
-            `${wildcard}:${wildcard}:${wildcard}`,
-            `${category}:${wildcard}:${wildcard}`,
-            `${wildcard}:${action}:${wildcard}`,
-            `${wildcard}:${wildcard}:${scope}`,
-            `${category}:${action}:${wildcard}`,
-            `${category}:${wildcard}:${scope}`,
-            `${wildcard}:${action}:${scope}`,
-            required,
-        ];
-
-        return candidates.some(candidate => effectiveSet.has(candidate));
     }
 
     private applyFilters(): void {

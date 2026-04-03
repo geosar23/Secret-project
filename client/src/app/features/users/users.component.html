@@ -40,6 +40,17 @@
                     }
                 </mat-select>
             </mat-form-field>
+            @if (canFilterAllCompanies) {
+                <mat-form-field appearance="outline" class="filter-select">
+                    <mat-label>Company</mat-label>
+                    <mat-select [formControl]="companyControl">
+                        <mat-option value="">All Companies</mat-option>
+                        @for (company of companies; track company._id) {
+                            <mat-option [value]="company._id">{{ company.name }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+            }
             <mat-form-field appearance="outline" class="filter-select">
                 <mat-label>Department</mat-label>
                 <mat-select [formControl]="departmentControl">

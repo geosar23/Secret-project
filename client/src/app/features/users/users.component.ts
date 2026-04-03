@@ -27,6 +27,10 @@ import { DepartmentService } from "../../core/services/department.service";
 import { IRole } from "../../core/interfaces/role.interface";
 import { ICountry } from "../../core/interfaces/country.interface";
 import { IDepartment } from "../../core/interfaces/department.interface";
+import { ICompany } from "../../core/interfaces/company.interface";
+import { CompanyService } from "../../core/services/company.service";
+import { PermissionKeys } from "../../core/enums/permissions.enum";
+import { hasPermission } from "../../core/utils/permission.utils";
 
 interface IUserTableData extends IUser {
     roleColor?: string;
@@ -66,12 +70,15 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     loading = false;
 
     roles: IRole[] = [];
+    companies: ICompany[] = [];
     departments: IDepartment[] = [];
     countries: ICountry[] = [];
     roleControl = new FormControl<string>("");
+    companyControl = new FormControl<string>("");
     departmentControl = new FormControl<string>("");
     countryControl = new FormControl<string>("");
     isActiveControl = new FormControl<string>("");
+    canFilterAllCompanies = false;
 
     // Sorting options
     sortOptions = [
@@ -101,6 +108,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
         private dialog: MatDialog,
         private router: Router,
         private roleService: RoleService,
+        private companyService: CompanyService,
         private countryService: CountryService,
         private departmentService: DepartmentService,
     ) {}
@@ -108,6 +116,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     ngOnInit() {
         this.loadUsers();
         this.loadFilterOptions();
+        this.loadPermissionDrivenFilters();
 
         // Listen to search input with debounce
         this.searchControl.valueChanges
@@ -121,12 +130,15 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.loadUsers();
             });
 
-        const filterControls: { control: FormControl<string | null>; key: "roleId" | "departmentId" | "countryId" }[] =
-            [
-                { control: this.roleControl, key: "roleId" },
-                { control: this.departmentControl, key: "departmentId" },
-                { control: this.countryControl, key: "countryId" },
-            ];
+        const filterControls: {
+            control: FormControl<string | null>;
+            key: "roleId" | "companyId" | "departmentId" | "countryId";
+        }[] = [
+            { control: this.roleControl, key: "roleId" },
+            { control: this.companyControl, key: "companyId" },
+            { control: this.departmentControl, key: "departmentId" },
+            { control: this.countryControl, key: "countryId" },
+        ];
 
         for (const { control, key } of filterControls) {
             control.valueChanges.pipe(takeUntil(this.destroy$), distinctUntilChanged()).subscribe(value => {
@@ -187,6 +199,47 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             .subscribe({
                 next: res => {
                     if (res.success && res.data) this.departments = res.data;
+                },
+            });
+    }
+
+    private loadPermissionDrivenFilters() {
+        this.usersService
+            .getEffectivePermissions()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: res => {
+                    if (!res.success || !res.data) {
+                        return;
+                    }
+
+                    const effectivePermissions = res.data.permissions ?? [];
+                    this.canFilterAllCompanies = hasPermission(
+                        effectivePermissions,
+                        PermissionKeys.USERS_MANAGEMENT_READ_ALL,
+                    );
+
+                    if (this.canFilterAllCompanies) {
+                        this.loadCompanies();
+                        return;
+                    }
+
+                    // Ensure no stale company filter remains when the user lacks access.
+                    this.companyControl.setValue("", { emitEvent: false });
+                    this.queryParams.companyId = undefined;
+                },
+            });
+    }
+
+    private loadCompanies() {
+        this.companyService
+            .getCompanies()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+                next: res => {
+                    if (res.success && res.data) {
+                        this.companies = res.data;
+                    }
                 },
             });
     }
