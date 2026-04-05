@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # ── Server: lint + build ─────────────────────────────────────────
+  server:
+    name: Server (lint + build)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.14.0'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint server
+        run: npx eslint "server/src/**/*.ts"
+
+      - name: Build server
+        run: npm run build -w server
+
+  # ── Client: lint + test + build ──────────────────────────────────
+  client:
+    name: Client (lint + test + build)
+    runs-on: ubuntu-latest
+
+    env:
+      CHROME_BIN: google-chrome-stable
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.14.0'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint client
+        run: npx eslint "client/src/**/*.ts"
+
+      - name: Test client (headless)
+        run: npm test -w client -- --watch=false --browsers=ChromeHeadless
+
+      - name: Build client
+        run: npm run build -w client
