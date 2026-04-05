@@ -34,12 +34,13 @@ Status legend:
 - Priority: P0
 - Owner: You
 - Estimate: 0.5 day
-- Status: [ ]
+- Status: [x]
 - Goal: startup fails with clear messages if env is invalid.
 - Acceptance criteria:
-    - [ ] Required vars validated at boot (`PORT`, `MONGO_URI`, `JWT_SECRET`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET`).
-    - [ ] Invalid values produce actionable errors.
-    - [ ] App does not start with bad config.
+    - [x] Required vars validated at boot (`MONGO_URI`, `JWT_SECRET`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET`).
+    - [x] Invalid values produce actionable errors (`SUPABASE_URL` HTTPS check, `PORT` numeric check).
+    - [x] App does not start with bad config (`process.exit(1)`).
+    - [x] `auth.service.ts` hardcoded JWT fallback removed.
 
 ### P0-03 Backend Integration Tests: Auth + RBAC
 

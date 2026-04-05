@@ -1,9 +1,10 @@
 import { FilterQuery } from "mongoose";
 import { IRole } from "../interfaces/role.interface";
 import { RoleModel } from "../models/role.model";
+import { config } from "../config/env";
 
 const withRoleScope = (companyId: string, filter: FilterQuery<IRole> = {}) => {
-    if (companyId === process.env.OG_COMPANY_ID) {
+    if (companyId === config.OG_COMPANY_ID) {
         return filter;
     }
 
@@ -27,7 +28,7 @@ export function roleRepository(companyId: string) {
         },
 
         create(data: Partial<IRole>) {
-            if (companyId !== process.env.OG_COMPANY_ID && !data.company) {
+            if (companyId !== config.OG_COMPANY_ID && !data.company) {
                 return RoleModel.create({ ...data, company: companyId });
             }
             return RoleModel.create(data);

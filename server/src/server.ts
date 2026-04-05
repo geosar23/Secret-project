@@ -1,8 +1,10 @@
-import { config } from "./config/env";
+import { config, validateEnv } from "./config/env";
 import app from "./app";
 import { connectDB } from "./config/databases";
 
-const PORT = config.PORT || 3000;
+validateEnv();
+
+const PORT = config.PORT;
 
 // Connect to database first, then start server
 connectDB().then(() => {

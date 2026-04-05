@@ -2,9 +2,10 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { UserService } from "./user.service";
 import { LoginDto, AuthResponse } from "../interfaces/auth.interface";
+import { config } from "../config/env";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
+const JWT_SECRET = config.JWT_SECRET;
+const JWT_EXPIRES_IN = config.JWT_EXPIRES_IN;
 
 export const AuthService = {
     async login(credentials: LoginDto): Promise<AuthResponse> {

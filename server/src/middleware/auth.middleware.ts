@@ -2,6 +2,7 @@ import { Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { tokenPayload } from "../interfaces/auth.interface";
 import { AuthenticatedRequest } from "../interfaces/auth.interface";
+import { config } from "../config/env";
 
 export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     const token = req.headers.authorization?.split(" ")[1];
@@ -11,7 +12,7 @@ export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: N
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as tokenPayload;
+        const decoded = jwt.verify(token, config.JWT_SECRET) as tokenPayload;
 
         if (!decoded?.companyId) {
             return res.status(403).json({ message: "Invalid token" });

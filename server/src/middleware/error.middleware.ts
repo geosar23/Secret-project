@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from "express";
+import { config } from "../config/env";
 
 type ErrorWithStatus = {
     statusCode?: number;
@@ -10,7 +11,7 @@ const errorMiddleware: ErrorRequestHandler = (err: unknown, req: Request, res: R
         return next(err);
     }
 
-    if (process.env.NODE_ENV !== "production") {
+    if (config.NODE_ENV !== "production") {
         console.error("💥 Error:", err);
     }
 
