@@ -47,13 +47,14 @@ Status legend:
 - Priority: P0
 - Owner: You
 - Estimate: 1-1.5 days
-- Status: [ ]
+- Status: [x]
 - Goal: protect critical access control paths.
 - Acceptance criteria:
-    - [ ] Login and `/me` tested.
-    - [ ] Protected routes reject unauthorized/forbidden access.
-    - [ ] Permission grant/revoke endpoints tested.
-    - [ ] Happy path and failure path coverage.
+    - [x] Login and `/me` tested (valid creds, wrong password, unknown email, missing fields, valid token, no token, bad token).
+    - [x] Protected routes reject unauthorized/forbidden access (401 no token, 403 invalid token).
+    - [x] Permission grant/revoke endpoints tested (401 no auth, 403 insufficient perms, 200 with ALL permission).
+    - [x] Happy path and failure path coverage — 21 tests, all passing.
+    - [x] Test infra: Jest + ts-jest + Supertest + mongodb-memory-server (`server/src/__tests__/`).
 
 ### P0-04 Company Scope Isolation Verification
 
