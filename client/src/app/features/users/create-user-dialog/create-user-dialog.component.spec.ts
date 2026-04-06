@@ -9,7 +9,6 @@ import { EmploymentTitleService } from "../../../core/services/employment-title.
 import { RoleService } from "../../../core/services/role.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { AuthService } from "../../../core/services/auth.service";
-import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
 import { UserRole } from "../../../core/enums/user-role.enum";
 
 const mockLocalUser = {
@@ -45,7 +44,6 @@ describe("CreateUserDialogComponent", () => {
         await TestBed.configureTestingModule({
             imports: [CreateUserDialogComponent],
             providers: [
-                provideAnimationsAsync(),
                 { provide: UsersService, useValue: usersServiceSpy },
                 { provide: CompanyService, useValue: companyServiceSpy },
                 { provide: CountryService, useValue: countryServiceSpy },

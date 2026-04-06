@@ -4,7 +4,6 @@ import { of, throwError } from "rxjs";
 import { LoginComponent } from "./login.component";
 import { AuthService } from "../../../core/services/auth.service";
 import { ToastService } from "../../../core/services/toast.service";
-import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
 
 describe("LoginComponent", () => {
     let fixture: ComponentFixture<LoginComponent>;
@@ -25,7 +24,6 @@ describe("LoginComponent", () => {
             imports: [LoginComponent],
             providers: [
                 provideRouter([]),
-                provideAnimationsAsync(),
                 { provide: AuthService, useValue: authServiceSpy },
                 { provide: Router, useValue: routerSpy },
                 { provide: ToastService, useValue: toastSpy },

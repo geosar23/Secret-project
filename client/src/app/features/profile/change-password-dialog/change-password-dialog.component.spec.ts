@@ -4,7 +4,6 @@ import { of, throwError } from "rxjs";
 import { ChangePasswordDialogComponent } from "./change-password-dialog.component";
 import { UsersService } from "../../../core/services/users.service";
 import { ToastService } from "../../../core/services/toast.service";
-import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
 
 describe("ChangePasswordDialogComponent", () => {
     let fixture: ComponentFixture<ChangePasswordDialogComponent>;
@@ -21,7 +20,6 @@ describe("ChangePasswordDialogComponent", () => {
         await TestBed.configureTestingModule({
             imports: [ChangePasswordDialogComponent],
             providers: [
-                provideAnimationsAsync(),
                 { provide: UsersService, useValue: usersServiceSpy },
                 { provide: MatDialogRef, useValue: dialogRefSpy },
                 { provide: ToastService, useValue: toastSpy },
