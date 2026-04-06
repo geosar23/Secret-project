@@ -26,6 +26,9 @@ jobs:
       - name: Lint server
         run: npx eslint "server/src/**/*.ts"
 
+      - name: Test server
+        run: npm test -w server
+
       - name: Build server
         run: npm run build -w server
 
