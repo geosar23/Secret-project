@@ -14,7 +14,7 @@ Status legend:
 - [~] In progress
 - [x] Done
 
-## Week 1 (Foundation + Risk Reduction)
+## (Foundation + Risk Reduction)
 
 ### P0-01 CI Pipeline for Client + Server
 
@@ -69,22 +69,7 @@ Status legend:
     - [x] God user (OG_COMPANY_ID) correctly bypasses the scope filter and sees cross-company data.
     - [x] Roles are verified to be company-scoped in the test suite.
 
-### P0-05 Profile Image Flow Reliability
-
-- Priority: P0
-- Owner: You
-- Estimate: 0.5-1 day
-- Status: [ ]
-- Goal: make upload/sign/delete robust.
-- Acceptance criteria:
-    - [ ] Upload success case tested.
-    - [ ] Signed URL retrieval tested.
-    - [ ] Delete flow tested.
-    - [ ] Invalid type/size and missing image cases handled.
-
-## Week 2 (Quality + Release Readiness)
-
-### P1-06 Frontend Critical Flow Tests
+### P0-05 Frontend Critical Flow Tests
 
 - Priority: P1
 - Owner: You
@@ -144,7 +129,7 @@ Status legend:
     - [ ] Rollback procedure documented and tested once.
     - [ ] Smoke test checklist included.
 
-## Optional Stretch (If Time Allows)
+## Optional Stretch
 
 ### P2-11 Monitoring Baseline
 
@@ -164,19 +149,3 @@ Status legend:
     - [ ] Final bug bash completed.
     - [ ] High-severity defects resolved or deferred with rationale.
     - [ ] Release candidate tag created.
-
-## Definition of Done (Sprint)
-
-- [ ] All P0 tickets complete.
-- [ ] At least 80% of P1 tickets complete.
-- [ ] CI passing on default branch.
-- [ ] No open high-severity auth or data isolation issues.
-- [ ] Deployment runbook validated end-to-end once.
-
-## Daily Checklist (Execution Discipline)
-
-- [ ] Re-prioritize today’s top 1-2 items.
-- [ ] Update ticket statuses in this file.
-- [ ] Run lint + tests for touched areas.
-- [ ] Write/update tests for each bug fixed.
-- [ ] Log blockers immediately.
