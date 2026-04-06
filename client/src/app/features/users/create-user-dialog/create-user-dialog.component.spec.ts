@@ -28,7 +28,7 @@ describe("CreateUserDialogComponent", () => {
         const companyServiceSpy = jasmine.createSpyObj("CompanyService", ["getCompanies"]);
         const countryServiceSpy = jasmine.createSpyObj("CountryService", ["getCountries"]);
         const employmentTitleServiceSpy = jasmine.createSpyObj("EmploymentTitleService", ["getEmploymentTitles"]);
-        const roleServiceSpy = jasmine.createSpyObj("RoleService", ["getRoles"]);
+        const roleServiceSpy = jasmine.createSpyObj("RoleService", ["getAllRoles"]);
         const dialogRefSpy = jasmine.createSpyObj("MatDialogRef", ["close"]);
         const toastSpy = jasmine.createSpyObj("ToastService", ["error", "success", "warning"]);
         const authServiceSpy = jasmine.createSpyObj("AuthService", ["getLocalUser", "isAuthenticated"]);
@@ -37,7 +37,7 @@ describe("CreateUserDialogComponent", () => {
         companyServiceSpy.getCompanies.and.returnValue(of({ success: true, data: [] }));
         countryServiceSpy.getCountries.and.returnValue(of({ success: true, data: [] }));
         employmentTitleServiceSpy.getEmploymentTitles.and.returnValue(of({ success: true, data: [] }));
-        roleServiceSpy.getRoles.and.returnValue(of({ success: true, data: [] }));
+        roleServiceSpy.getAllRoles.and.returnValue(of({ success: true, data: [] }));
         usersServiceSpy.getUsers.and.returnValue(of({ success: true, data: [] }));
         authServiceSpy.getLocalUser.and.returnValue(mockLocalUser);
 
