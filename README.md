@@ -129,6 +129,8 @@ npm run build    # Angular → dist/
 - `npm run dev:watch` — Start with auto-reload via nodemon
 - `npm run build` — Compile TypeScript
 - `npm start` — Run compiled JavaScript
+- `npm test` — Run unit/integration tests with Jest
+- `npm run test:coverage` — Run tests with coverage report
 - `npm run format` — Format code
 - `npm run lint` — Lint TypeScript
 
@@ -206,6 +208,24 @@ The backend provides REST API endpoints under `/api`:
 - Try clearing npm cache: `npm cache clean --force`
 - Delete `node_modules` and `package-lock.json`, then reinstall
 - Ensure Node.js version matches prerequisites
+
+## Testing
+
+The backend uses [Jest](https://jestjs.io/) with [ts-jest](https://kulshekhar.github.io/ts-jest/), [Supertest](https://github.com/ladjs/supertest), and [mongodb-memory-server](https://github.com/nodkz/mongodb-memory-server) for in-memory integration tests — no external database required.
+
+Tests live under `server/src/__tests__/` and cover:
+
+- **Auth** (`auth.test.ts`): Login, `/me`, token validation, missing/invalid credentials.
+- **RBAC** (`rbac.test.ts`): Permission grant/revoke endpoints, 401/403 enforcement.
+- **Company isolation** (`company-isolation.test.ts`): Scoped data access per company.
+
+Run from the `server/` directory (or via the workspace):
+
+```bash
+# From server/
+npm test                 # Run all tests
+npm run test:coverage    # Run with coverage report
+```
 
 ## Contributing
 
