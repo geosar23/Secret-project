@@ -43,7 +43,9 @@ describe("EditUserDialogComponent", () => {
         const roleServiceSpy = jasmine.createSpyObj("RoleService", ["getAllRoles"]);
         const dialogRefSpy = jasmine.createSpyObj("MatDialogRef", ["close"]);
         const toastSpy = jasmine.createSpyObj("ToastService", ["error", "success", "warning", "info"]);
-        const authServiceSpy = jasmine.createSpyObj("AuthService", ["getLocalUser", "isAuthenticated"]);
+        const authServiceSpy = jasmine.createSpyObj("AuthService", ["getLocalUser", "isAuthenticated"], {
+            localUser$: of(null),
+        });
 
         usersServiceSpy.getUsers.and.returnValue(of({ success: true, data: { users: [], total: 0 } }) as never);
         countryServiceSpy.getCountries.and.returnValue(of({ success: true, data: [] }));

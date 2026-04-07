@@ -31,7 +31,9 @@ describe("CreateUserDialogComponent", () => {
         const roleServiceSpy = jasmine.createSpyObj("RoleService", ["getAllRoles"]);
         const dialogRefSpy = jasmine.createSpyObj("MatDialogRef", ["close"]);
         const toastSpy = jasmine.createSpyObj("ToastService", ["error", "success", "warning"]);
-        const authServiceSpy = jasmine.createSpyObj("AuthService", ["getLocalUser", "isAuthenticated"]);
+        const authServiceSpy = jasmine.createSpyObj("AuthService", ["getLocalUser", "isAuthenticated"], {
+            localUser$: of(null),
+        });
 
         // Return empty arrays for all list calls so ngOnInit doesn't throw
         companyServiceSpy.getCompanies.and.returnValue(of({ success: true, data: [] }));
