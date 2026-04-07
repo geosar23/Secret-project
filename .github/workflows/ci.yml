@@ -9,7 +9,7 @@ on:
 jobs:
   # ── Server: lint + build ─────────────────────────────────────────
   server:
-    name: Server (lint + build)
+    name: Server (lint + test + build)
     runs-on: ubuntu-latest
 
     steps:
