@@ -1,5 +1,6 @@
 import { Routes } from "@angular/router";
 import { authGuard } from "./core/guards/auth.guard";
+import { crossCompanyGuard } from "./core/guards/cross-company.guard";
 import { profileRouteContextResolver } from "./features/profile/profile-route-context.resolver";
 
 export const routes: Routes = [
@@ -24,6 +25,7 @@ export const routes: Routes = [
             },
             {
                 path: "companies",
+                canActivate: [crossCompanyGuard],
                 loadComponent: () => import("./features/companies/companies.component").then(m => m.CompaniesComponent),
             },
             {
@@ -79,5 +81,8 @@ export const routes: Routes = [
             },
         ],
     },
-    { path: "**", redirectTo: "/dashboard" },
+    {
+        path: "**",
+        loadComponent: () => import("./features/notFound/notFound.component").then(m => m.NotFoundComponent),
+    },
 ];
