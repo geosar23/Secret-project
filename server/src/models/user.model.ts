@@ -1,6 +1,38 @@
 import { Schema, model, UpdateQuery } from "mongoose";
 import { IUser } from "../interfaces/user.interface";
 import bcrypt from "bcryptjs";
+import { Gender, MaritalStatus, EmploymentType, DegreeLevel } from "../enums/profile.enum";
+
+const AddressSchema = new Schema(
+    {
+        line1: { type: String, trim: true },
+        line2: { type: String, trim: true },
+        city: { type: String, trim: true },
+        state: { type: String, trim: true },
+        postalCode: { type: String, trim: true },
+        country: { type: String, trim: true },
+    },
+    { _id: false },
+);
+
+const EmergencyContactSchema = new Schema(
+    {
+        name: { type: String, trim: true },
+        relationship: { type: String, trim: true },
+        phone: { type: String, trim: true },
+    },
+    { _id: false },
+);
+
+const EducationEntrySchema = new Schema(
+    {
+        institution: { type: String, trim: true },
+        degreeLevel: { type: String, enum: Object.values(DegreeLevel), trim: true },
+        degreeTitle: { type: String, trim: true },
+        yearAchieved: { type: Number },
+    },
+    { _id: false },
+);
 
 const UserSchema = new Schema<IUser>(
     {
@@ -14,6 +46,41 @@ const UserSchema = new Schema<IUser>(
         country: { type: Schema.Types.ObjectId, ref: "Countries" },
         employmentTitle: { type: Schema.Types.ObjectId, ref: "EmploymentTitles" },
         manager: { type: Schema.Types.ObjectId, ref: "Users" },
+        level: { type: Schema.Types.ObjectId, ref: "Levels" },
+        office: { type: Schema.Types.ObjectId, ref: "Offices" },
+        hrRepresentative: { type: Schema.Types.ObjectId, ref: "Users" },
+
+        // Identity
+        legalName: { type: String, trim: true },
+        firstName: { type: String, trim: true },
+        lastName: { type: String, trim: true },
+        personalEmail: { type: String, trim: true, match: /.+@.+\..+/ },
+        gender: { type: String, enum: Object.values(Gender), trim: true },
+        birthday: { type: Date },
+        maritalStatus: { type: String, enum: Object.values(MaritalStatus), trim: true },
+        nationalities: [{ type: String, trim: true }],
+        religion: { type: String, trim: true },
+
+        // Contact
+        workPhone: { type: String, trim: true },
+        personalPhone: { type: String, trim: true },
+        additionalPhones: [{ type: String, trim: true }],
+        currentAddress: { type: AddressSchema },
+        homeCountryAddress: { type: AddressSchema },
+        homeCountryPhone: { type: String, trim: true },
+        emergencyContact: { type: EmergencyContactSchema },
+
+        // Employment
+        employmentDate: { type: Date },
+        employmentType: { type: String, enum: Object.values(EmploymentType), trim: true },
+        payrollId: { type: String, trim: true },
+        isOutsourced: { type: Boolean, default: false },
+
+        // Education
+        education: [EducationEntrySchema],
+
+        // Compensation (AES-256-GCM encrypted)
+        salary: { type: String },
 
         // Custom permissions
         grantedPermissions: [{ type: String, trim: true }],

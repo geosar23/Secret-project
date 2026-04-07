@@ -103,10 +103,18 @@ Status legend:
 - Priority: P0
 - Owner: You
 - Estimate: 1-1.5 days
-- Status: [ ]
+- Status: [~]
 - Goal: ensure employee records are complete for HR operations and reporting.
 - Acceptance criteria:
-    - [ ] User profile and admin user form include:education[{university/institute, degree level, degree title, year of achieve}] work phone number, personal phone number, additionalPhoneNumbers, personal information, birthday/date of birth, gender, and salary, level(pointer to Levels), employmentDate.
+    - [~] **Phase 1 — Core profile fields.** User model extended with:
+        - **Identity**: `legalName`, `firstName`, `lastName`, `personalEmail`, `gender` (enum), `birthday` (Date), `maritalStatus` (enum), `nationalities` (string[]), `religion`
+        - **Contact**: `workPhone`, `personalPhone`, `additionalPhones` (string[]), `currentAddress`, `homeCountryAddress`, `homeCountryPhone`, `emergencyContact` (name, relationship, phone)
+        - **Employment**: `employmentDate` (Date), `employmentType` (enum: full_time | part_time | contractor | intern), `payrollId`, `office` (→ Offices), `isOutsourced` (boolean), `hrRepresentative` (→ Users), `level` (→ Levels)
+        - **Education**: `education[{ institution, degreeLevel (enum), degreeTitle, yearAchieved }]`
+        - **Compensation**: `salary` (AES-256-GCM encrypted string; excluded from list endpoints, decrypted on single-user fetch)
+        - New reference collections: `Levels` and `Offices` (company-scoped, full CRUD at `/api/levels` and `/api/offices`)
+    - [ ] **Phase 2 — Documents.** `UserDocuments` collection for passport / national ID / visa: type, documentNumber, expiryDate, issuingCountry, attachmentPath (Supabase Storage).
+    - [ ] **UI grouping.** Admin user form and employee profile page reorganized into labelled sections: Identity, Contact, Employment, Education.
     - [ ] Field-level validation is implemented (format/range/required rules where applicable).
     - [ ] Existing users can be migrated/updated safely without breaking old records.
     - [ ] Sensitive fields (especially salary) follow role-based visibility/edit permissions.

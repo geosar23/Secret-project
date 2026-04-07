@@ -2,7 +2,7 @@
 import { NextFunction, Response } from "express";
 import { UserService } from "../services/user.service";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
-import { IUser, IUsersQueryParams } from "../interfaces/user.interface";
+import { IAddress, IEducationEntry, IEmergencyContact, IUser, IUsersQueryParams } from "../interfaces/user.interface";
 import { success, softError } from "../util/response.util";
 import { buildUserSearchAccessQuery, canManageUser } from "../policies/user.policy";
 import { DefaultUserRoles } from "../enums/user-role.enum";
@@ -10,8 +10,105 @@ import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";
 import { isValidPermissionKey } from "../utils/permission-checker";
 import { StorageService } from "../services/storage.service";
 import { getEffectivePermissions } from "../utils/permission-checker";
+import { encryptString } from "../utils/encryption.util";
 
 type UserFieldMap = FieldMap<IUser>;
+
+function parseDateField(value: unknown): Date | null | undefined {
+    if (value === null || value === "") return null;
+    if (typeof value !== "string" && typeof value !== "number") return undefined;
+    const d = new Date(value as string | number);
+    return isNaN(d.getTime()) ? undefined : d;
+}
+
+function sanitizeAddress(raw: Record<string, unknown>): IAddress {
+    const result: IAddress = {};
+    if (typeof raw.line1 === "string") result.line1 = raw.line1.trim();
+    if (typeof raw.line2 === "string") result.line2 = raw.line2.trim();
+    if (typeof raw.city === "string") result.city = raw.city.trim();
+    if (typeof raw.state === "string") result.state = raw.state.trim();
+    if (typeof raw.postalCode === "string") result.postalCode = raw.postalCode.trim();
+    if (typeof raw.country === "string") result.country = raw.country.trim();
+    return result;
+}
+
+function sanitizeEmergencyContact(raw: Record<string, unknown>): IEmergencyContact {
+    const result: IEmergencyContact = {};
+    if (typeof raw.name === "string") result.name = raw.name.trim();
+    if (typeof raw.relationship === "string") result.relationship = raw.relationship.trim();
+    if (typeof raw.phone === "string") result.phone = raw.phone.trim();
+    return result;
+}
+
+function sanitizeEducation(raw: unknown[]): IEducationEntry[] {
+    return raw
+        .filter(e => typeof e === "object" && e !== null)
+        .map(e => {
+            const entry = e as Record<string, unknown>;
+            const result: IEducationEntry = {};
+            if (typeof entry.institution === "string") result.institution = entry.institution.trim();
+            if (typeof entry.degreeLevel === "string") result.degreeLevel = entry.degreeLevel.trim();
+            if (typeof entry.degreeTitle === "string") result.degreeTitle = entry.degreeTitle.trim();
+            if (typeof entry.yearAchieved === "number") result.yearAchieved = entry.yearAchieved;
+            return result;
+        });
+}
+
+function applyComplexUserFields(target: Partial<IUser>, body: Record<string, unknown>): void {
+    // Dates
+    if ("birthday" in body) {
+        const d = parseDateField(body.birthday);
+        if (d !== undefined) (target as Record<string, unknown>).birthday = d;
+    }
+    if ("employmentDate" in body) {
+        const d = parseDateField(body.employmentDate);
+        if (d !== undefined) (target as Record<string, unknown>).employmentDate = d;
+    }
+
+    // String arrays
+    if (Array.isArray(body.nationalities)) {
+        target.nationalities = (body.nationalities as unknown[])
+            .filter(n => typeof n === "string" && (n as string).trim())
+            .map(n => (n as string).trim());
+    }
+    if (Array.isArray(body.additionalPhones)) {
+        target.additionalPhones = (body.additionalPhones as unknown[])
+            .filter(n => typeof n === "string" && (n as string).trim())
+            .map(n => (n as string).trim());
+    }
+
+    // Embedded objects
+    if (body.currentAddress !== undefined) {
+        (target as Record<string, unknown>).currentAddress =
+            body.currentAddress && typeof body.currentAddress === "object"
+                ? sanitizeAddress(body.currentAddress as Record<string, unknown>)
+                : null;
+    }
+    if (body.homeCountryAddress !== undefined) {
+        (target as Record<string, unknown>).homeCountryAddress =
+            body.homeCountryAddress && typeof body.homeCountryAddress === "object"
+                ? sanitizeAddress(body.homeCountryAddress as Record<string, unknown>)
+                : null;
+    }
+    if (body.emergencyContact !== undefined) {
+        (target as Record<string, unknown>).emergencyContact =
+            body.emergencyContact && typeof body.emergencyContact === "object"
+                ? sanitizeEmergencyContact(body.emergencyContact as Record<string, unknown>)
+                : null;
+    }
+
+    // Education
+    if (Array.isArray(body.education)) {
+        target.education = sanitizeEducation(body.education);
+    }
+
+    // Salary — encrypt before storing
+    if (typeof body.salary === "string" && body.salary.trim()) {
+        target.salary = encryptString(body.salary.trim());
+    } else if (body.salary === null || body.salary === "") {
+        (target as Record<string, unknown>).salary = null;
+    }
+}
 
 export class UserController {
     static async getUsers(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
@@ -106,9 +203,44 @@ export class UserController {
                     pointerClass: "Users",
                     allowUnset: true,
                 },
+                levelId: {
+                    type: "string",
+                    targetField: "level",
+                    isPointer: true,
+                    pointerClass: "Levels",
+                    allowUnset: true,
+                },
+                officeId: {
+                    type: "string",
+                    targetField: "office",
+                    isPointer: true,
+                    pointerClass: "Offices",
+                    allowUnset: true,
+                },
+                hrRepresentativeId: {
+                    type: "string",
+                    targetField: "hrRepresentative",
+                    isPointer: true,
+                    pointerClass: "Users",
+                    allowUnset: true,
+                },
+                legalName: { type: "string", targetField: "legalName", allowUnset: true },
+                firstName: { type: "string", targetField: "firstName", allowUnset: true },
+                lastName: { type: "string", targetField: "lastName", allowUnset: true },
+                personalEmail: { type: "string", targetField: "personalEmail", isEmail: true, allowUnset: true },
+                gender: { type: "string", targetField: "gender", allowUnset: true },
+                maritalStatus: { type: "string", targetField: "maritalStatus", allowUnset: true },
+                religion: { type: "string", targetField: "religion", allowUnset: true },
+                workPhone: { type: "string", targetField: "workPhone", allowUnset: true },
+                personalPhone: { type: "string", targetField: "personalPhone", allowUnset: true },
+                homeCountryPhone: { type: "string", targetField: "homeCountryPhone", allowUnset: true },
+                payrollId: { type: "string", targetField: "payrollId", allowUnset: true },
+                employmentType: { type: "string", targetField: "employmentType", allowUnset: true },
+                isOutsourced: { type: "boolean", targetField: "isOutsourced" },
             };
 
             setMappedFields(params, USER_OPTIONAL_FIELDS, req.body as Record<string, unknown>);
+            applyComplexUserFields(params, req.body as Record<string, unknown>);
 
             const newUser = await UserService.create(params as Omit<IUser, "_id">, requestingUser.companyId);
             res.json(success({ user: newUser }));
@@ -211,10 +343,45 @@ export class UserController {
                     pointerClass: "Users",
                     allowUnset: true,
                 },
+                levelId: {
+                    type: "string",
+                    targetField: "level",
+                    isPointer: true,
+                    pointerClass: "Levels",
+                    allowUnset: true,
+                },
+                officeId: {
+                    type: "string",
+                    targetField: "office",
+                    isPointer: true,
+                    pointerClass: "Offices",
+                    allowUnset: true,
+                },
+                hrRepresentativeId: {
+                    type: "string",
+                    targetField: "hrRepresentative",
+                    isPointer: true,
+                    pointerClass: "Users",
+                    allowUnset: true,
+                },
+                legalName: { type: "string", targetField: "legalName", allowUnset: true },
+                firstName: { type: "string", targetField: "firstName", allowUnset: true },
+                lastName: { type: "string", targetField: "lastName", allowUnset: true },
+                personalEmail: { type: "string", targetField: "personalEmail", isEmail: true, allowUnset: true },
+                gender: { type: "string", targetField: "gender", allowUnset: true },
+                maritalStatus: { type: "string", targetField: "maritalStatus", allowUnset: true },
+                religion: { type: "string", targetField: "religion", allowUnset: true },
+                workPhone: { type: "string", targetField: "workPhone", allowUnset: true },
+                personalPhone: { type: "string", targetField: "personalPhone", allowUnset: true },
+                homeCountryPhone: { type: "string", targetField: "homeCountryPhone", allowUnset: true },
+                payrollId: { type: "string", targetField: "payrollId", allowUnset: true },
+                employmentType: { type: "string", targetField: "employmentType", allowUnset: true },
+                isOutsourced: { type: "boolean", targetField: "isOutsourced" },
                 isActive: { type: "boolean", targetField: "isActive" },
             };
 
             setMappedFields(sanitizedData, USER_UPDATE_FIELDS, req.body as Record<string, unknown>);
+            applyComplexUserFields(sanitizedData, req.body as Record<string, unknown>);
 
             const updatedUser = await UserService.update(userId, sanitizedData, requestingUser.companyId);
             if (!updatedUser) {

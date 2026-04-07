@@ -7,6 +7,7 @@ const REQUIRED_VARS = [
     "SUPABASE_URL",
     "SUPABASE_SERVICE_ROLE_KEY",
     "SUPABASE_STORAGE_BUCKET",
+    "ENCRYPTION_KEY",
 ] as const;
 
 export function validateEnv(): void {
@@ -24,6 +25,13 @@ export function validateEnv(): void {
     if (supabaseUrl && !supabaseUrl.startsWith("https://")) {
         invalid.push(
             `SUPABASE_URL must be an HTTPS URL (e.g. https://<project-ref>.supabase.co), got: "${supabaseUrl}"`,
+        );
+    }
+
+    const encryptionKey = process.env.ENCRYPTION_KEY ?? "";
+    if (encryptionKey && !/^[0-9a-fA-F]{64}$/.test(encryptionKey)) {
+        invalid.push(
+            `ENCRYPTION_KEY must be a 64-character hex string (32 bytes). Generate with: openssl rand -hex 32`,
         );
     }
 
@@ -52,6 +60,7 @@ export const config = {
     SUPABASE_URL: process.env.SUPABASE_URL as string,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY as string,
     SUPABASE_STORAGE_BUCKET: process.env.SUPABASE_STORAGE_BUCKET as string,
+    ENCRYPTION_KEY: process.env.ENCRYPTION_KEY as string,
     CLIENT_URL: process.env.CLIENT_URL ?? "http://localhost:4200",
     OG_COMPANY_ID: process.env.OG_COMPANY_ID ?? "",
     NODE_ENV: process.env.NODE_ENV ?? "development",

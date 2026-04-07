@@ -3,6 +3,7 @@ import { IProfileImageMetadata, IUser, IUsersQueryParams } from "../interfaces/u
 import { FilterQuery } from "mongoose";
 import { UserModel } from "../models/user.model";
 import bcrypt from "bcryptjs";
+import { decryptString } from "../utils/encryption.util";
 
 export const UserService = {
     getUsers: async (params: IUsersQueryParams = {}, companyId: string, permissionsFilter?: FilterQuery<IUser>) => {
@@ -69,6 +70,8 @@ export const UserService = {
                 .populate("company")
                 .populate("country")
                 .populate("manager")
+                .populate("level")
+                .populate("office")
                 .populate({
                     path: "employmentTitle",
                     populate: { path: "subDepartment", populate: { path: "department" } },
@@ -76,7 +79,7 @@ export const UserService = {
                 .sort(sortOptions)
                 .skip(skip)
                 .limit(limit)
-                .select("-password")
+                .select("-password -salary")
                 .lean(),
             repo.count(filter),
         ]);
@@ -90,7 +93,7 @@ export const UserService = {
         };
     },
 
-    getById: (id: string, companyId: string, selectFields?: string[]) => {
+    getById: async (id: string, companyId: string, selectFields?: string[]) => {
         if (!companyId) {
             throw new Error("Company ID is required for fetching user by ID");
         }
@@ -101,6 +104,9 @@ export const UserService = {
             .populate("company")
             .populate("country")
             .populate("manager")
+            .populate("level")
+            .populate("office")
+            .populate("hrRepresentative", "_id name email")
             .populate({
                 path: "employmentTitle",
                 populate: { path: "subDepartment", populate: { path: "department" } },
@@ -110,7 +116,15 @@ export const UserService = {
         if (selectFields && selectFields.length > 0) {
             query = query.select("-password " + selectFields.join(" "));
         }
-        return query.lean();
+        const user = await query.lean();
+        if (user && (user as IUser).salary) {
+            try {
+                (user as Record<string, unknown>).salary = decryptString((user as IUser).salary!);
+            } catch {
+                (user as Record<string, unknown>).salary = undefined;
+            }
+        }
+        return user;
     },
     update: async (id: string, data: Partial<IUser>, companyId: string) => {
         if (!companyId) {

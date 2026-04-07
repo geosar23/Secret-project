@@ -156,6 +156,8 @@ The backend provides REST API endpoints under `/api`:
 - **Departments**: `/api/departments/*` — Department CRUD
 - **Sub-Departments**: `/api/sub-departments/*` — Sub-department CRUD
 - **Employment Titles**: `/api/employment-titles/*` — Employment title CRUD
+- **Levels**: `/api/levels/*` — Seniority level CRUD (company-scoped)
+- **Offices**: `/api/offices/*` — Office location CRUD (company-scoped)
 
 ## Key Features
 
