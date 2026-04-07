@@ -5,10 +5,19 @@ import { subDepartmentRepository } from "../repositories/sub-department.reposito
 
 export const SubDepartmentService = {
     getAll: (companyId: string) =>
-        subDepartmentRepository(companyId).find().populate("department", "_id name").sort({ name: 1 }).lean(),
+        subDepartmentRepository(companyId)
+            .find()
+            .populate("department", "_id name")
+            .populate("company", "_id name")
+            .sort({ name: 1 })
+            .lean(),
 
     getById: (id: string, companyId: string) =>
-        subDepartmentRepository(companyId).findById(id).populate("department", "_id name").lean(),
+        subDepartmentRepository(companyId)
+            .findById(id)
+            .populate("department", "_id name")
+            .populate("company", "_id name")
+            .lean(),
 
     create: async (data: Omit<ISubDepartment, "_id" | "company" | "createdAt" | "updatedAt">, companyId: string) => {
         const department = await departmentRepository(companyId).findById(String(data.department)).lean();

@@ -12,6 +12,7 @@ export const EmploymentTitleService = {
                 select: "_id name department",
                 populate: { path: "department", select: "_id name" },
             })
+            .populate("company", "_id name")
             .sort({ name: 1 })
             .lean(),
 
@@ -23,6 +24,7 @@ export const EmploymentTitleService = {
                 select: "_id name department",
                 populate: { path: "department", select: "_id name" },
             })
+            .populate("company", "_id name")
             .lean(),
 
     create: async (data: Omit<IEmploymentTitle, "_id" | "company" | "createdAt" | "updatedAt">, companyId: string) => {

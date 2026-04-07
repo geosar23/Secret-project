@@ -8,18 +8,19 @@ import { MatSelectModule } from "@angular/material/select";
 import { MatButtonModule } from "@angular/material/button";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { UsersService } from "../../../core/services/users.service";
+import { CompanyService } from "../../../core/services/company.service";
 import { CountryService } from "../../../core/services/country.service";
 import { EmploymentTitleService } from "../../../core/services/employment-title.service";
 import { RoleService } from "../../../core/services/role.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { AuthService } from "../../../core/services/auth.service";
+import { PermissionService } from "../../../core/services/permission.service";
 import { IUser, IUpdateUserRequest } from "../../../core/interfaces/user.interface";
 import { ICompany } from "../../../core/interfaces/company.interface";
 import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 import { IRole } from "../../../core/interfaces/role.interface";
 import { LoadingButtonComponent } from "../../../shared/components/loading-button/loading-button.component";
-import { UserRole } from "../../../core/enums/user-role.enum";
 import { firstValueFrom } from "rxjs";
 import { ProfileImageUploadComponent } from "../../../shared/components/profile-image-upload/profile-image-upload.component";
 
@@ -48,11 +49,13 @@ export interface EditUserDialogData {
 export class EditUserDialogComponent implements OnInit, OnDestroy {
     private fb = inject(FormBuilder);
     private usersService = inject(UsersService);
+    private companyService = inject(CompanyService);
     private countryService = inject(CountryService);
     private employmentTitleService = inject(EmploymentTitleService);
     private roleService = inject(RoleService);
     private toast = inject(ToastService);
     private authService = inject(AuthService);
+    private permissionService = inject(PermissionService);
     private dialogRef = inject(MatDialogRef<EditUserDialogComponent, IUser | undefined>);
     data = inject<EditUserDialogData>(MAT_DIALOG_DATA);
     private localUser = this.authService.getLocalUser();
@@ -63,6 +66,7 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
     rolesLoading = false;
     employmentTitlesLoading = false;
     usersLoading = false;
+    canViewCrossCompany = this.permissionService.canViewCrossCompany();
     companies: ICompany[] = this.localUser?.company ? [this.localUser.company] : [];
     countries: ICountry[] = [];
     roles: IRole[] = [];
@@ -78,7 +82,7 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
         name: [this.data.user.name, [Validators.required, Validators.minLength(2)]],
         email: [this.data.user.email, [Validators.required, Validators.email]],
         role: [this.data.user.role?._id ?? "", Validators.required],
-        companyId: [{ value: this.localUser?.company?._id ?? "", disabled: true }, Validators.required],
+        companyId: [this.data.user.company?._id ?? this.localUser?.company?._id ?? ""],
         countryId: [this.data.user.country?._id ?? "", Validators.required],
         employmentTitleId: [this.data.user.employmentTitle?._id ?? "", Validators.required],
         managerId: [this.data.user.manager?._id ?? ""],
@@ -89,7 +93,7 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
         name: (this.data.user.name ?? "").trim(),
         email: (this.data.user.email ?? "").trim(),
         role: this.data.user.role?._id ?? undefined,
-        companyId: this.localUser?.company?._id ?? undefined,
+        companyId: this.data.user.company?._id ?? this.localUser?.company?._id ?? undefined,
         countryId: this.data.user.country?._id ?? undefined,
         employmentTitleId: this.data.user.employmentTitle?._id ?? undefined,
         managerId: this.data.user.manager?._id ?? undefined,
@@ -97,13 +101,22 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
     };
 
     ngOnInit(): void {
-        if (this.localUser?.role.role !== UserRole.GOD) {
-            //undisable company field for non-GOD users and set their company as the value
-            this.userForm.get("companyId")?.enable();
-        }
         this.countriesLoading = true;
         this.rolesLoading = true;
         this.employmentTitlesLoading = true;
+
+        if (this.canViewCrossCompany) {
+            this.companiesLoading = true;
+            this.companyService.getCompanies().subscribe({
+                next: res => {
+                    this.companies = res.data ?? [];
+                    this.companiesLoading = false;
+                },
+                error: () => {
+                    this.companiesLoading = false;
+                },
+            });
+        }
 
         const companyId = this.localUser?.company?._id;
         if (companyId) {

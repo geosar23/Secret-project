@@ -2,9 +2,11 @@ import { ICountry } from "../interfaces/country.interface";
 import { countryRepository } from "../repositories/country.repository";
 
 export const CountryService = {
-    getAll: (companyId: string) => countryRepository(companyId).find().sort({ name: 1 }).lean(),
+    getAll: (companyId: string) =>
+        countryRepository(companyId).find().populate("company", "_id name").sort({ name: 1 }).lean(),
 
-    getById: (id: string, companyId: string) => countryRepository(companyId).findById(id).lean(),
+    getById: (id: string, companyId: string) =>
+        countryRepository(companyId).findById(id).populate("company", "_id name").lean(),
 
     create: (data: Omit<ICountry, "_id" | "company" | "createdAt" | "updatedAt">, companyId: string) =>
         countryRepository(companyId).create({

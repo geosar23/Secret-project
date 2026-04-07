@@ -15,6 +15,7 @@ import { takeUntil, debounceTime, distinctUntilChanged } from "rxjs/operators";
 import { ISubDepartment } from "../../core/interfaces/sub-department.interface";
 import { SubDepartmentService } from "../../core/services/sub-department.service";
 import { ToastService } from "../../core/services/toast.service";
+import { PermissionService } from "../../core/services/permission.service";
 import {
     SubDepartmentDialogComponent,
     SubDepartmentDialogData,
@@ -43,6 +44,7 @@ export class SubDepartmentsComponent implements OnInit, AfterViewInit, OnDestroy
 
     private destroy$ = new Subject<void>();
     private subDepartmentService = inject(SubDepartmentService);
+    private permissionService = inject(PermissionService);
     private dialog = inject(MatDialog);
     private toast = inject(ToastService);
 
@@ -50,9 +52,20 @@ export class SubDepartmentsComponent implements OnInit, AfterViewInit, OnDestroy
     searchControl = new FormControl("");
     allSubDepartments: ISubDepartment[] = [];
     tableData = new MatTableDataSource<ISubDepartment>([]);
-    displayedColumns = ["name", "department", "description", "status", "createdAt", "actions"];
+    displayedColumns: string[] = ["name", "department", "description", "status", "createdAt", "actions"];
+
+    private updateDisplayedColumns(canViewCrossCompany: boolean): void {
+        const base = ["name", "department", "description"];
+        if (canViewCrossCompany) base.push("company");
+        base.push("status", "createdAt", "actions");
+        this.displayedColumns = base;
+    }
 
     ngOnInit(): void {
+        this.permissionService.canViewCrossCompany$.pipe(takeUntil(this.destroy$)).subscribe(canView => {
+            this.updateDisplayedColumns(canView);
+        });
+
         this.loadSubDepartments();
 
         this.searchControl.valueChanges

@@ -12,11 +12,11 @@ import { MatChipsModule } from "@angular/material/chips";
 import { RoleService } from "../../../core/services/role.service";
 import { CompanyService } from "../../../core/services/company.service";
 import { AuthService } from "../../../core/services/auth.service";
+import { PermissionService } from "../../../core/services/permission.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { IRole } from "../../../core/interfaces/role.interface";
 import { ICompany } from "../../../core/interfaces/company.interface";
 import { PERMISSIONS, PermissionCategoriesStrings } from "../../../core/enums/permissions.enum";
-import { PermissionKeys } from "../../../core/enums/permissions.enum";
 import { IPermissionDefinition } from "../../../core/interfaces/permission.interface";
 
 interface PermissionGroup {
@@ -53,6 +53,7 @@ export class RoleDialogComponent implements OnInit {
     private roleService = inject(RoleService);
     private companyService = inject(CompanyService);
     private authService = inject(AuthService);
+    private permissionService = inject(PermissionService);
     private toast = inject(ToastService);
     private dialogRef = inject(MatDialogRef<RoleDialogComponent, IRole | undefined>);
     data = inject<RoleDialogData>(MAT_DIALOG_DATA);
@@ -63,7 +64,7 @@ export class RoleDialogComponent implements OnInit {
     companies: ICompany[] = [];
 
     readonly permissionGroups: PermissionGroup[] = this.buildPermissionGroups();
-    readonly canSelectCompany = this.canAssignRolesAcrossCompanies();
+    readonly canSelectCompany = this.permissionService.canViewCrossCompany();
 
     form: FormGroup = this.fb.group({
         name: [this.data.role?.name ?? "", [Validators.required, Validators.minLength(2)]],
@@ -103,22 +104,6 @@ export class RoleDialogComponent implements OnInit {
     clearPermissions(): void {
         this.form.get("permissions")?.setValue([]);
         this.form.get("permissions")?.markAsDirty();
-    }
-
-    private canAssignRolesAcrossCompanies(): boolean {
-        const currentUser = this.authService.getLocalUser();
-        if (!currentUser) {
-            return false;
-        }
-
-        const rolePermissions = currentUser.role?.permissions ?? [];
-        const grantedPermissions = currentUser.grantedPermissions ?? [];
-        const revokedPermissions = new Set(currentUser.revokedPermissions ?? []);
-        const effective = new Set(
-            [...rolePermissions, ...grantedPermissions].filter(permission => !revokedPermissions.has(permission)),
-        );
-
-        return effective.has(PermissionKeys.ALL) || effective.has(PermissionKeys.USERS_MANAGEMENT_ALL_ALL);
     }
 
     private buildPermissionGroups(): PermissionGroup[] {

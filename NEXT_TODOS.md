@@ -74,17 +74,17 @@ Status legend:
 - Priority: P0
 - Owner: You
 - Estimate: 1 day
-- Status: [ ]
+- Status: [x]
 - Goal: hide the company column/field for users who lack cross-company view permission, across all management modules.
 - Acceptance criteria:
-    - [ ] User management table: "Company" column hidden when user lacks cross-company view permission.
-    - [ ] User create/edit form: "Company" field hidden when user lacks cross-company view permission.
-    - [ ] Roles management table + create/edit form: same company field visibility logic applied.
-    - [ ] Departments management table + create/edit form: same company field visibility logic applied.
-    - [ ] Countries management table + create/edit form: same company field visibility logic applied.
-    - [ ] Employment titles management table + create/edit form: same company field visibility logic applied.
-    - [ ] Sub-departments management table + create/edit form: same company field visibility logic applied.
-    - [ ] Visibility check is driven by a single shared permission/policy — no duplicated guard logic per module.
+    - [x] User management table: "Company" column hidden when user lacks cross-company view permission.
+    - [x] User create/edit form: "Company" field hidden when user lacks cross-company view permission.
+    - [x] Roles management table + create/edit form: same company field visibility logic applied.
+    - [x] Departments management table + create/edit form: same company field visibility logic applied.
+    - [x] Countries management table + create/edit form: same company field visibility logic applied.
+    - [x] Employment titles management table + create/edit form: same company field visibility logic applied.
+    - [x] Sub-departments management table + create/edit form: same company field visibility logic applied.
+    - [x] Visibility check is driven by a single shared permission/policy — no duplicated guard logic per module.
 
 ### P0-06 Frontend Critical Flow Tests
 
@@ -106,7 +106,7 @@ Status legend:
 - Status: [ ]
 - Goal: ensure employee records are complete for HR operations and reporting.
 - Acceptance criteria:
-    - [ ] User profile and admin user form include: phone number, personal information, birthday/date of birth, gender, and salary.
+    - [ ] User profile and admin user form include:education[{university/institute, degree level, degree title, year of achieve}] work phone number, personal phone number, additionalPhoneNumbers, personal information, birthday/date of birth, gender, and salary, level(pointer to Levels), employmentDate.
     - [ ] Field-level validation is implemented (format/range/required rules where applicable).
     - [ ] Existing users can be migrated/updated safely without breaking old records.
     - [ ] Sensitive fields (especially salary) follow role-based visibility/edit permissions.
@@ -216,6 +216,10 @@ Status legend:
     - [ ] Access control and audit trail applied to all review actions.
 
 ### P1-16 Structured Logging + Request Correlation
+
+--EmploymentHistoryLogsCollection[{action: join | left | title change | salary change | promotion | dep transfer etc}, date, reason, approver, ]
+
+### P1-17...
 
 - Priority: P1
 - Owner: You

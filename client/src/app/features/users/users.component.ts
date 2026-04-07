@@ -29,8 +29,7 @@ import { ICountry } from "../../core/interfaces/country.interface";
 import { IDepartment } from "../../core/interfaces/department.interface";
 import { ICompany } from "../../core/interfaces/company.interface";
 import { CompanyService } from "../../core/services/company.service";
-import { PermissionKeys } from "../../core/enums/permissions.enum";
-import { hasPermission } from "../../core/utils/permission.utils";
+import { PermissionService } from "../../core/services/permission.service";
 
 interface IUserTableData extends IUser {
     roleColor?: string;
@@ -64,8 +63,9 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     searchControl = new FormControl("");
 
     public tableData: MatTableDataSource<IUserTableData> = new MatTableDataSource<IUserTableData>([]);
-    public displayedColumns: string[] = ["name", "email", "role", "companyId", "status", "createdAt", "actions"];
+    public displayedColumns: string[] = ["name", "email", "role", "status", "createdAt", "actions"];
     private toast = inject(ToastService);
+    private permissionService = inject(PermissionService);
 
     loading = false;
 
@@ -79,6 +79,15 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     countryControl = new FormControl<string>("");
     isActiveControl = new FormControl<string>("");
     canFilterAllCompanies = false;
+
+    private updateDisplayedColumns(): void {
+        const base = ["name", "email", "role"];
+        if (this.canFilterAllCompanies) {
+            base.push("companyId");
+        }
+        base.push("status", "createdAt", "actions");
+        this.displayedColumns = base;
+    }
 
     // Sorting options
     sortOptions = [
@@ -204,31 +213,19 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     private loadPermissionDrivenFilters() {
-        this.usersService
-            .getEffectivePermissions()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-                next: res => {
-                    if (!res.success || !res.data) {
-                        return;
-                    }
+        this.permissionService.canViewCrossCompany$.pipe(takeUntil(this.destroy$)).subscribe(canView => {
+            this.canFilterAllCompanies = canView;
+            this.updateDisplayedColumns();
 
-                    const effectivePermissions = res.data.permissions ?? [];
-                    this.canFilterAllCompanies = hasPermission(
-                        effectivePermissions,
-                        PermissionKeys.USERS_MANAGEMENT_READ_ALL,
-                    );
+            if (canView) {
+                this.loadCompanies();
+                return;
+            }
 
-                    if (this.canFilterAllCompanies) {
-                        this.loadCompanies();
-                        return;
-                    }
-
-                    // Ensure no stale company filter remains when the user lacks access.
-                    this.companyControl.setValue("", { emitEvent: false });
-                    this.queryParams.companyId = undefined;
-                },
-            });
+            // Ensure no stale company filter remains when the user lacks access.
+            this.companyControl.setValue("", { emitEvent: false });
+            this.queryParams.companyId = undefined;
+        });
     }
 
     private loadCompanies() {

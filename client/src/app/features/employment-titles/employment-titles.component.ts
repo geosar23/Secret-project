@@ -15,6 +15,7 @@ import { takeUntil, debounceTime, distinctUntilChanged } from "rxjs/operators";
 import { ToastService } from "../../core/services/toast.service";
 import { IEmploymentTitle } from "../../core/interfaces/employment-title.interface";
 import { EmploymentTitleService } from "../../core/services/employment-title.service";
+import { PermissionService } from "../../core/services/permission.service";
 import {
     EmploymentTitleDialogComponent,
     EmploymentTitleDialogData,
@@ -45,6 +46,7 @@ export class EmploymentTitlesComponent implements OnInit, AfterViewInit, OnDestr
 
     private destroy$ = new Subject<void>();
     private employmentTitleService = inject(EmploymentTitleService);
+    private permissionService = inject(PermissionService);
     private dialog = inject(MatDialog);
     private toast = inject(ToastService);
 
@@ -52,9 +54,20 @@ export class EmploymentTitlesComponent implements OnInit, AfterViewInit, OnDestr
     searchControl = new FormControl("");
     allEmploymentTitles: IEmploymentTitle[] = [];
     tableData = new MatTableDataSource<IEmploymentTitle>([]);
-    displayedColumns = ["name", "subDepartment", "department", "status", "createdAt", "actions"];
+    displayedColumns: string[] = ["name", "subDepartment", "department", "status", "createdAt", "actions"];
+
+    private updateDisplayedColumns(canViewCrossCompany: boolean): void {
+        const base = ["name", "subDepartment", "department"];
+        if (canViewCrossCompany) base.push("company");
+        base.push("status", "createdAt", "actions");
+        this.displayedColumns = base;
+    }
 
     ngOnInit(): void {
+        this.permissionService.canViewCrossCompany$.pipe(takeUntil(this.destroy$)).subscribe(canView => {
+            this.updateDisplayedColumns(canView);
+        });
+
         this.loadEmploymentTitles();
 
         this.searchControl.valueChanges

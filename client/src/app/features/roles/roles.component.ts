@@ -20,6 +20,7 @@ import { IRole } from "../../core/interfaces/role.interface";
 import { ToastService } from "../../core/services/toast.service";
 import { RoleDialogComponent, RoleDialogData } from "./role-dialog/role-dialog.component";
 import { AuthService } from "../../core/services/auth.service";
+import { PermissionService } from "../../core/services/permission.service";
 import { IUser } from "../../core/interfaces/user.interface";
 import { PermissionKeys } from "../../core/enums/permissions.enum";
 import { hasPermission } from "../../core/utils/permission.utils";
@@ -49,6 +50,7 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
 
     private destroy$ = new Subject<void>();
     private authService = inject(AuthService);
+    private permissionService = inject(PermissionService);
     private usersService = inject(UsersService);
     private roleService = inject(RoleService);
     private dialog = inject(MatDialog);
@@ -60,15 +62,27 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
     systemRoleFilterControl = new FormControl<"all" | "system" | "custom">("all", { nonNullable: true });
     allRoles: IRole[] = [];
     tableData = new MatTableDataSource<IRole>([]);
-    displayedColumns = ["name", "company", "description", "permissions", "type", "status", "createdAt", "actions"];
+    displayedColumns: string[] = ["name", "description", "permissions", "type", "status", "createdAt", "actions"];
 
     //Permissions
     canEditSystemRoles = signal(false);
+
+    private updateDisplayedColumns(canViewCrossCompany: boolean): void {
+        const base = ["name"];
+        if (canViewCrossCompany) base.push("company");
+        base.push("description", "permissions", "type", "status", "createdAt", "actions");
+        this.displayedColumns = base;
+    }
 
     ngOnInit(): void {
         this.authService.localUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
             this.localUser = user;
         });
+
+        this.permissionService.canViewCrossCompany$.pipe(takeUntil(this.destroy$)).subscribe(canView => {
+            this.updateDisplayedColumns(canView);
+        });
+
         this.usersService
             .getEffectivePermissions()
             .pipe(takeUntil(this.destroy$))
@@ -82,7 +96,6 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.canEditSystemRoles.set(
                         hasPermission(effectivePermissions, PermissionKeys.ROLES_MANAGEMENT_ALL_ALL),
                     );
-                    console.log("canEditSystemRoles:", this.canEditSystemRoles());
                 },
                 error: err => {
                     this.toast.error(err.error?.message || "Failed to get permissions");

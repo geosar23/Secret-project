@@ -15,13 +15,13 @@ import { EmploymentTitleService } from "../../../core/services/employment-title.
 import { RoleService } from "../../../core/services/role.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { AuthService } from "../../../core/services/auth.service";
+import { PermissionService } from "../../../core/services/permission.service";
 import { ICompany } from "../../../core/interfaces/company.interface";
 import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 import { IRole } from "../../../core/interfaces/role.interface";
 import { IUser } from "../../../core/interfaces/user.interface";
 import { first } from "rxjs";
-import { UserRole } from "../../../core/enums/user-role.enum";
 import { ProfileImageUploadComponent } from "../../../shared/components/profile-image-upload/profile-image-upload.component";
 
 @Component({
@@ -53,6 +53,7 @@ export class CreateUserDialogComponent implements OnInit {
     private dialogRef = inject(MatDialogRef<CreateUserDialogComponent>);
     private toast = inject(ToastService);
     private authService = inject(AuthService);
+    private permissionService = inject(PermissionService);
 
     private localUser = this.authService.getLocalUser();
 
@@ -71,7 +72,7 @@ export class CreateUserDialogComponent implements OnInit {
     selectedProfileImagePreviewUrl = signal<string | null>(null);
 
     //Permissions
-    canCreateUsersForAllCompanies = signal(this.localUser?.role.role === UserRole.GOD);
+    canCreateUsersForAllCompanies = signal(this.permissionService.canViewCrossCompany());
 
     userForm: FormGroup = this.fb.group({
         name: ["", [Validators.required, Validators.minLength(2)]],
@@ -91,7 +92,6 @@ export class CreateUserDialogComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        console.log("canCreateUsersForAllCompanies", this.canCreateUsersForAllCompanies());
         this.loadInitialData();
     }
 

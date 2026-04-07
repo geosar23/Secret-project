@@ -15,6 +15,7 @@ import { takeUntil, debounceTime, distinctUntilChanged } from "rxjs/operators";
 import { ICountry } from "../../core/interfaces/country.interface";
 import { CountryService } from "../../core/services/country.service";
 import { ToastService } from "../../core/services/toast.service";
+import { PermissionService } from "../../core/services/permission.service";
 import { CountryDialogComponent, CountryDialogData } from "./country-dialog/country-dialog.component";
 
 @Component({
@@ -40,6 +41,7 @@ export class CountriesComponent implements OnInit, AfterViewInit, OnDestroy {
 
     private destroy$ = new Subject<void>();
     private countryService = inject(CountryService);
+    private permissionService = inject(PermissionService);
     private dialog = inject(MatDialog);
     private toast = inject(ToastService);
 
@@ -47,9 +49,20 @@ export class CountriesComponent implements OnInit, AfterViewInit, OnDestroy {
     searchControl = new FormControl("");
     allCountries: ICountry[] = [];
     tableData = new MatTableDataSource<ICountry>([]);
-    displayedColumns = ["name", "description", "status", "createdAt", "actions"];
+    displayedColumns: string[] = ["name", "description", "status", "createdAt", "actions"];
+
+    private updateDisplayedColumns(canViewCrossCompany: boolean): void {
+        const base = ["name", "description"];
+        if (canViewCrossCompany) base.push("company");
+        base.push("status", "createdAt", "actions");
+        this.displayedColumns = base;
+    }
 
     ngOnInit(): void {
+        this.permissionService.canViewCrossCompany$.pipe(takeUntil(this.destroy$)).subscribe(canView => {
+            this.updateDisplayedColumns(canView);
+        });
+
         this.loadCountries();
 
         this.searchControl.valueChanges
