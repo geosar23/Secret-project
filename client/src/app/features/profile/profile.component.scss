@@ -240,28 +240,26 @@
     }
 }
 
-.error-message {
+.error-message,
+.success-message {
     display: flex;
     align-items: center;
     padding: var(--spacing-md);
     margin-bottom: var(--spacing-md);
-    background-color: var(--color-error-light);
-    color: var(--color-error);
     border-radius: var(--radius-md);
     font-size: var(--font-size-sm);
+}
+
+.error-message {
+    background-color: var(--color-error-light);
+    color: var(--color-error);
     border-left: var(--spacing-xs) solid var(--color-error);
 }
 
 .success-message {
-    display: flex;
-    align-items: center;
     gap: var(--spacing-sm);
-    padding: var(--spacing-md);
-    margin-bottom: var(--spacing-md);
     background-color: var(--color-success-light);
     color: var(--color-success);
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-sm);
     border-left: var(--spacing-xs) solid var(--color-success);
 
     mat-icon {

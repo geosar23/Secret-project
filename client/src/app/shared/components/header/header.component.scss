@@ -525,17 +525,11 @@
 
 @media (max-width: 480px) {
     .header-container {
-        gap: var(--spacing-xs);
         padding: 0 var(--spacing-xs);
-    }
-
-    .header-left {
-        gap: var(--spacing-xs);
     }
 
     .header-left .app-title {
         font-size: var(--font-size-base);
-        display: none;
     }
 
     .header-center {

@@ -1,11 +1,13 @@
 import { Routes } from "@angular/router";
-import { LoginComponent } from "./features/auth/login/login.component";
 import { authGuard } from "./core/guards/auth.guard";
 import { profileRouteContextResolver } from "./features/profile/profile-route-context.resolver";
 
 export const routes: Routes = [
     { path: "", redirectTo: "/dashboard", pathMatch: "full" },
-    { path: "login", component: LoginComponent },
+    {
+        path: "login",
+        loadComponent: () => import("./features/auth/login/login.component").then(m => m.LoginComponent),
+    },
     {
         path: "",
         loadComponent: () =>
