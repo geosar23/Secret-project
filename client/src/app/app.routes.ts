@@ -1,7 +1,6 @@
 import { Routes } from "@angular/router";
 import { LoginComponent } from "./features/auth/login/login.component";
 import { authGuard } from "./core/guards/auth.guard";
-import { MainLayoutComponent } from "./shared/layouts/main-layout/main-layout.component";
 import { profileRouteContextResolver } from "./features/profile/profile-route-context.resolver";
 
 export const routes: Routes = [
@@ -9,7 +8,8 @@ export const routes: Routes = [
     { path: "login", component: LoginComponent },
     {
         path: "",
-        component: MainLayoutComponent,
+        loadComponent: () =>
+            import("./shared/layouts/main-layout/main-layout.component").then(m => m.MainLayoutComponent),
         canActivate: [authGuard],
         children: [
             {
