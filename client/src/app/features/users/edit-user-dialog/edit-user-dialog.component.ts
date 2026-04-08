@@ -16,7 +16,7 @@ import { MatSelectModule } from "@angular/material/select";
 import { MatButtonModule } from "@angular/material/button";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatDatepickerModule } from "@angular/material/datepicker";
-import { MatNativeDateModule } from "@angular/material/core";
+import { provideNativeDateAdapter } from "@angular/material/core";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
 import { UsersService } from "../../../core/services/users.service";
@@ -62,7 +62,6 @@ const EMPLOYMENT_TYPE_OPTIONS = ["full_time", "part_time", "contractor", "intern
         MatButtonModule,
         MatSlideToggleModule,
         MatDatepickerModule,
-        MatNativeDateModule,
         MatChipsModule,
         MatIconModule,
         LoadingButtonComponent,
@@ -70,6 +69,7 @@ const EMPLOYMENT_TYPE_OPTIONS = ["full_time", "part_time", "contractor", "intern
     ],
     templateUrl: "./edit-user-dialog.component.html",
     styleUrls: ["./edit-user-dialog.component.scss"],
+    providers: [provideNativeDateAdapter()],
 })
 export class EditUserDialogComponent implements OnInit, OnDestroy {
     private fb = inject(FormBuilder);

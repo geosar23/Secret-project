@@ -8,7 +8,7 @@ import { MatSelectModule } from "@angular/material/select";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatDatepickerModule } from "@angular/material/datepicker";
-import { MatNativeDateModule } from "@angular/material/core";
+import { provideNativeDateAdapter } from "@angular/material/core";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
@@ -50,7 +50,6 @@ const EMPLOYMENT_TYPE_OPTIONS = ["full_time", "part_time", "contractor", "intern
         MatButtonModule,
         MatProgressSpinnerModule,
         MatDatepickerModule,
-        MatNativeDateModule,
         MatSlideToggleModule,
         MatChipsModule,
         MatIconModule,
@@ -60,6 +59,7 @@ const EMPLOYMENT_TYPE_OPTIONS = ["full_time", "part_time", "contractor", "intern
     templateUrl: "./create-user-dialog.component.html",
     styleUrls: ["./create-user-dialog.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [provideNativeDateAdapter()],
 })
 export class CreateUserDialogComponent implements OnInit {
     private fb = inject(FormBuilder);
