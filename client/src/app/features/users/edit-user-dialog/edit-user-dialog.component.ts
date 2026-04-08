@@ -1,25 +1,41 @@
 import { Component, inject, OnDestroy, OnInit } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
+import {
+    FormBuilder,
+    FormGroup,
+    Validators,
+    ReactiveFormsModule,
+    FormArray,
+    FormControl,
+    FormsModule,
+} from "@angular/forms";
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatSelectModule } from "@angular/material/select";
 import { MatButtonModule } from "@angular/material/button";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
+import { MatDatepickerModule } from "@angular/material/datepicker";
+import { MatNativeDateModule } from "@angular/material/core";
+import { MatChipsModule } from "@angular/material/chips";
+import { MatIconModule } from "@angular/material/icon";
 import { UsersService } from "../../../core/services/users.service";
 import { CompanyService } from "../../../core/services/company.service";
 import { CountryService } from "../../../core/services/country.service";
 import { EmploymentTitleService } from "../../../core/services/employment-title.service";
 import { RoleService } from "../../../core/services/role.service";
+import { DepartmentService } from "../../../core/services/department.service";
+import { LevelService } from "../../../core/services/level.service";
+import { OfficeService } from "../../../core/services/office.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { AuthService } from "../../../core/services/auth.service";
 import { PermissionService } from "../../../core/services/permission.service";
-import { IUser, IUpdateUserRequest } from "../../../core/interfaces/user.interface";
+import { IUser, IUpdateUserRequest, ILevel, IOffice } from "../../../core/interfaces/user.interface";
 import { ICompany } from "../../../core/interfaces/company.interface";
 import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 import { IRole } from "../../../core/interfaces/role.interface";
+import { IDepartment } from "../../../core/interfaces/department.interface";
 import { LoadingButtonComponent } from "../../../shared/components/loading-button/loading-button.component";
 import { firstValueFrom } from "rxjs";
 import { ProfileImageUploadComponent } from "../../../shared/components/profile-image-upload/profile-image-upload.component";
@@ -28,18 +44,27 @@ export interface EditUserDialogData {
     user: IUser;
 }
 
+const GENDER_OPTIONS = ["male", "female", "non_binary", "prefer_not_to_say", "other"] as const;
+const MARITAL_STATUS_OPTIONS = ["single", "married", "divorced", "widowed", "separated", "other"] as const;
+const EMPLOYMENT_TYPE_OPTIONS = ["full_time", "part_time", "contractor", "intern"] as const;
+
 @Component({
     selector: "app-edit-user-dialog",
     standalone: true,
     imports: [
         CommonModule,
         ReactiveFormsModule,
+        FormsModule,
         MatDialogModule,
         MatFormFieldModule,
         MatInputModule,
         MatSelectModule,
         MatButtonModule,
         MatSlideToggleModule,
+        MatDatepickerModule,
+        MatNativeDateModule,
+        MatChipsModule,
+        MatIconModule,
         LoadingButtonComponent,
         ProfileImageUploadComponent,
     ],
@@ -53,6 +78,9 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
     private countryService = inject(CountryService);
     private employmentTitleService = inject(EmploymentTitleService);
     private roleService = inject(RoleService);
+    private departmentService = inject(DepartmentService);
+    private levelService = inject(LevelService);
+    private officeService = inject(OfficeService);
     private toast = inject(ToastService);
     private authService = inject(AuthService);
     private permissionService = inject(PermissionService);
@@ -60,50 +88,97 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
     data = inject<EditUserDialogData>(MAT_DIALOG_DATA);
     private localUser = this.authService.getLocalUser();
 
+    readonly genderOptions = GENDER_OPTIONS;
+    readonly maritalStatusOptions = MARITAL_STATUS_OPTIONS;
+    readonly employmentTypeOptions = EMPLOYMENT_TYPE_OPTIONS;
+
     loading = false;
     companiesLoading = false;
     countriesLoading = false;
     rolesLoading = false;
     employmentTitlesLoading = false;
     usersLoading = false;
+    departmentsLoading = false;
+    levelsLoading = false;
+    officesLoading = false;
+
     canViewCrossCompany = this.permissionService.canViewCrossCompany();
     companies: ICompany[] = this.localUser?.company ? [this.localUser.company] : [];
     countries: ICountry[] = [];
     roles: IRole[] = [];
     employmentTitles: IEmploymentTitle[] = [];
     users: IUser[] = [];
+    departments: IDepartment[] = [];
+    levels: ILevel[] = [];
+    offices: IOffice[] = [];
+
     selectedProfileImage: File | null = null;
     removeProfileImageRequested = false;
     currentProfileImageUrl: string | null = null;
     selectedProfileImagePreviewUrl: string | null = null;
     profileImageLoading = false;
 
+    nationalityInput = "";
+
+    private readonly u = this.data.user;
+
     userForm: FormGroup = this.fb.group({
-        name: [this.data.user.name, [Validators.required, Validators.minLength(2)]],
-        email: [this.data.user.email, [Validators.required, Validators.email]],
-        role: [this.data.user.role?._id ?? "", Validators.required],
-        companyId: [this.data.user.company?._id ?? this.localUser?.company?._id ?? ""],
-        countryId: [this.data.user.country?._id ?? "", Validators.required],
-        employmentTitleId: [this.data.user.employmentTitle?._id ?? "", Validators.required],
-        managerId: [this.data.user.manager?._id ?? ""],
-        isActive: [this.data.user.isActive ?? true],
+        // Core
+        name: [this.u.name, [Validators.required, Validators.minLength(2)]],
+        email: [this.u.email, [Validators.required, Validators.email]],
+        role: [this.u.role?._id ?? "", Validators.required],
+        companyId: [this.u.company?._id ?? this.localUser?.company?._id ?? ""],
+        countryId: [this.u.country?._id ?? "", Validators.required],
+        employmentTitleId: [this.u.employmentTitle?._id ?? "", Validators.required],
+        managerId: [this.u.manager?._id ?? ""],
+        departmentId: [(this.u.department as IDepartment)?._id ?? ""],
+        levelId: [this.u.level?._id ?? ""],
+        officeId: [this.u.office?._id ?? ""],
+        hrRepresentativeId: [this.u.hrRepresentative?._id ?? ""],
+        isActive: [this.u.isActive ?? true],
+        isOutsourced: [this.u.isOutsourced ?? false],
+        // Identity
+        firstName: [this.u.firstName ?? ""],
+        lastName: [this.u.lastName ?? ""],
+        legalName: [this.u.legalName ?? ""],
+        personalEmail: [this.u.personalEmail ?? "", Validators.email],
+        gender: [this.u.gender ?? ""],
+        birthday: [this.u.birthday ? new Date(this.u.birthday) : (null as Date | null)],
+        maritalStatus: [this.u.maritalStatus ?? ""],
+        nationalities: this.fb.array((this.u.nationalities ?? []).map(n => this.fb.control(n) as FormControl<string>)),
+        religion: [this.u.religion ?? ""],
+        // Contact
+        workPhone: [this.u.workPhone ?? ""],
+        personalPhone: [this.u.personalPhone ?? ""],
+        homeCountryPhone: [this.u.homeCountryPhone ?? ""],
+        // Employment
+        employmentDate: [this.u.employmentDate ? new Date(this.u.employmentDate) : (null as Date | null)],
+        employmentType: [this.u.employmentType ?? ""],
+        payrollId: [this.u.payrollId ?? ""],
     });
 
-    private initialUpdateValues = {
-        name: (this.data.user.name ?? "").trim(),
-        email: (this.data.user.email ?? "").trim(),
-        role: this.data.user.role?._id ?? undefined,
-        companyId: this.data.user.company?._id ?? this.localUser?.company?._id ?? undefined,
-        countryId: this.data.user.country?._id ?? undefined,
-        employmentTitleId: this.data.user.employmentTitle?._id ?? undefined,
-        managerId: this.data.user.manager?._id ?? undefined,
-        isActive: this.data.user.isActive ?? true,
-    };
+    get nationalitiesArray(): FormArray<FormControl<string>> {
+        return this.userForm.get("nationalities") as FormArray<FormControl<string>>;
+    }
+
+    addNationality(): void {
+        const val = this.nationalityInput.trim();
+        if (!val) return;
+        this.nationalitiesArray.push(this.fb.control(val) as FormControl<string>);
+        this.nationalityInput = "";
+    }
+
+    removeNationality(index: number): void {
+        this.nationalitiesArray.removeAt(index);
+    }
 
     ngOnInit(): void {
         this.countriesLoading = true;
         this.rolesLoading = true;
         this.employmentTitlesLoading = true;
+        this.departmentsLoading = true;
+        this.levelsLoading = true;
+        this.officesLoading = true;
 
         if (this.canViewCrossCompany) {
             this.companiesLoading = true;
@@ -162,6 +237,36 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
             },
         });
 
+        this.departmentService.getDepartments().subscribe({
+            next: res => {
+                this.departments = res.data ?? [];
+                this.departmentsLoading = false;
+            },
+            error: () => {
+                this.departmentsLoading = false;
+            },
+        });
+
+        this.levelService.getLevels().subscribe({
+            next: res => {
+                this.levels = res.data ?? [];
+                this.levelsLoading = false;
+            },
+            error: () => {
+                this.levelsLoading = false;
+            },
+        });
+
+        this.officeService.getOffices().subscribe({
+            next: res => {
+                this.offices = res.data ?? [];
+                this.officesLoading = false;
+            },
+            error: () => {
+                this.officesLoading = false;
+            },
+        });
+
         this.loadCurrentProfileImage();
     }
 
@@ -177,35 +282,67 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
             return;
         }
 
-        const { name, email, role, companyId, countryId, employmentTitleId, managerId, isActive } =
-            this.userForm.getRawValue() as {
-                name: string;
-                email: string;
-                role?: string;
-                companyId?: string;
-                countryId?: string;
-                employmentTitleId?: string;
-                managerId?: string;
-                isActive: boolean;
-            };
-
-        const currentValues = {
-            name: (name ?? "").trim(),
-            email: (email ?? "").trim(),
-            role: role || undefined,
-            companyId: companyId || undefined,
-            countryId: countryId || undefined,
-            employmentTitleId: employmentTitleId || undefined,
-            managerId: managerId || undefined,
-            isActive: !!isActive,
+        const fv = this.userForm.getRawValue() as {
+            name: string;
+            email: string;
+            role: string;
+            companyId: string;
+            countryId: string;
+            employmentTitleId: string;
+            managerId: string;
+            departmentId: string;
+            levelId: string;
+            officeId: string;
+            hrRepresentativeId: string;
+            isActive: boolean;
+            isOutsourced: boolean;
+            firstName: string;
+            lastName: string;
+            legalName: string;
+            personalEmail: string;
+            gender: string;
+            birthday: Date | null;
+            maritalStatus: string;
+            nationalities: string[];
+            religion: string;
+            workPhone: string;
+            personalPhone: string;
+            homeCountryPhone: string;
+            employmentDate: Date | null;
+            employmentType: string;
+            payrollId: string;
         };
 
-        const payload: IUpdateUserRequest = {};
-        (Object.keys(currentValues) as Array<keyof typeof currentValues>).forEach(key => {
-            if (currentValues[key] !== this.initialUpdateValues[key]) {
-                (payload as Record<string, string | boolean | undefined>)[key] = currentValues[key];
-            }
-        });
+        const payload: IUpdateUserRequest = {
+            name: fv.name.trim(),
+            email: fv.email.trim(),
+            role: fv.role || undefined,
+            companyId: fv.companyId || undefined,
+            countryId: fv.countryId || undefined,
+            employmentTitleId: fv.employmentTitleId || undefined,
+            managerId: fv.managerId || undefined,
+            departmentId: fv.departmentId || undefined,
+            levelId: fv.levelId || undefined,
+            officeId: fv.officeId || undefined,
+            hrRepresentativeId: fv.hrRepresentativeId || undefined,
+            isActive: fv.isActive,
+            isOutsourced: fv.isOutsourced,
+            firstName: fv.firstName || undefined,
+            lastName: fv.lastName || undefined,
+            legalName: fv.legalName || undefined,
+            personalEmail: fv.personalEmail || undefined,
+            gender: fv.gender || undefined,
+            birthday: fv.birthday ? (fv.birthday as Date).toISOString() : undefined,
+            maritalStatus: fv.maritalStatus || undefined,
+            nationalities: fv.nationalities.length > 0 ? fv.nationalities : undefined,
+            religion: fv.religion || undefined,
+            workPhone: fv.workPhone || undefined,
+            personalPhone: fv.personalPhone || undefined,
+            homeCountryPhone: fv.homeCountryPhone || undefined,
+            employmentDate: fv.employmentDate ? (fv.employmentDate as Date).toISOString() : undefined,
+            employmentType: fv.employmentType || undefined,
+            payrollId: fv.payrollId || undefined,
+        };
 
         const hasImageChanges = !!this.selectedProfileImage || this.removeProfileImageRequested;
 
@@ -220,28 +357,46 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
         try {
             const userId = this.data.user._id as string;
 
-            if (Object.keys(payload).length > 0) {
-                const updateResponse = await firstValueFrom(this.usersService.updateUser(userId, payload));
-                if (!updateResponse.success) {
-                    this.toast.error(updateResponse.message || "Failed to update user");
-                    this.loading = false;
-                    this.dialogRef.disableClose = false;
-                    return;
-                }
+            const updateResponse = await firstValueFrom(this.usersService.updateUser(userId, payload));
+            if (!updateResponse.success) {
+                this.toast.error(updateResponse.message || "Failed to update user");
+                this.loading = false;
+                this.dialogRef.disableClose = false;
+                return;
             }
 
             const updatedUser: IUser = {
                 ...this.data.user,
-                name: currentValues.name,
-                email: currentValues.email,
-                isActive: currentValues.isActive,
-                role: this.roles.find(r => r._id === currentValues.role) ?? this.data.user.role,
-                company: this.companies.find(c => c._id === currentValues.companyId) ?? this.data.user.company,
-                country: this.countries.find(c => c._id === currentValues.countryId) ?? this.data.user.country,
+                name: payload.name ?? this.data.user.name,
+                email: payload.email ?? this.data.user.email,
+                isActive: payload.isActive ?? this.data.user.isActive,
+                isOutsourced: payload.isOutsourced,
+                role: this.roles.find(r => r._id === fv.role) ?? this.data.user.role,
+                company: this.companies.find(c => c._id === fv.companyId) ?? this.data.user.company,
+                country: this.countries.find(c => c._id === fv.countryId) ?? this.data.user.country,
                 employmentTitle:
-                    this.employmentTitles.find(t => t._id === currentValues.employmentTitleId) ??
-                    this.data.user.employmentTitle,
-                manager: this.users.find(u => u._id === currentValues.managerId) ?? this.data.user.manager,
+                    this.employmentTitles.find(t => t._id === fv.employmentTitleId) ?? this.data.user.employmentTitle,
+                manager: this.users.find(u => u._id === fv.managerId) ?? this.data.user.manager,
+                department: this.departments.find(d => d._id === fv.departmentId) ?? this.data.user.department,
+                level: this.levels.find(l => l._id === fv.levelId) ?? this.data.user.level,
+                office: this.offices.find(o => o._id === fv.officeId) ?? this.data.user.office,
+                hrRepresentative:
+                    this.users.find(u => u._id === fv.hrRepresentativeId) ?? this.data.user.hrRepresentative,
+                firstName: payload.firstName,
+                lastName: payload.lastName,
+                legalName: payload.legalName,
+                personalEmail: payload.personalEmail,
+                gender: payload.gender,
+                birthday: payload.birthday,
+                maritalStatus: payload.maritalStatus,
+                nationalities: payload.nationalities,
+                religion: payload.religion,
+                workPhone: payload.workPhone,
+                personalPhone: payload.personalPhone,
+                homeCountryPhone: payload.homeCountryPhone,
+                employmentDate: payload.employmentDate,
+                employmentType: payload.employmentType,
+                payrollId: payload.payrollId,
             };
 
             if (this.selectedProfileImage) {

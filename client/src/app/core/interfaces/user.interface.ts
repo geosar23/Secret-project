@@ -116,6 +116,29 @@ export interface ICreateUserRequest {
     countryId?: string;
     employmentTitleId?: string;
     managerId?: string;
+    departmentId?: string;
+    levelId?: string;
+    officeId?: string;
+    hrRepresentativeId?: string;
+    // Identity
+    legalName?: string;
+    firstName?: string;
+    lastName?: string;
+    personalEmail?: string;
+    gender?: string;
+    birthday?: string;
+    maritalStatus?: string;
+    nationalities?: string[];
+    religion?: string;
+    // Contact
+    workPhone?: string;
+    personalPhone?: string;
+    homeCountryPhone?: string;
+    // Employment
+    employmentDate?: string;
+    employmentType?: string;
+    payrollId?: string;
+    isOutsourced?: boolean;
 }
 
 export interface IUpdateUserRequest {
@@ -127,6 +150,29 @@ export interface IUpdateUserRequest {
     employmentTitleId?: string;
     managerId?: string;
     isActive?: boolean;
+    departmentId?: string;
+    levelId?: string;
+    officeId?: string;
+    hrRepresentativeId?: string;
+    // Identity
+    legalName?: string;
+    firstName?: string;
+    lastName?: string;
+    personalEmail?: string;
+    gender?: string;
+    birthday?: string;
+    maritalStatus?: string;
+    nationalities?: string[];
+    religion?: string;
+    // Contact
+    workPhone?: string;
+    personalPhone?: string;
+    homeCountryPhone?: string;
+    // Employment
+    employmentDate?: string;
+    employmentType?: string;
+    payrollId?: string;
+    isOutsourced?: boolean;
 }
 
 export interface IUsersListResponse {

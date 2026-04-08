@@ -2,8 +2,11 @@
 
 <mat-dialog-content>
     <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+        <!-- ── ACCOUNT ── -->
+        <p class="section-label">Account</p>
+
         <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Name</mat-label>
+            <mat-label>Display Name *</mat-label>
             <input matInput formControlName="name" placeholder="Full name" />
             @if (userForm.get("name")?.hasError("required") && userForm.get("name")?.touched) {
                 <mat-error>Name is required</mat-error>
@@ -14,7 +17,7 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Email</mat-label>
+            <mat-label>Work Email *</mat-label>
             <input matInput type="email" formControlName="email" placeholder="user@example.com" />
             @if (userForm.get("email")?.hasError("required") && userForm.get("email")?.touched) {
                 <mat-error>Email is required</mat-error>
@@ -25,7 +28,7 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Role</mat-label>
+            <mat-label>Role *</mat-label>
             <mat-select formControlName="role">
                 @if (rolesLoading) {
                     <mat-option disabled>Loading roles...</mat-option>
@@ -51,38 +54,13 @@
         }
 
         <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Country</mat-label>
+            <mat-label>Country *</mat-label>
             <mat-select formControlName="countryId">
                 @if (countriesLoading) {
                     <mat-option disabled>Loading countries...</mat-option>
                 }
                 @for (country of countries; track country._id) {
                     <mat-option [value]="country._id">{{ country.name }}</mat-option>
-                }
-            </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Employment Title</mat-label>
-            <mat-select formControlName="employmentTitleId">
-                @if (employmentTitlesLoading) {
-                    <mat-option disabled>Loading employment titles...</mat-option>
-                }
-                @for (employmentTitle of employmentTitles; track employmentTitle._id) {
-                    <mat-option [value]="employmentTitle._id">{{ employmentTitle.name }}</mat-option>
-                }
-            </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Manager</mat-label>
-            <mat-select formControlName="managerId">
-                <mat-option value="">No manager</mat-option>
-                @if (usersLoading) {
-                    <mat-option disabled>Loading users...</mat-option>
-                }
-                @for (user of users; track user._id) {
-                    <mat-option [value]="user._id">{{ user.name }}</mat-option>
                 }
             </mat-select>
         </mat-form-field>
@@ -112,6 +90,223 @@
                 <p class="selected-image-name">Selected: {{ selectedProfileImage.name }}</p>
             }
         </div>
+
+        <!-- ── IDENTITY ── -->
+        <p class="section-label">Identity</p>
+
+        <div class="two-col">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>First Name</mat-label>
+                <input matInput formControlName="firstName" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Last Name</mat-label>
+                <input matInput formControlName="lastName" />
+            </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Legal Name</mat-label>
+            <input matInput formControlName="legalName" placeholder="As it appears on official documents" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Personal Email</mat-label>
+            <input matInput type="email" formControlName="personalEmail" />
+            @if (userForm.get("personalEmail")?.hasError("email")) {
+                <mat-error>Invalid email format</mat-error>
+            }
+        </mat-form-field>
+
+        <div class="two-col">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Gender</mat-label>
+                <mat-select formControlName="gender">
+                    <mat-option value="">—</mat-option>
+                    @for (g of genderOptions; track g) {
+                        <mat-option [value]="g">{{ g | titlecase }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Marital Status</mat-label>
+                <mat-select formControlName="maritalStatus">
+                    <mat-option value="">—</mat-option>
+                    @for (s of maritalStatusOptions; track s) {
+                        <mat-option [value]="s">{{ s | titlecase }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Date of Birth</mat-label>
+            <input matInput [matDatepicker]="birthdayPicker" formControlName="birthday" />
+            <mat-datepicker-toggle matSuffix [for]="birthdayPicker"></mat-datepicker-toggle>
+            <mat-datepicker #birthdayPicker startView="multi-year"></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Religion</mat-label>
+            <input matInput formControlName="religion" />
+        </mat-form-field>
+
+        <!-- Nationalities chip input -->
+        <div class="chip-field">
+            <label class="chip-label">Nationalities</label>
+            <div class="chip-row">
+                <mat-form-field appearance="outline" class="chip-input">
+                    <mat-label>Add nationality</mat-label>
+                    <input
+                        matInput
+                        [(ngModel)]="nationalityInput"
+                        [ngModelOptions]="{ standalone: true }"
+                        (keydown.enter)="addNationality(); $event.preventDefault()"
+                    />
+                </mat-form-field>
+                <button mat-icon-button type="button" (click)="addNationality()" [disabled]="!nationalityInput">
+                    <mat-icon>add</mat-icon>
+                </button>
+            </div>
+            @if (nationalitiesArray.length > 0) {
+                <mat-chip-set>
+                    @for (n of nationalitiesArray.controls; track $index) {
+                        <mat-chip (removed)="removeNationality($index)">
+                            {{ n.value }}
+                            <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                        </mat-chip>
+                    }
+                </mat-chip-set>
+            }
+        </div>
+
+        <!-- ── EMPLOYMENT ── -->
+        <p class="section-label">Employment</p>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Employment Title *</mat-label>
+            <mat-select formControlName="employmentTitleId">
+                @if (employmentTitlesLoading) {
+                    <mat-option disabled>Loading employment titles...</mat-option>
+                }
+                @for (et of employmentTitles; track et._id) {
+                    <mat-option [value]="et._id">{{ et.name }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        <div class="two-col">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Employment Type</mat-label>
+                <mat-select formControlName="employmentType">
+                    <mat-option value="">—</mat-option>
+                    @for (t of employmentTypeOptions; track t) {
+                        <mat-option [value]="t">{{ t | titlecase }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Start Date</mat-label>
+                <input matInput [matDatepicker]="empDatePicker" formControlName="employmentDate" />
+                <mat-datepicker-toggle matSuffix [for]="empDatePicker"></mat-datepicker-toggle>
+                <mat-datepicker #empDatePicker></mat-datepicker>
+            </mat-form-field>
+        </div>
+
+        <div class="two-col">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Department</mat-label>
+                <mat-select formControlName="departmentId">
+                    <mat-option value="">—</mat-option>
+                    @if (departmentsLoading) {
+                        <mat-option disabled>Loading...</mat-option>
+                    }
+                    @for (d of departments; track d._id) {
+                        <mat-option [value]="d._id">{{ d.name }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Level</mat-label>
+                <mat-select formControlName="levelId">
+                    <mat-option value="">—</mat-option>
+                    @if (levelsLoading) {
+                        <mat-option disabled>Loading...</mat-option>
+                    }
+                    @for (l of levels; track l._id) {
+                        <mat-option [value]="l._id">{{ l.name }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <div class="two-col">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Office</mat-label>
+                <mat-select formControlName="officeId">
+                    <mat-option value="">—</mat-option>
+                    @if (officesLoading) {
+                        <mat-option disabled>Loading...</mat-option>
+                    }
+                    @for (o of offices; track o._id) {
+                        <mat-option [value]="o._id">{{ o.name }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Manager</mat-label>
+                <mat-select formControlName="managerId">
+                    <mat-option value="">No manager</mat-option>
+                    @if (usersLoading) {
+                        <mat-option disabled>Loading...</mat-option>
+                    }
+                    @for (u of users; track u._id) {
+                        <mat-option [value]="u._id">{{ u.name }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>HR Representative</mat-label>
+            <mat-select formControlName="hrRepresentativeId">
+                <mat-option value="">—</mat-option>
+                @if (usersLoading) {
+                    <mat-option disabled>Loading...</mat-option>
+                }
+                @for (u of users; track u._id) {
+                    <mat-option [value]="u._id">{{ u.name }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Payroll ID</mat-label>
+            <input matInput formControlName="payrollId" />
+        </mat-form-field>
+
+        <div class="toggle-row">
+            <mat-slide-toggle formControlName="isOutsourced" color="primary">Outsourced Employee</mat-slide-toggle>
+        </div>
+
+        <!-- ── CONTACT ── -->
+        <p class="section-label">Contact</p>
+
+        <div class="two-col">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Work Phone</mat-label>
+                <input matInput formControlName="workPhone" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Personal Phone</mat-label>
+                <input matInput formControlName="personalPhone" />
+            </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Home Country Phone</mat-label>
+            <input matInput formControlName="homeCountryPhone" />
+        </mat-form-field>
     </form>
 </mat-dialog-content>
 
