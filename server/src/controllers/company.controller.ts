@@ -2,7 +2,7 @@
 import { Response, NextFunction, Request } from "express";
 import { AuthenticatedRequest } from "../interfaces/auth.interface";
 import { CompanyService } from "../services/company.service";
-import { success, softError } from "../util/response.util";
+import { success, softError } from "../utils/response.util";
 
 export class CompanyController {
     static async getAll(_req: Request, res: Response, next: NextFunction): Promise<void> {

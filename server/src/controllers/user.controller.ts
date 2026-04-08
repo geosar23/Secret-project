@@ -3,7 +3,7 @@ import { NextFunction, Response } from "express";
 import { UserService } from "../services/user.service";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { IAddress, IEducationEntry, IEmergencyContact, IUser, IUsersQueryParams } from "../interfaces/user.interface";
-import { success, softError } from "../util/response.util";
+import { success, softError } from "../utils/response.util";
 import { buildUserSearchAccessQuery, canManageUser } from "../policies/user.policy";
 import { DefaultUserRoles } from "../enums/user-role.enum";
 import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";

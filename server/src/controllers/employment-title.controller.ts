@@ -2,7 +2,7 @@
 import { NextFunction, Response } from "express";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { EmploymentTitleService } from "../services/employment-title.service";
-import { softError, success } from "../util/response.util";
+import { softError, success } from "../utils/response.util";
 
 export class EmploymentTitleController {
     static async getAll(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {

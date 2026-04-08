@@ -2,7 +2,7 @@
 import { NextFunction, Response } from "express";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { OfficeService } from "../services/office.service";
-import { softError, success } from "../util/response.util";
+import { softError, success } from "../utils/response.util";
 import { isValidObjectId } from "../utils/field-sanitizer.util";
 import { IAddress } from "../interfaces/user.interface";
 

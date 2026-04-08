@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Response, NextFunction } from "express";
 import { RoleService } from "../services/role.service";
-import { success, softError } from "../util/response.util";
+import { success, softError } from "../utils/response.util";
 import { IRole } from "../interfaces/role.interface";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { UserService } from "../services/user.service";

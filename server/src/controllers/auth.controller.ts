@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import { AuthService } from "../services/auth.service";
 import { UserService } from "../services/user.service";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
-import { success, softError } from "../util/response.util";
+import { success, softError } from "../utils/response.util";
 
 export const AuthController = {
     login: async (req: Request, res: Response) => {

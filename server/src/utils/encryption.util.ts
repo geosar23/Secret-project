@@ -2,7 +2,7 @@ import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
 import { config } from "../config/env";
 
 function getKey(): Buffer {
-    return Buffer.from(config.ENCRYPTION_KEY, "hex");
+    return Buffer.from(config.SALARY_ENCRYPTION_KEY, "hex");
 }
 
 export function encryptString(plaintext: string): string {

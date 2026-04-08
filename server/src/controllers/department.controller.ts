@@ -3,7 +3,7 @@ import { NextFunction, Response } from "express";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { IDepartment } from "../interfaces/department.interface";
 import { DepartmentService } from "../services/department.service";
-import { softError, success } from "../util/response.util";
+import { softError, success } from "../utils/response.util";
 import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";
 
 type DepartmentFieldMap = FieldMap<IDepartment>;
