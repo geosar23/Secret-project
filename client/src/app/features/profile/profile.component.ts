@@ -20,6 +20,12 @@ import { skipWhile, takeUntil } from "rxjs/operators";
 import { ChangePasswordDialogComponent } from "./change-password-dialog/change-password-dialog.component";
 import { EditUserDialogComponent, EditUserDialogData } from "../users/edit-user-dialog/edit-user-dialog.component";
 import { ProfileAddressPipe } from "./profile-address.pipe";
+import {
+    GENDER_LABELS,
+    MARITAL_STATUS_LABELS,
+    EMPLOYMENT_TYPE_LABELS,
+    DEGREE_LEVEL_LABELS,
+} from "../../core/enums/profile.enum";
 @Component({
     selector: "app-profile",
     standalone: true,
@@ -46,6 +52,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private toast = inject(ToastService);
 
     private destroy$ = new Subject<void>();
+
+    readonly genderLabels: Record<string, string> = GENDER_LABELS;
+    readonly maritalStatusLabels: Record<string, string> = MARITAL_STATUS_LABELS;
+    readonly employmentTypeLabels: Record<string, string> = EMPLOYMENT_TYPE_LABELS;
+    readonly degreeLevelLabels: Record<string, string> = DEGREE_LEVEL_LABELS;
 
     profile: UserProfile | null = null;
     profileImageUrl: string | null = null;

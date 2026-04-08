@@ -93,7 +93,9 @@
                         @if (profile.gender) {
                             <div class="info-row">
                                 <span class="label">Gender</span>
-                                <span class="value">{{ profile.gender | titlecase }}</span>
+                                <span class="value">{{
+                                    genderLabels[profile.gender] || (profile.gender | titlecase)
+                                }}</span>
                             </div>
                         }
                         @if (profile.birthday) {
@@ -105,7 +107,9 @@
                         @if (profile.maritalStatus) {
                             <div class="info-row">
                                 <span class="label">Marital Status</span>
-                                <span class="value">{{ profile.maritalStatus | titlecase }}</span>
+                                <span class="value">{{
+                                    maritalStatusLabels[profile.maritalStatus] ?? (profile.maritalStatus | titlecase)
+                                }}</span>
                             </div>
                         }
                         @if (profile.religion) {
@@ -244,7 +248,9 @@
                         @if (profile.employmentType) {
                             <div class="info-row">
                                 <span class="label">Employment Type</span>
-                                <span class="value">{{ profile.employmentType | titlecase }}</span>
+                                <span class="value">{{
+                                    employmentTypeLabels[profile.employmentType] ?? (profile.employmentType | titlecase)
+                                }}</span>
                             </div>
                         }
                         @if (profile.employmentDate) {
@@ -309,7 +315,9 @@
                                     <div class="edu-title">{{ entry.institution }}</div>
                                     <div class="edu-sub">
                                         @if (entry.degreeLevel) {
-                                            <span>{{ entry.degreeLevel | titlecase }}</span>
+                                            <span>{{
+                                                degreeLevelLabels[entry.degreeLevel] ?? (entry.degreeLevel | titlecase)
+                                            }}</span>
                                         }
                                         @if (entry.degreeTitle) {
                                             <span>{{ entry.degreeTitle }}</span>

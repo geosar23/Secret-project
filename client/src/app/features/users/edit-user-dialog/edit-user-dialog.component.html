@@ -123,8 +123,8 @@
                 <mat-label>Gender</mat-label>
                 <mat-select formControlName="gender">
                     <mat-option value="">—</mat-option>
-                    @for (g of genderOptions; track g) {
-                        <mat-option [value]="g">{{ g | titlecase }}</mat-option>
+                    @for (option of genderOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
                     }
                 </mat-select>
             </mat-form-field>
@@ -132,8 +132,8 @@
                 <mat-label>Marital Status</mat-label>
                 <mat-select formControlName="maritalStatus">
                     <mat-option value="">—</mat-option>
-                    @for (s of maritalStatusOptions; track s) {
-                        <mat-option [value]="s">{{ s | titlecase }}</mat-option>
+                    @for (option of maritalStatusOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
                     }
                 </mat-select>
             </mat-form-field>
@@ -200,8 +200,8 @@
                 <mat-label>Employment Type</mat-label>
                 <mat-select formControlName="employmentType">
                     <mat-option value="">—</mat-option>
-                    @for (t of employmentTypeOptions; track t) {
-                        <mat-option [value]="t">{{ t | titlecase }}</mat-option>
+                    @for (option of employmentTypeOptions; track option.value) {
+                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
                     }
                 </mat-select>
             </mat-form-field>

@@ -39,14 +39,11 @@ import { IDepartment } from "../../../core/interfaces/department.interface";
 import { LoadingButtonComponent } from "../../../shared/components/loading-button/loading-button.component";
 import { firstValueFrom } from "rxjs";
 import { ProfileImageUploadComponent } from "../../../shared/components/profile-image-upload/profile-image-upload.component";
+import { GENDER_OPTIONS, MARITAL_STATUS_OPTIONS, EMPLOYMENT_TYPE_OPTIONS } from "../../../core/enums/profile.enum";
 
 export interface EditUserDialogData {
     user: IUser;
 }
-
-const GENDER_OPTIONS = ["male", "female", "non_binary", "prefer_not_to_say", "other"] as const;
-const MARITAL_STATUS_OPTIONS = ["single", "married", "divorced", "widowed", "separated", "other"] as const;
-const EMPLOYMENT_TYPE_OPTIONS = ["full_time", "part_time", "contractor", "intern"] as const;
 
 @Component({
     selector: "app-edit-user-dialog",
