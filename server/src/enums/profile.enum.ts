@@ -29,3 +29,13 @@ export enum DegreeLevel {
     PHD = "phd",
     OTHER = "other",
 }
+
+export enum DocumentType {
+    PASSPORT = "passport",
+    NATIONAL_ID = "national_id",
+    VISA = "visa",
+    WORK_PERMIT = "work_permit",
+    RESIDENCE_PERMIT = "residence_permit",
+    DRIVING_LICENSE = "driving_license",
+    OTHER = "other",
+}

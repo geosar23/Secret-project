@@ -9,6 +9,7 @@ import subDepartmentsRouter from "../routes/sub-department.routes";
 import employmentTitlesRouter from "../routes/employment-title.routes";
 import levelsRouter from "../routes/level.routes";
 import officesRouter from "../routes/office.routes";
+import userDocumentsRouter from "../routes/user-document.routes";
 import { authMiddleware } from "../middleware/auth.middleware";
 
 const router = Router();
@@ -27,5 +28,6 @@ router.use("/sub-departments", authMiddleware as RequestHandler, subDepartmentsR
 router.use("/employment-titles", authMiddleware as RequestHandler, employmentTitlesRouter);
 router.use("/levels", authMiddleware as RequestHandler, levelsRouter);
 router.use("/offices", authMiddleware as RequestHandler, officesRouter);
+router.use("/user-documents", authMiddleware as RequestHandler, userDocumentsRouter);
 
 export default router;

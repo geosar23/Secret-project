@@ -113,7 +113,7 @@ Status legend:
         - **Education**: `education[{ institution, degreeLevel (enum), degreeTitle, yearAchieved }]`
         - **Compensation**: `salary` (AES-256-GCM encrypted string; excluded from list endpoints, decrypted on single-user fetch)
         - New reference collections: `Levels` and `Offices` (company-scoped, full CRUD at `/api/levels` and `/api/offices`)
-    - [ ] **Phase 2 — Documents.** `UserDocuments` collection for passport / national ID / visa: type, documentNumber, expiryDate, issuingCountry, attachmentPath (Supabase Storage).
+    - [x] **Phase 2 — Documents.** `UserDocuments` collection (passport / national ID / visa / work permit etc): `type` (enum), `documentNumber`, `expiryDate`, `issuingCountry`, `notes`, `attachment` (Supabase Storage, PDF or image ≤10 MB). Full CRUD at `/api/user-documents`. Signed-URL and delete-attachment endpoints included.
     - [ ] **UI grouping.** Admin user form and employee profile page reorganized into labelled sections: Identity, Contact, Employment, Education.
     - [ ] Field-level validation is implemented (format/range/required rules where applicable).
     - [ ] Existing users can be migrated/updated safely without breaking old records.

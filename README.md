@@ -158,6 +158,7 @@ The backend provides REST API endpoints under `/api`:
 - **Employment Titles**: `/api/employment-titles/*` — Employment title CRUD
 - **Levels**: `/api/levels/*` — Seniority level CRUD (company-scoped)
 - **Offices**: `/api/offices/*` — Office location CRUD (company-scoped)
+- **User Documents**: `/api/user-documents/*` — Employee identity documents (passport, national ID, visa etc.) with Supabase Storage attachment support
 
 ## Key Features
 

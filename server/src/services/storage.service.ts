@@ -87,4 +87,30 @@ export const StorageService = {
             throw new Error(`Supabase remove failed: ${error.message}`);
         }
     },
+
+    uploadUserDocument: async (params: {
+        companyId: string;
+        userId: string;
+        documentId: string;
+        fileBuffer: Buffer;
+        originalName: string;
+        mimeType: string;
+    }) => {
+        const bucket = StorageService.getBucketName();
+        const supabase = getSupabaseClient();
+
+        const safeName = sanitizeFileName(params.originalName);
+        const path = `${params.companyId}/users/${params.userId}/documents/${params.documentId}/${safeName}`;
+
+        const { error } = await supabase.storage.from(bucket).upload(path, params.fileBuffer, {
+            contentType: params.mimeType,
+            upsert: true,
+        });
+
+        if (error) {
+            throw new Error(`Supabase upload failed: ${error.message}`);
+        }
+
+        return { bucket, path };
+    },
 };
