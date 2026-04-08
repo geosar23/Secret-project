@@ -19,6 +19,7 @@ import { Subject } from "rxjs";
 import { skipWhile, takeUntil } from "rxjs/operators";
 import { ChangePasswordDialogComponent } from "./change-password-dialog/change-password-dialog.component";
 import { EditUserDialogComponent, EditUserDialogData } from "../users/edit-user-dialog/edit-user-dialog.component";
+import { ProfileAddressPipe } from "./profile-address.pipe";
 @Component({
     selector: "app-profile",
     standalone: true,
@@ -32,6 +33,7 @@ import { EditUserDialogComponent, EditUserDialogData } from "../users/edit-user-
         MatIconModule,
         MatChipsModule,
         MatDividerModule,
+        ProfileAddressPipe,
     ],
     templateUrl: "./profile.component.html",
     styleUrls: ["./profile.component.scss"],

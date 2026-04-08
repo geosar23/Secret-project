@@ -183,6 +183,50 @@
         margin: var(--spacing-md) 0 0;
         border: 1px dashed var(--color-border-primary);
     }
+
+    .address-value {
+        white-space: pre-line;
+        line-height: 1.5;
+    }
+
+    .subtext {
+        font-size: var(--font-size-xs);
+        color: var(--color-text-secondary);
+    }
+
+    .education-list {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+        padding: var(--spacing-sm) 0 var(--spacing-md);
+
+        .education-entry {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-left: 3px solid var(--color-primary, #2a6cff);
+            background-color: var(--color-background-secondary);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+
+            .edu-title {
+                font-size: var(--font-size-sm);
+                font-weight: 600;
+                color: var(--color-text-primary);
+            }
+
+            .edu-sub {
+                display: flex;
+                flex-wrap: wrap;
+                gap: var(--spacing-xs);
+                margin-top: var(--spacing-xs);
+                font-size: var(--font-size-xs);
+                color: var(--color-text-secondary);
+
+                span + span::before {
+                    content: "·";
+                    margin-right: var(--spacing-xs);
+                }
+            }
+        }
+    }
 }
 
 .profile-image-section {

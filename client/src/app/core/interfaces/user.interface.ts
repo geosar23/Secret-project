@@ -13,6 +13,40 @@ export interface IProfileImage {
     uploadedAt: Date;
 }
 
+export interface IAddress {
+    line1?: string;
+    line2?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+}
+
+export interface IEmergencyContact {
+    name?: string;
+    relationship?: string;
+    phone?: string;
+}
+
+export interface IEducationEntry {
+    institution?: string;
+    degreeLevel?: string;
+    degreeTitle?: string;
+    yearAchieved?: number;
+}
+
+export interface ILevel {
+    _id: string;
+    name: string;
+    order?: number;
+}
+
+export interface IOffice {
+    _id: string;
+    name: string;
+    address?: IAddress;
+}
+
 export interface IUser {
     _id?: string;
     name: string;
@@ -21,16 +55,51 @@ export interface IUser {
 
     // Role & Organization
     role: IRole;
-    company?: ICompany; // null only for GOD role
+    company?: ICompany;
     country?: ICountry;
     employmentTitle?: IEmploymentTitle;
     department?: IDepartment;
-    manager?: IUser; // Direct manager's user ID
-    managedDepartments?: IDepartment[]; // For managers - departments they manage
+    manager?: IUser;
+    managedDepartments?: IDepartment[];
+    level?: ILevel;
+    office?: IOffice;
+    hrRepresentative?: IUser;
+
+    // Identity
+    legalName?: string;
+    firstName?: string;
+    lastName?: string;
+    personalEmail?: string;
+    gender?: string;
+    birthday?: string | Date;
+    maritalStatus?: string;
+    nationalities?: string[];
+    religion?: string;
+
+    // Contact
+    workPhone?: string;
+    personalPhone?: string;
+    additionalPhones?: string[];
+    currentAddress?: IAddress;
+    homeCountryAddress?: IAddress;
+    homeCountryPhone?: string;
+    emergencyContact?: IEmergencyContact;
+
+    // Employment
+    employmentDate?: string | Date;
+    employmentType?: string;
+    payrollId?: string;
+    isOutsourced?: boolean;
+
+    // Education
+    education?: IEducationEntry[];
+
+    // Compensation
+    salary?: string;
 
     // Custom permissions
-    grantedPermissions?: string[]; // Additional permissions granted
-    revokedPermissions?: string[]; // Role permissions that are revoked
+    grantedPermissions?: string[];
+    revokedPermissions?: string[];
     profileImage?: IProfileImage;
 
     isActive?: boolean;
