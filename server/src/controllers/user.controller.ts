@@ -9,8 +9,9 @@ import { DefaultUserRoles } from "../enums/user-role.enum";
 import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";
 import { isValidPermissionKey } from "../utils/permission-checker";
 import { StorageService } from "../services/storage.service";
-import { getEffectivePermissions } from "../utils/permission-checker";
+import { getEffectivePermissions, matchesWildcard } from "../utils/permission-checker";
 import { encryptString } from "../utils/encryption.util";
+import { USER_FIELD_GROUPS } from "../constants/userFieldGroups";
 
 type UserFieldMap = FieldMap<IUser>;
 
@@ -292,6 +293,23 @@ export class UserController {
             if (!canManageUser(actorUser as IUser, user as IUser)) {
                 res.json(softError("Insufficient permissions to update this user"));
                 return;
+            }
+
+            // Section-level permission check (skip for self-edit)
+            const isSelfEdit = requestingUser.id === userId;
+            if (!isSelfEdit) {
+                const actorPerms = getEffectivePermissions(actorUser as IUser);
+                const body = req.body as Record<string, unknown>;
+                for (const [permKey, fields] of Object.entries(USER_FIELD_GROUPS)) {
+                    const touchesSection = fields.some(f => f in body);
+                    if (touchesSection && !matchesWildcard(actorPerms, permKey)) {
+                        res.status(403).json({
+                            message: "Insufficient permissions to edit this profile section",
+                            required: permKey,
+                        });
+                        return;
+                    }
+                }
             }
 
             const actorRole = (actorUser as IUser & { role?: { role?: string } }).role;

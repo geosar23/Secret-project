@@ -100,6 +100,12 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
     officesLoading = false;
 
     canViewCrossCompany = this.permissionService.canViewCrossCompany();
+    canEditIdentity = this.permissionService.canEditUserIdentity();
+    canEditContact = this.permissionService.canEditUserContact();
+    canEditEmployment = this.permissionService.canEditUserEmployment();
+    canEditEducation = this.permissionService.canEditUserEducation();
+    canEditCompensation = this.permissionService.canEditUserCompensation();
+
     companies: ICompany[] = this.localUser?.company ? [this.localUser.company] : [];
     countries: ICountry[] = [];
     roles: IRole[] = [];
@@ -123,35 +129,69 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
         // Core
         name: [this.u.name, [Validators.required, Validators.minLength(2)]],
         email: [this.u.email, [Validators.required, Validators.email]],
-        role: [this.u.role?._id ?? "", Validators.required],
+        role: [{ value: this.u.role?._id ?? "", disabled: !this.canEditEmployment }, Validators.required],
         companyId: [this.u.company?._id ?? this.localUser?.company?._id ?? ""],
         countryId: [this.u.country?._id ?? "", Validators.required],
-        employmentTitleId: [this.u.employmentTitle?._id ?? "", Validators.required],
-        managerId: [this.u.manager?._id ?? ""],
-        departmentId: [(this.u.department as IDepartment)?._id ?? ""],
-        levelId: [this.u.level?._id ?? ""],
-        officeId: [this.u.office?._id ?? ""],
-        hrRepresentativeId: [this.u.hrRepresentative?._id ?? ""],
+        employmentTitleId: [
+            { value: this.u.employmentTitle?._id ?? "", disabled: !this.canEditEmployment },
+            Validators.required,
+        ],
+        managerId: [{ value: this.u.manager?._id ?? "", disabled: !this.canEditEmployment }],
+        departmentId: [{ value: (this.u.department as IDepartment)?._id ?? "", disabled: !this.canEditEmployment }],
+        levelId: [{ value: this.u.level?._id ?? "", disabled: !this.canEditEmployment }],
+        officeId: [{ value: this.u.office?._id ?? "", disabled: !this.canEditEmployment }],
+        hrRepresentativeId: [{ value: this.u.hrRepresentative?._id ?? "", disabled: !this.canEditEmployment }],
         isActive: [this.u.isActive ?? true],
-        isOutsourced: [this.u.isOutsourced ?? false],
+        isOutsourced: [{ value: this.u.isOutsourced ?? false, disabled: !this.canEditEmployment }],
         // Identity
-        firstName: [this.u.firstName ?? ""],
-        lastName: [this.u.lastName ?? ""],
-        legalName: [this.u.legalName ?? ""],
-        personalEmail: [this.u.personalEmail ?? "", Validators.email],
-        gender: [this.u.gender ?? ""],
-        birthday: [this.u.birthday ? new Date(this.u.birthday) : (null as Date | null)],
-        maritalStatus: [this.u.maritalStatus ?? ""],
+        firstName: [{ value: this.u.firstName ?? "", disabled: !this.canEditIdentity }],
+        lastName: [{ value: this.u.lastName ?? "", disabled: !this.canEditIdentity }],
+        legalName: [{ value: this.u.legalName ?? "", disabled: !this.canEditIdentity }],
+        personalEmail: [{ value: this.u.personalEmail ?? "", disabled: !this.canEditIdentity }, Validators.email],
+        gender: [{ value: this.u.gender ?? "", disabled: !this.canEditIdentity }],
+        birthday: [
+            { value: this.u.birthday ? new Date(this.u.birthday) : (null as Date | null), disabled: !this.canEditIdentity },
+        ],
+        maritalStatus: [{ value: this.u.maritalStatus ?? "", disabled: !this.canEditIdentity }],
         nationalities: this.fb.array((this.u.nationalities ?? []).map(n => this.fb.control(n) as FormControl<string>)),
-        religion: [this.u.religion ?? ""],
+        religion: [{ value: this.u.religion ?? "", disabled: !this.canEditIdentity }],
         // Contact
-        workPhone: [this.u.workPhone ?? ""],
-        personalPhone: [this.u.personalPhone ?? ""],
-        homeCountryPhone: [this.u.homeCountryPhone ?? ""],
+        workPhone: [{ value: this.u.workPhone ?? "", disabled: !this.canEditContact }],
+        personalPhone: [{ value: this.u.personalPhone ?? "", disabled: !this.canEditContact }],
+        homeCountryPhone: [{ value: this.u.homeCountryPhone ?? "", disabled: !this.canEditContact }],
         // Employment
-        employmentDate: [this.u.employmentDate ? new Date(this.u.employmentDate) : (null as Date | null)],
-        employmentType: [this.u.employmentType ?? ""],
-        payrollId: [this.u.payrollId ?? ""],
+        employmentDate: [
+            { value: this.u.employmentDate ? new Date(this.u.employmentDate) : (null as Date | null), disabled: !this.canEditEmployment },
+        ],
+        employmentType: [{ value: this.u.employmentType ?? "", disabled: !this.canEditEmployment }],
+        payrollId: [{ value: this.u.payrollId ?? "", disabled: !this.canEditEmployment }],
+        // Compensation
+        salary: [{ value: "", disabled: !this.canEditCompensation }],
+    });
+        // Identity
+        firstName: [{ value: this.u.firstName ?? "", disabled: !this.canEditIdentity }],
+        lastName: [{ value: this.u.lastName ?? "", disabled: !this.canEditIdentity }],
+        legalName: [{ value: this.u.legalName ?? "", disabled: !this.canEditIdentity }],
+        personalEmail: [{ value: this.u.personalEmail ?? "", disabled: !this.canEditIdentity }, Validators.email],
+        gender: [{ value: this.u.gender ?? "", disabled: !this.canEditIdentity }],
+        birthday: [
+            { value: this.u.birthday ? new Date(this.u.birthday) : (null as Date | null), disabled: !this.canEditIdentity },
+        ],
+        maritalStatus: [{ value: this.u.maritalStatus ?? "", disabled: !this.canEditIdentity }],
+        nationalities: this.fb.array((this.u.nationalities ?? []).map(n => this.fb.control(n) as FormControl<string>)),
+        religion: [{ value: this.u.religion ?? "", disabled: !this.canEditIdentity }],
+        // Contact
+        workPhone: [{ value: this.u.workPhone ?? "", disabled: !this.canEditContact }],
+        personalPhone: [{ value: this.u.personalPhone ?? "", disabled: !this.canEditContact }],
+        homeCountryPhone: [{ value: this.u.homeCountryPhone ?? "", disabled: !this.canEditContact }],
+        // Employment
+        employmentDate: [
+            { value: this.u.employmentDate ? new Date(this.u.employmentDate) : (null as Date | null), disabled: !this.canEditEmployment },
+        ],
+        employmentType: [{ value: this.u.employmentType ?? "", disabled: !this.canEditEmployment }],
+        payrollId: [{ value: this.u.payrollId ?? "", disabled: !this.canEditEmployment }],
+        // Compensation
+        salary: [{ value: "", disabled: !this.canEditCompensation }],
     });
 
     get nationalitiesArray(): FormArray<FormControl<string>> {
@@ -308,6 +348,7 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
             employmentDate: Date | null;
             employmentType: string;
             payrollId: string;
+            salary: string;
         };
 
         const payload: IUpdateUserRequest = {
@@ -339,6 +380,7 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
             employmentDate: fv.employmentDate ? (fv.employmentDate as Date).toISOString() : undefined,
             employmentType: fv.employmentType || undefined,
             payrollId: fv.payrollId || undefined,
+            ...(this.canEditCompensation && fv.salary ? { salary: fv.salary } : {}),
         };
 
         const hasImageChanges = !!this.selectedProfileImage || this.removeProfileImageRequested;

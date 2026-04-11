@@ -27,18 +27,6 @@
             }
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Role *</mat-label>
-            <mat-select formControlName="role">
-                @if (rolesLoading) {
-                    <mat-option disabled>Loading roles...</mat-option>
-                }
-                @for (role of roles; track role._id) {
-                    <mat-option [value]="role._id">{{ role.name }}</mat-option>
-                }
-            </mat-select>
-        </mat-form-field>
-
         @if (canViewCrossCompany) {
             <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Company</mat-label>
@@ -92,7 +80,12 @@
         </div>
 
         <!-- ── IDENTITY ── -->
-        <p class="section-label">Identity</p>
+        <p class="section-label">
+            Identity
+            @if (!canEditIdentity) {
+                <span class="section-readonly-badge">read-only</span>
+            }
+        </p>
 
         <div class="two-col">
             <mat-form-field appearance="outline" class="full-width">
@@ -161,19 +154,22 @@
                         matInput
                         [(ngModel)]="nationalityInput"
                         [ngModelOptions]="{ standalone: true }"
-                        (keydown.enter)="addNationality(); $event.preventDefault()"
+                        [disabled]="!canEditIdentity"
+                        (keydown.enter)="canEditIdentity && addNationality(); $event.preventDefault()"
                     />
                 </mat-form-field>
-                <button mat-icon-button type="button" (click)="addNationality()" [disabled]="!nationalityInput">
+                <button mat-icon-button type="button" (click)="addNationality()" [disabled]="!nationalityInput || !canEditIdentity">
                     <mat-icon>add</mat-icon>
                 </button>
             </div>
             @if (nationalitiesArray.length > 0) {
                 <mat-chip-set>
                     @for (n of nationalitiesArray.controls; track $index) {
-                        <mat-chip (removed)="removeNationality($index)">
+                        <mat-chip (removed)="canEditIdentity && removeNationality($index)">
                             {{ n.value }}
-                            <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                            @if (canEditIdentity) {
+                                <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                            }
                         </mat-chip>
                     }
                 </mat-chip-set>
@@ -181,7 +177,24 @@
         </div>
 
         <!-- ── EMPLOYMENT ── -->
-        <p class="section-label">Employment</p>
+        <p class="section-label">
+            Employment
+            @if (!canEditEmployment) {
+                <span class="section-readonly-badge">read-only</span>
+            }
+        </p>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Role *</mat-label>
+            <mat-select formControlName="role">
+                @if (rolesLoading) {
+                    <mat-option disabled>Loading roles...</mat-option>
+                }
+                @for (role of roles; track role._id) {
+                    <mat-option [value]="role._id">{{ role.name }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Employment Title *</mat-label>
@@ -290,7 +303,12 @@
         </div>
 
         <!-- ── CONTACT ── -->
-        <p class="section-label">Contact</p>
+        <p class="section-label">
+            Contact
+            @if (!canEditContact) {
+                <span class="section-readonly-badge">read-only</span>
+            }
+        </p>
 
         <div class="two-col">
             <mat-form-field appearance="outline" class="full-width">
@@ -307,6 +325,16 @@
             <mat-label>Home Country Phone</mat-label>
             <input matInput formControlName="homeCountryPhone" />
         </mat-form-field>
+
+        <!-- ── COMPENSATION ── -->
+        @if (canEditCompensation) {
+            <p class="section-label">Compensation</p>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Salary</mat-label>
+                <input matInput formControlName="salary" placeholder="Enter new salary (leave blank to keep unchanged)" />
+            </mat-form-field>
+        }
     </form>
 </mat-dialog-content>
 

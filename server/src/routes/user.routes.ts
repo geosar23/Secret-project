@@ -9,7 +9,17 @@ router.get("/", UserController.getUsers);
 router.get("/effective-permissions", UserController.getEffectivePermissions);
 router.get("/:id", UserController.getById);
 router.put("/:id", UserController.update);
-router.post("/", UserController.create); //TODO: NOT TESTED
+router.post(
+    "/",
+    userHasAnyPermission([
+        PermissionKeys.ALL,
+        PermissionKeys.ALL_COMPANY,
+        PermissionKeys.USERS_MANAGEMENT_ALL_ALL,
+        PermissionKeys.USERS_MANAGEMENT_ALL_COMPANY,
+        PermissionKeys.CAN_CREATE_USER,
+    ]),
+    UserController.create,
+);
 router.put("/:id/change-password", UserController.changePassword); //TODO: NOT TESTED
 router.post("/:id/profile-image", uploadProfileImage.single("image"), UserController.uploadProfileImage);
 router.get("/:id/profile-image-url", UserController.getProfileImageUrl);

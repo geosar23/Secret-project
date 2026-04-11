@@ -79,6 +79,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     countryControl = new FormControl<string>("");
     isActiveControl = new FormControl<string>("");
     canFilterAllCompanies = false;
+    canCreateUser = false;
 
     private updateDisplayedColumns(): void {
         const base = ["name", "email", "role"];
@@ -213,6 +214,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     private loadPermissionDrivenFilters() {
+        this.canCreateUser = this.permissionService.canCreateUser();
         this.permissionService.canViewCrossCompany$.pipe(takeUntil(this.destroy$)).subscribe(canView => {
             this.canFilterAllCompanies = canView;
             this.updateDisplayedColumns();

@@ -173,6 +173,8 @@ export interface IUpdateUserRequest {
     employmentType?: string;
     payrollId?: string;
     isOutsourced?: boolean;
+    // Compensation
+    salary?: string;
 }
 
 export interface IUsersListResponse {
