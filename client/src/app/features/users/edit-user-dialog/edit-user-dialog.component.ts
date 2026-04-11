@@ -166,32 +166,7 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
         employmentType: [{ value: this.u.employmentType ?? "", disabled: !this.canEditEmployment }],
         payrollId: [{ value: this.u.payrollId ?? "", disabled: !this.canEditEmployment }],
         // Compensation
-        salary: [{ value: "", disabled: !this.canEditCompensation }],
-    });
-        // Identity
-        firstName: [{ value: this.u.firstName ?? "", disabled: !this.canEditIdentity }],
-        lastName: [{ value: this.u.lastName ?? "", disabled: !this.canEditIdentity }],
-        legalName: [{ value: this.u.legalName ?? "", disabled: !this.canEditIdentity }],
-        personalEmail: [{ value: this.u.personalEmail ?? "", disabled: !this.canEditIdentity }, Validators.email],
-        gender: [{ value: this.u.gender ?? "", disabled: !this.canEditIdentity }],
-        birthday: [
-            { value: this.u.birthday ? new Date(this.u.birthday) : (null as Date | null), disabled: !this.canEditIdentity },
-        ],
-        maritalStatus: [{ value: this.u.maritalStatus ?? "", disabled: !this.canEditIdentity }],
-        nationalities: this.fb.array((this.u.nationalities ?? []).map(n => this.fb.control(n) as FormControl<string>)),
-        religion: [{ value: this.u.religion ?? "", disabled: !this.canEditIdentity }],
-        // Contact
-        workPhone: [{ value: this.u.workPhone ?? "", disabled: !this.canEditContact }],
-        personalPhone: [{ value: this.u.personalPhone ?? "", disabled: !this.canEditContact }],
-        homeCountryPhone: [{ value: this.u.homeCountryPhone ?? "", disabled: !this.canEditContact }],
-        // Employment
-        employmentDate: [
-            { value: this.u.employmentDate ? new Date(this.u.employmentDate) : (null as Date | null), disabled: !this.canEditEmployment },
-        ],
-        employmentType: [{ value: this.u.employmentType ?? "", disabled: !this.canEditEmployment }],
-        payrollId: [{ value: this.u.payrollId ?? "", disabled: !this.canEditEmployment }],
-        // Compensation
-        salary: [{ value: "", disabled: !this.canEditCompensation }],
+        salary: [{ value: this.u.salary ?? "", disabled: !this.canEditCompensation }],
     });
 
     get nationalitiesArray(): FormArray<FormControl<string>> {
