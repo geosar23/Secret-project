@@ -68,6 +68,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     private permissionService = inject(PermissionService);
 
     loading = false;
+    canCreateUser = this.permissionService.canCreateUser();
 
     roles: IRole[] = [];
     companies: ICompany[] = [];

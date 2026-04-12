@@ -27,11 +27,18 @@ export enum PermissionScopes {
     MANAGED = "managed",
     OWN = "own",
     SELF = "self",
+    IDENTITY = "identity",
+    CONTACT = "contact",
+    EMPLOYMENT = "employment",
+    EDUCATION = "education",
+    COMPENSATION = "compensation",
 }
 
 export enum PermissionActions {
     ALL = "*",
     READ = "read",
+    CREATE = "create",
+    WRITE = "write",
 }
 
 //PermissionCategory:PermissionAction:PermissionScope
@@ -86,6 +93,13 @@ export const PermissionKeys = {
     ROLES_MANAGEMENT_ALL_COMPANY: `${PermissionCategories.ROLES_MANAGEMENT}:${PermissionActions.ALL}:${PermissionScopes.COMPANY}`,
     ROLES_MANAGEMENT_VIEW_ALL: `${PermissionCategories.ROLES_MANAGEMENT}:${PermissionActions.READ}:${PermissionScopes.ALL}`,
     ROLES_MANAGEMENT_VIEW_COMPANY: `${PermissionCategories.ROLES_MANAGEMENT}:${PermissionActions.READ}:${PermissionScopes.COMPANY}`,
+
+    CAN_CREATE_USER: `${PermissionCategories.USERS_MANAGEMENT}:${PermissionActions.CREATE}:${PermissionScopes.ALL}`,
+    CAN_EDIT_USER_IDENTITY: `${PermissionCategories.USER_PROFILE}:${PermissionActions.WRITE}:${PermissionScopes.IDENTITY}`,
+    CAN_EDIT_USER_CONTACT: `${PermissionCategories.USER_PROFILE}:${PermissionActions.WRITE}:${PermissionScopes.CONTACT}`,
+    CAN_EDIT_USER_EMPLOYMENT: `${PermissionCategories.USER_PROFILE}:${PermissionActions.WRITE}:${PermissionScopes.EMPLOYMENT}`,
+    CAN_EDIT_USER_EDUCATION: `${PermissionCategories.USER_PROFILE}:${PermissionActions.WRITE}:${PermissionScopes.EDUCATION}`,
+    CAN_EDIT_USER_COMPENSATION: `${PermissionCategories.USER_PROFILE}:${PermissionActions.WRITE}:${PermissionScopes.COMPENSATION}`,
 } as const;
 
 export const PERMISSIONS: Record<PermissionKey, PermissionDefinition> = {
@@ -462,5 +476,59 @@ export const PERMISSIONS: Record<PermissionKey, PermissionDefinition> = {
         scopes: [PermissionScopes.COMPANY],
         name: "View company roles",
         description: "Can view roles within own company",
+    },
+
+    [PermissionKeys.CAN_CREATE_USER]: {
+        key: PermissionKeys.CAN_CREATE_USER,
+        category: PermissionCategories.USERS_MANAGEMENT,
+        action: PermissionActions.CREATE,
+        scopes: [PermissionScopes.ALL],
+        name: "Create user",
+        description: "Can create new users",
+    },
+
+    [PermissionKeys.CAN_EDIT_USER_IDENTITY]: {
+        key: PermissionKeys.CAN_EDIT_USER_IDENTITY,
+        category: PermissionCategories.USER_PROFILE,
+        action: PermissionActions.WRITE,
+        scopes: [PermissionScopes.IDENTITY],
+        name: "Edit user identity",
+        description: "Can edit identity section of user profiles",
+    },
+
+    [PermissionKeys.CAN_EDIT_USER_CONTACT]: {
+        key: PermissionKeys.CAN_EDIT_USER_CONTACT,
+        category: PermissionCategories.USER_PROFILE,
+        action: PermissionActions.WRITE,
+        scopes: [PermissionScopes.CONTACT],
+        name: "Edit user contact",
+        description: "Can edit contact section of user profiles",
+    },
+
+    [PermissionKeys.CAN_EDIT_USER_EMPLOYMENT]: {
+        key: PermissionKeys.CAN_EDIT_USER_EMPLOYMENT,
+        category: PermissionCategories.USER_PROFILE,
+        action: PermissionActions.WRITE,
+        scopes: [PermissionScopes.EMPLOYMENT],
+        name: "Edit user employment",
+        description: "Can edit employment section of user profiles",
+    },
+
+    [PermissionKeys.CAN_EDIT_USER_EDUCATION]: {
+        key: PermissionKeys.CAN_EDIT_USER_EDUCATION,
+        category: PermissionCategories.USER_PROFILE,
+        action: PermissionActions.WRITE,
+        scopes: [PermissionScopes.EDUCATION],
+        name: "Edit user education",
+        description: "Can edit education section of user profiles",
+    },
+
+    [PermissionKeys.CAN_EDIT_USER_COMPENSATION]: {
+        key: PermissionKeys.CAN_EDIT_USER_COMPENSATION,
+        category: PermissionCategories.USER_PROFILE,
+        action: PermissionActions.WRITE,
+        scopes: [PermissionScopes.COMPENSATION],
+        name: "Edit user compensation",
+        description: "Can edit compensation section of user profiles",
     },
 };

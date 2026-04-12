@@ -41,6 +41,7 @@ export interface IUser {
     role: Types.ObjectId;
     company?: Types.ObjectId;
     department?: Types.ObjectId;
+    subDepartment?: Types.ObjectId;
     country?: Types.ObjectId;
     employmentTitle?: Types.ObjectId;
     manager?: Types.ObjectId;

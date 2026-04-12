@@ -3,6 +3,7 @@ import { ICountry } from "./country.interface";
 import { IDepartment } from "./department.interface";
 import { IEmploymentTitle } from "./employment-title.interface";
 import { IRole } from "./role.interface";
+import { ISubDepartment } from "./sub-department.interface";
 
 export interface IProfileImage {
     bucket: string;
@@ -59,6 +60,7 @@ export interface IUser {
     country?: ICountry;
     employmentTitle?: IEmploymentTitle;
     department?: IDepartment;
+    subDepartment?: ISubDepartment;
     manager?: IUser;
     managedDepartments?: IDepartment[];
     level?: ILevel;
@@ -168,11 +170,20 @@ export interface IUpdateUserRequest {
     workPhone?: string;
     personalPhone?: string;
     homeCountryPhone?: string;
+    additionalPhones?: string[];
+    currentAddress?: IAddress;
+    homeCountryAddress?: IAddress;
+    emergencyContact?: IEmergencyContact;
     // Employment
     employmentDate?: string;
     employmentType?: string;
     payrollId?: string;
     isOutsourced?: boolean;
+    subDepartmentId?: string;
+    // Education
+    education?: IEducationEntry[];
+    // Compensation
+    salary?: string;
 }
 
 export interface IUsersListResponse {

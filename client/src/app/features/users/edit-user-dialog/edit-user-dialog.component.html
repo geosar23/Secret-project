@@ -92,7 +92,12 @@
         </div>
 
         <!-- ── IDENTITY ── -->
-        <p class="section-label">Identity</p>
+        <p class="section-label">
+            Identity
+            @if (!canEditIdentity) {
+                <span class="read-only-badge">Read only</span>
+            }
+        </p>
 
         <div class="two-col">
             <mat-form-field appearance="outline" class="full-width">
@@ -181,7 +186,12 @@
         </div>
 
         <!-- ── EMPLOYMENT ── -->
-        <p class="section-label">Employment</p>
+        <p class="section-label">
+            Employment
+            @if (!canEditEmployment) {
+                <span class="read-only-badge">Read only</span>
+            }
+        </p>
 
         <mat-form-field appearance="outline" class="full-width">
             <mat-label>Employment Title *</mat-label>
@@ -240,6 +250,19 @@
             </mat-form-field>
         </div>
 
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Sub-Department</mat-label>
+            <mat-select formControlName="subDepartmentId">
+                <mat-option value="">—</mat-option>
+                @if (subDepartmentsLoading) {
+                    <mat-option disabled>Loading...</mat-option>
+                }
+                @for (sd of subDepartments; track sd._id) {
+                    <mat-option [value]="sd._id">{{ sd.name }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
         <div class="two-col">
             <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Office</mat-label>
@@ -290,7 +313,12 @@
         </div>
 
         <!-- ── CONTACT ── -->
-        <p class="section-label">Contact</p>
+        <p class="section-label">
+            Contact
+            @if (!canEditContact) {
+                <span class="read-only-badge">Read only</span>
+            }
+        </p>
 
         <div class="two-col">
             <mat-form-field appearance="outline" class="full-width">
@@ -307,6 +335,194 @@
             <mat-label>Home Country Phone</mat-label>
             <input matInput formControlName="homeCountryPhone" />
         </mat-form-field>
+
+        <!-- Additional Phones chip input -->
+        <div class="chip-field">
+            <label class="chip-label">Additional Phones</label>
+            <div class="chip-row">
+                <mat-form-field appearance="outline" class="chip-input">
+                    <mat-label>Add phone</mat-label>
+                    <input
+                        matInput
+                        [(ngModel)]="additionalPhoneInput"
+                        [ngModelOptions]="{ standalone: true }"
+                        (keydown.enter)="addPhone(); $event.preventDefault()"
+                        [disabled]="!canEditContact"
+                    />
+                </mat-form-field>
+                <button
+                    mat-icon-button
+                    type="button"
+                    (click)="addPhone()"
+                    [disabled]="!additionalPhoneInput || !canEditContact"
+                >
+                    <mat-icon>add</mat-icon>
+                </button>
+            </div>
+            @if (additionalPhonesArray.length > 0) {
+                <mat-chip-set>
+                    @for (p of additionalPhonesArray.controls; track $index) {
+                        <mat-chip (removed)="removePhone($index)">
+                            {{ p.value }}
+                            <button matChipRemove [disabled]="!canEditContact">
+                                <mat-icon>cancel</mat-icon>
+                            </button>
+                        </mat-chip>
+                    }
+                </mat-chip-set>
+            }
+        </div>
+
+        <!-- Current Address -->
+        <p class="subsection-label">Current Address</p>
+        <ng-container formGroupName="currentAddress">
+            <div class="two-col">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Line 1</mat-label>
+                    <input matInput formControlName="line1" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Line 2</mat-label>
+                    <input matInput formControlName="line2" />
+                </mat-form-field>
+            </div>
+            <div class="two-col">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>City</mat-label>
+                    <input matInput formControlName="city" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>State / Province</mat-label>
+                    <input matInput formControlName="state" />
+                </mat-form-field>
+            </div>
+            <div class="two-col">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Postal Code</mat-label>
+                    <input matInput formControlName="postalCode" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Country</mat-label>
+                    <input matInput formControlName="country" />
+                </mat-form-field>
+            </div>
+        </ng-container>
+
+        <!-- Home Country Address -->
+        <p class="subsection-label">Home Country Address</p>
+        <ng-container formGroupName="homeCountryAddress">
+            <div class="two-col">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Line 1</mat-label>
+                    <input matInput formControlName="line1" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Line 2</mat-label>
+                    <input matInput formControlName="line2" />
+                </mat-form-field>
+            </div>
+            <div class="two-col">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>City</mat-label>
+                    <input matInput formControlName="city" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>State / Province</mat-label>
+                    <input matInput formControlName="state" />
+                </mat-form-field>
+            </div>
+            <div class="two-col">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Postal Code</mat-label>
+                    <input matInput formControlName="postalCode" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Country</mat-label>
+                    <input matInput formControlName="country" />
+                </mat-form-field>
+            </div>
+        </ng-container>
+
+        <!-- Emergency Contact -->
+        <p class="subsection-label">Emergency Contact</p>
+        <ng-container formGroupName="emergencyContact">
+            <div class="two-col">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Name</mat-label>
+                    <input matInput formControlName="name" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Relationship</mat-label>
+                    <input matInput formControlName="relationship" />
+                </mat-form-field>
+            </div>
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Phone</mat-label>
+                <input matInput formControlName="phone" />
+            </mat-form-field>
+        </ng-container>
+
+        <!-- ── EDUCATION ── -->
+        <p class="section-label">
+            Education
+            @if (!canEditEducation) {
+                <span class="read-only-badge">Read only</span>
+            }
+        </p>
+        <div formArrayName="education">
+            @for (entry of educationArray.controls; track $index; let i = $index) {
+                <div [formGroupName]="i" class="education-entry-form">
+                    <div class="two-col">
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Institution</mat-label>
+                            <input matInput formControlName="institution" />
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Degree Level</mat-label>
+                            <mat-select formControlName="degreeLevel">
+                                <mat-option value="">—</mat-option>
+                                @for (opt of degreeLevelOptions; track opt.value) {
+                                    <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+                                }
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <div class="two-col">
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Degree Title</mat-label>
+                            <input matInput formControlName="degreeTitle" />
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Year Achieved</mat-label>
+                            <input matInput type="number" formControlName="yearAchieved" />
+                        </mat-form-field>
+                    </div>
+                    @if (canEditEducation) {
+                        <button mat-stroked-button type="button" color="warn" (click)="removeEducation(i)">
+                            <mat-icon>delete</mat-icon> Remove
+                        </button>
+                    }
+                </div>
+            }
+            @if (canEditEducation) {
+                <button mat-stroked-button type="button" (click)="addEducation()">
+                    <mat-icon>add</mat-icon> Add Education
+                </button>
+            }
+            @if (educationArray.length === 0) {
+                <p class="empty-state">No education entries.</p>
+            }
+        </div>
+
+        <!-- ── COMPENSATION ── -->
+        @if (canEditCompensation) {
+            <p class="section-label">Compensation</p>
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Salary</mat-label>
+                <input matInput formControlName="salary" placeholder="Leave blank to keep unchanged" />
+                <mat-hint>Enter new value to update salary. Leave blank to keep current.</mat-hint>
+            </mat-form-field>
+        }
     </form>
 </mat-dialog-content>
 

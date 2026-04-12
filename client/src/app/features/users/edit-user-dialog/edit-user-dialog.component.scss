@@ -128,3 +128,34 @@ mat-dialog-actions {
     font-size: var(--font-size-sm);
     color: var(--color-text-secondary);
 }
+
+.read-only-badge {
+    font-size: 0.7rem;
+    background: #e0e0e0;
+    color: #666;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 8px;
+    vertical-align: middle;
+    font-weight: normal;
+}
+
+.subsection-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #666;
+    margin: 12px 0 4px 0;
+}
+
+.education-entry-form {
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 8px;
+}
+
+.empty-state {
+    color: #999;
+    font-style: italic;
+    font-size: 0.9rem;
+}

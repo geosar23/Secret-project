@@ -7,10 +7,11 @@ import { success, softError } from "../utils/response.util";
 import { buildUserSearchAccessQuery, canManageUser } from "../policies/user.policy";
 import { DefaultUserRoles } from "../enums/user-role.enum";
 import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";
-import { isValidPermissionKey } from "../utils/permission-checker";
+import { isValidPermissionKey, matchesWildcard } from "../utils/permission-checker";
 import { StorageService } from "../services/storage.service";
 import { getEffectivePermissions } from "../utils/permission-checker";
 import { encryptString } from "../utils/encryption.util";
+import { USER_FIELD_GROUPS } from "../constants/userFieldGroups";
 
 type UserFieldMap = FieldMap<IUser>;
 
@@ -224,6 +225,13 @@ export class UserController {
                     pointerClass: "Users",
                     allowUnset: true,
                 },
+                subDepartmentId: {
+                    type: "string",
+                    targetField: "subDepartment",
+                    isPointer: true,
+                    pointerClass: "SubDepartments",
+                    allowUnset: true,
+                },
                 legalName: { type: "string", targetField: "legalName", allowUnset: true },
                 firstName: { type: "string", targetField: "firstName", allowUnset: true },
                 lastName: { type: "string", targetField: "lastName", allowUnset: true },
@@ -294,6 +302,25 @@ export class UserController {
                 return;
             }
 
+            // Section-level permission checks (skip for self-edits)
+            const actorId = requestingUser.id;
+            const isSelfEdit = actorId === userId;
+
+            if (!isSelfEdit) {
+                const actorPerms = getEffectivePermissions(actorUser as IUser);
+                const body = req.body as Record<string, unknown>;
+                for (const [permKey, fields] of Object.entries(USER_FIELD_GROUPS)) {
+                    const touchesSection = fields.some(f => f in body);
+                    if (touchesSection && !matchesWildcard(actorPerms, permKey)) {
+                        res.status(403).json({
+                            message: "Insufficient permissions to edit this profile section",
+                            required: permKey,
+                        });
+                        return;
+                    }
+                }
+            }
+
             const actorRole = (actorUser as IUser & { role?: { role?: string } }).role;
             const actorRoleKey = typeof actorRole === "object" && actorRole ? actorRole.role : undefined;
 
@@ -362,6 +389,13 @@ export class UserController {
                     targetField: "hrRepresentative",
                     isPointer: true,
                     pointerClass: "Users",
+                    allowUnset: true,
+                },
+                subDepartmentId: {
+                    type: "string",
+                    targetField: "subDepartment",
+                    isPointer: true,
+                    pointerClass: "SubDepartments",
                     allowUnset: true,
                 },
                 legalName: { type: "string", targetField: "legalName", allowUnset: true },
