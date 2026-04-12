@@ -8,6 +8,12 @@ export enum PermissionCategories {
     COUNTRIES_MANAGEMENT = "countriesManagement",
     USER_PROFILE = "userProfile",
     ROLES_MANAGEMENT = "rolesManagement",
+    CREATE_PROFILE = "createProfile",
+    EDIT_PROFILE_IDENTITY = "editProfileIdentity",
+    EDIT_PROFILE_CONTACT = "editProfileContact",
+    EDIT_PROFILE_EMPLOYMENT = "editProfileEmployment",
+    EDIT_PROFILE_EDUCATION = "editProfileEducation",
+    EDIT_PROFILE_COMPENSATION = "editProfileCompensation",
 }
 
 export const PermissionCategoriesStrings: Record<PermissionCategories, string> = {
@@ -16,6 +22,12 @@ export const PermissionCategoriesStrings: Record<PermissionCategories, string> =
     [PermissionCategories.COUNTRIES_MANAGEMENT]: "Countries Management",
     [PermissionCategories.USER_PROFILE]: "User Profile",
     [PermissionCategories.ROLES_MANAGEMENT]: "Roles Management",
+    [PermissionCategories.CREATE_PROFILE]: "Create Profile",
+    [PermissionCategories.EDIT_PROFILE_IDENTITY]: "Edit Profile Identity",
+    [PermissionCategories.EDIT_PROFILE_CONTACT]: "Edit Profile Contact",
+    [PermissionCategories.EDIT_PROFILE_EMPLOYMENT]: "Edit Profile Employment",
+    [PermissionCategories.EDIT_PROFILE_EDUCATION]: "Edit Profile Education",
+    [PermissionCategories.EDIT_PROFILE_COMPENSATION]: "Edit Profile Compensation",
 };
 
 export enum PermissionScopes {
@@ -32,12 +44,6 @@ export enum PermissionScopes {
 export enum PermissionActions {
     ALL = "*",
     READ = "read",
-    CREATE_PROFILE = "createProfile",
-    EDIT_IDENTITY = "editIdentity",
-    EDIT_CONTACT = "editContact",
-    EDIT_EMPLOYMENT = "editEmployment",
-    EDIT_EDUCATION = "editEducation",
-    EDIT_COMPENSATION = "editCompensation",
 }
 
 //PermissionCategory:PermissionAction:PermissionScope
@@ -93,12 +99,12 @@ export const PermissionKeys = {
     ROLES_MANAGEMENT_VIEW_ALL: `${PermissionCategories.ROLES_MANAGEMENT}:${PermissionActions.READ}:${PermissionScopes.ALL}`,
     ROLES_MANAGEMENT_VIEW_COMPANY: `${PermissionCategories.ROLES_MANAGEMENT}:${PermissionActions.READ}:${PermissionScopes.COMPANY}`,
 
-    CAN_CREATE_USER: `${PermissionCategories.USERS_MANAGEMENT}:${PermissionActions.CREATE_PROFILE}:${PermissionScopes.ALL}`,
-    CAN_EDIT_USER_IDENTITY: `${PermissionCategories.USER_PROFILE}:${PermissionActions.EDIT_IDENTITY}:${PermissionScopes.ALL}`,
-    CAN_EDIT_USER_CONTACT: `${PermissionCategories.USER_PROFILE}:${PermissionActions.EDIT_CONTACT}:${PermissionScopes.ALL}`,
-    CAN_EDIT_USER_EMPLOYMENT: `${PermissionCategories.USER_PROFILE}:${PermissionActions.EDIT_EMPLOYMENT}:${PermissionScopes.ALL}`,
-    CAN_EDIT_USER_EDUCATION: `${PermissionCategories.USER_PROFILE}:${PermissionActions.EDIT_EDUCATION}:${PermissionScopes.ALL}`,
-    CAN_EDIT_USER_COMPENSATION: `${PermissionCategories.USER_PROFILE}:${PermissionActions.EDIT_COMPENSATION}:${PermissionScopes.ALL}`,
+    CAN_CREATE_USER: `${PermissionCategories.CREATE_PROFILE}:${PermissionActions.ALL}:${PermissionScopes.ALL}`,
+    CAN_EDIT_USER_IDENTITY: `${PermissionCategories.EDIT_PROFILE_IDENTITY}:${PermissionActions.ALL}:${PermissionScopes.ALL}`,
+    CAN_EDIT_USER_CONTACT: `${PermissionCategories.EDIT_PROFILE_CONTACT}:${PermissionActions.ALL}:${PermissionScopes.ALL}`,
+    CAN_EDIT_USER_EMPLOYMENT: `${PermissionCategories.EDIT_PROFILE_EMPLOYMENT}:${PermissionActions.ALL}:${PermissionScopes.ALL}`,
+    CAN_EDIT_USER_EDUCATION: `${PermissionCategories.EDIT_PROFILE_EDUCATION}:${PermissionActions.ALL}:${PermissionScopes.ALL}`,
+    CAN_EDIT_USER_COMPENSATION: `${PermissionCategories.EDIT_PROFILE_COMPENSATION}:${PermissionActions.ALL}:${PermissionScopes.ALL}`,
 } as const;
 
 export const PERMISSIONS: Record<PermissionKey, PermissionDefinition> = {
@@ -479,8 +485,8 @@ export const PERMISSIONS: Record<PermissionKey, PermissionDefinition> = {
 
     [PermissionKeys.CAN_CREATE_USER]: {
         key: PermissionKeys.CAN_CREATE_USER,
-        category: PermissionCategories.USERS_MANAGEMENT,
-        action: PermissionActions.CREATE_PROFILE,
+        category: PermissionCategories.CREATE_PROFILE,
+        action: PermissionActions.ALL,
         scopes: [PermissionScopes.ALL],
         name: "Create user",
         description: "Can create new users",
@@ -488,8 +494,8 @@ export const PERMISSIONS: Record<PermissionKey, PermissionDefinition> = {
 
     [PermissionKeys.CAN_EDIT_USER_IDENTITY]: {
         key: PermissionKeys.CAN_EDIT_USER_IDENTITY,
-        category: PermissionCategories.USER_PROFILE,
-        action: PermissionActions.EDIT_IDENTITY,
+        category: PermissionCategories.EDIT_PROFILE_IDENTITY,
+        action: PermissionActions.ALL,
         scopes: [PermissionScopes.ALL],
         name: "Edit user identity",
         description: "Can edit identity section of user profiles",
@@ -497,8 +503,8 @@ export const PERMISSIONS: Record<PermissionKey, PermissionDefinition> = {
 
     [PermissionKeys.CAN_EDIT_USER_CONTACT]: {
         key: PermissionKeys.CAN_EDIT_USER_CONTACT,
-        category: PermissionCategories.USER_PROFILE,
-        action: PermissionActions.EDIT_CONTACT,
+        category: PermissionCategories.EDIT_PROFILE_CONTACT,
+        action: PermissionActions.ALL,
         scopes: [PermissionScopes.ALL],
         name: "Edit user contact",
         description: "Can edit contact section of user profiles",
@@ -506,8 +512,8 @@ export const PERMISSIONS: Record<PermissionKey, PermissionDefinition> = {
 
     [PermissionKeys.CAN_EDIT_USER_EMPLOYMENT]: {
         key: PermissionKeys.CAN_EDIT_USER_EMPLOYMENT,
-        category: PermissionCategories.USER_PROFILE,
-        action: PermissionActions.EDIT_EMPLOYMENT,
+        category: PermissionCategories.EDIT_PROFILE_EMPLOYMENT,
+        action: PermissionActions.ALL,
         scopes: [PermissionScopes.ALL],
         name: "Edit user employment",
         description: "Can edit employment section of user profiles",
@@ -515,8 +521,8 @@ export const PERMISSIONS: Record<PermissionKey, PermissionDefinition> = {
 
     [PermissionKeys.CAN_EDIT_USER_EDUCATION]: {
         key: PermissionKeys.CAN_EDIT_USER_EDUCATION,
-        category: PermissionCategories.USER_PROFILE,
-        action: PermissionActions.EDIT_EDUCATION,
+        category: PermissionCategories.EDIT_PROFILE_EDUCATION,
+        action: PermissionActions.ALL,
         scopes: [PermissionScopes.ALL],
         name: "Edit user education",
         description: "Can edit education section of user profiles",
@@ -524,8 +530,8 @@ export const PERMISSIONS: Record<PermissionKey, PermissionDefinition> = {
 
     [PermissionKeys.CAN_EDIT_USER_COMPENSATION]: {
         key: PermissionKeys.CAN_EDIT_USER_COMPENSATION,
-        category: PermissionCategories.USER_PROFILE,
-        action: PermissionActions.EDIT_COMPENSATION,
+        category: PermissionCategories.EDIT_PROFILE_COMPENSATION,
+        action: PermissionActions.ALL,
         scopes: [PermissionScopes.ALL],
         name: "Edit user compensation",
         description: "Can edit compensation section of user profiles",
