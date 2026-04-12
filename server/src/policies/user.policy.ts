@@ -154,3 +154,124 @@ export function canManageUserProfile(actorUser: IUser, targetUser: IUser): boole
         [PermissionKeys.USER_PROFILE_ALL_SELF, PermissionScopes.SELF],
     ]);
 }
+
+/** Can the actor write (edit) a target user's profile (userProfile:write:{scope})? */
+export function canWriteUserProfile(actorUser: IUser, targetUser: IUser): boolean {
+    return checkScopedAccess(actorUser, targetUser, [
+        [PermissionKeys.USER_PROFILE_WRITE_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USER_PROFILE_WRITE_COMPANY, PermissionScopes.COMPANY],
+        [PermissionKeys.USER_PROFILE_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USER_PROFILE_WRITE_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USER_PROFILE_WRITE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USER_PROFILE_WRITE_MANAGED, PermissionScopes.MANAGED],
+        [PermissionKeys.USER_PROFILE_WRITE_OWN, PermissionScopes.OWN],
+        [PermissionKeys.USER_PROFILE_WRITE_SELF, PermissionScopes.SELF],
+    ]);
+}
+
+/** Can the actor create a new user in the scope covering the target context? */
+export function canCreateUserProfile(actorUser: IUser, targetUser: IUser): boolean {
+    return checkScopedAccess(actorUser, targetUser, [
+        [PermissionKeys.USER_PROFILE_CREATE_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USER_PROFILE_CREATE_COMPANY, PermissionScopes.COMPANY],
+        [PermissionKeys.USER_PROFILE_CREATE_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USER_PROFILE_CREATE_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USER_PROFILE_CREATE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USER_PROFILE_CREATE_MANAGED, PermissionScopes.MANAGED],
+        [PermissionKeys.USER_PROFILE_CREATE_OWN, PermissionScopes.OWN],
+        [PermissionKeys.USER_PROFILE_CREATE_SELF, PermissionScopes.SELF],
+    ]);
+}
+
+/**
+ * Can the actor write a specific profile section for a target user?
+ * Accepts the section's write permission keys (all scopes) to check against.
+ *
+ * Example usage:
+ *   canWriteUserProfileSection(actor, target, [
+ *     [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_ALL, PermissionScopes.ALL],
+ *     [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_COUNTRY, PermissionScopes.COUNTRY],
+ *     ...
+ *   ])
+ */
+export function canWriteUserProfileSection(
+    actorUser: IUser,
+    targetUser: IUser,
+    sectionScopePairs: [string, PermissionScopes][],
+): boolean {
+    // A write on the full profile also covers any section
+    if (canWriteUserProfile(actorUser, targetUser) || canManageUserProfile(actorUser, targetUser)) {
+        return true;
+    }
+    return checkScopedAccess(actorUser, targetUser, sectionScopePairs);
+}
+
+/** Can the actor write the identity section of a target user's profile? */
+export function canWriteUserProfileIdentity(actorUser: IUser, targetUser: IUser): boolean {
+    return canWriteUserProfileSection(actorUser, targetUser, [
+        [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_COMPANY, PermissionScopes.COMPANY],
+        [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_MANAGED, PermissionScopes.MANAGED],
+        [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_OWN, PermissionScopes.OWN],
+        [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_SELF, PermissionScopes.SELF],
+    ]);
+}
+
+/** Can the actor write the contact section of a target user's profile? */
+export function canWriteUserProfileContact(actorUser: IUser, targetUser: IUser): boolean {
+    return canWriteUserProfileSection(actorUser, targetUser, [
+        [PermissionKeys.USER_PROFILE_CONTACT_WRITE_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USER_PROFILE_CONTACT_WRITE_COMPANY, PermissionScopes.COMPANY],
+        [PermissionKeys.USER_PROFILE_CONTACT_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USER_PROFILE_CONTACT_WRITE_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USER_PROFILE_CONTACT_WRITE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USER_PROFILE_CONTACT_WRITE_MANAGED, PermissionScopes.MANAGED],
+        [PermissionKeys.USER_PROFILE_CONTACT_WRITE_OWN, PermissionScopes.OWN],
+        [PermissionKeys.USER_PROFILE_CONTACT_WRITE_SELF, PermissionScopes.SELF],
+    ]);
+}
+
+/** Can the actor write the employment section of a target user's profile? */
+export function canWriteUserProfileEmployment(actorUser: IUser, targetUser: IUser): boolean {
+    return canWriteUserProfileSection(actorUser, targetUser, [
+        [PermissionKeys.USER_PROFILE_EMPLOYMENT_WRITE_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USER_PROFILE_EMPLOYMENT_WRITE_COMPANY, PermissionScopes.COMPANY],
+        [PermissionKeys.USER_PROFILE_EMPLOYMENT_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USER_PROFILE_EMPLOYMENT_WRITE_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USER_PROFILE_EMPLOYMENT_WRITE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USER_PROFILE_EMPLOYMENT_WRITE_MANAGED, PermissionScopes.MANAGED],
+        [PermissionKeys.USER_PROFILE_EMPLOYMENT_WRITE_OWN, PermissionScopes.OWN],
+        [PermissionKeys.USER_PROFILE_EMPLOYMENT_WRITE_SELF, PermissionScopes.SELF],
+    ]);
+}
+
+/** Can the actor write the education section of a target user's profile? */
+export function canWriteUserProfileEducation(actorUser: IUser, targetUser: IUser): boolean {
+    return canWriteUserProfileSection(actorUser, targetUser, [
+        [PermissionKeys.USER_PROFILE_EDUCATION_WRITE_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USER_PROFILE_EDUCATION_WRITE_COMPANY, PermissionScopes.COMPANY],
+        [PermissionKeys.USER_PROFILE_EDUCATION_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USER_PROFILE_EDUCATION_WRITE_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USER_PROFILE_EDUCATION_WRITE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USER_PROFILE_EDUCATION_WRITE_MANAGED, PermissionScopes.MANAGED],
+        [PermissionKeys.USER_PROFILE_EDUCATION_WRITE_OWN, PermissionScopes.OWN],
+        [PermissionKeys.USER_PROFILE_EDUCATION_WRITE_SELF, PermissionScopes.SELF],
+    ]);
+}
+
+/** Can the actor write the compensation section of a target user's profile? */
+export function canWriteUserProfileCompensation(actorUser: IUser, targetUser: IUser): boolean {
+    return canWriteUserProfileSection(actorUser, targetUser, [
+        [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_COMPANY, PermissionScopes.COMPANY],
+        [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_MANAGED, PermissionScopes.MANAGED],
+        [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_OWN, PermissionScopes.OWN],
+        [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_SELF, PermissionScopes.SELF],
+    ]);
+}
