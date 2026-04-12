@@ -1,5 +1,7 @@
+import { PermissionKeys } from "../enums/permissions.enum";
+
 export const USER_FIELD_GROUPS: Record<string, string[]> = {
-    "userProfile:write:identity": [
+    [PermissionKeys.CAN_EDIT_USER_IDENTITY]: [
         "legalName",
         "firstName",
         "lastName",
@@ -10,7 +12,7 @@ export const USER_FIELD_GROUPS: Record<string, string[]> = {
         "nationalities",
         "religion",
     ],
-    "userProfile:write:contact": [
+    [PermissionKeys.CAN_EDIT_USER_CONTACT]: [
         "workPhone",
         "personalPhone",
         "additionalPhones",
@@ -19,7 +21,7 @@ export const USER_FIELD_GROUPS: Record<string, string[]> = {
         "homeCountryPhone",
         "emergencyContact",
     ],
-    "userProfile:write:employment": [
+    [PermissionKeys.CAN_EDIT_USER_EMPLOYMENT]: [
         "employmentDate",
         "employmentType",
         "payrollId",
@@ -42,6 +44,6 @@ export const USER_FIELD_GROUPS: Record<string, string[]> = {
         "companyId",
         "role",
     ],
-    "userProfile:write:education": ["education"],
-    "userProfile:write:compensation": ["salary"],
+    [PermissionKeys.CAN_EDIT_USER_EDUCATION]: ["education"],
+    [PermissionKeys.CAN_EDIT_USER_COMPENSATION]: ["salary"],
 };

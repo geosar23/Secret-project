@@ -12,6 +12,8 @@ import { StorageService } from "../services/storage.service";
 import { getEffectivePermissions } from "../utils/permission-checker";
 import { encryptString } from "../utils/encryption.util";
 import { USER_FIELD_GROUPS } from "../constants/userFieldGroups";
+import { PERMISSIONS } from "../enums/permissions.enum";
+import { PermissionKey } from "../interfaces/permission.interface";
 
 type UserFieldMap = FieldMap<IUser>;
 
@@ -312,9 +314,9 @@ export class UserController {
                 for (const [permKey, fields] of Object.entries(USER_FIELD_GROUPS)) {
                     const touchesSection = fields.some(f => f in body);
                     if (touchesSection && !matchesWildcard(actorPerms, permKey)) {
+                        const sectionName = PERMISSIONS[permKey as PermissionKey]?.name ?? permKey;
                         res.status(403).json({
-                            message: "Insufficient permissions to edit this profile section",
-                            required: permKey,
+                            message: `Insufficient permissions to edit this profile section: ${sectionName}`,
                         });
                         return;
                     }

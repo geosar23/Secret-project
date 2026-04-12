@@ -498,7 +498,13 @@
                         </mat-form-field>
                     </div>
                     @if (canEditEducation) {
-                        <button mat-stroked-button type="button" color="warn" (click)="removeEducation(i)">
+                        <button
+                            mat-stroked-button
+                            type="button"
+                            color="warn"
+                            (click)="removeEducation(i)"
+                            [attr.aria-label]="'Remove education entry ' + (i + 1)"
+                        >
                             <mat-icon>delete</mat-icon> Remove
                         </button>
                     }
