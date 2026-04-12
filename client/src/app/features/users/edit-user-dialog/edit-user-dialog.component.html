@@ -525,7 +525,13 @@
             <p class="section-label">Compensation</p>
             <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Salary</mat-label>
-                <input matInput formControlName="salary" placeholder="Leave blank to keep unchanged" />
+                <input
+                    matInput
+                    type="password"
+                    autocomplete="new-password"
+                    formControlName="salary"
+                    placeholder="Leave blank to keep unchanged"
+                />
                 <mat-hint>Enter new value to update salary. Leave blank to keep current.</mat-hint>
             </mat-form-field>
         }

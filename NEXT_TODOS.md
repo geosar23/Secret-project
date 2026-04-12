@@ -91,7 +91,7 @@ Status legend:
 - Priority: P0
 - Owner: You
 - Estimate: 1-1.5 days
-- Status: [ ]
+- Status: [x]
 - Goal: reduce regression risk in high-use UI flows.
 - Acceptance criteria:
     - [x] User create/edit form behavior tested.
@@ -106,7 +106,7 @@ Status legend:
 - Status: [~]
 - Goal: ensure employee records are complete for HR operations and reporting.
 - Acceptance criteria:
-    - [~] **Phase 1 — Core profile fields.** User model extended with:
+    - [x] **Phase 1 — Core profile fields.** User model extended with:
         - **Identity**: `legalName`, `firstName`, `lastName`, `personalEmail`, `gender` (enum), `birthday` (Date), `maritalStatus` (enum), `nationalities` (string[]), `religion`
         - **Contact**: `workPhone`, `personalPhone`, `additionalPhones` (string[]), `currentAddress`, `homeCountryAddress`, `homeCountryPhone`, `emergencyContact` (name, relationship, phone)
         - **Employment**: `employmentDate` (Date), `employmentType` (enum: full_time | part_time | contractor | intern), `payrollId`, `office` (→ Offices), `isOutsourced` (boolean), `hrRepresentative` (→ Users), `level` (→ Levels)
@@ -114,10 +114,10 @@ Status legend:
         - **Compensation**: `salary` (AES-256-GCM encrypted string; excluded from list endpoints, decrypted on single-user fetch)
         - New reference collections: `Levels` and `Offices` (company-scoped, full CRUD at `/api/levels` and `/api/offices`)
     - [x] **Phase 2 — Documents.** `UserDocuments` collection (passport / national ID / visa / work permit etc): `type` (enum), `documentNumber`, `expiryDate`, `issuingCountry`, `notes`, `attachment` (Supabase Storage, PDF or image ≤10 MB). Full CRUD at `/api/user-documents`. Signed-URL and delete-attachment endpoints included.
-    - [ ] **UI grouping.** Admin user form and employee profile page reorganized into labelled sections: Identity, Contact, Employment, Education.
+    - [x] **UI grouping.** Admin user form reorganized into labelled sections: Identity, Contact (with addresses + emergency contact), Employment (with sub-department), Education, Compensation. Read-only badges shown for sections the editor lacks permission to change.
+    - [x] Sensitive fields (especially salary) follow role-based visibility/edit permissions — `CAN_EDIT_USER_COMPENSATION` gates the Compensation section on the edit form and on the server update route.
     - [ ] Field-level validation is implemented (format/range/required rules where applicable).
     - [ ] Existing users can be migrated/updated safely without breaking old records.
-    - [ ] Sensitive fields (especially salary) follow role-based visibility/edit permissions.
 
 ### P0-08 Leaves Module (Single-Step Manager Approval)
 

@@ -500,9 +500,16 @@ export class EditUserDialogComponent implements OnInit, OnDestroy {
             personalPhone: fv.personalPhone || undefined,
             homeCountryPhone: fv.homeCountryPhone || undefined,
             additionalPhones: fv.additionalPhones?.length > 0 ? fv.additionalPhones : undefined,
-            currentAddress: Object.values(fv.currentAddress).some(v => v) ? fv.currentAddress : undefined,
-            homeCountryAddress: Object.values(fv.homeCountryAddress).some(v => v) ? fv.homeCountryAddress : undefined,
-            emergencyContact: fv.emergencyContact?.name || fv.emergencyContact?.phone ? fv.emergencyContact : undefined,
+            currentAddress: Object.values(fv.currentAddress).some(v => v !== "" && v != null)
+                ? fv.currentAddress
+                : undefined,
+            homeCountryAddress: Object.values(fv.homeCountryAddress).some(v => v !== "" && v != null)
+                ? fv.homeCountryAddress
+                : undefined,
+            emergencyContact:
+                fv.emergencyContact?.name || fv.emergencyContact?.phone || fv.emergencyContact?.relationship
+                    ? fv.emergencyContact
+                    : undefined,
             employmentDate: fv.employmentDate ? (fv.employmentDate as Date).toISOString() : undefined,
             employmentType: fv.employmentType || undefined,
             payrollId: fv.payrollId || undefined,
