@@ -187,6 +187,10 @@ export function canCreateUserProfile(actorUser: IUser, targetUser: IUser): boole
  * Can the actor write a specific profile section for a target user?
  * Accepts the section's write permission keys (all scopes) to check against.
  *
+ * Parent-category permissions (userProfile:write:{scope} and userProfile:*:{scope})
+ * are automatically satisfied via the matchesWildcard parent-category check, so
+ * only the section-specific scope pairs need to be supplied.
+ *
  * Example usage:
  *   canWriteUserProfileSection(actor, target, [
  *     [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_ALL, PermissionScopes.ALL],
@@ -199,10 +203,6 @@ export function canWriteUserProfileSection(
     targetUser: IUser,
     sectionScopePairs: [string, PermissionScopes][],
 ): boolean {
-    // A write on the full profile also covers any section
-    if (canWriteUserProfile(actorUser, targetUser) || canManageUserProfile(actorUser, targetUser)) {
-        return true;
-    }
     return checkScopedAccess(actorUser, targetUser, sectionScopePairs);
 }
 
