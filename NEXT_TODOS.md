@@ -302,3 +302,4 @@ Status legend:
 -(low priority) Create a sign in workflow that accept the initial data loading via csv/excel files for all the required entities
 -Departments, users, levels, offices, countries, etc all entities necesasary for a functiona app
 -Alternatively add a feature that adds the necessary starting mock data, 1 country eg greece, basic departments (eng , hr, marketing, finance, sales), 1 empl title for each dep , 1 sub department, etc
+-(high) failed sign in needs to trigger a toast warning with server response
