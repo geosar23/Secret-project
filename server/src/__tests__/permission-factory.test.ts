@@ -153,8 +153,6 @@ describe("PermissionKeys (flat map)", () => {
     });
 
     it("includes department-country key", () => {
-        expect(PermissionKeys.USERS_MANAGEMENT_READ_DEPARTMENT_COUNTRY).toBe(
-            "usersManagement:read:department-country",
-        );
+        expect(PermissionKeys.USERS_MANAGEMENT_READ_DEPARTMENT_COUNTRY).toBe("usersManagement:read:department-country");
     });
 });

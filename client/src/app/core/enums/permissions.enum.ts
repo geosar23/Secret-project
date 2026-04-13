@@ -72,11 +72,7 @@ export type FromKeyPart<T extends string> = T extends "ALL"
  * produces the correct action/scope split, including "department-country" →
  * DEPARTMENT_COUNTRY in the scope position.
  */
-export type DefinedPermissions<
-    TCategory extends string,
-    TAction extends string,
-    TScope extends string,
-> = {
+export type DefinedPermissions<TCategory extends string, TAction extends string, TScope extends string> = {
     readonly [K in `${ToKeyPart<TAction>}_${ToKeyPart<TScope>}`]: K extends `${infer AK}_${infer SK}`
         ? `${TCategory}:${Extract<TAction, FromKeyPart<AK>>}:${Extract<TScope, FromKeyPart<SK>>}`
         : never;
@@ -130,16 +126,13 @@ export function definePermissions<
  * prefixedKeys("USERS_MANAGEMENT", { READ_ALL: "usersManagement:read:*" })
  * // → { USERS_MANAGEMENT_READ_ALL: "usersManagement:read:*" }
  */
-export function prefixedKeys<
-    const TPrefix extends string,
-    T extends Record<string, string>,
->(
+export function prefixedKeys<const TPrefix extends string, T extends Record<string, string>>(
     prefix: TPrefix,
     obj: T,
 ): { [K in keyof T as `${TPrefix}_${K & string}`]: T[K] } {
-    return Object.fromEntries(
-        Object.entries(obj).map(([k, v]) => [`${prefix}_${k}`, v]),
-    ) as { [K in keyof T as `${TPrefix}_${K & string}`]: T[K] };
+    return Object.fromEntries(Object.entries(obj).map(([k, v]) => [`${prefix}_${k}`, v])) as {
+        [K in keyof T as `${TPrefix}_${K & string}`]: T[K];
+    };
 }
 
 // ─── Per-category permission objects ─────────────────────────────────────────
@@ -160,13 +153,10 @@ export const USERS_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategori
 });
 
 /** All `countriesManagement` permission keys. */
-export const COUNTRIES_MANAGEMENT_PERMISSIONS = definePermissions(
-    PermissionCategories.COUNTRIES_MANAGEMENT,
-    {
-        actions: [PermissionActions.READ, PermissionActions.ALL],
-        scopes: [PermissionScopes.ALL, PermissionScopes.COMPANY],
-    },
-);
+export const COUNTRIES_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategories.COUNTRIES_MANAGEMENT, {
+    actions: [PermissionActions.READ, PermissionActions.ALL],
+    scopes: [PermissionScopes.ALL, PermissionScopes.COMPANY],
+});
 
 /** All `userProfile` permission keys. */
 export const USER_PROFILE_PERMISSIONS = definePermissions(PermissionCategories.USER_PROFILE, {
