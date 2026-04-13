@@ -49,7 +49,7 @@ export function buildActorContext(actor: IUser): AccessContext["actor"] {
 
 /**
  * Check whether an effective permission set covers a required key,
- * honouring wildcard segments ("*").
+ * honouring wildcard segments ("*") and parent-category hierarchy.
  *
  * Permission format: `{category}:{action}:{scope}`
  *
@@ -58,6 +58,10 @@ export function buildActorContext(actor: IUser): AccessContext["actor"] {
  * We test all 8 wildcard combinations so that e.g. "*:*:*",
  * "usersManagement:*:*" and "usersManagement:read:*" all satisfy
  * a required "usersManagement:read:department".
+ *
+ * For sub-categories (e.g. "userProfile.identity"), a parent-category
+ * permission (e.g. "userProfile:write:country") also covers the sub-category
+ * permission ("userProfile.identity:write:country").
  */
 export function matchesWildcard(effectivePerms: Set<string>, required: string): boolean {
     const parts = required.split(":");
@@ -77,7 +81,24 @@ export function matchesWildcard(effectivePerms: Set<string>, required: string): 
         `${cat}:${action}:${scope}`,
     ];
 
-    return candidates.some(c => effectivePerms.has(c));
+    if (candidates.some(c => effectivePerms.has(c))) return true;
+
+    // If this is a sub-category (e.g. "userProfile.identity"), also check
+    // whether any parent-category permission covers it.
+    // e.g. "userProfile:write:country" covers "userProfile.identity:write:country"
+    const dotIdx = cat.lastIndexOf(".");
+    if (dotIdx !== -1) {
+        const parentCat = cat.substring(0, dotIdx);
+        const parentCandidates = [
+            `${parentCat}:${W}:${W}`,
+            `${parentCat}:${action}:${W}`,
+            `${parentCat}:${W}:${scope}`,
+            `${parentCat}:${action}:${scope}`,
+        ];
+        return parentCandidates.some(c => effectivePerms.has(c));
+    }
+
+    return false;
 }
 
 export const PermissionChecker = {
