@@ -295,3 +295,10 @@ Status legend:
     - [ ] Final bug bash completed.
     - [ ] High-severity defects resolved or deferred with rationale.
     - [ ] Release candidate tag created.
+
+-(high)Create and edit user dialog , when something is required dont add double \*_ only one _
+-(high)Create and edit user dialog , when creating a user as god and you can select the company/tenat then manager, dep, employment titles and etc fields should be available only from the selected company , a user from company A cannot have a manager from company B and so on for all other company specific entities
+-(low) Client generic ui, date format an all visible fields , selectors etc should day month year, and not month day year or antyhing else.
+-(low priority) Create a sign in workflow that accept the initial data loading via csv/excel files for all the required entities
+-Departments, users, levels, offices, countries, etc all entities necesasary for a functiona app
+-Alternatively add a feature that adds the necessary starting mock data, 1 country eg greece, basic departments (eng , hr, marketing, finance, sales), 1 empl title for each dep , 1 sub department, etc
