@@ -5,7 +5,6 @@ import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface
 import { IAddress, IEducationEntry, IEmergencyContact, IUser, IUsersQueryParams } from "../interfaces/user.interface";
 import { success, softError } from "../utils/response.util";
 import { buildUserSearchAccessQuery, canManageUser } from "../policies/user.policy";
-import { DefaultUserRoles } from "../enums/user-role.enum";
 import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";
 import { isValidPermissionKey } from "../utils/permission-checker";
 import { StorageService } from "../services/storage.service";
@@ -291,14 +290,6 @@ export class UserController {
 
             if (!canManageUser(actorUser as IUser, user as IUser)) {
                 res.json(softError("Insufficient permissions to update this user"));
-                return;
-            }
-
-            const actorRole = (actorUser as IUser & { role?: { role?: string } }).role;
-            const actorRoleKey = typeof actorRole === "object" && actorRole ? actorRole.role : undefined;
-
-            if ("companyId" in req.body && req.body.companyId !== undefined && actorRoleKey !== DefaultUserRoles.GOD) {
-                res.json(softError("Only god role can change companyId"));
                 return;
             }
 

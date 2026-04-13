@@ -95,7 +95,7 @@ describe("CreateUserDialogComponent", () => {
     });
 
     it("marks form valid when all required fields are filled correctly", () => {
-        component.userForm.setValue({
+        component.userForm.patchValue({
             name: "John Doe",
             email: "john@test.com",
             password: "secret123",

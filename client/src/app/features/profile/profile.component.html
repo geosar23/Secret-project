@@ -108,7 +108,7 @@
                             <div class="info-row">
                                 <span class="label">Marital Status</span>
                                 <span class="value">{{
-                                    maritalStatusLabels[profile.maritalStatus] ?? (profile.maritalStatus | titlecase)
+                                    maritalStatusLabels[profile.maritalStatus] || (profile.maritalStatus | titlecase)
                                 }}</span>
                             </div>
                         }
@@ -249,7 +249,7 @@
                             <div class="info-row">
                                 <span class="label">Employment Type</span>
                                 <span class="value">{{
-                                    employmentTypeLabels[profile.employmentType] ?? (profile.employmentType | titlecase)
+                                    employmentTypeLabels[profile.employmentType] || (profile.employmentType | titlecase)
                                 }}</span>
                             </div>
                         }
@@ -316,7 +316,7 @@
                                     <div class="edu-sub">
                                         @if (entry.degreeLevel) {
                                             <span>{{
-                                                degreeLevelLabels[entry.degreeLevel] ?? (entry.degreeLevel | titlecase)
+                                                degreeLevelLabels[entry.degreeLevel] || (entry.degreeLevel | titlecase)
                                             }}</span>
                                         }
                                         @if (entry.degreeTitle) {
