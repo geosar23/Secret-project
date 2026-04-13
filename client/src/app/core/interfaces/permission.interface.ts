@@ -1,14 +1,6 @@
-import { PermissionActions, PermissionCategories, PermissionKeys, PermissionScopes } from "../enums/permissions.enum";
+import { PermissionActions, PermissionCategories, PermissionKeys } from "../enums/permissions.enum";
 
 export type PermissionKey = (typeof PermissionKeys)[keyof typeof PermissionKeys];
-export interface IPermissionDefinition {
-    key: PermissionKey;
-    category: PermissionCategories;
-    action: PermissionActions;
-    scopes: PermissionScopes[];
-    name: string;
-    description: string;
-}
 
 /**
  * Context for attribute-based access control
@@ -35,6 +27,5 @@ export interface IPermissionItem {
 
 export interface IUserPermissionItem {
     key: string;
-    description: string;
     hasPermission: boolean;
 }

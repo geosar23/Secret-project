@@ -16,13 +16,12 @@ import { PermissionService } from "../../../core/services/permission.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { IRole } from "../../../core/interfaces/role.interface";
 import { ICompany } from "../../../core/interfaces/company.interface";
-import { PERMISSIONS, PermissionCategoriesStrings } from "../../../core/enums/permissions.enum";
-import { IPermissionDefinition } from "../../../core/interfaces/permission.interface";
+import { PermissionCategoriesStrings, PermissionKeys } from "../../../core/enums/permissions.enum";
 
 interface PermissionGroup {
     category: string;
     categoryLabel: string;
-    permissions: IPermissionDefinition[];
+    permissions: string[];
 }
 
 export interface RoleDialogData {
@@ -96,31 +95,25 @@ export class RoleDialogComponent implements OnInit {
         return (this.form.get("permissions")?.value as string[]) ?? [];
     }
 
-    getSelectedPermissionLabel(permissionKey: string): string {
-        const definition = (Object.values(PERMISSIONS) as IPermissionDefinition[]).find(p => p.key === permissionKey);
-        return definition?.name ?? permissionKey;
-    }
-
     clearPermissions(): void {
         this.form.get("permissions")?.setValue([]);
         this.form.get("permissions")?.markAsDirty();
     }
 
     private buildPermissionGroups(): PermissionGroup[] {
-        const grouped = new Map<string, IPermissionDefinition[]>();
+        const grouped = new Map<string, string[]>();
 
-        (Object.values(PERMISSIONS) as IPermissionDefinition[]).forEach(permission => {
-            if (!grouped.has(permission.category)) {
-                grouped.set(permission.category, []);
-            }
-            grouped.get(permission.category)?.push(permission);
+        Object.values(PermissionKeys).forEach(key => {
+            const category = key.split(":")[0];
+            if (!grouped.has(category)) grouped.set(category, []);
+            grouped.get(category)!.push(key);
         });
 
-        return Array.from(grouped.entries()).map(([category, permissions]) => ({
+        return Array.from(grouped.entries()).map(([category, keys]) => ({
             category,
             categoryLabel:
                 PermissionCategoriesStrings[category as keyof typeof PermissionCategoriesStrings] ?? category,
-            permissions: permissions.sort((a, b) => a.name.localeCompare(b.name)),
+            permissions: keys.sort(),
         }));
     }
 

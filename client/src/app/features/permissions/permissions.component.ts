@@ -11,9 +11,9 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { AuthService } from "../../core/services/auth.service";
 import { StickyAlertComponent } from "../../shared/components/sticky-alert/sticky-alert.component";
-import { IPermissionItem, IPermissionDefinition } from "../../core/interfaces/permission.interface";
+import { IPermissionItem, IUserPermissionItem } from "../../core/interfaces/permission.interface";
 import { RoleUtils } from "../../core/utils/role.utils";
-import { PermissionCategories, PermissionCategoriesStrings, PERMISSIONS } from "../../core/enums/permissions.enum";
+import { PermissionCategories, PermissionCategoriesStrings, PermissionKeys } from "../../core/enums/permissions.enum";
 import { IUser } from "../../core/interfaces/user.interface";
 import { RoleService } from "../../core/services/role.service";
 import { IRole } from "../../core/interfaces/role.interface";
@@ -67,21 +67,22 @@ export class PermissionsComponent implements OnInit {
     }
 
     private buildPermissionCategoriesFromConstants(effectivePermissions: string[] = []): void {
-        const perms = Object.values(PERMISSIONS) as unknown as IPermissionDefinition[];
-        const categoryMap = new Map<PermissionCategories, IPermissionDefinition[]>();
+        const grouped = new Map<string, string[]>();
 
-        perms.forEach(def => {
-            if (!categoryMap.has(def.category)) categoryMap.set(def.category, []);
-            categoryMap.get(def.category)!.push(def);
+        Object.values(PermissionKeys).forEach(key => {
+            const category = key.split(":")[0];
+            if (!grouped.has(category)) grouped.set(category, []);
+            grouped.get(category)!.push(key);
         });
 
-        this.permissions = Array.from(categoryMap.entries()).map(([category, perms]) => ({
-            category,
-            permissions: perms.map((p: IPermissionDefinition) => ({
-                key: p.key,
-                description: p.description,
-                hasPermission: effectivePermissions.includes(p.key),
-            })),
+        this.permissions = Array.from(grouped.entries()).map(([category, keys]) => ({
+            category: category as PermissionCategories,
+            permissions: keys.map(
+                (key): IUserPermissionItem => ({
+                    key,
+                    hasPermission: effectivePermissions.includes(key),
+                }),
+            ),
         }));
     }
 

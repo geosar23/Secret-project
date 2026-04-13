@@ -42,9 +42,9 @@
                 <mat-select formControlName="permissions" multiple>
                     @for (group of permissionGroups; track group.category) {
                         <mat-optgroup [label]="group.categoryLabel">
-                            @for (permission of group.permissions; track permission.key) {
-                                <mat-option [value]="permission.key">
-                                    {{ permission.name }}
+                            @for (permission of group.permissions; track permission) {
+                                <mat-option [value]="permission">
+                                    {{ permission }}
                                 </mat-option>
                             }
                         </mat-optgroup>
@@ -61,7 +61,7 @@
                     </div>
                     <mat-chip-set>
                         @for (permissionKey of selectedPermissions; track permissionKey) {
-                            <mat-chip>{{ getSelectedPermissionLabel(permissionKey) }}</mat-chip>
+                            <mat-chip>{{ permissionKey }}</mat-chip>
                         }
                     </mat-chip-set>
                 </div>
