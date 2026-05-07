@@ -1,16 +1,16 @@
 import { Router, RequestHandler } from "express";
-import authRouter from "../routes/auth.routes";
-import usersRouter from "../routes/user.routes";
-import roleRouter from "../routes/role.routes";
-import companyRouter from "../routes/company.routes";
-import countriesRouter from "../routes/country.routes";
-import departmentsRouter from "../routes/department.routes";
-import subDepartmentsRouter from "../routes/sub-department.routes";
-import employmentTitlesRouter from "../routes/employment-title.routes";
-import levelsRouter from "../routes/level.routes";
-import officesRouter from "../routes/office.routes";
-import userDocumentsRouter from "../routes/user-document.routes";
-import { authMiddleware } from "../middleware/auth.middleware";
+import authRouter from "./routes/auth.routes";
+import usersRouter from "./routes/user.routes";
+import roleRouter from "./routes/role.routes";
+import companyRouter from "./routes/company.routes";
+import countriesRouter from "./routes/country.routes";
+import departmentsRouter from "./routes/department.routes";
+import subDepartmentsRouter from "./routes/sub-department.routes";
+import employmentTitlesRouter from "./routes/employment-title.routes";
+import levelsRouter from "./routes/level.routes";
+import officesRouter from "./routes/office.routes";
+import userDocumentsRouter from "./routes/user-document.routes";
+import { authMiddleware } from "./middleware/auth.middleware";
 
 const router = Router();
 

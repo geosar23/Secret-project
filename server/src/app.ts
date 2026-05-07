@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import apiRouter from "./api/routes";
+import apiRouter from "./routes";
 import errorMiddleware from "./middleware/error.middleware";
 import morgan from "morgan";
 import helmet from "helmet";
