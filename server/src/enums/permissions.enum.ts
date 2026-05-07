@@ -18,11 +18,11 @@ export const PermissionCategoriesStrings: Record<PermissionCategories, string> =
     [PermissionCategories.USERS_MANAGEMENT]: "Users Management",
     [PermissionCategories.COUNTRIES_MANAGEMENT]: "Countries Management",
     [PermissionCategories.USER_PROFILE]: "User Profile",
-    [PermissionCategories.USER_PROFILE_IDENTITY]: "User Profile â€” Identity",
-    [PermissionCategories.USER_PROFILE_CONTACT]: "User Profile â€” Contact",
-    [PermissionCategories.USER_PROFILE_EMPLOYMENT]: "User Profile â€” Employment",
-    [PermissionCategories.USER_PROFILE_EDUCATION]: "User Profile â€” Education",
-    [PermissionCategories.USER_PROFILE_COMPENSATION]: "User Profile â€” Compensation",
+    [PermissionCategories.USER_PROFILE_IDENTITY]: "User Profile – Identity",
+    [PermissionCategories.USER_PROFILE_CONTACT]: "User Profile – Contact",
+    [PermissionCategories.USER_PROFILE_EMPLOYMENT]: "User Profile – Employment",
+    [PermissionCategories.USER_PROFILE_EDUCATION]: "User Profile – Education",
+    [PermissionCategories.USER_PROFILE_COMPENSATION]: "User Profile – Compensation",
     [PermissionCategories.ROLES_MANAGEMENT]: "Roles Management",
 };
 
@@ -44,13 +44,13 @@ export enum PermissionActions {
     CREATE = "create",
 }
 
-// â”€â”€â”€ Permission factory â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Permission factory ───────────────────────────────────────────────────────
 
 /**
  * Convert a permission segment value to its uppercase key representation.
- *  "*"                  â†’ "ALL"
- *  "department-country" â†’ "DEPARTMENT_COUNTRY"
- *  "read"               â†’ "READ"
+ *  "*"                  → "ALL"
+ *  "department-country" → "DEPARTMENT_COUNTRY"
+ *  "read"               → "READ"
  */
 export type ToKeyPart<T extends string> = T extends "*"
     ? "ALL"
@@ -61,9 +61,9 @@ export type ToKeyPart<T extends string> = T extends "*"
 /**
  * Inverse of {@link ToKeyPart}: convert a key part back to the original segment
  * value.
- *  "ALL"                â†’ "*"
- *  "DEPARTMENT_COUNTRY" â†’ "department-country"
- *  "READ"               â†’ "read"
+ *  "ALL"                → "*"
+ *  "DEPARTMENT_COUNTRY" → "department-country"
+ *  "READ"               → "read"
  */
 export type FromKeyPart<T extends string> = T extends "ALL"
     ? "*"
@@ -75,13 +75,13 @@ export type FromKeyPart<T extends string> = T extends "ALL"
  * The shape of the object returned by {@link definePermissions}.
  *
  * Each key is `${ActionKeyPart}_${ScopeKeyPart}` and its value is the precise
- * `"category:action:scope"` string for that exact combination â€” not a union.
+ * `"category:action:scope"` string for that exact combination – not a union.
  *
  * The `K extends \`${infer AK}_${infer SK}\`` conditional type is evaluated with
  * TypeScript's non-greedy (minimal) inference for the first segment: AK captures
  * everything up to the **first** underscore, and SK captures the remainder.
  * Because action key-parts (READ, ALL) never contain underscores this always
- * produces the correct action/scope split, including "department-country" â†’
+ * produces the correct action/scope split, including "department-country" →
  * DEPARTMENT_COUNTRY in the scope position.
  */
 export type DefinedPermissions<TCategory extends string, TAction extends string, TScope extends string> = {
@@ -136,7 +136,7 @@ export function definePermissions<
  *
  * @example
  * prefixedKeys("USERS_MANAGEMENT", { READ_ALL: "usersManagement:read:*" })
- * // â†’ { USERS_MANAGEMENT_READ_ALL: "usersManagement:read:*" }
+ * // → { USERS_MANAGEMENT_READ_ALL: "usersManagement:read:*" }
  */
 export function prefixedKeys<const TPrefix extends string, T extends Record<string, string>>(
     prefix: TPrefix,
@@ -147,7 +147,7 @@ export function prefixedKeys<const TPrefix extends string, T extends Record<stri
     };
 }
 
-// â”€â”€â”€ Per-category permission objects â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Per-category permission objects ─────────────────────────────────────────
 
 /** All `usersManagement` permission keys. */
 export const USERS_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategories.USERS_MANAGEMENT, {
@@ -266,7 +266,7 @@ export const ROLES_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategori
     scopes: [PermissionScopes.ALL, PermissionScopes.COMPANY],
 });
 
-// â”€â”€â”€ Flat permission-key map (PermissionCategory:PermissionAction:PermissionScope) â”€â”€
+// ─── Flat permission-key map (PermissionCategory:PermissionAction:PermissionScope) ──
 
 //PermissionCategory:PermissionAction:PermissionScope
 export const PermissionKeys = {
