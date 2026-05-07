@@ -5,7 +5,10 @@ export const CompanyService = {
 
     getById: (id: string) => CompanyModel.findById(id).lean(),
 
-    create: (data: { name: string; slug: string }) => CompanyModel.create({ ...data, isActive: true }),
+    create: async (data: { name: string; slug: string }) => {
+        const company = await CompanyModel.create({ ...data, isActive: true });
+        return company;
+    },
 
     update: async (id: string, data: { name?: string; slug?: string; isActive?: boolean }) => {
         await CompanyModel.updateOne({ _id: id }, data);

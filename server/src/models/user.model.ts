@@ -1,7 +1,22 @@
-import { Schema, model, UpdateQuery } from "mongoose";
+import { Schema, model, UpdateQuery, Types } from "mongoose";
 import { IUser } from "../interfaces/user.interface";
 import bcrypt from "bcryptjs";
 import { Gender, MaritalStatus, EmploymentType, DegreeLevel } from "../enums/profile.enum";
+import { DefaultUserRoles } from "../enums/user-role.enum";
+import { config } from "../config/env";
+
+async function assertNotGodRoleOutsideOgCompany(
+    roleId: Types.ObjectId | string | undefined | null,
+    companyId: Types.ObjectId | string | undefined | null,
+): Promise<void> {
+    if (!roleId || !companyId) return;
+    // Lazy-load RoleModel to avoid circular dependency
+    const { RoleModel } = await import("./role.model");
+    const role = await RoleModel.findById(roleId).select("role").lean();
+    if (role?.role === DefaultUserRoles.GOD && companyId.toString() !== config.OG_COMPANY_ID) {
+        throw new Error("The GOD role can only be assigned to users of the platform's root company");
+    }
+}
 
 const AddressSchema = new Schema(
     {
@@ -114,6 +129,11 @@ UserSchema.pre("save", async function (next) {
         if (!roleValue) {
             return next(new Error("Role cannot be unset or null."));
         }
+        try {
+            await assertNotGodRoleOutsideOgCompany(this.role as Types.ObjectId, this.company as Types.ObjectId);
+        } catch (err) {
+            return next(err as Error);
+        }
     }
     next();
 });
@@ -136,6 +156,16 @@ UserSchema.pre("findOneAndUpdate", async function (next) {
     // Prevent unsetting or nulling role
     if (role === null) {
         return next(new Error("Role cannot be unset or null."));
+    }
+
+    // Enforce GOD role restriction: fetch the existing doc to get its company
+    try {
+        const doc = (await this.model.findOne(this.getFilter()).select("company").lean()) as IUser | null;
+        const companyId =
+            (update as Partial<IUser>).company ?? (update.$set as Partial<IUser> | undefined)?.company ?? doc?.company;
+        await assertNotGodRoleOutsideOgCompany(role as Types.ObjectId, companyId as Types.ObjectId);
+    } catch (err) {
+        return next(err as Error);
     }
 
     next();

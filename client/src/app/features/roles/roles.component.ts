@@ -94,7 +94,8 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
                     }
                     const effectivePermissions = res.data.permissions;
                     this.canEditSystemRoles.set(
-                        hasPermission(effectivePermissions, PermissionKeys.ROLES_MANAGEMENT_ALL_ALL),
+                        hasPermission(effectivePermissions, PermissionKeys.ROLES_MANAGEMENT_ALL_ALL) ||
+                            hasPermission(effectivePermissions, PermissionKeys.ROLES_MANAGEMENT_ALL_COMPANY),
                     );
                 },
                 error: err => {

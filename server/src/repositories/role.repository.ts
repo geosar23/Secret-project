@@ -9,7 +9,7 @@ const withRoleScope = (companyId: string, filter: FilterQuery<IRole> = {}) => {
     }
 
     return {
-        $and: [{ $or: [{ company: companyId }, { company: { $exists: false } }] }, filter],
+        $and: [{ company: companyId }, filter],
     } as FilterQuery<IRole>;
 };
 
@@ -28,7 +28,7 @@ export function roleRepository(companyId: string) {
         },
 
         create(data: Partial<IRole>) {
-            if (companyId !== config.OG_COMPANY_ID && !data.company) {
+            if (!data.company) {
                 return RoleModel.create({ ...data, company: companyId });
             }
             return RoleModel.create(data);

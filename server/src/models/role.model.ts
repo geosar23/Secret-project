@@ -30,18 +30,12 @@ const RoleSchema = new Schema<IRole>(
         company: {
             type: Schema.Types.ObjectId,
             ref: "Companies",
-            // company is required for custom roles, not allowed for system roles
+            // All roles (system and custom) must be scoped to a company.
             validate: {
-                validator: function (this: IRole, value: string | undefined) {
-                    if (this.isSystemRole) {
-                        return !value; // System roles should not have a company
-                    }
-                    return !!value; // Custom roles must be assigned to a company
+                validator: function (value: string) {
+                    return !!value;
                 },
-                message: (props: { value: string }) =>
-                    props.value
-                        ? "System roles cannot be assigned to a specific company"
-                        : "Custom roles must be assigned to a company",
+                message: "All roles must be assigned to a company",
             },
         },
         isActive: { type: Boolean, default: true },
