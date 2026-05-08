@@ -18,6 +18,7 @@ import { ToastService } from "../../core/services/toast.service";
 import { Subject } from "rxjs";
 import { skipWhile, takeUntil } from "rxjs/operators";
 import { ChangePasswordDialogComponent } from "./change-password-dialog/change-password-dialog.component";
+import { BreadcrumbService } from "../../core/services/breadcrumb.service";
 
 import { ProfileAddressPipe } from "./profile-address.pipe";
 import {
@@ -51,6 +52,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private router = inject(Router);
     private dialog = inject(MatDialog);
     private toast = inject(ToastService);
+    private breadcrumbService = inject(BreadcrumbService);
 
     private destroy$ = new Subject<void>();
 
@@ -112,6 +114,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     this.loadProfileImageUrl(this.profile._id);
                 }
                 this.loading.set(false);
+                this.breadcrumbService.set([{ label: user.name ?? "My Profile" }]);
             });
     }
 
@@ -130,6 +133,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                     this.loadProfileImageUrl(this.profile._id);
                 }
                 this.loading.set(false);
+                this.breadcrumbService.set([{ label: response.data.name ?? "Profile" }]);
             },
             error: error => {
                 this.toast.error(error.error?.error || "Failed to load user profile");

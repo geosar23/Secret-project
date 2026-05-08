@@ -18,10 +18,12 @@ export const routes: Routes = [
         children: [
             {
                 path: "dashboard",
+                data: { breadcrumb: "Dashboard" },
                 loadComponent: () => import("./features/dashboard/dashboard.component").then(m => m.DashboardComponent),
             },
             {
                 path: "users",
+                data: { breadcrumb: "Users" },
                 children: [
                     {
                         path: "",
@@ -30,6 +32,7 @@ export const routes: Routes = [
                     {
                         path: "create",
                         canActivate: [createUserGuard],
+                        data: { breadcrumb: "Create User" },
                         loadComponent: () =>
                             import("./features/users/create-user/create-user.component").then(
                                 m => m.CreateUserPageComponent,
@@ -38,6 +41,7 @@ export const routes: Routes = [
                     {
                         path: ":id/edit",
                         canActivate: [editUserGuard],
+                        data: { breadcrumb: "Edit User" },
                         loadComponent: () =>
                             import("./features/users/edit-user/edit-user.component").then(m => m.EditUserPageComponent),
                     },
@@ -45,24 +49,29 @@ export const routes: Routes = [
             },
             {
                 path: "roles",
+                data: { breadcrumb: "Roles" },
                 loadComponent: () => import("./features/roles/roles.component").then(m => m.RolesComponent),
             },
             {
                 path: "departments",
+                data: { breadcrumb: "Departments" },
                 loadComponent: () =>
                     import("./features/departments/departments.component").then(m => m.DepartmentsComponent),
             },
             {
                 path: "countries",
+                data: { breadcrumb: "Countries" },
                 loadComponent: () => import("./features/countries/countries.component").then(m => m.CountriesComponent),
             },
             {
                 path: "sub-departments",
+                data: { breadcrumb: "Sub-Departments" },
                 loadComponent: () =>
                     import("./features/sub-departments/sub-departments.component").then(m => m.SubDepartmentsComponent),
             },
             {
                 path: "employment-titles",
+                data: { breadcrumb: "Employment Titles" },
                 loadComponent: () =>
                     import("./features/employment-titles/employment-titles.component").then(
                         m => m.EmploymentTitlesComponent,
@@ -70,6 +79,7 @@ export const routes: Routes = [
             },
             {
                 path: "permissions",
+                data: { breadcrumb: "Permissions" },
                 loadComponent: () =>
                     import("./features/permissions/permissions.component").then(m => m.PermissionsComponent),
             },
@@ -79,12 +89,14 @@ export const routes: Routes = [
                     {
                         path: "me",
                         resolve: { profileContext: profileRouteContextResolver },
+                        data: { breadcrumb: "My Profile" },
                         loadComponent: () =>
                             import("./features/profile/profile.component").then(m => m.ProfileComponent),
                     },
                     {
                         path: ":id",
                         resolve: { profileContext: profileRouteContextResolver },
+                        data: { breadcrumb: "Profile" },
                         loadComponent: () =>
                             import("./features/profile/profile.component").then(m => m.ProfileComponent),
                     },

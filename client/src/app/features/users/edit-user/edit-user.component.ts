@@ -30,6 +30,7 @@ import { OfficeService } from "../../../core/services/office.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { AuthService } from "../../../core/services/auth.service";
 import { PermissionService } from "../../../core/services/permission.service";
+import { BreadcrumbService } from "../../../core/services/breadcrumb.service";
 import { IUser, IUpdateUserRequest, ILevel, IOffice } from "../../../core/interfaces/user.interface";
 import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
@@ -75,6 +76,7 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
     private toast = inject(ToastService);
     private authService = inject(AuthService);
     private permissionService = inject(PermissionService);
+    private breadcrumbService = inject(BreadcrumbService);
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private localUser = this.authService.getLocalUser();
@@ -224,6 +226,11 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
                 this.patchForm(this.loadedUser);
                 this.userLoading = false;
                 this.loadCurrentProfileImage();
+                this.breadcrumbService.set([
+                    { label: "Users", route: "/users" },
+                    { label: res.data.name },
+                    { label: "Edit" },
+                ]);
             },
             error: () => {
                 this.toast.error("Failed to load user");
