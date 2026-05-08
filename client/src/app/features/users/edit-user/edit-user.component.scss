@@ -1,6 +1,6 @@
 .page-container {
     padding: var(--spacing-lg);
-    max-width: 720px;
+    max-width: var(--layout-page-max-width);
     margin: 0 auto;
 }
 
