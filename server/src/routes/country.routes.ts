@@ -7,19 +7,11 @@ const router = Router();
 
 const canReadCountries = userHasAnyPermission([
     PermissionKeys.ALL,
-    PermissionKeys.ALL_COMPANY,
     PermissionKeys.COUNTRIES_MANAGEMENT_READ_ALL,
-    PermissionKeys.COUNTRIES_MANAGEMENT_READ_COMPANY,
     PermissionKeys.COUNTRIES_MANAGEMENT_ALL_ALL,
-    PermissionKeys.COUNTRIES_MANAGEMENT_ALL_COMPANY,
 ]);
 
-const canManageCountries = userHasAnyPermission([
-    PermissionKeys.ALL,
-    PermissionKeys.ALL_COMPANY,
-    PermissionKeys.COUNTRIES_MANAGEMENT_ALL_ALL,
-    PermissionKeys.COUNTRIES_MANAGEMENT_ALL_COMPANY,
-]);
+const canManageCountries = userHasAnyPermission([PermissionKeys.ALL, PermissionKeys.COUNTRIES_MANAGEMENT_ALL_ALL]);
 
 router.get("/", canReadCountries, CountryController.getAll);
 router.post("/", canManageCountries, CountryController.create);

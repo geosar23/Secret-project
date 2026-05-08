@@ -5,8 +5,6 @@ import { success, softError } from "../utils/response.util";
 import { IRole } from "../interfaces/role.interface";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { UserService } from "../services/user.service";
-import { PermissionChecker } from "../utils/permission-checker";
-import { PermissionKeys } from "../enums/permissions.enum";
 
 /**
  * Controller for role management
@@ -168,14 +166,7 @@ export class RoleController {
                 return;
             }
 
-            const canEditSystemRoles = await PermissionChecker.hasAnyPermission(actor, [
-                PermissionKeys.ROLES_MANAGEMENT_ALL_ALL,
-                PermissionKeys.ROLES_MANAGEMENT_ALL_COMPANY,
-            ]);
-
-            const updated = await RoleService.update(id, updates, user.companyId, {
-                allowSystemRoleModification: canEditSystemRoles,
-            });
+            const updated = await RoleService.update(id, updates, user.companyId);
 
             if (!updated) {
                 res.json(softError("Role not found"));

@@ -14,13 +14,11 @@ export function buildUserSearchAccessQuery(actorUser: IUser): FilterQuery<IUser>
         permissions: {
             all: PermissionKeys.ALL,
             readAll: PermissionKeys.USERS_MANAGEMENT_READ_ALL,
-            readCompany: PermissionKeys.USERS_MANAGEMENT_READ_COMPANY,
             readDepartment: PermissionKeys.USERS_MANAGEMENT_READ_DEPARTMENT,
             readCountry: PermissionKeys.USERS_MANAGEMENT_READ_COUNTRY,
             readDepartmentCountry: PermissionKeys.USERS_MANAGEMENT_READ_DEPARTMENT_COUNTRY,
             readManaged: PermissionKeys.USERS_MANAGEMENT_READ_MANAGED,
             readSelf: PermissionKeys.USERS_MANAGEMENT_READ_SELF,
-            readOwn: PermissionKeys.USERS_MANAGEMENT_READ_OWN,
         },
         fields: {
             company: "company",
@@ -46,9 +44,6 @@ export function canAccessUserByScope(actor: AccessContext["actor"], target: IUse
         case PermissionScopes.ALL:
             return true;
 
-        case PermissionScopes.COMPANY:
-            return !!actor.companyId && actor.companyId === target.company?.toString();
-
         case PermissionScopes.DEPARTMENT:
             return !!actor.departmentId && actor.departmentId === target.department?.toString();
 
@@ -67,10 +62,6 @@ export function canAccessUserByScope(actor: AccessContext["actor"], target: IUse
         case PermissionScopes.MANAGED:
             // Actor is the direct manager of the target.
             return target.manager?.toString() === actor.id;
-
-        case PermissionScopes.OWN:
-            // "own" — actor's company is the owning entity (same as company scope here).
-            return !!actor.companyId && actor.companyId === target.company?.toString();
 
         case PermissionScopes.SELF:
             return actor.id === target._id?.toString();
@@ -103,12 +94,10 @@ function checkScopedAccess(actorUser: IUser, targetUser: IUser, scopePairs: [str
 export function canViewUser(actorUser: IUser, targetUser: IUser): boolean {
     return checkScopedAccess(actorUser, targetUser, [
         [PermissionKeys.USERS_MANAGEMENT_READ_ALL, PermissionScopes.ALL],
-        [PermissionKeys.USERS_MANAGEMENT_READ_COMPANY, PermissionScopes.COMPANY],
         [PermissionKeys.USERS_MANAGEMENT_READ_DEPARTMENT, PermissionScopes.DEPARTMENT],
         [PermissionKeys.USERS_MANAGEMENT_READ_COUNTRY, PermissionScopes.COUNTRY],
         [PermissionKeys.USERS_MANAGEMENT_READ_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
         [PermissionKeys.USERS_MANAGEMENT_READ_MANAGED, PermissionScopes.MANAGED],
-        [PermissionKeys.USERS_MANAGEMENT_READ_OWN, PermissionScopes.OWN],
         [PermissionKeys.USERS_MANAGEMENT_READ_SELF, PermissionScopes.SELF],
     ]);
 }
@@ -117,12 +106,10 @@ export function canViewUser(actorUser: IUser, targetUser: IUser): boolean {
 export function canManageUser(actorUser: IUser, targetUser: IUser): boolean {
     return checkScopedAccess(actorUser, targetUser, [
         [PermissionKeys.USERS_MANAGEMENT_ALL_ALL, PermissionScopes.ALL],
-        [PermissionKeys.USERS_MANAGEMENT_ALL_COMPANY, PermissionScopes.COMPANY],
         [PermissionKeys.USERS_MANAGEMENT_ALL_DEPARTMENT, PermissionScopes.DEPARTMENT],
         [PermissionKeys.USERS_MANAGEMENT_ALL_COUNTRY, PermissionScopes.COUNTRY],
         [PermissionKeys.USERS_MANAGEMENT_ALL_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
         [PermissionKeys.USERS_MANAGEMENT_ALL_MANAGED, PermissionScopes.MANAGED],
-        [PermissionKeys.USERS_MANAGEMENT_ALL_OWN, PermissionScopes.OWN],
         [PermissionKeys.USERS_MANAGEMENT_ALL_SELF, PermissionScopes.SELF],
     ]);
 }
@@ -131,12 +118,10 @@ export function canManageUser(actorUser: IUser, targetUser: IUser): boolean {
 export function canViewUserProfile(actorUser: IUser, targetUser: IUser): boolean {
     return checkScopedAccess(actorUser, targetUser, [
         [PermissionKeys.USER_PROFILE_READ_ALL, PermissionScopes.ALL],
-        [PermissionKeys.USER_PROFILE_READ_COMPANY, PermissionScopes.COMPANY],
         [PermissionKeys.USER_PROFILE_READ_DEPARTMENT, PermissionScopes.DEPARTMENT],
         [PermissionKeys.USER_PROFILE_READ_COUNTRY, PermissionScopes.COUNTRY],
         [PermissionKeys.USER_PROFILE_READ_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
         [PermissionKeys.USER_PROFILE_READ_MANAGED, PermissionScopes.MANAGED],
-        [PermissionKeys.USER_PROFILE_READ_OWN, PermissionScopes.OWN],
         [PermissionKeys.USER_PROFILE_READ_SELF, PermissionScopes.SELF],
     ]);
 }
@@ -145,12 +130,10 @@ export function canViewUserProfile(actorUser: IUser, targetUser: IUser): boolean
 export function canManageUserProfile(actorUser: IUser, targetUser: IUser): boolean {
     return checkScopedAccess(actorUser, targetUser, [
         [PermissionKeys.USER_PROFILE_ALL_ALL, PermissionScopes.ALL],
-        [PermissionKeys.USER_PROFILE_ALL_COMPANY, PermissionScopes.COMPANY],
         [PermissionKeys.USER_PROFILE_ALL_DEPARTMENT, PermissionScopes.DEPARTMENT],
         [PermissionKeys.USER_PROFILE_ALL_COUNTRY, PermissionScopes.COUNTRY],
         [PermissionKeys.USER_PROFILE_ALL_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
         [PermissionKeys.USER_PROFILE_ALL_MANAGED, PermissionScopes.MANAGED],
-        [PermissionKeys.USER_PROFILE_ALL_OWN, PermissionScopes.OWN],
         [PermissionKeys.USER_PROFILE_ALL_SELF, PermissionScopes.SELF],
     ]);
 }
@@ -159,12 +142,10 @@ export function canManageUserProfile(actorUser: IUser, targetUser: IUser): boole
 export function canWriteUserProfile(actorUser: IUser, targetUser: IUser): boolean {
     return checkScopedAccess(actorUser, targetUser, [
         [PermissionKeys.USER_PROFILE_WRITE_ALL, PermissionScopes.ALL],
-        [PermissionKeys.USER_PROFILE_WRITE_COMPANY, PermissionScopes.COMPANY],
         [PermissionKeys.USER_PROFILE_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
         [PermissionKeys.USER_PROFILE_WRITE_COUNTRY, PermissionScopes.COUNTRY],
         [PermissionKeys.USER_PROFILE_WRITE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
         [PermissionKeys.USER_PROFILE_WRITE_MANAGED, PermissionScopes.MANAGED],
-        [PermissionKeys.USER_PROFILE_WRITE_OWN, PermissionScopes.OWN],
         [PermissionKeys.USER_PROFILE_WRITE_SELF, PermissionScopes.SELF],
     ]);
 }
@@ -173,12 +154,10 @@ export function canWriteUserProfile(actorUser: IUser, targetUser: IUser): boolea
 export function canCreateUserProfile(actorUser: IUser, targetUser: IUser): boolean {
     return checkScopedAccess(actorUser, targetUser, [
         [PermissionKeys.USER_PROFILE_CREATE_ALL, PermissionScopes.ALL],
-        [PermissionKeys.USER_PROFILE_CREATE_COMPANY, PermissionScopes.COMPANY],
         [PermissionKeys.USER_PROFILE_CREATE_DEPARTMENT, PermissionScopes.DEPARTMENT],
         [PermissionKeys.USER_PROFILE_CREATE_COUNTRY, PermissionScopes.COUNTRY],
         [PermissionKeys.USER_PROFILE_CREATE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
         [PermissionKeys.USER_PROFILE_CREATE_MANAGED, PermissionScopes.MANAGED],
-        [PermissionKeys.USER_PROFILE_CREATE_OWN, PermissionScopes.OWN],
         [PermissionKeys.USER_PROFILE_CREATE_SELF, PermissionScopes.SELF],
     ]);
 }
@@ -210,12 +189,10 @@ export function canWriteUserProfileSection(
 export function canWriteUserProfileIdentity(actorUser: IUser, targetUser: IUser): boolean {
     return canWriteUserProfileSection(actorUser, targetUser, [
         [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_ALL, PermissionScopes.ALL],
-        [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_COMPANY, PermissionScopes.COMPANY],
         [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
         [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_COUNTRY, PermissionScopes.COUNTRY],
         [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
         [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_MANAGED, PermissionScopes.MANAGED],
-        [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_OWN, PermissionScopes.OWN],
         [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_SELF, PermissionScopes.SELF],
     ]);
 }
@@ -224,12 +201,10 @@ export function canWriteUserProfileIdentity(actorUser: IUser, targetUser: IUser)
 export function canWriteUserProfileContact(actorUser: IUser, targetUser: IUser): boolean {
     return canWriteUserProfileSection(actorUser, targetUser, [
         [PermissionKeys.USER_PROFILE_CONTACT_WRITE_ALL, PermissionScopes.ALL],
-        [PermissionKeys.USER_PROFILE_CONTACT_WRITE_COMPANY, PermissionScopes.COMPANY],
         [PermissionKeys.USER_PROFILE_CONTACT_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
         [PermissionKeys.USER_PROFILE_CONTACT_WRITE_COUNTRY, PermissionScopes.COUNTRY],
         [PermissionKeys.USER_PROFILE_CONTACT_WRITE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
         [PermissionKeys.USER_PROFILE_CONTACT_WRITE_MANAGED, PermissionScopes.MANAGED],
-        [PermissionKeys.USER_PROFILE_CONTACT_WRITE_OWN, PermissionScopes.OWN],
         [PermissionKeys.USER_PROFILE_CONTACT_WRITE_SELF, PermissionScopes.SELF],
     ]);
 }
@@ -238,12 +213,10 @@ export function canWriteUserProfileContact(actorUser: IUser, targetUser: IUser):
 export function canWriteUserProfileEmployment(actorUser: IUser, targetUser: IUser): boolean {
     return canWriteUserProfileSection(actorUser, targetUser, [
         [PermissionKeys.USER_PROFILE_EMPLOYMENT_WRITE_ALL, PermissionScopes.ALL],
-        [PermissionKeys.USER_PROFILE_EMPLOYMENT_WRITE_COMPANY, PermissionScopes.COMPANY],
         [PermissionKeys.USER_PROFILE_EMPLOYMENT_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
         [PermissionKeys.USER_PROFILE_EMPLOYMENT_WRITE_COUNTRY, PermissionScopes.COUNTRY],
         [PermissionKeys.USER_PROFILE_EMPLOYMENT_WRITE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
         [PermissionKeys.USER_PROFILE_EMPLOYMENT_WRITE_MANAGED, PermissionScopes.MANAGED],
-        [PermissionKeys.USER_PROFILE_EMPLOYMENT_WRITE_OWN, PermissionScopes.OWN],
         [PermissionKeys.USER_PROFILE_EMPLOYMENT_WRITE_SELF, PermissionScopes.SELF],
     ]);
 }
@@ -252,12 +225,10 @@ export function canWriteUserProfileEmployment(actorUser: IUser, targetUser: IUse
 export function canWriteUserProfileEducation(actorUser: IUser, targetUser: IUser): boolean {
     return canWriteUserProfileSection(actorUser, targetUser, [
         [PermissionKeys.USER_PROFILE_EDUCATION_WRITE_ALL, PermissionScopes.ALL],
-        [PermissionKeys.USER_PROFILE_EDUCATION_WRITE_COMPANY, PermissionScopes.COMPANY],
         [PermissionKeys.USER_PROFILE_EDUCATION_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
         [PermissionKeys.USER_PROFILE_EDUCATION_WRITE_COUNTRY, PermissionScopes.COUNTRY],
         [PermissionKeys.USER_PROFILE_EDUCATION_WRITE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
         [PermissionKeys.USER_PROFILE_EDUCATION_WRITE_MANAGED, PermissionScopes.MANAGED],
-        [PermissionKeys.USER_PROFILE_EDUCATION_WRITE_OWN, PermissionScopes.OWN],
         [PermissionKeys.USER_PROFILE_EDUCATION_WRITE_SELF, PermissionScopes.SELF],
     ]);
 }
@@ -266,12 +237,10 @@ export function canWriteUserProfileEducation(actorUser: IUser, targetUser: IUser
 export function canWriteUserProfileCompensation(actorUser: IUser, targetUser: IUser): boolean {
     return canWriteUserProfileSection(actorUser, targetUser, [
         [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_ALL, PermissionScopes.ALL],
-        [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_COMPANY, PermissionScopes.COMPANY],
         [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
         [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_COUNTRY, PermissionScopes.COUNTRY],
         [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
         [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_MANAGED, PermissionScopes.MANAGED],
-        [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_OWN, PermissionScopes.OWN],
         [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_SELF, PermissionScopes.SELF],
     ]);
 }

@@ -54,6 +54,7 @@ export class RoleDialogComponent implements OnInit {
 
     loading = false;
     isEdit = this.data.mode === "edit";
+    isSystemRole = this.data.role?.isSystemRole ?? false;
 
     readonly permissionGroups: PermissionGroup[] = this.buildPermissionGroups();
 
@@ -65,7 +66,11 @@ export class RoleDialogComponent implements OnInit {
         permissions: [this.data.role?.permissions ?? []],
     });
 
-    ngOnInit(): void {}
+    ngOnInit(): void {
+        if (this.isEdit && this.isSystemRole) {
+            this.form.get("name")?.disable();
+        }
+    }
 
     get selectedPermissions(): string[] {
         return (this.form.get("permissions")?.value as string[]) ?? [];

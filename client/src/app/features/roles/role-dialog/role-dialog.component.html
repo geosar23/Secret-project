@@ -4,8 +4,11 @@
     <mat-dialog-content>
         <form [formGroup]="form" class="form-content">
             <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Role Name *</mat-label>
+                <mat-label>Role Name</mat-label>
                 <input matInput formControlName="name" placeholder="e.g., Manager" />
+                @if (isSystemRole && isEdit) {
+                    <mat-hint>Name cannot be changed for system roles</mat-hint>
+                }
                 @if (form.get("name")?.hasError("required")) {
                     <mat-error>Name is required</mat-error>
                 }

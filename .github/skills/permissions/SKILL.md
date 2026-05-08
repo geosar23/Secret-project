@@ -38,8 +38,8 @@ description: >
 Examples:
 
 - `*:*:*` — full superadmin wildcard
-- `usersManagement:read:*` — read all users
-- `userProfile:write:company` — write any user profile in the same company
+- `usersManagement:read:*` — read all users in your company
+- `userProfile:write:department` — write profiles of users in your department
 - `userProfile.identity:read:self` — read own identity sub-profile
 
 ---
@@ -61,7 +61,7 @@ Examples:
 | `USER_PROFILE_COMPENSATION` | `userProfile.compensation` |
 | `ROLES_MANAGEMENT`          | `rolesManagement`          |
 
-Sub-categories use dot notation (`userProfile.identity`). The wildcard checker also honours parent-category permissions for sub-categories (e.g. `userProfile:write:company` satisfies `userProfile.identity:write:company`).
+Sub-categories use dot notation (`userProfile.identity`). The wildcard checker also honours parent-category permissions for sub-categories (e.g. `userProfile:write:*` satisfies `userProfile.identity:write:*`).
 
 ### `PermissionActions`
 
@@ -74,16 +74,16 @@ Sub-categories use dot notation (`userProfile.identity`). The wildcard checker a
 
 ### `PermissionScopes`
 
-| Enum value           | String value         |
-| -------------------- | -------------------- |
-| `ALL`                | `*`                  |
-| `COMPANY`            | `company`            |
-| `DEPARTMENT`         | `department`         |
-| `COUNTRY`            | `country`            |
-| `DEPARTMENT_COUNTRY` | `department-country` |
-| `MANAGED`            | `managed`            |
-| `OWN`                | `own`                |
-| `SELF`               | `self`               |
+| Enum value           | String value         | Meaning                                      |
+| -------------------- | -------------------- | -------------------------------------------- |
+| `ALL`                | `*`                  | All records within the actor's company       |
+| `DEPARTMENT`         | `department`         | Records in the actor's department            |
+| `COUNTRY`            | `country`            | Records in the actor's country               |
+| `DEPARTMENT_COUNTRY` | `department-country` | Records matching both department and country |
+| `MANAGED`            | `managed`            | Records where actor is the direct manager    |
+| `SELF`               | `self`               | The actor's own record only                  |
+
+> **Note**: `COMPANY` and `OWN` scopes were removed. Company isolation is enforced at the repository layer (all queries are auto-scoped to `{ company: actorUser.company }`), making a dedicated `company` scope redundant — `*` already means "all within my company".
 
 ---
 
@@ -96,7 +96,7 @@ Generates a typed object with every `ACTION_SCOPE` key combination:
 ```ts
 const LEAVES_PERMISSIONS = definePermissions("leaves", {
     actions: ["read", "approve"],
-    scopes: ["*", "company", "managed"],
+    scopes: ["*", "managed"],
 });
 // LEAVES_PERMISSIONS.READ_ALL        → "leaves:read:*"
 // LEAVES_PERMISSIONS.APPROVE_MANAGED → "leaves:approve:managed"
@@ -127,16 +127,14 @@ The canonical flat object used everywhere in code:
 
 ```ts
 PermissionKeys.ALL; // "*:*:*"
-PermissionKeys.ALL_COMPANY; // "*:*:company"
 PermissionKeys.USERS_MANAGEMENT_READ_ALL; // "usersManagement:read:*"
-PermissionKeys.USERS_MANAGEMENT_ALL_COMPANY; // "usersManagement:*:company"
+PermissionKeys.USERS_MANAGEMENT_ALL_ALL; // "usersManagement:*:*"
+PermissionKeys.USERS_MANAGEMENT_ALL_DEPARTMENT; // "usersManagement:*:department"
 PermissionKeys.USER_PROFILE_READ_SELF; // "userProfile:read:self"
 PermissionKeys.USER_PROFILE_ALL_ALL; // "userProfile:*:*"
 PermissionKeys.ROLES_MANAGEMENT_ALL_ALL; // "rolesManagement:*:*"
-PermissionKeys.ROLES_MANAGEMENT_ALL_COMPANY; // "rolesManagement:*:company"
-// Legacy VIEW aliases (same values as READ):
+// Legacy VIEW alias (same value as READ):
 PermissionKeys.ROLES_MANAGEMENT_VIEW_ALL; // == ROLES_MANAGEMENT_READ_ALL
-PermissionKeys.ROLES_MANAGEMENT_VIEW_COMPANY; // == ROLES_MANAGEMENT_READ_COMPANY
 ```
 
 **To add a new category**: add entry to `PermissionCategories` + `PermissionCategoriesStrings`, call `definePermissions(...)`, then spread `prefixedKeys(...)` into `PermissionKeys` — in **both** client and server enum files.

@@ -14,30 +14,29 @@ describe("definePermissions()", () => {
     it("generates all action × scope combinations as keys", () => {
         const result = definePermissions("leaves", {
             actions: ["read", "approve"],
-            scopes: ["*", "company"],
+            scopes: ["*", "managed"],
         });
 
-        expect(Object.keys(result).sort()).toEqual(["APPROVE_ALL", "APPROVE_COMPANY", "READ_ALL", "READ_COMPANY"]);
+        expect(Object.keys(result).sort()).toEqual(["APPROVE_ALL", "APPROVE_MANAGED", "READ_ALL", "READ_MANAGED"]);
     });
 
     it("produces the correct permission strings", () => {
         const result = definePermissions("leaves", {
             actions: ["read", "approve"],
-            scopes: ["*", "company", "managed"],
+            scopes: ["*", "managed"],
         });
 
         expect(result.READ_ALL).toBe("leaves:read:*");
-        expect(result.READ_COMPANY).toBe("leaves:read:company");
         expect(result.APPROVE_MANAGED).toBe("leaves:approve:managed");
     });
 
     it('converts wildcard action "*" to "ALL" in the key', () => {
         const result = definePermissions("test", {
             actions: ["*"],
-            scopes: ["company"],
+            scopes: ["department"],
         });
 
-        expect(result.ALL_COMPANY).toBe("test:*:company");
+        expect(result.ALL_DEPARTMENT).toBe("test:*:department");
     });
 
     it('converts wildcard scope "*" to "ALL" in the key', () => {
@@ -61,11 +60,11 @@ describe("definePermissions()", () => {
     it("handles a single action and single scope", () => {
         const result = definePermissions("payroll", {
             actions: ["export"],
-            scopes: ["company"],
+            scopes: ["department"],
         });
 
-        expect(Object.keys(result)).toEqual(["EXPORT_COMPANY"]);
-        expect(result.EXPORT_COMPANY).toBe("payroll:export:company");
+        expect(Object.keys(result)).toEqual(["EXPORT_DEPARTMENT"]);
+        expect(result.EXPORT_DEPARTMENT).toBe("payroll:export:department");
     });
 });
 
@@ -73,12 +72,12 @@ describe("definePermissions()", () => {
 
 describe("prefixedKeys()", () => {
     it("prepends the prefix to every key", () => {
-        const input = { READ_ALL: "leaves:read:*", WRITE_COMPANY: "leaves:write:company" };
+        const input = { READ_ALL: "leaves:read:*", WRITE_DEPARTMENT: "leaves:write:department" };
         const result = prefixedKeys("LEAVES", input);
 
         expect(result).toEqual({
             LEAVES_READ_ALL: "leaves:read:*",
-            LEAVES_WRITE_COMPANY: "leaves:write:company",
+            LEAVES_WRITE_DEPARTMENT: "leaves:write:department",
         });
     });
 
@@ -97,12 +96,8 @@ describe("USERS_MANAGEMENT_PERMISSIONS", () => {
         expect(USERS_MANAGEMENT_PERMISSIONS.READ_ALL).toBe("usersManagement:read:*");
     });
 
-    it("has ALL_COMPANY equal to 'usersManagement:*:company'", () => {
-        expect(USERS_MANAGEMENT_PERMISSIONS.ALL_COMPANY).toBe("usersManagement:*:company");
-    });
-
-    it("covers all 8 scopes for each of the 2 actions (16 keys total)", () => {
-        expect(Object.keys(USERS_MANAGEMENT_PERMISSIONS)).toHaveLength(16);
+    it("covers 6 scopes for each of the 2 actions (12 keys total)", () => {
+        expect(Object.keys(USERS_MANAGEMENT_PERMISSIONS)).toHaveLength(12);
     });
 });
 
@@ -111,8 +106,8 @@ describe("COUNTRIES_MANAGEMENT_PERMISSIONS", () => {
         expect(COUNTRIES_MANAGEMENT_PERMISSIONS.READ_ALL).toBe("countriesManagement:read:*");
     });
 
-    it("covers 2 scopes × 2 actions (4 keys total)", () => {
-        expect(Object.keys(COUNTRIES_MANAGEMENT_PERMISSIONS)).toHaveLength(4);
+    it("covers 1 scope × 2 actions (2 keys total)", () => {
+        expect(Object.keys(COUNTRIES_MANAGEMENT_PERMISSIONS)).toHaveLength(2);
     });
 });
 
@@ -133,23 +128,17 @@ describe("ROLES_MANAGEMENT_PERMISSIONS", () => {
 describe("PermissionKeys (flat map)", () => {
     it("preserves all existing key names and values", () => {
         expect(PermissionKeys.ALL).toBe("*:*:*");
-        expect(PermissionKeys.ALL_COMPANY).toBe("*:*:company");
         expect(PermissionKeys.USERS_MANAGEMENT_READ_ALL).toBe("usersManagement:read:*");
-        expect(PermissionKeys.USERS_MANAGEMENT_ALL_COMPANY).toBe("usersManagement:*:company");
         expect(PermissionKeys.COUNTRIES_MANAGEMENT_READ_ALL).toBe("countriesManagement:read:*");
-        expect(PermissionKeys.COUNTRIES_MANAGEMENT_ALL_COMPANY).toBe("countriesManagement:*:company");
         expect(PermissionKeys.USER_PROFILE_READ_SELF).toBe("userProfile:read:self");
         expect(PermissionKeys.USER_PROFILE_ALL_ALL).toBe("userProfile:*:*");
         expect(PermissionKeys.ROLES_MANAGEMENT_ALL_ALL).toBe("rolesManagement:*:*");
-        expect(PermissionKeys.ROLES_MANAGEMENT_ALL_COMPANY).toBe("rolesManagement:*:company");
     });
 
     it("keeps legacy VIEW aliases pointing to the same strings as READ", () => {
         expect(PermissionKeys.ROLES_MANAGEMENT_VIEW_ALL).toBe("rolesManagement:read:*");
-        expect(PermissionKeys.ROLES_MANAGEMENT_VIEW_COMPANY).toBe("rolesManagement:read:company");
-        // Aliases share the same value as their READ counterparts
+        // Alias shares the same value as its READ counterpart
         expect(PermissionKeys.ROLES_MANAGEMENT_VIEW_ALL).toBe(PermissionKeys.ROLES_MANAGEMENT_READ_ALL);
-        expect(PermissionKeys.ROLES_MANAGEMENT_VIEW_COMPANY).toBe(PermissionKeys.ROLES_MANAGEMENT_READ_COMPANY);
     });
 
     it("includes department-country key", () => {

@@ -52,19 +52,15 @@ export const RoleService = {
     /**
      * Update a role
      */
-    update: async (
-        id: string,
-        data: Partial<IRole>,
-        companyId: string,
-        options?: { allowSystemRoleModification?: boolean },
-    ): Promise<IRole | null> => {
+    update: async (id: string, data: Partial<IRole>, companyId: string): Promise<IRole | null> => {
         const repository = roleRepository(companyId);
-        const allowSystemRoleModification = options?.allowSystemRoleModification ?? false;
 
-        // Prevent modification of system roles
         const role = await repository.findById(id).exec();
-        if (role?.isSystemRole && !allowSystemRoleModification) {
-            throw new Error("Cannot modify system roles");
+
+        // For system roles, name and slug (role) cannot be changed
+        if (role?.isSystemRole) {
+            delete data.name;
+            delete data.role;
         }
 
         return repository.findOneAndUpdate({ _id: id }, data, { new: true }).populate(roleCompanyPopulate).exec();

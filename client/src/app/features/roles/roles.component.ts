@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, inject, signal } from "@angular/core";
+import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatTableModule, MatTableDataSource } from "@angular/material/table";
 import { MatButtonModule } from "@angular/material/button";
@@ -15,14 +15,11 @@ import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { Subject } from "rxjs";
 import { takeUntil, debounceTime, distinctUntilChanged } from "rxjs/operators";
 import { RoleService } from "../../core/services/role.service";
-import { UsersService } from "../../core/services/users.service";
 import { IRole } from "../../core/interfaces/role.interface";
 import { ToastService } from "../../core/services/toast.service";
 import { RoleDialogComponent, RoleDialogData } from "./role-dialog/role-dialog.component";
 import { AuthService } from "../../core/services/auth.service";
 import { IUser } from "../../core/interfaces/user.interface";
-import { PermissionKeys } from "../../core/enums/permissions.enum";
-import { hasPermission } from "../../core/utils/permission.utils";
 
 @Component({
     selector: "app-roles",
@@ -49,7 +46,6 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
 
     private destroy$ = new Subject<void>();
     private authService = inject(AuthService);
-    private usersService = inject(UsersService);
     private roleService = inject(RoleService);
     private dialog = inject(MatDialog);
     private toast = inject(ToastService);
@@ -62,33 +58,11 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
     tableData = new MatTableDataSource<IRole>([]);
     displayedColumns: string[] = ["name", "description", "permissions", "type", "status", "createdAt", "actions"];
 
-    //Permissions
-    canEditSystemRoles = signal(false);
-
     ngOnInit(): void {
         this.authService.localUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
             this.localUser = user;
         });
 
-        this.usersService
-            .getEffectivePermissions()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-                next: res => {
-                    if (!res.success || !res.data) {
-                        this.toast.error(res.message || "Failed to get permissions");
-                        return;
-                    }
-                    const effectivePermissions = res.data.permissions;
-                    this.canEditSystemRoles.set(
-                        hasPermission(effectivePermissions, PermissionKeys.ROLES_MANAGEMENT_ALL_ALL) ||
-                            hasPermission(effectivePermissions, PermissionKeys.ROLES_MANAGEMENT_ALL_COMPANY),
-                    );
-                },
-                error: err => {
-                    this.toast.error(err.error?.message || "Failed to get permissions");
-                },
-            });
         this.tableData.filterPredicate = (data: IRole, filter: string) => {
             const parsed = JSON.parse(filter) as { search: string; roleType: "all" | "system" | "custom" };
             const term = parsed.search;
@@ -164,11 +138,6 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     openEditDialog(role: IRole): void {
-        if (this.isSystemRole(role) && !this.canEditSystemRoles()) {
-            this.toast.error("System roles cannot be edited");
-            return;
-        }
-
         this.dialog
             .open(RoleDialogComponent, {
                 width: "460px",

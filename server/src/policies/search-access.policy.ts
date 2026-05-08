@@ -5,13 +5,11 @@ import { getEffectivePermissions, matchesWildcard } from "../utils/permission-ch
 interface SearchAccessPermissions {
     all: string;
     readAll: string;
-    readCompany?: string;
     readDepartment?: string;
     readCountry?: string;
     readDepartmentCountry?: string;
     readManaged?: string;
     readSelf?: string;
-    readOwn?: string;
 }
 
 interface SearchAccessFields {
@@ -50,12 +48,6 @@ export function buildSearchAccessQuery<TDocument>(
     }
 
     const scopeFilters: FilterQuery<TDocument>[] = [];
-
-    if (options.permissions.readCompany && matchesWildcard(effective, options.permissions.readCompany)) {
-        if (actorUser.company) {
-            scopeFilters.push({ [options.fields.company]: actorUser.company } as unknown as FilterQuery<TDocument>);
-        }
-    }
 
     if (options.permissions.readDepartment && matchesWildcard(effective, options.permissions.readDepartment)) {
         if (actorUser.department && options.fields.department) {
@@ -96,12 +88,6 @@ export function buildSearchAccessQuery<TDocument>(
     if (options.permissions.readSelf && matchesWildcard(effective, options.permissions.readSelf)) {
         if (actorUser._id && options.fields.id) {
             scopeFilters.push({ [options.fields.id]: actorUser._id } as unknown as FilterQuery<TDocument>);
-        }
-    }
-
-    if (options.permissions.readOwn && matchesWildcard(effective, options.permissions.readOwn)) {
-        if (actorUser.company) {
-            scopeFilters.push({ [options.fields.company]: actorUser.company } as unknown as FilterQuery<TDocument>);
         }
     }
 

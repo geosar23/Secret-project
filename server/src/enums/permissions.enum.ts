@@ -28,12 +28,10 @@ export const PermissionCategoriesStrings: Record<PermissionCategories, string> =
 
 export enum PermissionScopes {
     ALL = "*",
-    COMPANY = "company",
     DEPARTMENT = "department",
     COUNTRY = "country",
     DEPARTMENT_COUNTRY = "department-country",
     MANAGED = "managed",
-    OWN = "own",
     SELF = "self",
 }
 
@@ -154,12 +152,10 @@ export const USERS_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategori
     actions: [PermissionActions.READ, PermissionActions.ALL],
     scopes: [
         PermissionScopes.ALL,
-        PermissionScopes.COMPANY,
         PermissionScopes.DEPARTMENT,
         PermissionScopes.COUNTRY,
         PermissionScopes.DEPARTMENT_COUNTRY,
         PermissionScopes.MANAGED,
-        PermissionScopes.OWN,
         PermissionScopes.SELF,
     ],
 });
@@ -167,7 +163,7 @@ export const USERS_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategori
 /** All `countriesManagement` permission keys. */
 export const COUNTRIES_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategories.COUNTRIES_MANAGEMENT, {
     actions: [PermissionActions.READ, PermissionActions.ALL],
-    scopes: [PermissionScopes.ALL, PermissionScopes.COMPANY],
+    scopes: [PermissionScopes.ALL],
 });
 
 /** All `userProfile` permission keys. */
@@ -175,12 +171,10 @@ export const USER_PROFILE_PERMISSIONS = definePermissions(PermissionCategories.U
     actions: [PermissionActions.READ, PermissionActions.WRITE, PermissionActions.CREATE, PermissionActions.ALL],
     scopes: [
         PermissionScopes.ALL,
-        PermissionScopes.COMPANY,
         PermissionScopes.DEPARTMENT,
         PermissionScopes.COUNTRY,
         PermissionScopes.DEPARTMENT_COUNTRY,
         PermissionScopes.MANAGED,
-        PermissionScopes.OWN,
         PermissionScopes.SELF,
     ],
 });
@@ -190,12 +184,10 @@ export const USER_PROFILE_IDENTITY_PERMISSIONS = definePermissions(PermissionCat
     actions: [PermissionActions.READ, PermissionActions.WRITE],
     scopes: [
         PermissionScopes.ALL,
-        PermissionScopes.COMPANY,
         PermissionScopes.DEPARTMENT,
         PermissionScopes.COUNTRY,
         PermissionScopes.DEPARTMENT_COUNTRY,
         PermissionScopes.MANAGED,
-        PermissionScopes.OWN,
         PermissionScopes.SELF,
     ],
 });
@@ -205,12 +197,10 @@ export const USER_PROFILE_CONTACT_PERMISSIONS = definePermissions(PermissionCate
     actions: [PermissionActions.READ, PermissionActions.WRITE],
     scopes: [
         PermissionScopes.ALL,
-        PermissionScopes.COMPANY,
         PermissionScopes.DEPARTMENT,
         PermissionScopes.COUNTRY,
         PermissionScopes.DEPARTMENT_COUNTRY,
         PermissionScopes.MANAGED,
-        PermissionScopes.OWN,
         PermissionScopes.SELF,
     ],
 });
@@ -220,12 +210,10 @@ export const USER_PROFILE_EMPLOYMENT_PERMISSIONS = definePermissions(PermissionC
     actions: [PermissionActions.READ, PermissionActions.WRITE],
     scopes: [
         PermissionScopes.ALL,
-        PermissionScopes.COMPANY,
         PermissionScopes.DEPARTMENT,
         PermissionScopes.COUNTRY,
         PermissionScopes.DEPARTMENT_COUNTRY,
         PermissionScopes.MANAGED,
-        PermissionScopes.OWN,
         PermissionScopes.SELF,
     ],
 });
@@ -235,12 +223,10 @@ export const USER_PROFILE_EDUCATION_PERMISSIONS = definePermissions(PermissionCa
     actions: [PermissionActions.READ, PermissionActions.WRITE],
     scopes: [
         PermissionScopes.ALL,
-        PermissionScopes.COMPANY,
         PermissionScopes.DEPARTMENT,
         PermissionScopes.COUNTRY,
         PermissionScopes.DEPARTMENT_COUNTRY,
         PermissionScopes.MANAGED,
-        PermissionScopes.OWN,
         PermissionScopes.SELF,
     ],
 });
@@ -250,12 +236,10 @@ export const USER_PROFILE_COMPENSATION_PERMISSIONS = definePermissions(Permissio
     actions: [PermissionActions.READ, PermissionActions.WRITE],
     scopes: [
         PermissionScopes.ALL,
-        PermissionScopes.COMPANY,
         PermissionScopes.DEPARTMENT,
         PermissionScopes.COUNTRY,
         PermissionScopes.DEPARTMENT_COUNTRY,
         PermissionScopes.MANAGED,
-        PermissionScopes.OWN,
         PermissionScopes.SELF,
     ],
 });
@@ -263,7 +247,7 @@ export const USER_PROFILE_COMPENSATION_PERMISSIONS = definePermissions(Permissio
 /** All `rolesManagement` permission keys. */
 export const ROLES_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategories.ROLES_MANAGEMENT, {
     actions: [PermissionActions.READ, PermissionActions.ALL],
-    scopes: [PermissionScopes.ALL, PermissionScopes.COMPANY],
+    scopes: [PermissionScopes.ALL],
 });
 
 // ─── Flat permission-key map (PermissionCategory:PermissionAction:PermissionScope) ──
@@ -271,7 +255,6 @@ export const ROLES_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategori
 //PermissionCategory:PermissionAction:PermissionScope
 export const PermissionKeys = {
     ALL: `${PermissionCategories.ALL}:${PermissionActions.ALL}:${PermissionScopes.ALL}`,
-    ALL_COMPANY: `${PermissionCategories.ALL}:${PermissionActions.ALL}:${PermissionScopes.COMPANY}`,
 
     ...prefixedKeys("USERS_MANAGEMENT", USERS_MANAGEMENT_PERMISSIONS),
     ...prefixedKeys("COUNTRIES_MANAGEMENT", COUNTRIES_MANAGEMENT_PERMISSIONS),
@@ -283,7 +266,6 @@ export const PermissionKeys = {
     ...prefixedKeys("USER_PROFILE_COMPENSATION", USER_PROFILE_COMPENSATION_PERMISSIONS),
     ...prefixedKeys("ROLES_MANAGEMENT", ROLES_MANAGEMENT_PERMISSIONS),
 
-    // Legacy aliases: historically "rolesManagement" used "VIEW" instead of "READ".
+    // Legacy alias: historically "rolesManagement" used "VIEW" instead of "READ".
     ROLES_MANAGEMENT_VIEW_ALL: ROLES_MANAGEMENT_PERMISSIONS.READ_ALL,
-    ROLES_MANAGEMENT_VIEW_COMPANY: ROLES_MANAGEMENT_PERMISSIONS.READ_COMPANY,
 } as const;

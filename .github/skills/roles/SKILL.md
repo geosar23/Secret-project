@@ -81,15 +81,15 @@ description: >
 
 ## API Routes (`/api/roles`)
 
-| Method | Path                     | Handler              | Notes                                                                          |
-| ------ | ------------------------ | -------------------- | ------------------------------------------------------------------------------ |
-| GET    | `/hierarchy`             | `getRoleHierarchy`   | Sorted by `level` descending                                                   |
-| GET    | `/:roleType/permissions` | `getRolePermissions` | Stub — returns `{}`                                                            |
-| GET    | `/`                      | `getAllRoles`        | Company-scoped                                                                 |
-| GET    | `/:id`                   | `getRoleById`        | Company-scoped                                                                 |
-| POST   | `/`                      | `createRole`         | Custom roles only                                                              |
-| PUT    | `/:id`                   | `updateRole`         | System roles need `ROLES_MANAGEMENT_ALL_ALL` or `ROLES_MANAGEMENT_ALL_COMPANY` |
-| DELETE | `/:id`                   | `deleteRole`         | System roles blocked at model level                                            |
+| Method | Path                     | Handler              | Notes                                                                                   |
+| ------ | ------------------------ | -------------------- | --------------------------------------------------------------------------------------- |
+| GET    | `/hierarchy`             | `getRoleHierarchy`   | Sorted by `level` descending                                                            |
+| GET    | `/:roleType/permissions` | `getRolePermissions` | Stub — returns `{}`                                                                     |
+| GET    | `/`                      | `getAllRoles`        | Company-scoped                                                                          |
+| GET    | `/:id`                   | `getRoleById`        | Company-scoped                                                                          |
+| POST   | `/`                      | `createRole`         | Custom roles only                                                                       |
+| PUT    | `/:id`                   | `updateRole`         | Works for system and custom roles; `name`/`role` slug silently ignored for system roles |
+| DELETE | `/:id`                   | `deleteRole`         | System roles blocked at model level                                                     |
 
 ---
 
@@ -114,12 +114,12 @@ Dialog returns `IRole | undefined` on close.
 
 ### Form Fields
 
-| Field       | Control name  | Validators             | Notes                                                                                 |
-| ----------- | ------------- | ---------------------- | ------------------------------------------------------------------------------------- |
-| Role Name   | `name`        | required, minLength(2) | sent as `name`; server derives `role` slug (lowercase + underscores)                  |
-| Description | `description` | maxLength(255)         | optional                                                                              |
-| Permissions | `permissions` | —                      | multi-select grouped by `PermissionCategoriesStrings`; chips shown below for selected |
-| Is Active   | `isActive`    | —                      | slide toggle; only relevant in edit mode                                              |
+| Field       | Control name  | Validators             | Notes                                                                                                         |
+| ----------- | ------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Role Name   | `name`        | required, minLength(2) | sent as `name`; server derives `role` slug (lowercase + underscores); **disabled** when editing a system role |
+| Description | `description` | maxLength(255)         | optional                                                                                                      |
+| Permissions | `permissions` | —                      | multi-select grouped by `PermissionCategoriesStrings`; chips shown below for selected                         |
+| Is Active   | `isActive`    | —                      | slide toggle; only relevant in edit mode                                                                      |
 
 ### Permission Groups
 
@@ -130,9 +130,11 @@ Built in `buildPermissionGroups()`:
 - Rendered as `<mat-optgroup>` inside a multiple `<mat-select>`
 - Selected permissions shown as `<mat-chip-set>` with a **Clear** button
 
-### Permission Gate
+### System Role Editing Constraints
 
-- `canEditSystemRoles` — requires `ROLES_MANAGEMENT_ALL_ALL` or `ROLES_MANAGEMENT_ALL_COMPANY`; checked in `RolesComponent` before opening edit dialog
+- The **edit button is always visible** for all roles (system and custom).
+- When editing a system role, `name` is **disabled** in the form and a hint is displayed.
+- The server silently strips `name` and `role` (slug) from any update to a system role, so those fields can never be changed regardless of client behaviour.
 
 ---
 
@@ -150,7 +152,7 @@ Fixed: `name`, `description`, `permissions`, `type`, `status`, `createdAt`, `act
 ### Actions
 
 - **Create** — `openCreateDialog()`, prepends new role to list
-- **Edit** — `openEditDialog(role)`, blocks if `isSystemRole && !canEditSystemRoles()`
+- **Edit** — `openEditDialog(role)`, always available; dialog disables the `name` field for system roles
 - **Delete** — handled server-side; no client delete button visible in current implementation
 
 ---
@@ -163,7 +165,8 @@ Fixed: `name`, `description`, `permissions`, `type`, `status`, `createdAt`, `act
 - **Cannot be created** via API (`pre("save")` hook blocks it)
 - **Cannot be deleted** (`pre("deleteOne")` and `pre("findOneAndDelete")` hooks)
 - **Cannot be set inactive** (`pre("save")` and `pre("findOneAndUpdate")` hooks)
-- Modifying other fields requires `allowSystemRoleModification: true` passed from controller (needs `ROLES_MANAGEMENT_ALL_ALL` or `ROLES_MANAGEMENT_ALL_COMPANY`)
+- **`name` and `role` slug cannot be changed** — `RoleService.update()` strips both fields from the payload before saving when the target is a system role
+- All other fields (`description`, `permissions`, `isActive`) can be updated freely, same as custom roles
 
 ### Company Scoping (`roleRepository`)
 
