@@ -233,15 +233,22 @@ Responses on failure:
 
 ## Client Service (`PermissionService`)
 
-```ts
-// Reactive (use in templates / subscriptions)
-permissionService.canViewCrossCompany$; // Observable<boolean>
+Exposes synchronous helpers for checking the local user's effective permissions in components and guards.
 
+```ts
 // Synchronous (safe in constructors/field initializers after auth bootstrap)
-permissionService.canViewCrossCompany(); // boolean
+permissionService.canCreateUser(): boolean
+permissionService.canEditUser(): boolean
 ```
 
-Currently exposes only the cross-company check. Add more helpers following the same `map(user => hasPermission(...))` pattern.
+Add more helpers following the same `hasPermission(computeEffective(user), PermissionKeys.X)` pattern.
+
+Internal:
+
+```ts
+private computeEffective(user: IUser): string[]
+// returns [...role.permissions, ...grantedPermissions].filter(p => !revokedPermissions.includes(p))
+```
 
 ---
 

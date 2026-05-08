@@ -3,7 +3,12 @@ import { officeRepository } from "../repositories/office.repository";
 
 export const OfficeService = {
     getAll: (companyId: string) =>
-        officeRepository(companyId).find().populate("country", "_id name").sort({ name: 1 }).lean(),
+        officeRepository(companyId)
+            .find()
+            .populate("country", "_id name")
+            .populate("company", "_id name")
+            .sort({ name: 1 })
+            .lean(),
 
     getById: (id: string, companyId: string) =>
         officeRepository(companyId).findById(id).populate("country", "_id name").lean(),

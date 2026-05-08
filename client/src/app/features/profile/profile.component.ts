@@ -9,7 +9,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatDividerModule } from "@angular/material/divider";
 import { MatDialog } from "@angular/material/dialog";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { AuthService } from "../../core/services/auth.service";
 import { ChangePasswordDialogData, UserProfile, ProfileRouteContext } from "../../core/interfaces/profile.interface";
 import { RoleUtils } from "../../core/utils/role.utils";
@@ -18,7 +18,7 @@ import { ToastService } from "../../core/services/toast.service";
 import { Subject } from "rxjs";
 import { skipWhile, takeUntil } from "rxjs/operators";
 import { ChangePasswordDialogComponent } from "./change-password-dialog/change-password-dialog.component";
-import { EditUserDialogComponent, EditUserDialogData } from "../users/edit-user-dialog/edit-user-dialog.component";
+
 import { ProfileAddressPipe } from "./profile-address.pipe";
 import {
     GENDER_LABELS,
@@ -48,6 +48,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private usersService = inject(UsersService);
     private authService = inject(AuthService);
     private route = inject(ActivatedRoute);
+    private router = inject(Router);
     private dialog = inject(MatDialog);
     private toast = inject(ToastService);
 
@@ -138,37 +139,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     openEditDialog(): void {
-        if (!this.profile || this.loading()) return;
-
-        this.dialog
-            .open(EditUserDialogComponent, {
-                width: "500px",
-                maxWidth: "95vw",
-                data: { user: this.profile } as EditUserDialogData,
-            })
-            .afterClosed()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe(updatedUser => {
-                if (!updatedUser) return;
-                this.profile = updatedUser;
-                if (this.profile?._id) {
-                    this.loadProfileImageUrl(this.profile._id);
-                }
-                if (this.isOwnProfile) {
-                    this.authService
-                        .patchAndRefreshCurrentUser(updatedUser)
-                        .pipe(takeUntil(this.destroy$))
-                        .subscribe({
-                            next: user => {
-                                this.profile = user;
-                            },
-                            error: () => {
-                                return;
-                            },
-                        });
-                }
-                this.toast.success("Profile updated successfully");
-            });
+        if (!this.profile || !this.profile._id || this.loading()) return;
+        this.router.navigate(["/users", this.profile._id, "edit"]);
     }
 
     openChangePasswordDialog(): void {

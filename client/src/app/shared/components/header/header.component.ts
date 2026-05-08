@@ -11,8 +11,9 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { AuthService } from "../../../core/services/auth.service";
 import { UsersService } from "../../../core/services/users.service";
+import { CompanyService } from "../../../core/services/company.service";
 import { MatDivider } from "@angular/material/divider";
-import { debounceTime, distinctUntilChanged, switchMap } from "rxjs";
+import { debounceTime, distinctUntilChanged, filter, switchMap, take } from "rxjs";
 import { IUser } from "../../../core/interfaces/user.interface";
 
 interface NavItem {
@@ -62,11 +63,15 @@ export class HeaderComponent implements OnInit {
     private authService = inject(AuthService);
     private router = inject(Router);
     private usersService = inject(UsersService);
+    private companyService = inject(CompanyService);
 
     searchControl = new FormControl("");
     filteredResults = signal<SearchResult[]>([]);
 
     localUser$ = this.authService.localUser$;
+
+    companyName = signal<string>("");
+    companyLogoUrl = signal<string | null>(null);
 
     private navigationRoutes: SearchResult[] = [
         {
@@ -84,14 +89,6 @@ export class HeaderComponent implements OnInit {
             icon: "people",
             route: "/users",
             description: "Manage users",
-        },
-        {
-            id: "companies",
-            name: "Companies Management",
-            type: "route",
-            icon: "business",
-            route: "/companies",
-            description: "Manage companies",
         },
         {
             id: "roles",
@@ -158,11 +155,6 @@ export class HeaderComponent implements OnInit {
             route: "/users",
         },
         {
-            label: "Companies Management",
-            icon: "business",
-            route: "/companies",
-        },
-        {
             label: "Roles Management",
             icon: "admin_panel_settings",
             route: "/roles",
@@ -223,6 +215,33 @@ export class HeaderComponent implements OnInit {
     ];
 
     ngOnInit(): void {
+        // Load company name and logo once the user is available
+        this.authService.localUser$
+            .pipe(
+                filter(user => !!user),
+                take(1),
+            )
+            .subscribe(user => {
+                const company = user!.company;
+                if (!company) return;
+                this.companyName.set(company.name ?? "");
+                if (company._id && company.logo) {
+                    this.companyService
+                        .getLogoUrl(company._id)
+                        .pipe(take(1))
+                        .subscribe({
+                            next: res => {
+                                if (res.success && res.data?.url) {
+                                    this.companyLogoUrl.set(res.data.url);
+                                }
+                            },
+                            error: () => {
+                                /* no logo — silent */
+                            },
+                        });
+                }
+            });
+
         this.searchControl.valueChanges
             .pipe(
                 debounceTime(300),

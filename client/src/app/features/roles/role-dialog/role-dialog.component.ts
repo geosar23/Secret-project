@@ -10,12 +10,9 @@ import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatSelectModule } from "@angular/material/select";
 import { MatChipsModule } from "@angular/material/chips";
 import { RoleService } from "../../../core/services/role.service";
-import { CompanyService } from "../../../core/services/company.service";
 import { AuthService } from "../../../core/services/auth.service";
-import { PermissionService } from "../../../core/services/permission.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { IRole } from "../../../core/interfaces/role.interface";
-import { ICompany } from "../../../core/interfaces/company.interface";
 import { PermissionCategoriesStrings, PermissionKeys } from "../../../core/enums/permissions.enum";
 
 interface PermissionGroup {
@@ -50,20 +47,15 @@ export interface RoleDialogData {
 export class RoleDialogComponent implements OnInit {
     private fb = inject(FormBuilder);
     private roleService = inject(RoleService);
-    private companyService = inject(CompanyService);
     private authService = inject(AuthService);
-    private permissionService = inject(PermissionService);
     private toast = inject(ToastService);
     private dialogRef = inject(MatDialogRef<RoleDialogComponent, IRole | undefined>);
     data = inject<RoleDialogData>(MAT_DIALOG_DATA);
 
     loading = false;
-    companiesLoading = false;
     isEdit = this.data.mode === "edit";
-    companies: ICompany[] = [];
 
     readonly permissionGroups: PermissionGroup[] = this.buildPermissionGroups();
-    readonly canSelectCompany = this.permissionService.canViewCrossCompany();
 
     form: FormGroup = this.fb.group({
         name: [this.data.role?.name ?? "", [Validators.required, Validators.minLength(2)]],
@@ -73,23 +65,7 @@ export class RoleDialogComponent implements OnInit {
         permissions: [this.data.role?.permissions ?? []],
     });
 
-    ngOnInit(): void {
-        if (!this.canSelectCompany) {
-            return;
-        }
-
-        this.companiesLoading = true;
-        this.companyService.getCompanies().subscribe({
-            next: res => {
-                this.companies = res.data ?? [];
-                this.companiesLoading = false;
-            },
-            error: () => {
-                this.companiesLoading = false;
-                this.toast.error("Failed to load companies");
-            },
-        });
-    }
+    ngOnInit(): void {}
 
     get selectedPermissions(): string[] {
         return (this.form.get("permissions")?.value as string[]) ?? [];
@@ -126,10 +102,9 @@ export class RoleDialogComponent implements OnInit {
         this.loading = true;
         this.dialogRef.disableClose = true;
 
-        const { name, description, companyId, isActive, permissions } = this.form.value as {
+        const { name, description, isActive, permissions } = this.form.value as {
             name: string;
             description: string;
-            companyId?: string;
             isActive: boolean;
             permissions: string[];
         };
@@ -138,7 +113,6 @@ export class RoleDialogComponent implements OnInit {
             ? this.roleService.updateRole(this.data.role!._id as string, {
                   name,
                   description,
-                  companyId: this.canSelectCompany ? companyId || undefined : undefined,
                   isActive,
                   permissions,
               })
@@ -146,7 +120,6 @@ export class RoleDialogComponent implements OnInit {
                   name,
                   description,
                   permissions,
-                  companyId: this.canSelectCompany ? companyId || undefined : undefined,
               });
 
         request$.subscribe({

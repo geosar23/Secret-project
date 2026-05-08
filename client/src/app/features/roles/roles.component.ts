@@ -20,7 +20,6 @@ import { IRole } from "../../core/interfaces/role.interface";
 import { ToastService } from "../../core/services/toast.service";
 import { RoleDialogComponent, RoleDialogData } from "./role-dialog/role-dialog.component";
 import { AuthService } from "../../core/services/auth.service";
-import { PermissionService } from "../../core/services/permission.service";
 import { IUser } from "../../core/interfaces/user.interface";
 import { PermissionKeys } from "../../core/enums/permissions.enum";
 import { hasPermission } from "../../core/utils/permission.utils";
@@ -50,7 +49,6 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
 
     private destroy$ = new Subject<void>();
     private authService = inject(AuthService);
-    private permissionService = inject(PermissionService);
     private usersService = inject(UsersService);
     private roleService = inject(RoleService);
     private dialog = inject(MatDialog);
@@ -67,20 +65,9 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
     //Permissions
     canEditSystemRoles = signal(false);
 
-    private updateDisplayedColumns(canViewCrossCompany: boolean): void {
-        const base = ["name"];
-        if (canViewCrossCompany) base.push("company");
-        base.push("description", "permissions", "type", "status", "createdAt", "actions");
-        this.displayedColumns = base;
-    }
-
     ngOnInit(): void {
         this.authService.localUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
             this.localUser = user;
-        });
-
-        this.permissionService.canViewCrossCompany$.pipe(takeUntil(this.destroy$)).subscribe(canView => {
-            this.updateDisplayedColumns(canView);
         });
 
         this.usersService

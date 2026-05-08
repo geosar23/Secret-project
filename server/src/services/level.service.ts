@@ -2,7 +2,8 @@ import { ILevel } from "../interfaces/level.interface";
 import { levelRepository } from "../repositories/level.repository";
 
 export const LevelService = {
-    getAll: (companyId: string) => levelRepository(companyId).find().sort({ order: 1, name: 1 }).lean(),
+    getAll: (companyId: string) =>
+        levelRepository(companyId).find().populate("company", "_id name").sort({ order: 1, name: 1 }).lean(),
 
     getById: (id: string, companyId: string) => levelRepository(companyId).findById(id).lean(),
 

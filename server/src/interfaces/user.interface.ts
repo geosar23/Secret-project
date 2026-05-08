@@ -95,7 +95,6 @@ export interface IUsersQueryParams {
     limit?: number;
     search?: string;
     roleId?: string;
-    companyId?: string | null;
     departmentId?: string;
     countryId?: string;
     isActive?: boolean;

@@ -18,8 +18,7 @@ const RoleSchema = new Schema<IRole>(
                     // Custom roles can have any string value
                     return true;
                 },
-                message:
-                    "System roles must use predefined role values (GOD, SUPER_ADMIN, ADMIN, HR, MANAGER, EMPLOYEE)",
+                message: "System roles must use predefined role values (SUPER_ADMIN, ADMIN, HR, MANAGER, EMPLOYEE)",
             },
         },
         name: { type: String, required: true, trim: true, unique: true },

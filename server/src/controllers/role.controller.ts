@@ -5,7 +5,6 @@ import { success, softError } from "../utils/response.util";
 import { IRole } from "../interfaces/role.interface";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { UserService } from "../services/user.service";
-import { CompanyService } from "../services/company.service";
 import { PermissionChecker } from "../utils/permission-checker";
 import { PermissionKeys } from "../enums/permissions.enum";
 
@@ -92,11 +91,10 @@ export class RoleController {
     static async createRole(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const user = req.decoded as tokenPayload;
-            const { name, description, permissions, companyId } = req.body as {
+            const { name, description, permissions } = req.body as {
                 name?: string;
                 description?: string;
                 permissions?: string[];
-                companyId?: string;
             };
 
             if (!name || typeof name !== "string" || name.trim().length < 2) {
@@ -110,38 +108,16 @@ export class RoleController {
                 return;
             }
 
-            const canAssignAcrossCompanies = await PermissionChecker.hasAnyPermission(actor, [
-                PermissionKeys.ALL,
-                PermissionKeys.USERS_MANAGEMENT_ALL_ALL,
-            ]);
-
-            if (companyId && !canAssignAcrossCompanies) {
-                res.json(softError("Insufficient permissions to assign roles across companies"));
-                return;
-            }
-
-            const targetCompanyId = companyId?.trim() || user.companyId;
-            if (!targetCompanyId) {
-                res.json(softError("companyId is required"));
-                return;
-            }
-
-            const company = await CompanyService.getById(targetCompanyId);
-            if (!company) {
-                res.json(softError("Company not found"));
-                return;
-            }
-
             const roleData: Omit<IRole, "_id" | "updatedAt"> = {
                 role: name.toLowerCase().replace(/ /g, "_"),
                 name: name.trim(),
                 description: description?.trim() || "",
-                level: 55, // Custom roles default level
+                level: 55,
                 permissions: (permissions || [])
                     .filter((p: string) => typeof p === "string")
                     .map((p: string) => p.trim()),
                 isSystemRole: false,
-                company: targetCompanyId as any,
+                company: user.companyId as any,
                 isActive: true,
                 createdAt: new Date(),
             };
@@ -185,25 +161,6 @@ export class RoleController {
             }
             if (typeof req.body.isActive === "boolean") {
                 updates.isActive = req.body.isActive;
-            }
-            if (typeof req.body.companyId === "string" && req.body.companyId.trim().length > 0) {
-                const canAssignAcrossCompanies = await PermissionChecker.hasAnyPermission(actor, [
-                    PermissionKeys.ALL,
-                    PermissionKeys.USERS_MANAGEMENT_ALL_ALL,
-                ]);
-
-                if (!canAssignAcrossCompanies) {
-                    res.json(softError("Insufficient permissions to assign roles across companies"));
-                    return;
-                }
-
-                const company = await CompanyService.getById(req.body.companyId.trim());
-                if (!company) {
-                    res.json(softError("Company not found"));
-                    return;
-                }
-
-                updates.company = req.body.companyId.trim() as any;
             }
 
             if (Object.keys(updates).length === 0) {

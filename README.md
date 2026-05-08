@@ -151,7 +151,7 @@ The backend provides REST API endpoints under `/api`:
 - **User Profile Images (Signed URL)**: `GET /api/users/:id/profile-image-url` — Get signed URL for profile image
 - **User Profile Images (Delete)**: `DELETE /api/users/:id/profile-image` — Remove profile image
 - **Roles**: `/api/roles/*` — Role CRUD, hierarchy, role permissions
-- **Companies**: `/api/companies/*` — Company CRUD
+- **Company Logo**: `GET /api/companies/:id/logo-url` — Get signed URL for company logo
 - **Countries**: `/api/countries/*` — Country CRUD (permission-guarded)
 - **Departments**: `/api/departments/*` — Department CRUD
 - **Sub-Departments**: `/api/sub-departments/*` — Sub-department CRUD
@@ -164,20 +164,24 @@ The backend provides REST API endpoints under `/api`:
 
 - User authentication and authorization
 - Role-based access control (RBAC)
-- Company and employee management
+- Multi-tenant architecture — all data strictly scoped to the authenticated user's company
 - Country, department, sub-department, and employment title management
 - Secure session handling with JWT
 - Granular permission assignment and revocation per user
 - Profile editing and change-password flow
 - Profile image upload/delete with signed URL delivery
+- Company logo storage and signed URL delivery
 - Advanced user filtering (role, department, country)
-- Company-scoped data repositories for HR entities
+- Company-scoped data repositories for all HR entities
 - API rate limiting and request validation
 - Code formatting and linting automation
 - Git hooks for commit quality (Husky + Commitlint)
 
 ## Recent Functional Updates
 
+- Removed OG company / GOD user concepts — all users and entities are now strictly tenant-isolated with no exceptions.
+- Removed companies management UI — companies are provisioned outside the app; logo URL is available read-only via `/api/companies/:id/logo-url`.
+- Added company logo support: Supabase Storage upload with signed URL delivery; logo displayed in the header.
 - Added dedicated management modules for countries, departments, sub-departments, and employment titles.
 - Expanded user administration with manager assignment, richer edit/create forms, and stronger validation.
 - Added user-level permission grant/revoke endpoints and UI integrations.

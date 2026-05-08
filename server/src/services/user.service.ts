@@ -11,11 +11,10 @@ export const UserService = {
         const page = Math.max(1, Math.min(params.page || 1, 1000));
         const limit = Math.max(1, Math.min(params.limit || 10, 100));
         const search = params.search ? String(params.search).slice(0, 100) : undefined;
-        const allowedSortFields = ["name", "email", "createdAt", "role", "companyId"];
+        const allowedSortFields = ["name", "email", "createdAt", "role"];
         const sortBy = allowedSortFields.includes(params.sortBy || "") ? params.sortBy! : "createdAt";
         const sortOrder = params.sortOrder === "asc" ? "asc" : "desc";
         const role = params.roleId;
-        const company = params.companyId;
         const department = params.departmentId;
         const country = params.countryId;
         const isActive = params.isActive;
@@ -29,10 +28,6 @@ export const UserService = {
 
         if (role) {
             filter.role = role;
-        }
-
-        if (company) {
-            filter.company = company;
         }
 
         if (department) {

@@ -5,12 +5,9 @@ import { UserModel } from "../../models/user.model";
 import { PermissionKeys } from "../../enums/permissions.enum";
 import { config } from "../../config/env";
 
-// Matches OG_COMPANY_ID from setup.env.ts — userRepository returns base model with no
-// company-scope filter for this ID (god-level cross-company access).
 export const TEST_COMPANY_ID = new mongoose.Types.ObjectId("507f1f77bcf86cd799439011");
 
-// Distinct company IDs for isolation tests — different from OG_COMPANY_ID so the
-// repository applies the { company: X } scope filter to each.
+// Distinct company IDs for isolation tests.
 export const COMPANY_A_ID = new mongoose.Types.ObjectId("aaaaaaaaaaaaaaaaaaaaaaaa");
 export const COMPANY_B_ID = new mongoose.Types.ObjectId("bbbbbbbbbbbbbbbbbbbbbbbb");
 
@@ -109,48 +106,7 @@ export async function seedEmployeeUser(): Promise<SeededUser> {
 }
 
 /**
- * Seeds a god-level user whose companyId matches OG_COMPANY_ID.
- * The userRepository returns the base model with NO company filter for this ID,
- * so this user can see data across all companies — mirrors the real god role.
- */
-export async function seedGodUser(): Promise<SeededUser> {
-    const role = await RoleModel.create({
-        role: "test-god",
-        name: "Test God Role",
-        description: "Cross-company god role for tests",
-        level: 0,
-        permissions: [PermissionKeys.ALL],
-        isSystemRole: false,
-        company: TEST_COMPANY_ID,
-    });
-
-    const plainPassword = "Test@God1";
-    const user = await UserModel.create({
-        name: "Test God",
-        email: "god@test.com",
-        password: plainPassword,
-        role: role._id,
-        company: TEST_COMPANY_ID,
-        isActive: true,
-    });
-
-    return {
-        _id: user._id as mongoose.Types.ObjectId,
-        email: user.email,
-        plainPassword,
-        companyId: TEST_COMPANY_ID,
-        token: makeToken(
-            { _id: user._id as mongoose.Types.ObjectId, email: user.email, name: user.name },
-            role._id.toString(),
-            TEST_COMPANY_ID, // OG_COMPANY_ID → no repo-level scope filter
-        ),
-    };
-}
-
-/**
  * Seeds a user belonging to the given company with the given permissions.
- * Use COMPANY_A_ID / COMPANY_B_ID for isolation tests — userRepository will
- * apply { company: companyId } to all queries for these non-OG IDs.
  */
 export async function seedUserInCompany(opts: {
     companyId: mongoose.Types.ObjectId;

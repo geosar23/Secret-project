@@ -112,8 +112,13 @@ function applyComplexUserFields(target: Partial<IUser>, body: Record<string, unk
 export class UserController {
     static async getUsers(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
-            const requestingUser = req.decoded as tokenPayload;
-            // Parse query parameters
+            const actorTokenData = req.decoded as tokenPayload;
+            const actorUser = (await UserService.getById(actorTokenData.id, actorTokenData.companyId)) as IUser | null;
+            if (!actorUser) {
+                res.json(softError("Unauthorized"));
+                return;
+            }
+
             const params: IUsersQueryParams = {
                 page: req.query.page ? parseInt(req.query.page as string) : undefined,
                 limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
@@ -121,21 +126,12 @@ export class UserController {
                 sortBy: req.query.sortBy as string,
                 sortOrder: req.query.sortOrder as "asc" | "desc",
                 roleId: req.query.roleId as string,
-                companyId: req.query.companyId as string,
                 departmentId: req.query.departmentId as string,
                 countryId: req.query.countryId as string,
                 isActive: req.query.isActive === "true" ? true : req.query.isActive === "false" ? false : undefined,
             };
 
-            const actorUser = await UserService.getById(requestingUser.id, requestingUser.companyId);
-            if (!actorUser) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
-            const actor = actorUser as IUser;
-
-            const searchAccessQuery = buildUserSearchAccessQuery(actor);
+            const searchAccessQuery = buildUserSearchAccessQuery(actorUser);
             if (searchAccessQuery === null) {
                 res.json(
                     success({ users: [], total: 0, page: params.page || 1, limit: params.limit || 10, totalPages: 0 }),
@@ -143,7 +139,7 @@ export class UserController {
                 return;
             }
 
-            const users = await UserService.getUsers(params, requestingUser.companyId, searchAccessQuery);
+            const users = await UserService.getUsers(params, actorTokenData.companyId, searchAccessQuery);
             res.json(success(users));
         } catch (error: any) {
             console.log("Error in UserController.getUsers:", error, { decoded: req.decoded, query: req.query });
@@ -154,7 +150,7 @@ export class UserController {
 
     static async create(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
-            const requestingUser = req.decoded as tokenPayload;
+            const actorTokenData = req.decoded as tokenPayload;
             const params: Partial<IUser> = { isActive: true };
 
             const USER_CREATE_REQUIRED_FIELDS: UserFieldMap = {
@@ -241,7 +237,7 @@ export class UserController {
             setMappedFields(params, USER_OPTIONAL_FIELDS, req.body as Record<string, unknown>);
             applyComplexUserFields(params, req.body as Record<string, unknown>);
 
-            const newUser = await UserService.create(params as Omit<IUser, "_id">, requestingUser.companyId);
+            const newUser = await UserService.create(params as Omit<IUser, "_id">, actorTokenData.companyId);
             res.json(success({ user: newUser }));
         } catch (error: any) {
             console.log("Error in UserController.create:", error, { decoded: req.decoded, body: req.body });
@@ -268,21 +264,15 @@ export class UserController {
 
     static async update(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
-            const requestingUser = req.decoded as tokenPayload;
-            if (!requestingUser.id) {
-                res.json(softError("Unauthorized"));
-                return;
-            }
-
-            const userId = req.params.id;
-
-            const actorUser = await UserService.getById(requestingUser.id, requestingUser.companyId);
+            const actorTokenData = req.decoded as tokenPayload;
+            const actorUser = await UserService.getById(actorTokenData.id, actorTokenData.companyId);
             if (!actorUser) {
                 res.json(softError("Unauthorized"));
                 return;
             }
 
-            const user = await UserService.getById(userId, requestingUser.companyId);
+            const userId = req.params.id;
+            const user = await UserService.getById(userId, actorTokenData.companyId);
             if (!user) {
                 res.json(softError("User not found"));
                 return;
@@ -374,7 +364,7 @@ export class UserController {
             setMappedFields(sanitizedData, USER_UPDATE_FIELDS, req.body as Record<string, unknown>);
             applyComplexUserFields(sanitizedData, req.body as Record<string, unknown>);
 
-            const updatedUser = await UserService.update(userId, sanitizedData, requestingUser.companyId);
+            const updatedUser = await UserService.update(userId, sanitizedData, actorTokenData.companyId);
             if (!updatedUser) {
                 res.json(softError("User not found"));
                 return;
@@ -388,14 +378,14 @@ export class UserController {
 
     static async changePassword(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
-            const requestingUser = req.decoded as tokenPayload;
+            const actorTokenData = req.decoded as tokenPayload;
             const userId = req.params.id;
             const { currentPassword, newPassword } = req.body as {
                 currentPassword?: string;
                 newPassword?: string;
             };
 
-            if (requestingUser.id !== userId) {
+            if (actorTokenData.id !== userId) {
                 res.json(softError("You can only change your own password"));
                 return;
             }
@@ -410,7 +400,7 @@ export class UserController {
                 return;
             }
 
-            await UserService.changePassword(userId, currentPassword, newPassword, requestingUser.companyId);
+            await UserService.changePassword(userId, currentPassword, newPassword, actorTokenData.companyId);
             res.json(success({}));
         } catch (error: any) {
             console.log("Error in UserController.changePassword:", error);
@@ -420,10 +410,10 @@ export class UserController {
 
     static async getEffectivePermissions(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
-            const requestingUser = req.decoded as tokenPayload;
-            const userId = requestingUser.id;
+            const actorTokenData = req.decoded as tokenPayload;
+            const userId = actorTokenData.id;
 
-            const user = await UserService.getById(userId, requestingUser.companyId, ["_id"]);
+            const user = await UserService.getById(userId, actorTokenData.companyId, ["_id"]);
             if (!user) {
                 res.json(softError("User not found"));
                 return;
@@ -439,7 +429,7 @@ export class UserController {
 
     static async grantPermission(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
-            const requestingUser = req.decoded as tokenPayload;
+            const actorTokenData = req.decoded as tokenPayload;
             const userId = req.params.id;
             const permissionKey = String(req.body.permissionKey || "").trim();
 
@@ -453,13 +443,13 @@ export class UserController {
                 return;
             }
 
-            const targetUser = await UserService.getById(userId, requestingUser.companyId, ["_id"]);
+            const targetUser = await UserService.getById(userId, actorTokenData.companyId, ["_id"]);
             if (!targetUser) {
                 res.json(softError("User not found"));
                 return;
             }
 
-            await UserService.grantPermission(userId, permissionKey, requestingUser.companyId);
+            await UserService.grantPermission(userId, permissionKey, actorTokenData.companyId);
             res.json(success({ userId, permissionKey }));
         } catch (error: any) {
             console.log("Error in UserController.grantPermission:", error);
@@ -469,7 +459,7 @@ export class UserController {
 
     static async revokePermission(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
-            const requestingUser = req.decoded as tokenPayload;
+            const actorTokenData = req.decoded as tokenPayload;
             const userId = req.params.id;
             const permissionKey = String(req.body.permissionKey || "").trim();
 
@@ -483,13 +473,13 @@ export class UserController {
                 return;
             }
 
-            const targetUser = await UserService.getById(userId, requestingUser.companyId, ["_id"]);
+            const targetUser = await UserService.getById(userId, actorTokenData.companyId, ["_id"]);
             if (!targetUser) {
                 res.json(softError("User not found"));
                 return;
             }
 
-            await UserService.revokePermission(userId, permissionKey, requestingUser.companyId);
+            await UserService.revokePermission(userId, permissionKey, actorTokenData.companyId);
             res.json(success({ userId, permissionKey }));
         } catch (error: any) {
             console.log("Error in UserController.revokePermission:", error);
@@ -499,7 +489,7 @@ export class UserController {
 
     static async uploadProfileImage(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
-            const requestingUser = req.decoded as tokenPayload;
+            const actorTokenData = req.decoded as tokenPayload;
             const userId = req.params.id;
 
             if (!req.file) {
@@ -507,7 +497,7 @@ export class UserController {
                 return;
             }
 
-            const user = await UserService.getProfileImageMetadata(userId, requestingUser.companyId);
+            const user = await UserService.getProfileImageMetadata(userId, actorTokenData.companyId);
             if (!user) {
                 res.json(softError("User not found"));
                 return;
@@ -516,7 +506,7 @@ export class UserController {
             const oldPath = (user as IUser).profileImage?.path;
 
             const uploadResult = await StorageService.uploadUserProfileImage({
-                companyId: requestingUser.companyId,
+                companyId: actorTokenData.companyId,
                 userId,
                 fileBuffer: req.file.buffer,
                 originalName: req.file.originalname,
@@ -535,7 +525,7 @@ export class UserController {
             const updatedUser = await UserService.updateProfileImageMetadata(
                 userId,
                 profileImage,
-                requestingUser.companyId,
+                actorTokenData.companyId,
             );
 
             if (oldPath) {
@@ -555,10 +545,10 @@ export class UserController {
 
     static async getProfileImageUrl(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
-            const requestingUser = req.decoded as tokenPayload;
+            const actorTokenData = req.decoded as tokenPayload;
             const userId = req.params.id;
 
-            const user = await UserService.getProfileImageMetadata(userId, requestingUser.companyId);
+            const user = await UserService.getProfileImageMetadata(userId, actorTokenData.companyId);
             if (!user) {
                 res.json(softError("User not found"));
                 return;
@@ -580,10 +570,10 @@ export class UserController {
 
     static async deleteProfileImage(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
-            const requestingUser = req.decoded as tokenPayload;
+            const actorTokenData = req.decoded as tokenPayload;
             const userId = req.params.id;
 
-            const user = await UserService.getProfileImageMetadata(userId, requestingUser.companyId);
+            const user = await UserService.getProfileImageMetadata(userId, actorTokenData.companyId);
             if (!user) {
                 res.json(softError("User not found"));
                 return;
@@ -596,7 +586,7 @@ export class UserController {
             }
 
             await StorageService.removeFile(imagePath);
-            await UserService.updateProfileImageMetadata(userId, undefined, requestingUser.companyId);
+            await UserService.updateProfileImageMetadata(userId, undefined, actorTokenData.companyId);
 
             res.json(success({}));
         } catch (error: any) {

@@ -16,7 +16,7 @@ export const DepartmentService = {
 
         const repository = departmentRepository(companyId);
         const created = await repository.create(data as Partial<IDepartment>);
-        return repository.findById(created._id).populate("company", "_id name").lean();
+        return repository.findById(created._id.toString()).populate("company", "_id name").lean();
     },
 
     update: async (id: string, data: Partial<IDepartment>, companyId: string) => {

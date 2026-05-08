@@ -28,6 +28,52 @@
         color: var(--color-text-on-primary);
     }
 
+    .company-brand {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        text-decoration: none;
+        cursor: pointer;
+        user-select: none;
+
+        &:hover {
+            opacity: 0.9;
+        }
+    }
+
+    .company-logo {
+        height: 2rem;
+        width: 2rem;
+        border-radius: var(--radius-sm);
+        object-fit: contain;
+        background: rgba(var(--color-white-rgb), 0.15);
+    }
+
+    .company-logo-placeholder {
+        height: 2rem;
+        width: 2rem;
+        border-radius: var(--radius-sm);
+        background: rgba(var(--color-white-rgb), 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        mat-icon {
+            font-size: 1.25rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            color: var(--color-text-on-primary);
+        }
+    }
+
+    .company-name {
+        font-size: var(--font-size-lg);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-text-on-primary);
+        letter-spacing: var(--letter-spacing-tight);
+        white-space: nowrap;
+    }
+
     .app-title {
         margin: 0;
         font-size: var(--font-size-xl);

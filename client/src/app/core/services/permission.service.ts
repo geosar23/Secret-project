@@ -1,6 +1,4 @@
 import { Injectable, inject } from "@angular/core";
-import { Observable } from "rxjs";
-import { map, distinctUntilChanged, shareReplay } from "rxjs/operators";
 import { AuthService } from "./auth.service";
 import { IUser } from "../interfaces/user.interface";
 import { PermissionKeys } from "../enums/permissions.enum";
@@ -13,26 +11,29 @@ export class PermissionService {
     private authService = inject(AuthService);
 
     /**
-     * Reactive observable that emits true when the current user has cross-company
-     * view access (i.e. can see data across all companies). Use this in components
-     * that need to react to auth state changes.
+     * Synchronous check for user creation access.
      */
-    canViewCrossCompany$: Observable<boolean> = this.authService.localUser$.pipe(
-        map(user =>
-            user ? hasPermission(this.computeEffective(user), PermissionKeys.USERS_MANAGEMENT_READ_ALL) : false,
-        ),
-        distinctUntilChanged(),
-        shareReplay(1),
-    );
-
-    /**
-     * Synchronous check for cross-company view access. Safe to call in constructors
-     * and field initializers after auth has been bootstrapped.
-     */
-    canViewCrossCompany(): boolean {
+    canCreateUser(): boolean {
         const user = this.authService.getLocalUser();
         if (!user) return false;
-        return hasPermission(this.computeEffective(user), PermissionKeys.USERS_MANAGEMENT_READ_ALL);
+        const effective = this.computeEffective(user);
+        return (
+            hasPermission(effective, PermissionKeys.USERS_MANAGEMENT_ALL_ALL) ||
+            hasPermission(effective, PermissionKeys.USERS_MANAGEMENT_ALL_COMPANY)
+        );
+    }
+
+    /**
+     * Synchronous check for user edit access. Same permission requirement as create.
+     */
+    canEditUser(): boolean {
+        const user = this.authService.getLocalUser();
+        if (!user) return false;
+        const effective = this.computeEffective(user);
+        return (
+            hasPermission(effective, PermissionKeys.USERS_MANAGEMENT_ALL_ALL) ||
+            hasPermission(effective, PermissionKeys.USERS_MANAGEMENT_ALL_COMPANY)
+        );
     }
 
     private computeEffective(user: IUser): string[] {

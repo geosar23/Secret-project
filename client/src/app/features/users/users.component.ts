@@ -9,15 +9,13 @@ import { MatPaginatorModule, MatPaginator } from "@angular/material/paginator";
 import { MatSelectModule } from "@angular/material/select";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
-import { MatDialog } from "@angular/material/dialog";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { Subject } from "rxjs";
 import { takeUntil, debounceTime, distinctUntilChanged, finalize } from "rxjs/operators";
 import { Router } from "@angular/router";
 import { UsersService } from "../../core/services/users.service";
 import { IUser, IUsersListResponse, IUsersQueryParams } from "../../core/interfaces/user.interface";
-import { CreateUserDialogComponent } from "./create-user-dialog/create-user-dialog.component";
-import { EditUserDialogComponent, EditUserDialogData } from "./edit-user-dialog/edit-user-dialog.component";
+
 import { RoleUtils } from "../../core/utils/role.utils";
 import { JsonResponse } from "../../core/interfaces/generics.interface";
 import { ToastService } from "../../core/services/toast.service";
@@ -27,9 +25,6 @@ import { DepartmentService } from "../../core/services/department.service";
 import { IRole } from "../../core/interfaces/role.interface";
 import { ICountry } from "../../core/interfaces/country.interface";
 import { IDepartment } from "../../core/interfaces/department.interface";
-import { ICompany } from "../../core/interfaces/company.interface";
-import { CompanyService } from "../../core/services/company.service";
-import { PermissionService } from "../../core/services/permission.service";
 
 interface IUserTableData extends IUser {
     roleColor?: string;
@@ -65,29 +60,16 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     public tableData: MatTableDataSource<IUserTableData> = new MatTableDataSource<IUserTableData>([]);
     public displayedColumns: string[] = ["name", "email", "role", "status", "createdAt", "actions"];
     private toast = inject(ToastService);
-    private permissionService = inject(PermissionService);
 
     loading = false;
 
     roles: IRole[] = [];
-    companies: ICompany[] = [];
     departments: IDepartment[] = [];
     countries: ICountry[] = [];
     roleControl = new FormControl<string>("");
-    companyControl = new FormControl<string>("");
     departmentControl = new FormControl<string>("");
     countryControl = new FormControl<string>("");
     isActiveControl = new FormControl<string>("");
-    canFilterAllCompanies = false;
-
-    private updateDisplayedColumns(): void {
-        const base = ["name", "email", "role"];
-        if (this.canFilterAllCompanies) {
-            base.push("companyId");
-        }
-        base.push("status", "createdAt", "actions");
-        this.displayedColumns = base;
-    }
 
     // Sorting options
     sortOptions = [
@@ -114,10 +96,8 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
 
     constructor(
         private usersService: UsersService,
-        private dialog: MatDialog,
         private router: Router,
         private roleService: RoleService,
-        private companyService: CompanyService,
         private countryService: CountryService,
         private departmentService: DepartmentService,
     ) {}
@@ -125,7 +105,6 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     ngOnInit() {
         this.loadUsers();
         this.loadFilterOptions();
-        this.loadPermissionDrivenFilters();
 
         // Listen to search input with debounce
         this.searchControl.valueChanges
@@ -141,10 +120,9 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
 
         const filterControls: {
             control: FormControl<string | null>;
-            key: "roleId" | "companyId" | "departmentId" | "countryId";
+            key: "roleId" | "departmentId" | "countryId";
         }[] = [
             { control: this.roleControl, key: "roleId" },
-            { control: this.companyControl, key: "companyId" },
             { control: this.departmentControl, key: "departmentId" },
             { control: this.countryControl, key: "countryId" },
         ];
@@ -212,35 +190,6 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             });
     }
 
-    private loadPermissionDrivenFilters() {
-        this.permissionService.canViewCrossCompany$.pipe(takeUntil(this.destroy$)).subscribe(canView => {
-            this.canFilterAllCompanies = canView;
-            this.updateDisplayedColumns();
-
-            if (canView) {
-                this.loadCompanies();
-                return;
-            }
-
-            // Ensure no stale company filter remains when the user lacks access.
-            this.companyControl.setValue("", { emitEvent: false });
-            this.queryParams.companyId = undefined;
-        });
-    }
-
-    private loadCompanies() {
-        this.companyService
-            .getCompanies()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-                next: res => {
-                    if (res.success && res.data) {
-                        this.companies = res.data;
-                    }
-                },
-            });
-    }
-
     loadUsers() {
         this.loading = true;
 
@@ -287,41 +236,12 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
         this.loadUsers();
     }
 
-    openEditModal(user: IUser) {
-        const dialogRef = this.dialog.open(EditUserDialogComponent, {
-            width: "500px",
-            data: { user } as EditUserDialogData,
-        });
-
-        dialogRef.afterClosed().subscribe((updated?: IUser) => {
-            if (!updated) return;
-            this.tableData.data = this.tableData.data.map(u =>
-                u._id === updated._id
-                    ? {
-                          ...updated,
-                          roleColor: RoleUtils.getRoleColor(updated.role?.role),
-                          roleName: RoleUtils.getRoleName(updated.role?.role),
-                      }
-                    : u,
-            );
-            this.toast.success("User updated successfully");
-        });
+    navigateToEdit(user: IUser) {
+        this.router.navigate(["/users", user._id, "edit"]);
     }
 
-    openCreateModal() {
-        const dialogRef = this.dialog.open(CreateUserDialogComponent, {
-            width: "500px",
-            disableClose: false,
-        });
-
-        dialogRef.afterClosed().subscribe(result => {
-            if (result) {
-                const currentData = this.tableData.data;
-                currentData.unshift(result);
-                this.tableData.data = currentData;
-                this.toast.success("User created successfully");
-            }
-        });
+    navigateToCreate() {
+        this.router.navigate(["/users/create"]);
     }
 
     navigateToUserProfile(userId: string) {

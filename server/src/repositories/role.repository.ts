@@ -1,15 +1,10 @@
-import { FilterQuery } from "mongoose";
+import { FilterQuery, Types } from "mongoose";
 import { IRole } from "../interfaces/role.interface";
 import { RoleModel } from "../models/role.model";
-import { config } from "../config/env";
 
 const withRoleScope = (companyId: string, filter: FilterQuery<IRole> = {}) => {
-    if (companyId === config.OG_COMPANY_ID) {
-        return filter;
-    }
-
     return {
-        $and: [{ company: companyId }, filter],
+        $and: [{ $or: [{ company: new Types.ObjectId(companyId) }, { company: { $exists: false } }] }, filter],
     } as FilterQuery<IRole>;
 };
 

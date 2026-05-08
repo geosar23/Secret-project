@@ -4,7 +4,6 @@ import { UserRole } from "../enums/user-role.enum";
  * Role display names
  */
 export const ROLE_NAMES: Record<UserRole, string> = {
-    [UserRole.GOD]: "God",
     [UserRole.SUPER_ADMIN]: "Super Admin",
     [UserRole.ADMIN]: "Admin",
     [UserRole.HR]: "HR Manager",
@@ -16,7 +15,6 @@ export const ROLE_NAMES: Record<UserRole, string> = {
  * Role colors for UI display
  */
 export const ROLE_COLORS: Record<UserRole, string> = {
-    [UserRole.GOD]: "#9f46c2ff",
     [UserRole.SUPER_ADMIN]: "#e74b48ff",
     [UserRole.ADMIN]: "#eb8d36ff",
     [UserRole.HR]: "#4ea8e4ff",
@@ -29,14 +27,13 @@ export const ROLE_COLORS: Record<UserRole, string> = {
  * Higher level includes all permissions of lower levels
  */
 export const ROLE_HIERARCHY_CONFIG = {
-    levels: [UserRole.GOD, UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.HR, UserRole.MANAGER, UserRole.EMPLOYEE],
+    levels: [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.HR, UserRole.MANAGER, UserRole.EMPLOYEE],
     hierarchy: {
-        [UserRole.GOD]: 6, // Highest
         [UserRole.SUPER_ADMIN]: 5,
         [UserRole.ADMIN]: 4,
         [UserRole.HR]: 3,
         [UserRole.MANAGER]: 2,
-        [UserRole.EMPLOYEE]: 1, // Lowest
+        [UserRole.EMPLOYEE]: 1,
     },
 } as const;
 

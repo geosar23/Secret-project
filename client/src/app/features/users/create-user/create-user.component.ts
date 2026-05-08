@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray, FormControl } from "@angular/forms";
-import { MatDialogModule, MatDialogRef } from "@angular/material/dialog";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatSelectModule } from "@angular/material/select";
@@ -12,9 +11,9 @@ import { provideNativeDateAdapter } from "@angular/material/core";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
+import { Router } from "@angular/router";
 import { UsersService } from "../../../core/services/users.service";
 import { PasswordInputComponent } from "../../../shared/components/password-input/password-input.component";
-import { CompanyService } from "../../../core/services/company.service";
 import { CountryService } from "../../../core/services/country.service";
 import { EmploymentTitleService } from "../../../core/services/employment-title.service";
 import { RoleService } from "../../../core/services/role.service";
@@ -24,7 +23,6 @@ import { OfficeService } from "../../../core/services/office.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { AuthService } from "../../../core/services/auth.service";
 import { PermissionService } from "../../../core/services/permission.service";
-import { ICompany } from "../../../core/interfaces/company.interface";
 import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 import { IRole } from "../../../core/interfaces/role.interface";
@@ -35,12 +33,11 @@ import { ProfileImageUploadComponent } from "../../../shared/components/profile-
 import { GENDER_OPTIONS, MARITAL_STATUS_OPTIONS, EMPLOYMENT_TYPE_OPTIONS } from "../../../core/enums/profile.enum";
 
 @Component({
-    selector: "app-create-user-dialog",
+    selector: "app-create-user",
     standalone: true,
     imports: [
         CommonModule,
         ReactiveFormsModule,
-        MatDialogModule,
         MatFormFieldModule,
         MatInputModule,
         MatSelectModule,
@@ -53,22 +50,21 @@ import { GENDER_OPTIONS, MARITAL_STATUS_OPTIONS, EMPLOYMENT_TYPE_OPTIONS } from 
         PasswordInputComponent,
         ProfileImageUploadComponent,
     ],
-    templateUrl: "./create-user-dialog.component.html",
-    styleUrls: ["./create-user-dialog.component.scss"],
+    templateUrl: "./create-user.component.html",
+    styleUrls: ["./create-user.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [provideNativeDateAdapter()],
 })
-export class CreateUserDialogComponent implements OnInit {
+export class CreateUserPageComponent implements OnInit {
     private fb = inject(FormBuilder);
     private usersService = inject(UsersService);
-    private companyService = inject(CompanyService);
     private countryService = inject(CountryService);
     private employmentTitleService = inject(EmploymentTitleService);
     private roleService = inject(RoleService);
     private departmentService = inject(DepartmentService);
     private levelService = inject(LevelService);
     private officeService = inject(OfficeService);
-    private dialogRef = inject(MatDialogRef<CreateUserDialogComponent>);
+    private router = inject(Router);
     private toast = inject(ToastService);
     private authService = inject(AuthService);
     private permissionService = inject(PermissionService);
@@ -80,7 +76,6 @@ export class CreateUserDialogComponent implements OnInit {
     readonly employmentTypeOptions = EMPLOYMENT_TYPE_OPTIONS;
 
     loading = signal(false);
-    companiesLoading = signal(false);
     countriesLoading = signal(false);
     rolesLoading = signal(false);
     employmentTitlesLoading = signal(false);
@@ -89,7 +84,6 @@ export class CreateUserDialogComponent implements OnInit {
     levelsLoading = signal(false);
     officesLoading = signal(false);
 
-    companies = signal<ICompany[]>([]);
     countries = signal<ICountry[]>([]);
     roles = signal<IRole[]>([]);
     employmentTitles = signal<IEmploymentTitle[]>([]);
@@ -103,15 +97,12 @@ export class CreateUserDialogComponent implements OnInit {
 
     nationalityInput = signal("");
 
-    canCreateUsersForAllCompanies = signal(this.permissionService.canViewCrossCompany());
-
     userForm: FormGroup = this.fb.group({
         // Core
         name: ["", [Validators.required, Validators.minLength(2)]],
         email: ["", [Validators.required, Validators.email]],
         password: ["", [Validators.required, Validators.minLength(6)]],
         role: ["", Validators.required],
-        companyId: [this.localUser?.company?._id ?? "", Validators.required],
         countryId: ["", Validators.required],
         employmentTitleId: ["", Validators.required],
         managerId: [""],
@@ -144,18 +135,11 @@ export class CreateUserDialogComponent implements OnInit {
         return this.userForm.get("nationalities") as FormArray<FormControl<string>>;
     }
 
-    private toObjectIdOrUndefined(value: unknown): string | undefined {
-        if (typeof value !== "string") return undefined;
-        const trimmed = value.trim();
-        return /^[a-fA-F0-9]{24}$/.test(trimmed) ? trimmed : undefined;
-    }
-
     ngOnInit(): void {
         this.loadInitialData();
     }
 
     private loadInitialData(): void {
-        this.companiesLoading.set(true);
         this.countriesLoading.set(true);
         this.rolesLoading.set(true);
         this.employmentTitlesLoading.set(true);
@@ -163,19 +147,6 @@ export class CreateUserDialogComponent implements OnInit {
         this.departmentsLoading.set(true);
         this.levelsLoading.set(true);
         this.officesLoading.set(true);
-
-        this.companyService
-            .getCompanies()
-            .pipe(first())
-            .subscribe({
-                next: res => {
-                    this.companies.set(res.data ?? []);
-                    this.companiesLoading.set(false);
-                },
-                error: () => {
-                    this.companiesLoading.set(false);
-                },
-            });
 
         this.employmentTitleService
             .getEmploymentTitles()
@@ -274,6 +245,12 @@ export class CreateUserDialogComponent implements OnInit {
             });
     }
 
+    private toObjectIdOrUndefined(value: unknown): string | undefined {
+        if (typeof value !== "string") return undefined;
+        const trimmed = value.trim();
+        return /^[a-fA-F0-9]{24}$/.test(trimmed) ? trimmed : undefined;
+    }
+
     addNationality(): void {
         const val = this.nationalityInput().trim();
         if (!val) return;
@@ -329,7 +306,6 @@ export class CreateUserDialogComponent implements OnInit {
             email: fv.email,
             password: fv.password,
             role: this.toObjectIdOrUndefined(fv.role)!,
-            companyId: this.toObjectIdOrUndefined(fv.companyId),
             countryId: this.toObjectIdOrUndefined(fv.countryId),
             employmentTitleId: this.toObjectIdOrUndefined(fv.employmentTitleId),
             managerId: this.toObjectIdOrUndefined(fv.managerId),
@@ -381,7 +357,8 @@ export class CreateUserDialogComponent implements OnInit {
 
                     const selectedImage = this.selectedProfileImage();
                     if (!selectedImage || !createdUser._id) {
-                        this.dialogRef.close(createdUser);
+                        this.toast.success("User created successfully");
+                        this.router.navigate(["/users"]);
                         return;
                     }
 
@@ -394,19 +371,14 @@ export class CreateUserDialogComponent implements OnInit {
                                     this.toast.warning(
                                         uploadResponse.message || "User created but profile image upload failed",
                                     );
-                                    this.dialogRef.close(createdUser);
-                                    return;
+                                } else {
+                                    this.toast.success("User created successfully");
                                 }
-
-                                const uploadedProfileImage = uploadResponse.data?.user?.profileImage;
-                                this.dialogRef.close({
-                                    ...createdUser,
-                                    ...(uploadedProfileImage ? { profileImage: uploadedProfileImage } : {}),
-                                });
+                                this.router.navigate(["/users"]);
                             },
                             error: () => {
                                 this.toast.warning("User created but profile image upload failed");
-                                this.dialogRef.close(createdUser);
+                                this.router.navigate(["/users"]);
                             },
                         });
                 },
@@ -434,6 +406,6 @@ export class CreateUserDialogComponent implements OnInit {
     }
 
     onCancel(): void {
-        this.dialogRef.close();
+        this.router.navigate(["/users"]);
     }
 }

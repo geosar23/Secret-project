@@ -5,7 +5,7 @@ description: >
     role service, role model, role permissions, role API routes, or anything related to creating,
     updating, or deleting roles. Covers: RoleDialogComponent, RolesComponent, RoleService (client +
     server), RoleModel, RoleRepository, RoleController, role interfaces, system role constraints,
-    permission groups, and company scoping.
+    permission groups, and tenant scoping.
 ---
 
 # Roles Feature
@@ -68,13 +68,13 @@ description: >
 ### `ICreateRoleRequest` (client → server)
 
 ```ts
-{ name: string; description?: string; permissions?: string[]; companyId?: string; }
+{ name: string; description?: string; permissions?: string[]; }
 ```
 
 ### `IUpdateRoleRequest` (client → server)
 
 ```ts
-{ name?: string; description?: string; permissions?: string[]; companyId?: string; isActive?: boolean; }
+{ name?: string; description?: string; permissions?: string[]; isActive?: boolean; }
 ```
 
 ---
@@ -114,13 +114,12 @@ Dialog returns `IRole | undefined` on close.
 
 ### Form Fields
 
-| Field       | Control name  | Validators             | Notes                                                                                                     |
-| ----------- | ------------- | ---------------------- | --------------------------------------------------------------------------------------------------------- |
-| Role Name   | `name`        | required, minLength(2) | sent as `name`; server derives `role` slug (lowercase + underscores)                                      |
-| Description | `description` | maxLength(255)         | optional                                                                                                  |
-| Company     | `companyId`   | —                      | Only shown when `canSelectCompany` is true (cross-company permission); pre-filled with user's own company |
-| Permissions | `permissions` | —                      | multi-select grouped by `PermissionCategoriesStrings`; chips shown below for selected                     |
-| Is Active   | `isActive`    | —                      | slide toggle; only relevant in edit mode                                                                  |
+| Field       | Control name  | Validators             | Notes                                                                                 |
+| ----------- | ------------- | ---------------------- | ------------------------------------------------------------------------------------- |
+| Role Name   | `name`        | required, minLength(2) | sent as `name`; server derives `role` slug (lowercase + underscores)                  |
+| Description | `description` | maxLength(255)         | optional                                                                              |
+| Permissions | `permissions` | —                      | multi-select grouped by `PermissionCategoriesStrings`; chips shown below for selected |
+| Is Active   | `isActive`    | —                      | slide toggle; only relevant in edit mode                                              |
 
 ### Permission Groups
 
@@ -133,17 +132,15 @@ Built in `buildPermissionGroups()`:
 
 ### Permission Gate
 
-- `canSelectCompany` — from `PermissionService.canViewCrossCompany()` signal; shows the company dropdown
 - `canEditSystemRoles` — requires `ROLES_MANAGEMENT_ALL_ALL` or `ROLES_MANAGEMENT_ALL_COMPANY`; checked in `RolesComponent` before opening edit dialog
 
 ---
 
 ## Roles List Page (`RolesComponent`)
 
-### Table columns (dynamic)
+### Table columns
 
-Base: `name`, `description`, `permissions`, `type`, `status`, `createdAt`, `actions`
-Cross-company users get `company` inserted after `name`.
+Fixed: `name`, `description`, `permissions`, `type`, `status`, `createdAt`, `actions`
 
 ### Filters
 
@@ -162,7 +159,7 @@ Cross-company users get `company` inserted after `name`.
 
 ### System Roles
 
-- Defined by `DefaultUserRoles` enum (GOD, SUPER_ADMIN, ADMIN, HR, MANAGER, EMPLOYEE)
+- Defined by `DefaultUserRoles` enum (`SUPER_ADMIN`, `ADMIN`, `HR`, `MANAGER`, `EMPLOYEE`)
 - **Cannot be created** via API (`pre("save")` hook blocks it)
 - **Cannot be deleted** (`pre("deleteOne")` and `pre("findOneAndDelete")` hooks)
 - **Cannot be set inactive** (`pre("save")` and `pre("findOneAndUpdate")` hooks)
@@ -170,9 +167,9 @@ Cross-company users get `company` inserted after `name`.
 
 ### Company Scoping (`roleRepository`)
 
-- **OG company** (config.OG_COMPANY_ID) — sees all roles (no scope filter)
-- **Other companies** — sees roles where `company === companyId` OR `company` field doesn't exist (system roles)
-- `create()` auto-assigns `company` if caller is not OG company and `data.company` is missing
+- Every company sees system roles (no `company` field) plus their own custom roles.
+- `$or: [{ company: ObjectId(companyId) }, { company: { $exists: false } }]` applied on all queries.
+- `create()` auto-assigns `company` from the caller's `companyId`.
 
 ### Custom Role Defaults
 

@@ -62,6 +62,5 @@ export const config = {
     SUPABASE_STORAGE_BUCKET: process.env.SUPABASE_STORAGE_BUCKET as string,
     SALARY_ENCRYPTION_KEY: process.env.SALARY_ENCRYPTION_KEY as string,
     CLIENT_URL: process.env.CLIENT_URL ?? "http://localhost:4200",
-    OG_COMPANY_ID: process.env.OG_COMPANY_ID ?? "",
     NODE_ENV: process.env.NODE_ENV ?? "development",
 };

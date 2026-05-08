@@ -1,3 +1,33 @@
+.page-container {
+    padding: var(--spacing-lg);
+    max-width: var(--layout-page-max-width);
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+
+    h1 {
+        margin: 0;
+        font-size: var(--font-size-xl);
+        font-weight: 600;
+    }
+}
+
+.back-button {
+    flex-shrink: 0;
+}
+
+.form-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+}
+
 .full-width {
     width: 100%;
 }
@@ -52,29 +82,21 @@
     }
 }
 
-.error-message {
-    padding: var(--spacing-md);
-    margin-bottom: var(--spacing-md);
-    background-color: var(--color-error-light);
-    color: var(--color-error);
-    border-radius: var(--radius-md);
+.selected-image-name {
+    margin-top: var(--spacing-sm);
+    margin-bottom: 0;
     font-size: var(--font-size-sm);
-    border-left: var(--spacing-xs) solid var(--color-error);
+    color: var(--color-text-secondary);
 }
 
-mat-dialog-content {
-    min-width: 25rem;
-    max-width: 42rem;
-    padding: var(--spacing-lg);
-
-    @media (max-width: 768px) {
-        min-width: 17.5rem;
-    }
-}
-
-mat-dialog-actions {
-    padding: var(--spacing-md) var(--spacing-lg);
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
     gap: var(--spacing-sm);
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid var(--color-border-primary);
 
     button {
         mat-spinner {
@@ -82,11 +104,4 @@ mat-dialog-actions {
             margin-right: var(--spacing-sm);
         }
     }
-}
-
-.selected-image-name {
-    margin-top: var(--spacing-sm);
-    margin-bottom: 0;
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
 }

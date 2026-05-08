@@ -4,26 +4,19 @@
  * Verifies that:
  * - A user in company A CANNOT see users or data belonging to company B
  * - A user in company B CANNOT see users or data belonging to company A
- * - A god user (companyId === OG_COMPANY_ID) CAN see data across all companies
- *   because userRepository returns the base model with no company filter for that ID.
+ * - All users are strictly scoped to their own company — no cross-company bypass exists
  */
 import request from "supertest";
 import app from "../app";
 import { connectTestDB, disconnectTestDB, clearCollections } from "./helpers/db";
-import { seedGodUser, seedUserInCompany, COMPANY_A_ID, COMPANY_B_ID, SeededUser } from "./helpers/seed";
+import { seedUserInCompany, COMPANY_A_ID, COMPANY_B_ID, SeededUser } from "./helpers/seed";
 import { PermissionKeys } from "../enums/permissions.enum";
 
-let god: SeededUser;
 let companyAUser: SeededUser;
 let companyBUser: SeededUser;
-let companyAOtherUser: SeededUser;
-let companyBOtherUser: SeededUser;
 
 beforeAll(async () => {
     await connectTestDB();
-
-    // God user — OG_COMPANY_ID, cross-company repo access
-    god = await seedGodUser();
 
     // Company A — two users so we can assert the count/presence
     companyAUser = await seedUserInCompany({
@@ -34,7 +27,7 @@ beforeAll(async () => {
         roleKey: "a-admin",
     });
 
-    companyAOtherUser = await seedUserInCompany({
+    await seedUserInCompany({
         companyId: COMPANY_A_ID,
         email: "a-employee@test.com",
         name: "A Employee",
@@ -51,7 +44,7 @@ beforeAll(async () => {
         roleKey: "b-admin",
     });
 
-    companyBOtherUser = await seedUserInCompany({
+    await seedUserInCompany({
         companyId: COMPANY_B_ID,
         email: "b-employee@test.com",
         name: "B Employee",
@@ -119,42 +112,6 @@ describe("Company B user — can only see company B users", () => {
 
         const returnedUser = res.body?.data?.user ?? res.body?.data ?? null;
         expect(returnedUser).toBeNull();
-    });
-});
-
-// ─── God user — cross-company access ─────────────────────────────────────────
-
-describe("God user — sees users from all companies", () => {
-    it("returns users from both company A and company B", async () => {
-        const res = await request(app).get("/api/users").set("Authorization", `Bearer ${god.token}`);
-
-        expect(res.status).toBe(200);
-        expect(res.body.success).toBe(true);
-
-        const emails: string[] = res.body.data.users.map((u: { email: string }) => u.email);
-
-        expect(emails).toContain("a-admin@test.com");
-        expect(emails).toContain("b-admin@test.com");
-    });
-
-    it("can fetch a company A user by ID", async () => {
-        const res = await request(app)
-            .get(`/api/users/${companyAOtherUser._id}`)
-            .set("Authorization", `Bearer ${god.token}`);
-
-        expect(res.status).toBe(200);
-        expect(res.body.success).toBe(true);
-        expect(res.body.data.email).toBe("a-employee@test.com");
-    });
-
-    it("can fetch a company B user by ID", async () => {
-        const res = await request(app)
-            .get(`/api/users/${companyBOtherUser._id}`)
-            .set("Authorization", `Bearer ${god.token}`);
-
-        expect(res.status).toBe(200);
-        expect(res.body.success).toBe(true);
-        expect(res.body.data.email).toBe("b-employee@test.com");
     });
 });
 

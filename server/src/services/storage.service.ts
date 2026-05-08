@@ -88,6 +88,30 @@ export const StorageService = {
         }
     },
 
+    uploadCompanyLogo: async (params: {
+        companyId: string;
+        fileBuffer: Buffer;
+        originalName: string;
+        mimeType: string;
+    }) => {
+        const bucket = StorageService.getBucketName();
+        const supabase = getSupabaseClient();
+
+        const safeName = sanitizeFileName(params.originalName);
+        const path = `${params.companyId}/logo/${safeName}`;
+
+        const response = await supabase.storage.from(bucket).upload(path, params.fileBuffer, {
+            contentType: params.mimeType,
+            upsert: true,
+        });
+
+        if (response.error) {
+            throw new Error(`Supabase upload failed: ${response.error.message}`);
+        }
+
+        return { bucket, path };
+    },
+
     uploadUserDocument: async (params: {
         companyId: string;
         userId: string;

@@ -1,6 +1,7 @@
 import { Routes } from "@angular/router";
 import { authGuard } from "./core/guards/auth.guard";
-import { crossCompanyGuard } from "./core/guards/cross-company.guard";
+import { createUserGuard } from "./core/guards/create-user.guard";
+import { editUserGuard } from "./core/guards/edit-user.guard";
 import { profileRouteContextResolver } from "./features/profile/profile-route-context.resolver";
 
 export const routes: Routes = [
@@ -21,12 +22,26 @@ export const routes: Routes = [
             },
             {
                 path: "users",
-                loadComponent: () => import("./features/users/users.component").then(m => m.UsersComponent),
-            },
-            {
-                path: "companies",
-                canActivate: [crossCompanyGuard],
-                loadComponent: () => import("./features/companies/companies.component").then(m => m.CompaniesComponent),
+                children: [
+                    {
+                        path: "",
+                        loadComponent: () => import("./features/users/users.component").then(m => m.UsersComponent),
+                    },
+                    {
+                        path: "create",
+                        canActivate: [createUserGuard],
+                        loadComponent: () =>
+                            import("./features/users/create-user/create-user.component").then(
+                                m => m.CreateUserPageComponent,
+                            ),
+                    },
+                    {
+                        path: ":id/edit",
+                        canActivate: [editUserGuard],
+                        loadComponent: () =>
+                            import("./features/users/edit-user/edit-user.component").then(m => m.EditUserPageComponent),
+                    },
+                ],
             },
             {
                 path: "roles",

@@ -39,12 +39,14 @@ export interface ILevel {
     _id: string;
     name: string;
     order?: number;
+    company?: { _id: string; name?: string };
 }
 
 export interface IOffice {
     _id: string;
     name: string;
     address?: IAddress;
+    company?: { _id: string; name?: string };
 }
 
 export interface IUser {
@@ -112,7 +114,6 @@ export interface ICreateUserRequest {
     email: string;
     password: string;
     role: string;
-    companyId?: string;
     countryId?: string;
     employmentTitleId?: string;
     managerId?: string;
@@ -145,7 +146,6 @@ export interface IUpdateUserRequest {
     name?: string;
     email?: string;
     role?: string;
-    companyId?: string;
     countryId?: string;
     employmentTitleId?: string;
     managerId?: string;

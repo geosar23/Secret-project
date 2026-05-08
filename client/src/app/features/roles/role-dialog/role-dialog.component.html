@@ -22,21 +22,6 @@
                 }
             </mat-form-field>
 
-            @if (canSelectCompany) {
-                <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Company</mat-label>
-                    <mat-select formControlName="companyId">
-                        @if (companiesLoading) {
-                            <mat-option disabled>Loading companies...</mat-option>
-                        }
-                        @for (company of companies; track company._id) {
-                            <mat-option [value]="company._id">{{ company.name }}</mat-option>
-                        }
-                    </mat-select>
-                    <mat-hint>Choose which company this custom role belongs to.</mat-hint>
-                </mat-form-field>
-            }
-
             <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Permissions</mat-label>
                 <mat-select formControlName="permissions" multiple>

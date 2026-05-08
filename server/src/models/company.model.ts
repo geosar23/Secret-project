@@ -2,11 +2,24 @@ import { Schema, model } from "mongoose";
 import { ICompany } from "../interfaces/company.interface";
 import { Model, FilterQuery } from "mongoose";
 
+const LogoSchema = new Schema(
+    {
+        bucket: { type: String, required: true },
+        path: { type: String, required: true },
+        originalName: { type: String, required: true },
+        mimeType: { type: String, required: true },
+        size: { type: Number, required: true },
+        uploadedAt: { type: Date, required: true },
+    },
+    { _id: false },
+);
+
 const CompanySchema = new Schema<ICompany>(
     {
         name: { type: String, required: true, unique: true, trim: true },
         slug: { type: String, required: true, unique: true, trim: true },
         isActive: { type: Boolean, default: true, required: true, trim: true },
+        logo: { type: LogoSchema, required: false },
     },
     {
         timestamps: true, // Automatically adds createdAt and updatedAt

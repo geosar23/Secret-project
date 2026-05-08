@@ -11,7 +11,7 @@
                 <mat-icon>download</mat-icon>
                 Download
             </button>
-            <button class="btn btn-primary m-xs" (click)="openCreateModal()" [disabled]="loading">
+            <button class="btn btn-primary m-xs" (click)="navigateToCreate()" [disabled]="loading">
                 <mat-icon>add</mat-icon>
                 Create User
             </button>
@@ -40,17 +40,6 @@
                     }
                 </mat-select>
             </mat-form-field>
-            @if (canFilterAllCompanies) {
-                <mat-form-field appearance="outline" class="filter-select">
-                    <mat-label>Company</mat-label>
-                    <mat-select [formControl]="companyControl">
-                        <mat-option value="">All Companies</mat-option>
-                        @for (company of companies; track company._id) {
-                            <mat-option [value]="company._id">{{ company.name }}</mat-option>
-                        }
-                    </mat-select>
-                </mat-form-field>
-            }
             <mat-form-field appearance="outline" class="filter-select">
                 <mat-label>Department</mat-label>
                 <mat-select [formControl]="departmentControl">
@@ -121,12 +110,6 @@
                 </mat-cell>
             </ng-container>
 
-            <!-- Company ID Column -->
-            <ng-container matColumnDef="companyId">
-                <mat-header-cell *matHeaderCellDef>Company ID</mat-header-cell>
-                <mat-cell *matCellDef="let user" data-label="Company ID">{{ user.company?.name || "N/A" }}</mat-cell>
-            </ng-container>
-
             <ng-container matColumnDef="country">
                 <mat-header-cell *matHeaderCellDef>Country</mat-header-cell>
                 <mat-cell *matCellDef="let user" data-label="Country">{{ user.country?.name || "N/A" }}</mat-cell>
@@ -152,7 +135,7 @@
             <ng-container matColumnDef="actions">
                 <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
                 <mat-cell *matCellDef="let user" data-label="Actions">
-                    <button mat-icon-button title="Edit" (click)="openEditModal(user)">
+                    <button mat-icon-button title="Edit" (click)="navigateToEdit(user)">
                         <mat-icon>edit</mat-icon>
                     </button>
                 </mat-cell>
