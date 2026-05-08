@@ -31,8 +31,7 @@ export const AuthController = {
             }
 
             const decoded = AuthService.verifyToken(token) as tokenPayload;
-            const userId = decoded.id;
-            const user = await UserService.getById(userId, decoded.companyId);
+            const user = await UserService.getById(decoded.id, decoded.companyId);
 
             if (!user) {
                 return res.json(softError("User not found"));
@@ -40,6 +39,7 @@ export const AuthController = {
 
             res.json(success({ user }));
         } catch (err: any) {
+            console.log("Error in AuthController.me:", err);
             res.json(softError(err.message, err));
         }
     },
