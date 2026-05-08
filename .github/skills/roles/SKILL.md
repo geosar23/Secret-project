@@ -41,7 +41,7 @@ description: >
   level: number;                   // hierarchy power (higher = more powerful); custom roles default to 55
   permissions: string[];           // array of PermissionKeys strings
   isSystemRole: boolean;           // cannot be created/deleted/deactivated via API
-  company?: Types.ObjectId;        // undefined for system roles; required for custom roles
+  company: Types.ObjectId;         // always required — system and custom roles are both company-scoped
   isActive: boolean;
   createdAt: Date;
   updatedAt?: Date;
@@ -56,7 +56,7 @@ description: >
   name: string;
   description?: string;
   role: string;
-  company?: ICompany;       // populated { _id, name }
+  company: ICompany;        // populated { _id, name } — always present
   permissions?: string[];
   isSystemRole?: boolean;
   isActive?: boolean;
@@ -167,8 +167,9 @@ Fixed: `name`, `description`, `permissions`, `type`, `status`, `createdAt`, `act
 
 ### Company Scoping (`roleRepository`)
 
-- Every company sees system roles (no `company` field) plus their own custom roles.
-- `$or: [{ company: ObjectId(companyId) }, { company: { $exists: false } }]` applied on all queries.
+- All roles — system and custom — are scoped to a company. There are no global/shared roles.
+- Each company has its own copies of the system roles (seeded at company creation), which it can freely edit (permissions, etc.) subject to the system role guards.
+- `find()` / `findOne()` / `findById()` filter strictly by `{ company: ObjectId(companyId) }`.
 - `create()` auto-assigns `company` from the caller's `companyId`.
 
 ### Custom Role Defaults
