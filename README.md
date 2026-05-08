@@ -188,6 +188,7 @@ The backend provides REST API endpoints under `/api`:
 - Introduced profile route context resolution and integrated profile editing/change-password workflows.
 - Added Supabase Storage integration for profile images with metadata stored in MongoDB user records.
 - Improved frontend responsiveness and layout behavior in tables and filter sections.
+- Added breadcrumb navigation: auto-composed from route hierarchy, with a home icon, Material chevron separators, and dynamic label overrides for entity pages (edit user, view profile).
 
 ## Troubleshooting
 
