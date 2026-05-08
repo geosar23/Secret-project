@@ -2,7 +2,7 @@ import { inject } from "@angular/core";
 import { Router } from "@angular/router";
 import { PermissionService } from "../services/permission.service";
 import { AuthService } from "../services/auth.service";
-import { filter, map, take } from "rxjs";
+import { first, map } from "rxjs";
 import { IUser } from "../interfaces/user.interface";
 
 export const createUserGuard = () => {
@@ -11,8 +11,7 @@ export const createUserGuard = () => {
     const router = inject(Router);
 
     return authService.localUser$.pipe(
-        filter((user): user is IUser => user !== null),
-        take(1),
+        first((user): user is IUser => user !== null),
         map(() => {
             if (permissionService.canCreateUser()) {
                 return true;
