@@ -166,7 +166,72 @@ export const COUNTRIES_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCate
 
 /** All `userProfile` permission keys. */
 export const USER_PROFILE_PERMISSIONS = definePermissions(PermissionCategories.USER_PROFILE, {
-    actions: [PermissionActions.READ, PermissionActions.ALL],
+    actions: [PermissionActions.READ, PermissionActions.WRITE, PermissionActions.CREATE, PermissionActions.ALL],
+    scopes: [
+        PermissionScopes.ALL,
+        PermissionScopes.DEPARTMENT,
+        PermissionScopes.COUNTRY,
+        PermissionScopes.DEPARTMENT_COUNTRY,
+        PermissionScopes.MANAGED,
+        PermissionScopes.SELF,
+    ],
+});
+
+/** All `userProfile.identity` permission keys. */
+export const USER_PROFILE_IDENTITY_PERMISSIONS = definePermissions(PermissionCategories.USER_PROFILE_IDENTITY, {
+    actions: [PermissionActions.READ, PermissionActions.WRITE],
+    scopes: [
+        PermissionScopes.ALL,
+        PermissionScopes.DEPARTMENT,
+        PermissionScopes.COUNTRY,
+        PermissionScopes.DEPARTMENT_COUNTRY,
+        PermissionScopes.MANAGED,
+        PermissionScopes.SELF,
+    ],
+});
+
+/** All `userProfile.contact` permission keys. */
+export const USER_PROFILE_CONTACT_PERMISSIONS = definePermissions(PermissionCategories.USER_PROFILE_CONTACT, {
+    actions: [PermissionActions.READ, PermissionActions.WRITE],
+    scopes: [
+        PermissionScopes.ALL,
+        PermissionScopes.DEPARTMENT,
+        PermissionScopes.COUNTRY,
+        PermissionScopes.DEPARTMENT_COUNTRY,
+        PermissionScopes.MANAGED,
+        PermissionScopes.SELF,
+    ],
+});
+
+/** All `userProfile.employment` permission keys. */
+export const USER_PROFILE_EMPLOYMENT_PERMISSIONS = definePermissions(PermissionCategories.USER_PROFILE_EMPLOYMENT, {
+    actions: [PermissionActions.READ, PermissionActions.WRITE],
+    scopes: [
+        PermissionScopes.ALL,
+        PermissionScopes.DEPARTMENT,
+        PermissionScopes.COUNTRY,
+        PermissionScopes.DEPARTMENT_COUNTRY,
+        PermissionScopes.MANAGED,
+        PermissionScopes.SELF,
+    ],
+});
+
+/** All `userProfile.education` permission keys. */
+export const USER_PROFILE_EDUCATION_PERMISSIONS = definePermissions(PermissionCategories.USER_PROFILE_EDUCATION, {
+    actions: [PermissionActions.READ, PermissionActions.WRITE],
+    scopes: [
+        PermissionScopes.ALL,
+        PermissionScopes.DEPARTMENT,
+        PermissionScopes.COUNTRY,
+        PermissionScopes.DEPARTMENT_COUNTRY,
+        PermissionScopes.MANAGED,
+        PermissionScopes.SELF,
+    ],
+});
+
+/** All `userProfile.compensation` permission keys. */
+export const USER_PROFILE_COMPENSATION_PERMISSIONS = definePermissions(PermissionCategories.USER_PROFILE_COMPENSATION, {
+    actions: [PermissionActions.READ, PermissionActions.WRITE],
     scopes: [
         PermissionScopes.ALL,
         PermissionScopes.DEPARTMENT,
@@ -192,8 +257,10 @@ export const PermissionKeys = {
     ...prefixedKeys("USERS_MANAGEMENT", USERS_MANAGEMENT_PERMISSIONS),
     ...prefixedKeys("COUNTRIES_MANAGEMENT", COUNTRIES_MANAGEMENT_PERMISSIONS),
     ...prefixedKeys("USER_PROFILE", USER_PROFILE_PERMISSIONS),
+    ...prefixedKeys("USER_PROFILE_IDENTITY", USER_PROFILE_IDENTITY_PERMISSIONS),
+    ...prefixedKeys("USER_PROFILE_CONTACT", USER_PROFILE_CONTACT_PERMISSIONS),
+    ...prefixedKeys("USER_PROFILE_EMPLOYMENT", USER_PROFILE_EMPLOYMENT_PERMISSIONS),
+    ...prefixedKeys("USER_PROFILE_EDUCATION", USER_PROFILE_EDUCATION_PERMISSIONS),
+    ...prefixedKeys("USER_PROFILE_COMPENSATION", USER_PROFILE_COMPENSATION_PERMISSIONS),
     ...prefixedKeys("ROLES_MANAGEMENT", ROLES_MANAGEMENT_PERMISSIONS),
-
-    // Legacy alias: historically "rolesManagement" used "VIEW" instead of "READ".
-    ROLES_MANAGEMENT_VIEW_ALL: ROLES_MANAGEMENT_PERMISSIONS.READ_ALL,
 } as const;

@@ -265,7 +265,4 @@ export const PermissionKeys = {
     ...prefixedKeys("USER_PROFILE_EDUCATION", USER_PROFILE_EDUCATION_PERMISSIONS),
     ...prefixedKeys("USER_PROFILE_COMPENSATION", USER_PROFILE_COMPENSATION_PERMISSIONS),
     ...prefixedKeys("ROLES_MANAGEMENT", ROLES_MANAGEMENT_PERMISSIONS),
-
-    // Legacy alias: historically "rolesManagement" used "VIEW" instead of "READ".
-    ROLES_MANAGEMENT_VIEW_ALL: ROLES_MANAGEMENT_PERMISSIONS.READ_ALL,
 } as const;

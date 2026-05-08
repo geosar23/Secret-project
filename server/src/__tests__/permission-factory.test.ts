@@ -135,12 +135,6 @@ describe("PermissionKeys (flat map)", () => {
         expect(PermissionKeys.ROLES_MANAGEMENT_ALL_ALL).toBe("rolesManagement:*:*");
     });
 
-    it("keeps legacy VIEW aliases pointing to the same strings as READ", () => {
-        expect(PermissionKeys.ROLES_MANAGEMENT_VIEW_ALL).toBe("rolesManagement:read:*");
-        // Alias shares the same value as its READ counterpart
-        expect(PermissionKeys.ROLES_MANAGEMENT_VIEW_ALL).toBe(PermissionKeys.ROLES_MANAGEMENT_READ_ALL);
-    });
-
     it("includes department-country key", () => {
         expect(PermissionKeys.USERS_MANAGEMENT_READ_DEPARTMENT_COUNTRY).toBe("usersManagement:read:department-country");
     });
