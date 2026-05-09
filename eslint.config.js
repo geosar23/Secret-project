@@ -32,7 +32,8 @@ export default [
             parser: tseslint.parser,
         },
         rules: {
-            "no-unused-vars": "warn",
+            "no-unused-vars": "off",
+            "@typescript-eslint/no-unused-vars": "warn",
             "no-console": "off",
             curly: ["error", "all"],
         },
