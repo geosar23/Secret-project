@@ -53,7 +53,14 @@ export class LoginComponent {
         this.errorMessage = "";
 
         this.authService.login(this.loginForm.value).subscribe({
-            next: () => {
+            next: response => {
+                if (!response.success) {
+                    const errMsg = response.message || "Invalid credentials. Please try again.";
+                    this.errorMessage = errMsg;
+                    this.toast.error(errMsg);
+                    this.loading = false;
+                    return;
+                }
                 this.router.navigate(["/dashboard"]);
             },
             error: error => {
