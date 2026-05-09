@@ -34,10 +34,8 @@ export enum PermissionScopes {
 }
 
 export enum PermissionActions {
-    ALL = "*",
     READ = "read",
     WRITE = "write",
-    CREATE = "create",
 }
 
 // ─── Permission factory ───────────────────────────────────────────────────────
@@ -147,7 +145,7 @@ export function prefixedKeys<const TPrefix extends string, T extends Record<stri
 
 /** All `usersManagement` permission keys. */
 export const USERS_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategories.USERS_MANAGEMENT, {
-    actions: [PermissionActions.READ, PermissionActions.ALL],
+    actions: [PermissionActions.READ, PermissionActions.WRITE],
     scopes: [
         PermissionScopes.ALL,
         PermissionScopes.DEPARTMENT,
@@ -160,13 +158,13 @@ export const USERS_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategori
 
 /** All `countriesManagement` permission keys. */
 export const COUNTRIES_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategories.COUNTRIES_MANAGEMENT, {
-    actions: [PermissionActions.READ, PermissionActions.ALL],
+    actions: [PermissionActions.READ, PermissionActions.WRITE],
     scopes: [PermissionScopes.ALL],
 });
 
 /** All `userProfile` permission keys. */
 export const USER_PROFILE_PERMISSIONS = definePermissions(PermissionCategories.USER_PROFILE, {
-    actions: [PermissionActions.READ, PermissionActions.WRITE, PermissionActions.CREATE, PermissionActions.ALL],
+    actions: [PermissionActions.READ, PermissionActions.WRITE],
     scopes: [
         PermissionScopes.ALL,
         PermissionScopes.DEPARTMENT,
@@ -244,7 +242,7 @@ export const USER_PROFILE_COMPENSATION_PERMISSIONS = definePermissions(Permissio
 
 /** All `rolesManagement` permission keys. */
 export const ROLES_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategories.ROLES_MANAGEMENT, {
-    actions: [PermissionActions.READ, PermissionActions.ALL],
+    actions: [PermissionActions.READ, PermissionActions.WRITE],
     scopes: [PermissionScopes.ALL],
 });
 
@@ -252,8 +250,6 @@ export const ROLES_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategori
 
 //PermissionCategory:PermissionAction:PermissionScope
 export const PermissionKeys = {
-    ALL: `${PermissionCategories.ALL}:${PermissionActions.ALL}:${PermissionScopes.ALL}`,
-
     ...prefixedKeys("USERS_MANAGEMENT", USERS_MANAGEMENT_PERMISSIONS),
     ...prefixedKeys("COUNTRIES_MANAGEMENT", COUNTRIES_MANAGEMENT_PERMISSIONS),
     ...prefixedKeys("USER_PROFILE", USER_PROFILE_PERMISSIONS),

@@ -6,7 +6,7 @@ import { PermissionKeys } from "../enums/permissions.enum";
 const router = Router();
 
 // Permissions required to mutate roles (create / update / delete)
-const canManageRoles = userHasAnyPermission([PermissionKeys.ALL, PermissionKeys.ROLES_MANAGEMENT_ALL_ALL]);
+const canManageRoles = userHasAnyPermission([PermissionKeys.ROLES_MANAGEMENT_WRITE_ALL]);
 
 // Get role hierarchy
 router.get("/hierarchy", RoleController.getRoleHierarchy);

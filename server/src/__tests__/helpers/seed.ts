@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import { RoleModel } from "../../models/role.model";
 import { UserModel } from "../../models/user.model";
-import { PermissionKeys } from "../../enums/permissions.enum";
 import { config } from "../../config/env";
 
 export const TEST_COMPANY_ID = new mongoose.Types.ObjectId("507f1f77bcf86cd799439011");
@@ -43,7 +42,7 @@ export async function seedAdminUser(): Promise<SeededUser> {
         name: "Test Admin Role",
         description: "Test admin role with all permissions",
         level: 1,
-        permissions: [PermissionKeys.ALL],
+        permissions: ["*:*:*"],
         isSystemRole: false,
         company: TEST_COMPANY_ID,
     });

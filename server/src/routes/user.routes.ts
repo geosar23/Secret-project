@@ -17,26 +17,24 @@ router.delete("/:id/profile-image", UserController.deleteProfileImage);
 router.post(
     "/:id/grant-permission",
     userHasAnyPermission([
-        PermissionKeys.ALL,
-        PermissionKeys.USERS_MANAGEMENT_ALL_ALL,
-        PermissionKeys.USERS_MANAGEMENT_ALL_DEPARTMENT,
-        PermissionKeys.USERS_MANAGEMENT_ALL_COUNTRY,
-        PermissionKeys.USERS_MANAGEMENT_ALL_DEPARTMENT_COUNTRY,
-        PermissionKeys.USERS_MANAGEMENT_ALL_MANAGED,
-        PermissionKeys.USERS_MANAGEMENT_ALL_SELF,
+        PermissionKeys.USERS_MANAGEMENT_WRITE_ALL,
+        PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT,
+        PermissionKeys.USERS_MANAGEMENT_WRITE_COUNTRY,
+        PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT_COUNTRY,
+        PermissionKeys.USERS_MANAGEMENT_WRITE_MANAGED,
+        PermissionKeys.USERS_MANAGEMENT_WRITE_SELF,
     ]),
     UserController.grantPermission,
 );
 router.post(
     "/:id/revoke-permission",
     userHasAnyPermission([
-        PermissionKeys.ALL,
-        PermissionKeys.USERS_MANAGEMENT_ALL_ALL,
-        PermissionKeys.USERS_MANAGEMENT_ALL_DEPARTMENT,
-        PermissionKeys.USERS_MANAGEMENT_ALL_COUNTRY,
-        PermissionKeys.USERS_MANAGEMENT_ALL_DEPARTMENT_COUNTRY,
-        PermissionKeys.USERS_MANAGEMENT_ALL_MANAGED,
-        PermissionKeys.USERS_MANAGEMENT_ALL_SELF,
+        PermissionKeys.USERS_MANAGEMENT_WRITE_ALL,
+        PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT,
+        PermissionKeys.USERS_MANAGEMENT_WRITE_COUNTRY,
+        PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT_COUNTRY,
+        PermissionKeys.USERS_MANAGEMENT_WRITE_MANAGED,
+        PermissionKeys.USERS_MANAGEMENT_WRITE_SELF,
     ]),
     UserController.revokePermission,
 );

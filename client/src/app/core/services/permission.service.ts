@@ -17,7 +17,7 @@ export class PermissionService {
         const user = this.authService.getLocalUser();
         if (!user) return false;
         const effective = this.computeEffective(user);
-        return hasPermission(effective, PermissionKeys.USERS_MANAGEMENT_ALL_ALL);
+        return hasPermission(effective, PermissionKeys.USERS_MANAGEMENT_WRITE_ALL);
     }
 
     /**
@@ -27,7 +27,7 @@ export class PermissionService {
         const user = this.authService.getLocalUser();
         if (!user) return false;
         const effective = this.computeEffective(user);
-        return hasPermission(effective, PermissionKeys.USERS_MANAGEMENT_ALL_ALL);
+        return hasPermission(effective, PermissionKeys.USERS_MANAGEMENT_WRITE_ALL);
     }
 
     private computeEffective(user: IUser): string[] {

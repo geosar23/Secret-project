@@ -127,12 +127,12 @@ describe("ROLES_MANAGEMENT_PERMISSIONS", () => {
 
 describe("PermissionKeys (flat map)", () => {
     it("preserves all existing key names and values", () => {
-        expect(PermissionKeys.ALL).toBe("*:*:*");
         expect(PermissionKeys.USERS_MANAGEMENT_READ_ALL).toBe("usersManagement:read:*");
+        expect(PermissionKeys.USERS_MANAGEMENT_WRITE_ALL).toBe("usersManagement:write:*");
         expect(PermissionKeys.COUNTRIES_MANAGEMENT_READ_ALL).toBe("countriesManagement:read:*");
         expect(PermissionKeys.USER_PROFILE_READ_SELF).toBe("userProfile:read:self");
-        expect(PermissionKeys.USER_PROFILE_ALL_ALL).toBe("userProfile:*:*");
-        expect(PermissionKeys.ROLES_MANAGEMENT_ALL_ALL).toBe("rolesManagement:*:*");
+        expect(PermissionKeys.USER_PROFILE_WRITE_ALL).toBe("userProfile:write:*");
+        expect(PermissionKeys.ROLES_MANAGEMENT_WRITE_ALL).toBe("rolesManagement:write:*");
     });
 
     it("includes department-country key", () => {

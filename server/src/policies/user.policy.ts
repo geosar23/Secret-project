@@ -12,7 +12,7 @@ import { buildSearchAccessQuery } from "./search-access.policy";
 export function buildUserSearchAccessQuery(actorUser: IUser): FilterQuery<IUser> | null {
     return buildSearchAccessQuery<IUser>(actorUser, {
         permissions: {
-            all: PermissionKeys.ALL,
+            all: PermissionKeys.USERS_MANAGEMENT_WRITE_ALL,
             readAll: PermissionKeys.USERS_MANAGEMENT_READ_ALL,
             readDepartment: PermissionKeys.USERS_MANAGEMENT_READ_DEPARTMENT,
             readCountry: PermissionKeys.USERS_MANAGEMENT_READ_COUNTRY,
@@ -105,12 +105,12 @@ export function canViewUser(actorUser: IUser, targetUser: IUser): boolean {
 /** Can the actor fully manage (read + write) a target user (usersManagement category)? */
 export function canManageUser(actorUser: IUser, targetUser: IUser): boolean {
     return checkScopedAccess(actorUser, targetUser, [
-        [PermissionKeys.USERS_MANAGEMENT_ALL_ALL, PermissionScopes.ALL],
-        [PermissionKeys.USERS_MANAGEMENT_ALL_DEPARTMENT, PermissionScopes.DEPARTMENT],
-        [PermissionKeys.USERS_MANAGEMENT_ALL_COUNTRY, PermissionScopes.COUNTRY],
-        [PermissionKeys.USERS_MANAGEMENT_ALL_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
-        [PermissionKeys.USERS_MANAGEMENT_ALL_MANAGED, PermissionScopes.MANAGED],
-        [PermissionKeys.USERS_MANAGEMENT_ALL_SELF, PermissionScopes.SELF],
+        [PermissionKeys.USERS_MANAGEMENT_WRITE_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USERS_MANAGEMENT_WRITE_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USERS_MANAGEMENT_WRITE_MANAGED, PermissionScopes.MANAGED],
+        [PermissionKeys.USERS_MANAGEMENT_WRITE_SELF, PermissionScopes.SELF],
     ]);
 }
 
@@ -126,18 +126,6 @@ export function canViewUserProfile(actorUser: IUser, targetUser: IUser): boolean
     ]);
 }
 
-/** Can the actor fully manage a target user's profile (userProfile category)? */
-export function canManageUserProfile(actorUser: IUser, targetUser: IUser): boolean {
-    return checkScopedAccess(actorUser, targetUser, [
-        [PermissionKeys.USER_PROFILE_ALL_ALL, PermissionScopes.ALL],
-        [PermissionKeys.USER_PROFILE_ALL_DEPARTMENT, PermissionScopes.DEPARTMENT],
-        [PermissionKeys.USER_PROFILE_ALL_COUNTRY, PermissionScopes.COUNTRY],
-        [PermissionKeys.USER_PROFILE_ALL_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
-        [PermissionKeys.USER_PROFILE_ALL_MANAGED, PermissionScopes.MANAGED],
-        [PermissionKeys.USER_PROFILE_ALL_SELF, PermissionScopes.SELF],
-    ]);
-}
-
 /** Can the actor write (edit) a target user's profile (userProfile:write:{scope})? */
 export function canWriteUserProfile(actorUser: IUser, targetUser: IUser): boolean {
     return checkScopedAccess(actorUser, targetUser, [
@@ -147,18 +135,6 @@ export function canWriteUserProfile(actorUser: IUser, targetUser: IUser): boolea
         [PermissionKeys.USER_PROFILE_WRITE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
         [PermissionKeys.USER_PROFILE_WRITE_MANAGED, PermissionScopes.MANAGED],
         [PermissionKeys.USER_PROFILE_WRITE_SELF, PermissionScopes.SELF],
-    ]);
-}
-
-/** Can the actor create a new user in the scope covering the target context? */
-export function canCreateUserProfile(actorUser: IUser, targetUser: IUser): boolean {
-    return checkScopedAccess(actorUser, targetUser, [
-        [PermissionKeys.USER_PROFILE_CREATE_ALL, PermissionScopes.ALL],
-        [PermissionKeys.USER_PROFILE_CREATE_DEPARTMENT, PermissionScopes.DEPARTMENT],
-        [PermissionKeys.USER_PROFILE_CREATE_COUNTRY, PermissionScopes.COUNTRY],
-        [PermissionKeys.USER_PROFILE_CREATE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
-        [PermissionKeys.USER_PROFILE_CREATE_MANAGED, PermissionScopes.MANAGED],
-        [PermissionKeys.USER_PROFILE_CREATE_SELF, PermissionScopes.SELF],
     ]);
 }
 

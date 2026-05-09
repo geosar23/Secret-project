@@ -10,7 +10,6 @@ import request from "supertest";
 import app from "../app";
 import { connectTestDB, disconnectTestDB, clearCollections } from "./helpers/db";
 import { seedUserInCompany, COMPANY_A_ID, COMPANY_B_ID, SeededUser } from "./helpers/seed";
-import { PermissionKeys } from "../enums/permissions.enum";
 
 let companyAUser: SeededUser;
 let companyBUser: SeededUser;
@@ -23,7 +22,7 @@ beforeAll(async () => {
         companyId: COMPANY_A_ID,
         email: "a-admin@test.com",
         name: "A Admin",
-        permissions: [PermissionKeys.ALL],
+        permissions: ["*:*:*"],
         roleKey: "a-admin",
     });
 
@@ -40,7 +39,7 @@ beforeAll(async () => {
         companyId: COMPANY_B_ID,
         email: "b-admin@test.com",
         name: "B Admin",
-        permissions: [PermissionKeys.ALL],
+        permissions: ["*:*:*"],
         roleKey: "b-admin",
     });
 

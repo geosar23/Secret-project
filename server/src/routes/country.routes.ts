@@ -5,13 +5,9 @@ import { PermissionKeys } from "../enums/permissions.enum";
 
 const router = Router();
 
-const canReadCountries = userHasAnyPermission([
-    PermissionKeys.ALL,
-    PermissionKeys.COUNTRIES_MANAGEMENT_READ_ALL,
-    PermissionKeys.COUNTRIES_MANAGEMENT_ALL_ALL,
-]);
+const canReadCountries = userHasAnyPermission([PermissionKeys.COUNTRIES_MANAGEMENT_READ_ALL]);
 
-const canManageCountries = userHasAnyPermission([PermissionKeys.ALL, PermissionKeys.COUNTRIES_MANAGEMENT_ALL_ALL]);
+const canManageCountries = userHasAnyPermission([PermissionKeys.COUNTRIES_MANAGEMENT_WRITE_ALL]);
 
 router.get("/", canReadCountries, CountryController.getAll);
 router.post("/", canManageCountries, CountryController.create);
