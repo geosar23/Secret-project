@@ -33,5 +33,5 @@ coverage/
 .eslintcache
 .nyc_output/
 
-# Raw code (local legacy files)
-raw code/
+#local exports
+server/exports/
