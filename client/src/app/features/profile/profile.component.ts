@@ -142,7 +142,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         });
     }
 
-    openEditDialog(): void {
+    navigateToEdit(): void {
         if (!this.profile || !this.profile._id || this.loading()) return;
         this.router.navigate(["/users", this.profile._id, "edit"]);
     }
