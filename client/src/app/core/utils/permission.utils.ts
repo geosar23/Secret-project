@@ -1,5 +1,7 @@
 export function hasPermission(effectivePermissions: string[], required: string): boolean {
-    if (!Array.isArray(effectivePermissions) || !required) return false;
+    if (!Array.isArray(effectivePermissions) || !required) {
+        return false;
+    }
 
     const effectiveSet = new Set(effectivePermissions);
     const parts = required.split(":");

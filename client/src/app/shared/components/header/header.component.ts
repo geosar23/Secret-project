@@ -223,7 +223,9 @@ export class HeaderComponent implements OnInit {
             )
             .subscribe(user => {
                 const company = user!.company;
-                if (!company) return;
+                if (!company) {
+                    return;
+                }
                 this.companyName.set(company.name ?? "");
                 if (company._id && company.logo) {
                     this.companyService

@@ -98,7 +98,9 @@ export class DepartmentsComponent implements OnInit, AfterViewInit, OnDestroy {
             .afterClosed()
             .pipe(takeUntil(this.destroy$))
             .subscribe((department?: IDepartment) => {
-                if (!department) return;
+                if (!department) {
+                    return;
+                }
                 this.allDepartments = [department, ...this.allDepartments];
                 this.tableData.data = this.allDepartments;
                 this.toast.success("Department created successfully");
@@ -115,7 +117,9 @@ export class DepartmentsComponent implements OnInit, AfterViewInit, OnDestroy {
             .afterClosed()
             .pipe(takeUntil(this.destroy$))
             .subscribe((updated?: IDepartment) => {
-                if (!updated) return;
+                if (!updated) {
+                    return;
+                }
                 this.allDepartments = this.allDepartments.map(c => (c._id === updated._id ? updated : c));
                 this.tableData.data = this.allDepartments;
                 this.toast.success("Department updated successfully");
@@ -123,7 +127,9 @@ export class DepartmentsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     deleteDepartment(department: IDepartment): void {
-        if (!confirm(`Delete department "${department.name}"?`)) return;
+        if (!confirm(`Delete department "${department.name}"?`)) {
+            return;
+        }
 
         this.departmentService.deleteDepartment(department._id as string).subscribe({
             next: res => {

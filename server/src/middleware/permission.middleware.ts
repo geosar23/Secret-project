@@ -20,7 +20,9 @@ export type { AuthenticatedRequest };
  */
 function getTokenPayload(req: AuthenticatedRequest): tokenPayload | null {
     const d = req.decoded;
-    if (!d || typeof d === "string" || !("id" in d) || !("companyId" in d)) return null;
+    if (!d || typeof d === "string" || !("id" in d) || !("companyId" in d)) {
+        return null;
+    }
     return d as tokenPayload;
 }
 
@@ -147,8 +149,12 @@ export function canActorAccessSubject(
 
     for (const [permKey, scope] of scopeChecks) {
         if (matchesWildcard(effective, permKey)) {
-            if (scope === PermissionScopes.ALL) return true;
-            if (canAccessUserByScope(actorCtx, subject, scope)) return true;
+            if (scope === PermissionScopes.ALL) {
+                return true;
+            }
+            if (canAccessUserByScope(actorCtx, subject, scope)) {
+                return true;
+            }
         }
     }
 

@@ -146,12 +146,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     navigateToEdit(): void {
-        if (!this.profile || !this.profile._id || this.loading()) return;
+        if (!this.profile || !this.profile._id || this.loading()) {
+            return;
+        }
         this.router.navigate(["/users", this.profile._id, "edit"]);
     }
 
     openChangePasswordDialog(): void {
-        if (!this.profile || !this.profile._id || this.loading()) return;
+        if (!this.profile || !this.profile._id || this.loading()) {
+            return;
+        }
 
         this.dialog.open(ChangePasswordDialogComponent, {
             width: "460px",
@@ -161,7 +165,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     openResetPasswordDialog(): void {
-        if (!this.profile || !this.profile._id || this.loading()) return;
+        if (!this.profile || !this.profile._id || this.loading()) {
+            return;
+        }
 
         this.dialog.open(ResetPasswordDialogComponent, {
             width: "460px",

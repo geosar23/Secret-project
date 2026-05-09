@@ -15,7 +15,9 @@ export class PermissionService {
      */
     canCreateUser(): boolean {
         const user = this.authService.getLocalUser();
-        if (!user) return false;
+        if (!user) {
+            return false;
+        }
         const effective = this.computeEffective(user);
         return hasPermission(effective, PermissionKeys.USERS_MANAGEMENT_WRITE_ALL);
     }
@@ -25,7 +27,9 @@ export class PermissionService {
      */
     canEditUser(): boolean {
         const user = this.authService.getLocalUser();
-        if (!user) return false;
+        if (!user) {
+            return false;
+        }
         const effective = this.computeEffective(user);
         return hasPermission(effective, PermissionKeys.USERS_MANAGEMENT_WRITE_ALL);
     }
@@ -36,7 +40,9 @@ export class PermissionService {
      */
     canResetPassword(): boolean {
         const user = this.authService.getLocalUser();
-        if (!user) return false;
+        if (!user) {
+            return false;
+        }
         const effective = this.computeEffective(user);
         return [
             PermissionKeys.RESET_PASSWORD_WRITE_ALL,

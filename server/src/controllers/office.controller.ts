@@ -8,12 +8,24 @@ import { IAddress } from "../interfaces/user.interface";
 
 function sanitizeAddress(raw: Record<string, unknown>): IAddress {
     const result: IAddress = {};
-    if (typeof raw.line1 === "string") result.line1 = raw.line1.trim();
-    if (typeof raw.line2 === "string") result.line2 = raw.line2.trim();
-    if (typeof raw.city === "string") result.city = raw.city.trim();
-    if (typeof raw.state === "string") result.state = raw.state.trim();
-    if (typeof raw.postalCode === "string") result.postalCode = raw.postalCode.trim();
-    if (typeof raw.country === "string") result.country = raw.country.trim();
+    if (typeof raw.line1 === "string") {
+        result.line1 = raw.line1.trim();
+    }
+    if (typeof raw.line2 === "string") {
+        result.line2 = raw.line2.trim();
+    }
+    if (typeof raw.city === "string") {
+        result.city = raw.city.trim();
+    }
+    if (typeof raw.state === "string") {
+        result.state = raw.state.trim();
+    }
+    if (typeof raw.postalCode === "string") {
+        result.postalCode = raw.postalCode.trim();
+    }
+    if (typeof raw.country === "string") {
+        result.country = raw.country.trim();
+    }
     return result;
 }
 
@@ -61,8 +73,12 @@ export class OfficeController {
             }
 
             const data: Record<string, unknown> = { name: name.trim(), isActive: true };
-            if (countryId && isValidObjectId(countryId)) data.country = countryId;
-            if (address && typeof address === "object") data.address = sanitizeAddress(address);
+            if (countryId && isValidObjectId(countryId)) {
+                data.country = countryId;
+            }
+            if (address && typeof address === "object") {
+                data.address = sanitizeAddress(address);
+            }
 
             const office = await OfficeService.create(data as any, requestingUser.companyId);
             res.json(success(office));
@@ -97,7 +113,9 @@ export class OfficeController {
             if (address !== undefined) {
                 data.address = address && typeof address === "object" ? sanitizeAddress(address) : null;
             }
-            if (isActive !== undefined && typeof isActive === "boolean") data.isActive = isActive;
+            if (isActive !== undefined && typeof isActive === "boolean") {
+                data.isActive = isActive;
+            }
 
             const updated = await OfficeService.update(req.params.id, data as any, requestingUser.companyId);
             if (!updated) {

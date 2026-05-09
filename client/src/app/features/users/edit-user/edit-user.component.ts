@@ -154,7 +154,9 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
 
     addNationality(): void {
         const val = this.nationalityInput.trim();
-        if (!val) return;
+        if (!val) {
+            return;
+        }
         this.nationalitiesArray.push(this.fb.control(val) as FormControl<string>);
         this.nationalityInput = "";
     }

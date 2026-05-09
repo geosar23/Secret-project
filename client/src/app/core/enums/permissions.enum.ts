@@ -88,7 +88,9 @@ export type DefinedPermissions<TCategory extends string, TAction extends string,
 };
 
 function toKeyPart(s: string): string {
-    if (s === "*") return "ALL";
+    if (s === "*") {
+        return "ALL";
+    }
     return s.toUpperCase().replace(/-/g, "_");
 }
 

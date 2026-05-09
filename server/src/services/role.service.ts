@@ -91,7 +91,9 @@ export const RoleService = {
             RoleModel.findOne({ role: roleB }).exec(),
         ]);
 
-        if (!roleAData || !roleBData) return false;
+        if (!roleAData || !roleBData) {
+            return false;
+        }
         return roleAData.level > roleBData.level;
     },
 };

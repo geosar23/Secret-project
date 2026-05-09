@@ -14,28 +14,50 @@ import { encryptString } from "../utils/encryption.util";
 type UserFieldMap = FieldMap<IUser>;
 
 function parseDateField(value: unknown): Date | null | undefined {
-    if (value === null || value === "") return null;
-    if (typeof value !== "string" && typeof value !== "number") return undefined;
+    if (value === null || value === "") {
+        return null;
+    }
+    if (typeof value !== "string" && typeof value !== "number") {
+        return undefined;
+    }
     const d = new Date(value as string | number);
     return isNaN(d.getTime()) ? undefined : d;
 }
 
 function sanitizeAddress(raw: Record<string, unknown>): IAddress {
     const result: IAddress = {};
-    if (typeof raw.line1 === "string") result.line1 = raw.line1.trim();
-    if (typeof raw.line2 === "string") result.line2 = raw.line2.trim();
-    if (typeof raw.city === "string") result.city = raw.city.trim();
-    if (typeof raw.state === "string") result.state = raw.state.trim();
-    if (typeof raw.postalCode === "string") result.postalCode = raw.postalCode.trim();
-    if (typeof raw.country === "string") result.country = raw.country.trim();
+    if (typeof raw.line1 === "string") {
+        result.line1 = raw.line1.trim();
+    }
+    if (typeof raw.line2 === "string") {
+        result.line2 = raw.line2.trim();
+    }
+    if (typeof raw.city === "string") {
+        result.city = raw.city.trim();
+    }
+    if (typeof raw.state === "string") {
+        result.state = raw.state.trim();
+    }
+    if (typeof raw.postalCode === "string") {
+        result.postalCode = raw.postalCode.trim();
+    }
+    if (typeof raw.country === "string") {
+        result.country = raw.country.trim();
+    }
     return result;
 }
 
 function sanitizeEmergencyContact(raw: Record<string, unknown>): IEmergencyContact {
     const result: IEmergencyContact = {};
-    if (typeof raw.name === "string") result.name = raw.name.trim();
-    if (typeof raw.relationship === "string") result.relationship = raw.relationship.trim();
-    if (typeof raw.phone === "string") result.phone = raw.phone.trim();
+    if (typeof raw.name === "string") {
+        result.name = raw.name.trim();
+    }
+    if (typeof raw.relationship === "string") {
+        result.relationship = raw.relationship.trim();
+    }
+    if (typeof raw.phone === "string") {
+        result.phone = raw.phone.trim();
+    }
     return result;
 }
 
@@ -45,10 +67,18 @@ function sanitizeEducation(raw: unknown[]): IEducationEntry[] {
         .map(e => {
             const entry = e as Record<string, unknown>;
             const result: IEducationEntry = {};
-            if (typeof entry.institution === "string") result.institution = entry.institution.trim();
-            if (typeof entry.degreeLevel === "string") result.degreeLevel = entry.degreeLevel.trim();
-            if (typeof entry.degreeTitle === "string") result.degreeTitle = entry.degreeTitle.trim();
-            if (typeof entry.yearAchieved === "number") result.yearAchieved = entry.yearAchieved;
+            if (typeof entry.institution === "string") {
+                result.institution = entry.institution.trim();
+            }
+            if (typeof entry.degreeLevel === "string") {
+                result.degreeLevel = entry.degreeLevel.trim();
+            }
+            if (typeof entry.degreeTitle === "string") {
+                result.degreeTitle = entry.degreeTitle.trim();
+            }
+            if (typeof entry.yearAchieved === "number") {
+                result.yearAchieved = entry.yearAchieved;
+            }
             return result;
         });
 }
@@ -57,11 +87,15 @@ function applyComplexUserFields(target: Partial<IUser>, body: Record<string, unk
     // Dates
     if ("birthday" in body) {
         const d = parseDateField(body.birthday);
-        if (d !== undefined) (target as Record<string, unknown>).birthday = d;
+        if (d !== undefined) {
+            (target as Record<string, unknown>).birthday = d;
+        }
     }
     if ("employmentDate" in body) {
         const d = parseDateField(body.employmentDate);
-        if (d !== undefined) (target as Record<string, unknown>).employmentDate = d;
+        if (d !== undefined) {
+            (target as Record<string, unknown>).employmentDate = d;
+        }
     }
 
     // String arrays

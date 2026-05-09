@@ -67,20 +67,30 @@ async function buildNameMap(model: mongoose.Model<unknown>, nameField = "name"):
 }
 
 function resolve(map: LookupMap, id: unknown): string {
-    if (!id) return "";
+    if (!id) {
+        return "";
+    }
     return map.get(String(id)) ?? String(id);
 }
 
 function yesNo(val: unknown): string {
-    if (val === true) return "Yes";
-    if (val === false) return "No";
+    if (val === true) {
+        return "Yes";
+    }
+    if (val === false) {
+        return "No";
+    }
     return "";
 }
 
 function formatDate(val: unknown): string {
-    if (!val) return "";
+    if (!val) {
+        return "";
+    }
     const d = new Date(val as string | number | Date);
-    if (isNaN(d.getTime())) return String(val);
+    if (isNaN(d.getTime())) {
+        return String(val);
+    }
     return d.toISOString().slice(0, 10);
 }
 
@@ -281,7 +291,9 @@ function printTable(label: string, rows: Record<string, unknown>[]): void {
 }
 
 function ensureDir(dir: string): void {
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
 }
 
 function writeCsv(dir: string, sheetName: string, rows: Record<string, unknown>[]): void {

@@ -82,8 +82,12 @@ function checkScopedAccess(actorUser: IUser, targetUser: IUser, scopePairs: [str
 
     for (const [permKey, scope] of scopePairs) {
         if (matchesWildcard(effective, permKey)) {
-            if (scope === PermissionScopes.ALL) return true;
-            if (canAccessUserByScope(actorCtx, targetUser, scope)) return true;
+            if (scope === PermissionScopes.ALL) {
+                return true;
+            }
+            if (canAccessUserByScope(actorCtx, targetUser, scope)) {
+                return true;
+            }
         }
     }
 

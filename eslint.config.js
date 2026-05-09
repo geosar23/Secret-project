@@ -22,6 +22,19 @@ export default [
         rules: {
             "no-unused-vars": "warn",
             "no-console": "off",
+            curly: ["error", "all"],
+        },
+    },
+
+    {
+        files: ["client/src/**/*.ts"],
+        languageOptions: {
+            parser: tseslint.parser,
+        },
+        rules: {
+            "no-unused-vars": "warn",
+            "no-console": "off",
+            curly: ["error", "all"],
         },
     },
 
@@ -38,6 +51,7 @@ export default [
         rules: {
             "no-unused-vars": "warn",
             "no-console": "off",
+            curly: ["error", "all"],
         },
     },
 ];

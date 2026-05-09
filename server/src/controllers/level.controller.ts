@@ -72,8 +72,12 @@ export class LevelController {
                 }
                 data.name = name.trim();
             }
-            if (order !== undefined && typeof order === "number") data.order = order;
-            if (isActive !== undefined && typeof isActive === "boolean") data.isActive = isActive;
+            if (order !== undefined && typeof order === "number") {
+                data.order = order;
+            }
+            if (isActive !== undefined && typeof isActive === "boolean") {
+                data.isActive = isActive;
+            }
 
             const updated = await LevelService.update(req.params.id, data, requestingUser.companyId);
             if (!updated) {

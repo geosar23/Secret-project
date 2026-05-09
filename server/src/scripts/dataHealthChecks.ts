@@ -48,8 +48,12 @@ async function checkCompanies(): Promise<void> {
     console.log("\n── Companies ──────────────────────────────────────────────");
     const companies = await CompanyModel.find({}).lean();
     for (const c of companies) {
-        if (!c.name?.trim()) report("Companies", c._id, "missing name");
-        if (!c.slug?.trim()) report("Companies", c._id, "missing slug");
+        if (!c.name?.trim()) {
+            report("Companies", c._id, "missing name");
+        }
+        if (!c.slug?.trim()) {
+            report("Companies", c._id, "missing slug");
+        }
     }
     console.log(`   ${companies.length} documents checked`);
 }
@@ -67,9 +71,15 @@ async function checkRoles(companyIds: Set<string>): Promise<void> {
             report("Roles", id, `company ${r.company} does not exist`);
         }
 
-        if (!r.name?.trim()) report("Roles", id, "missing name");
-        if (!r.description?.trim()) report("Roles", id, "missing description");
-        if (r.level == null) report("Roles", id, "missing level");
+        if (!r.name?.trim()) {
+            report("Roles", id, "missing name");
+        }
+        if (!r.description?.trim()) {
+            report("Roles", id, "missing description");
+        }
+        if (r.level == null) {
+            report("Roles", id, "missing level");
+        }
 
         if (r.isSystemRole && !systemRoleSlugs.has(r.role)) {
             report("Roles", id, `isSystemRole=true but role slug "${r.role}" is not a DefaultUserRoles value`);
@@ -99,9 +109,15 @@ async function checkUsers(companyIds: Set<string>, roleIds: Set<string>): Promis
     for (const u of users) {
         const id = u._id;
 
-        if (!u.name?.trim()) report("Users", id, "missing name");
-        if (!u.email?.trim()) report("Users", id, "missing email");
-        if (!u.password) report("Users", id, "missing password hash");
+        if (!u.name?.trim()) {
+            report("Users", id, "missing name");
+        }
+        if (!u.email?.trim()) {
+            report("Users", id, "missing email");
+        }
+        if (!u.password) {
+            report("Users", id, "missing password hash");
+        }
 
         // Company
         if (!u.company) {
@@ -162,7 +178,9 @@ async function checkDepartments(companyIds: Set<string>): Promise<void> {
     console.log("\n── Departments ─────────────────────────────────────────────");
     const docs = await DepartmentModel.find({}).lean();
     for (const d of docs) {
-        if (!d.name?.trim()) report("Departments", d._id, "missing name");
+        if (!d.name?.trim()) {
+            report("Departments", d._id, "missing name");
+        }
         if (!d.company) {
             report("Departments", d._id, "missing company");
         } else if (!companyIds.has(String(d.company))) {
@@ -176,7 +194,9 @@ async function checkSubDepartments(companyIds: Set<string>, departmentIds: Set<s
     console.log("\n── Sub-Departments ─────────────────────────────────────────");
     const docs = await SubDepartmentModel.find({}).lean();
     for (const d of docs) {
-        if (!d.name?.trim()) report("SubDepartments", d._id, "missing name");
+        if (!d.name?.trim()) {
+            report("SubDepartments", d._id, "missing name");
+        }
         if (!d.company) {
             report("SubDepartments", d._id, "missing company");
         } else if (!companyIds.has(String(d.company))) {
@@ -195,7 +215,9 @@ async function checkEmploymentTitles(companyIds: Set<string>, subDeptIds: Set<st
     console.log("\n── Employment Titles ───────────────────────────────────────");
     const docs = await EmploymentTitleModel.find({}).lean();
     for (const d of docs) {
-        if (!d.name?.trim()) report("EmploymentTitles", d._id, "missing name");
+        if (!d.name?.trim()) {
+            report("EmploymentTitles", d._id, "missing name");
+        }
         if (!d.company) {
             report("EmploymentTitles", d._id, "missing company");
         } else if (!companyIds.has(String(d.company))) {
@@ -214,7 +236,9 @@ async function checkCountries(companyIds: Set<string>): Promise<void> {
     console.log("\n── Countries ───────────────────────────────────────────────");
     const docs = await CountryModel.find({}).lean();
     for (const d of docs) {
-        if (!d.name?.trim()) report("Countries", d._id, "missing name");
+        if (!d.name?.trim()) {
+            report("Countries", d._id, "missing name");
+        }
         if (!d.company) {
             report("Countries", d._id, "missing company");
         } else if (!companyIds.has(String(d.company))) {
@@ -228,7 +252,9 @@ async function checkLevels(companyIds: Set<string>): Promise<void> {
     console.log("\n── Levels ──────────────────────────────────────────────────");
     const docs = await LevelModel.find({}).lean();
     for (const d of docs) {
-        if (!d.name?.trim()) report("Levels", d._id, "missing name");
+        if (!d.name?.trim()) {
+            report("Levels", d._id, "missing name");
+        }
         if (!d.company) {
             report("Levels", d._id, "missing company");
         } else if (!companyIds.has(String(d.company))) {
@@ -242,7 +268,9 @@ async function checkOffices(companyIds: Set<string>, countryIds: Set<string>): P
     console.log("\n── Offices ─────────────────────────────────────────────────");
     const docs = await OfficeModel.find({}).lean();
     for (const d of docs) {
-        if (!d.name?.trim()) report("Offices", d._id, "missing name");
+        if (!d.name?.trim()) {
+            report("Offices", d._id, "missing name");
+        }
         if (!d.company) {
             report("Offices", d._id, "missing company");
         } else if (!companyIds.has(String(d.company))) {

@@ -98,7 +98,9 @@ export class CountriesComponent implements OnInit, AfterViewInit, OnDestroy {
             .afterClosed()
             .pipe(takeUntil(this.destroy$))
             .subscribe((country?: ICountry) => {
-                if (!country) return;
+                if (!country) {
+                    return;
+                }
                 this.allCountries = [country, ...this.allCountries];
                 this.tableData.data = this.allCountries;
                 this.toast.success("Country created successfully");
@@ -115,7 +117,9 @@ export class CountriesComponent implements OnInit, AfterViewInit, OnDestroy {
             .afterClosed()
             .pipe(takeUntil(this.destroy$))
             .subscribe((updated?: ICountry) => {
-                if (!updated) return;
+                if (!updated) {
+                    return;
+                }
                 this.allCountries = this.allCountries.map(c => (c._id === updated._id ? updated : c));
                 this.tableData.data = this.allCountries;
                 this.toast.success("Country updated successfully");
@@ -123,7 +127,9 @@ export class CountriesComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     deleteCountry(country: ICountry): void {
-        if (!confirm(`Delete country "${country.name}"?`)) return;
+        if (!confirm(`Delete country "${country.name}"?`)) {
+            return;
+        }
 
         this.countryService.deleteCountry(country._id as string).subscribe({
             next: res => {

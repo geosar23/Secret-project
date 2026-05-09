@@ -86,7 +86,9 @@ export class RoleDialogComponent implements OnInit {
 
         Object.values(PermissionKeys).forEach(key => {
             const category = key.split(":")[0];
-            if (!grouped.has(category)) grouped.set(category, []);
+            if (!grouped.has(category)) {
+                grouped.set(category, []);
+            }
             grouped.get(category)!.push(key);
         });
 

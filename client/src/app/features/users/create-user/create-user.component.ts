@@ -246,14 +246,18 @@ export class CreateUserPageComponent implements OnInit {
     }
 
     private toObjectIdOrUndefined(value: unknown): string | undefined {
-        if (typeof value !== "string") return undefined;
+        if (typeof value !== "string") {
+            return undefined;
+        }
         const trimmed = value.trim();
         return /^[a-fA-F0-9]{24}$/.test(trimmed) ? trimmed : undefined;
     }
 
     addNationality(): void {
         const val = this.nationalityInput().trim();
-        if (!val) return;
+        if (!val) {
+            return;
+        }
         this.nationalitiesArray.push(this.fb.control(val) as FormControl<string>);
         this.nationalityInput.set("");
     }

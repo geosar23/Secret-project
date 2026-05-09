@@ -65,7 +65,9 @@ export const UserDocumentService = {
 
     delete: async (id: string, companyId: string) => {
         const doc = await UserDocumentModel.findOne({ _id: id, company: companyId }).lean();
-        if (!doc) return;
+        if (!doc) {
+            return;
+        }
         if (doc.attachment?.path) {
             try {
                 await StorageService.removeFile(doc.attachment.path);

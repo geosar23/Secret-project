@@ -129,7 +129,9 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
             .afterClosed()
             .pipe(takeUntil(this.destroy$))
             .subscribe((role?: IRole) => {
-                if (!role) return;
+                if (!role) {
+                    return;
+                }
                 this.allRoles = [role, ...this.allRoles];
                 this.tableData.data = this.allRoles;
                 this.applyFilters();
@@ -147,7 +149,9 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
             .afterClosed()
             .pipe(takeUntil(this.destroy$))
             .subscribe((updated?: IRole) => {
-                if (!updated) return;
+                if (!updated) {
+                    return;
+                }
                 this.allRoles = this.allRoles.map(r => (r._id === updated._id ? updated : r));
                 this.tableData.data = this.allRoles;
                 this.applyFilters();

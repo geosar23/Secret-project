@@ -26,7 +26,9 @@ export function getEffectivePermissions(user: IUser): Set<string> {
     const revoked: string[] = (user.revokedPermissions as unknown as string[]) ?? [];
 
     const effective = new Set([...rolePerms, ...granted]);
-    for (const p of revoked) effective.delete(p);
+    for (const p of revoked) {
+        effective.delete(p);
+    }
     return effective;
 }
 
@@ -65,7 +67,9 @@ export function buildActorContext(actor: IUser): AccessContext["actor"] {
  */
 export function matchesWildcard(effectivePerms: Set<string>, required: string): boolean {
     const parts = required.split(":");
-    if (parts.length !== 3) return false;
+    if (parts.length !== 3) {
+        return false;
+    }
 
     const [cat, action, scope] = parts;
     const W = "*";
@@ -81,7 +85,9 @@ export function matchesWildcard(effectivePerms: Set<string>, required: string): 
         `${cat}:${action}:${scope}`,
     ];
 
-    if (candidates.some(c => effectivePerms.has(c))) return true;
+    if (candidates.some(c => effectivePerms.has(c))) {
+        return true;
+    }
 
     // If this is a sub-category (e.g. "userProfile.identity"), also check
     // whether any parent-category permission covers it.

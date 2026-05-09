@@ -72,10 +72,14 @@ async function run(): Promise<void> {
     let skipped = 0;
 
     for (const u of users) {
-        if (!u.role || !u.company) continue;
+        if (!u.role || !u.company) {
+            continue;
+        }
 
         const roleCompany = roleCompanyMap.get(String(u.role));
-        if (!roleCompany || roleCompany === String(u.company)) continue;
+        if (!roleCompany || roleCompany === String(u.company)) {
+            continue;
+        }
 
         // Cross-company assignment detected
         const fallbackRole = await getLowestRoleForCompany(String(u.company));

@@ -26,13 +26,19 @@ export class BreadcrumbService {
 
     private buildBreadcrumbs(route: ActivatedRoute, url = "", crumbs: BreadcrumbItem[] = []): BreadcrumbItem[] {
         for (const child of route.children) {
-            if (child.outlet !== PRIMARY_OUTLET) continue;
+            if (child.outlet !== PRIMARY_OUTLET) {
+                continue;
+            }
 
             const label = child.snapshot.routeConfig?.data?.["breadcrumb"] as string | undefined;
             const segments = child.snapshot.url.map(s => s.path).join("/");
 
-            if (segments) url += `/${segments}`;
-            if (label) crumbs.push({ label, route: url });
+            if (segments) {
+                url += `/${segments}`;
+            }
+            if (label) {
+                crumbs.push({ label, route: url });
+            }
 
             return this.buildBreadcrumbs(child, url, crumbs);
         }

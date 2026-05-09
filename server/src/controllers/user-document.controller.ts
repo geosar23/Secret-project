@@ -65,14 +65,20 @@ export class UserDocumentController {
                 type,
             };
 
-            if (typeof documentNumber === "string" && documentNumber.trim())
+            if (typeof documentNumber === "string" && documentNumber.trim()) {
                 data.documentNumber = documentNumber.trim();
-            if (typeof issuingCountry === "string" && issuingCountry.trim())
+            }
+            if (typeof issuingCountry === "string" && issuingCountry.trim()) {
                 data.issuingCountry = issuingCountry.trim();
-            if (typeof notes === "string" && notes.trim()) data.notes = notes.trim();
+            }
+            if (typeof notes === "string" && notes.trim()) {
+                data.notes = notes.trim();
+            }
             if (expiryDate !== undefined && expiryDate !== null) {
                 const d = new Date(expiryDate as string);
-                if (!isNaN(d.getTime())) data.expiryDate = d;
+                if (!isNaN(d.getTime())) {
+                    data.expiryDate = d;
+                }
             }
 
             const doc = await UserDocumentService.create(data as any);
@@ -96,17 +102,23 @@ export class UserDocumentController {
                 }
                 patch.type = type;
             }
-            if (documentNumber !== undefined)
+            if (documentNumber !== undefined) {
                 patch.documentNumber = typeof documentNumber === "string" ? documentNumber.trim() || null : null;
-            if (issuingCountry !== undefined)
+            }
+            if (issuingCountry !== undefined) {
                 patch.issuingCountry = typeof issuingCountry === "string" ? issuingCountry.trim() || null : null;
-            if (notes !== undefined) patch.notes = typeof notes === "string" ? notes.trim() || null : null;
+            }
+            if (notes !== undefined) {
+                patch.notes = typeof notes === "string" ? notes.trim() || null : null;
+            }
             if (expiryDate !== undefined) {
                 if (expiryDate === null || expiryDate === "") {
                     patch.expiryDate = null;
                 } else {
                     const d = new Date(expiryDate as string);
-                    if (!isNaN(d.getTime())) patch.expiryDate = d;
+                    if (!isNaN(d.getTime())) {
+                        patch.expiryDate = d;
+                    }
                 }
             }
 

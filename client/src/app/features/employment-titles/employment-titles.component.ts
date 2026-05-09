@@ -121,7 +121,9 @@ export class EmploymentTitlesComponent implements OnInit, AfterViewInit, OnDestr
             .afterClosed()
             .pipe(takeUntil(this.destroy$))
             .subscribe((employmentTitle?: IEmploymentTitle) => {
-                if (!employmentTitle) return;
+                if (!employmentTitle) {
+                    return;
+                }
                 this.allEmploymentTitles = [employmentTitle, ...this.allEmploymentTitles];
                 this.tableData.data = this.allEmploymentTitles;
                 this.toast.success("Employment title created successfully");
@@ -138,7 +140,9 @@ export class EmploymentTitlesComponent implements OnInit, AfterViewInit, OnDestr
             .afterClosed()
             .pipe(takeUntil(this.destroy$))
             .subscribe((updated?: IEmploymentTitle) => {
-                if (!updated) return;
+                if (!updated) {
+                    return;
+                }
                 this.allEmploymentTitles = this.allEmploymentTitles.map(d => (d._id === updated._id ? updated : d));
                 this.tableData.data = this.allEmploymentTitles;
                 this.toast.success("Employment title updated successfully");
@@ -146,7 +150,9 @@ export class EmploymentTitlesComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     deleteEmploymentTitle(employmentTitle: IEmploymentTitle): void {
-        if (!confirm(`Delete employment title "${employmentTitle.name}"?`)) return;
+        if (!confirm(`Delete employment title "${employmentTitle.name}"?`)) {
+            return;
+        }
 
         this.employmentTitleService.deleteEmploymentTitle(employmentTitle._id as string).subscribe({
             next: res => {

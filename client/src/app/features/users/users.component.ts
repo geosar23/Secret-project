@@ -131,7 +131,9 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             control.valueChanges.pipe(takeUntil(this.destroy$), distinctUntilChanged()).subscribe(value => {
                 this.queryParams[key] = value || undefined;
                 this.queryParams.page = 1;
-                if (this.paginator) this.paginator.pageIndex = 0;
+                if (this.paginator) {
+                    this.paginator.pageIndex = 0;
+                }
                 this.loadUsers();
             });
         }
@@ -139,7 +141,9 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
         this.isActiveControl.valueChanges.pipe(takeUntil(this.destroy$), distinctUntilChanged()).subscribe(value => {
             this.queryParams.isActive = value === "" ? undefined : value === "true";
             this.queryParams.page = 1;
-            if (this.paginator) this.paginator.pageIndex = 0;
+            if (this.paginator) {
+                this.paginator.pageIndex = 0;
+            }
             this.loadUsers();
         });
     }
@@ -167,7 +171,9 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: res => {
-                    if (res.success && res.data) this.roles = res.data;
+                    if (res.success && res.data) {
+                        this.roles = res.data;
+                    }
                 },
             });
 
@@ -176,7 +182,9 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: res => {
-                    if (res.success && res.data) this.countries = res.data;
+                    if (res.success && res.data) {
+                        this.countries = res.data;
+                    }
                 },
             });
 
@@ -185,7 +193,9 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: res => {
-                    if (res.success && res.data) this.departments = res.data;
+                    if (res.success && res.data) {
+                        this.departments = res.data;
+                    }
                 },
             });
     }
