@@ -18,7 +18,9 @@ import { ToastService } from "../../core/services/toast.service";
 import { Subject } from "rxjs";
 import { skipWhile, takeUntil } from "rxjs/operators";
 import { ChangePasswordDialogComponent } from "./change-password-dialog/change-password-dialog.component";
+import { ResetPasswordDialogComponent } from "./reset-password-dialog/reset-password-dialog.component";
 import { BreadcrumbService } from "../../core/services/breadcrumb.service";
+import { PermissionService } from "../../core/services/permission.service";
 
 import { ProfileAddressPipe } from "./profile-address.pipe";
 import {
@@ -53,6 +55,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private dialog = inject(MatDialog);
     private toast = inject(ToastService);
     private breadcrumbService = inject(BreadcrumbService);
+    private permissionService = inject(PermissionService);
 
     private destroy$ = new Subject<void>();
 
@@ -155,6 +158,20 @@ export class ProfileComponent implements OnInit, OnDestroy {
             maxWidth: "95vw",
             data: { userId: this.profile._id as string } as ChangePasswordDialogData,
         });
+    }
+
+    openResetPasswordDialog(): void {
+        if (!this.profile || !this.profile._id || this.loading()) return;
+
+        this.dialog.open(ResetPasswordDialogComponent, {
+            width: "460px",
+            maxWidth: "95vw",
+            data: { userId: this.profile._id as string } as ChangePasswordDialogData,
+        });
+    }
+
+    get canResetPassword(): boolean {
+        return this.permissionService.canResetPassword();
     }
 
     getRoleColor(role: string): string {

@@ -11,6 +11,7 @@ export enum PermissionCategories {
     USER_PROFILE_EDUCATION = "userProfile.education",
     USER_PROFILE_COMPENSATION = "userProfile.compensation",
     ROLES_MANAGEMENT = "rolesManagement",
+    RESET_PASSWORD = "resetPassword",
 }
 
 export const PermissionCategoriesStrings: Record<PermissionCategories, string> = {
@@ -24,6 +25,7 @@ export const PermissionCategoriesStrings: Record<PermissionCategories, string> =
     [PermissionCategories.USER_PROFILE_EDUCATION]: "User Profile – Education",
     [PermissionCategories.USER_PROFILE_COMPENSATION]: "User Profile – Compensation",
     [PermissionCategories.ROLES_MANAGEMENT]: "Roles Management",
+    [PermissionCategories.RESET_PASSWORD]: "Reset Password",
 };
 
 export enum PermissionScopes {
@@ -248,10 +250,24 @@ export const ROLES_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategori
     scopes: [PermissionScopes.ALL],
 });
 
+/** All `resetPassword` permission keys. */
+export const RESET_PASSWORD_PERMISSIONS = definePermissions(PermissionCategories.RESET_PASSWORD, {
+    actions: [PermissionActions.WRITE],
+    scopes: [
+        PermissionScopes.ALL,
+        PermissionScopes.DEPARTMENT,
+        PermissionScopes.COUNTRY,
+        PermissionScopes.DEPARTMENT_COUNTRY,
+        PermissionScopes.MANAGED,
+        PermissionScopes.SELF,
+    ],
+});
+
 // ─── Flat permission-key map (PermissionCategory:PermissionAction:PermissionScope) ──
 
 //PermissionCategory:PermissionAction:PermissionScope
 export const PermissionKeys = {
+    ALL: "*:*:*",
     ...prefixedKeys("USERS_MANAGEMENT", USERS_MANAGEMENT_PERMISSIONS),
     ...prefixedKeys("COUNTRIES_MANAGEMENT", COUNTRIES_MANAGEMENT_PERMISSIONS),
     ...prefixedKeys("USER_PROFILE", USER_PROFILE_PERMISSIONS),
@@ -261,4 +277,5 @@ export const PermissionKeys = {
     ...prefixedKeys("USER_PROFILE_EDUCATION", USER_PROFILE_EDUCATION_PERMISSIONS),
     ...prefixedKeys("USER_PROFILE_COMPENSATION", USER_PROFILE_COMPENSATION_PERMISSIONS),
     ...prefixedKeys("ROLES_MANAGEMENT", ROLES_MANAGEMENT_PERMISSIONS),
+    ...prefixedKeys("RESET_PASSWORD", RESET_PASSWORD_PERMISSIONS),
 } as const;

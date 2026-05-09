@@ -150,6 +150,22 @@ export const UserService = {
         return repo.deleteOne({ _id: id });
     },
 
+    resetPasswordForUser: async (userId: string, newPassword: string, companyId: string) => {
+        if (!companyId) {
+            throw new Error("Company ID is required for resetting password");
+        }
+
+        const repo = userRepository(companyId);
+        const user = await repo.findById(userId).select("_id").lean();
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await repo.updateOne({ _id: userId }, { password: hashedPassword });
+    },
+
     changePassword: async (id: string, currentPassword: string, newPassword: string, companyId: string) => {
         if (!companyId) {
             throw new Error("Company ID is required for changing password");

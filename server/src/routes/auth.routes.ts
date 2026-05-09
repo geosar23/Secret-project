@@ -1,6 +1,8 @@
 import { RequestHandler, Router } from "express";
 import { AuthController } from "../controllers/auth.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
+import { userHasPermissionCategory } from "../middleware/permission.middleware";
+import { PermissionCategories } from "../enums/permissions.enum";
 
 const router = Router();
 
@@ -10,9 +12,15 @@ router.post("/login", AuthController.login);
 // Protected routes (require authentication)
 router.get("/me", authMiddleware as RequestHandler, AuthController.me);
 
+router.post(
+    "/reset-password",
+    authMiddleware as RequestHandler,
+    userHasPermissionCategory(PermissionCategories.RESET_PASSWORD) as RequestHandler,
+    AuthController.resetPassword as RequestHandler,
+);
+
 // TODO: Add these employee-facing endpoints:
 // router.post("/activate-account", AuthController.activateAccount); // Employee sets password after invitation
 // router.post("/forgot-password", AuthController.forgotPassword);   // Request password reset
-// router.post("/reset-password", AuthController.resetPassword);     // Reset password with token
 
 export default router;

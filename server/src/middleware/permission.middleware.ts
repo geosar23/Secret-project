@@ -108,3 +108,30 @@ export function userHasAllPermissions(permissions: string[]) {
         }
     };
 }
+
+export function userHasPermissionCategory(category: string) {
+    return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+        try {
+            const payload = getTokenPayload(req);
+            if (!payload) {
+                return res.status(401).json({ message: "Authentication required" });
+            }
+
+            const user = (await UserService.getById(payload.id, payload.companyId)) as IUser | null;
+            if (!user) {
+                return res.status(401).json({ message: "User not found" });
+            }
+
+            const hasAccess = await PermissionChecker.hasPermissionInCategory(user, category);
+
+            if (!hasAccess) {
+                return res.status(403).json({ message: "Insufficient permissions", requiredCategory: category });
+            }
+
+            next();
+        } catch (error) {
+            console.error("Authorization error:", error);
+            return next({ statusCode: 500, message: "Authorization check failed" });
+        }
+    };
+}

@@ -125,6 +125,14 @@ export const PermissionChecker = {
         const effective = getEffectivePermissions(user);
         return permissions.every(perm => matchesWildcard(effective, perm));
     },
+
+    hasPermissionInCategory: async (user: IUser, category: string): Promise<boolean> => {
+        const effective = getEffectivePermissions(user);
+        return Array.from(effective).some(perm => {
+            const [permCategory] = perm.split(":");
+            return permCategory === category || permCategory === "*";
+        });
+    },
 };
 
 export function isValidPermissionKey(permissionKey: string): boolean {

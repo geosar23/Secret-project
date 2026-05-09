@@ -43,4 +43,22 @@ export const AuthController = {
             res.json(softError(err.message, err));
         }
     },
+
+    resetPassword: async (req: AuthenticatedRequest, res: Response) => {
+        try {
+            const { userId, newPassword } = req.body;
+
+            if (!userId || !newPassword) {
+                return res.json(softError("userId and newPassword are required"));
+            }
+
+            const payload = req.decoded as tokenPayload;
+            await UserService.resetPasswordForUser(userId, newPassword, payload.companyId);
+
+            res.json(success({ message: "Password reset successfully" }));
+        } catch (err: any) {
+            console.log("Error in AuthController.resetPassword:", err);
+            res.json(softError(err.message, err));
+        }
+    },
 };

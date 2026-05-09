@@ -30,6 +30,24 @@ export class PermissionService {
         return hasPermission(effective, PermissionKeys.USERS_MANAGEMENT_WRITE_ALL);
     }
 
+    /**
+     * Synchronous check: can the actor reset another user's password?
+     * True if the actor holds any resetPassword:write scope.
+     */
+    canResetPassword(): boolean {
+        const user = this.authService.getLocalUser();
+        if (!user) return false;
+        const effective = this.computeEffective(user);
+        return [
+            PermissionKeys.RESET_PASSWORD_WRITE_ALL,
+            PermissionKeys.RESET_PASSWORD_WRITE_DEPARTMENT,
+            PermissionKeys.RESET_PASSWORD_WRITE_COUNTRY,
+            PermissionKeys.RESET_PASSWORD_WRITE_DEPARTMENT_COUNTRY,
+            PermissionKeys.RESET_PASSWORD_WRITE_MANAGED,
+            PermissionKeys.RESET_PASSWORD_WRITE_SELF,
+        ].some(key => hasPermission(effective, key));
+    }
+
     private computeEffective(user: IUser): string[] {
         const rolePerms = user.role?.permissions ?? [];
         const grantedPerms = user.grantedPermissions ?? [];

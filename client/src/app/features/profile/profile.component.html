@@ -61,6 +61,17 @@
                             Change Password
                         </button>
                     }
+                    @if (!isOwnProfile && canResetPassword) {
+                        <button
+                            mat-stroked-button
+                            color="warn"
+                            (click)="openResetPasswordDialog()"
+                            [disabled]="loading()"
+                        >
+                            <mat-icon>lock_reset</mat-icon>
+                            Reset Password
+                        </button>
+                    }
                 </div>
             </mat-card>
 
