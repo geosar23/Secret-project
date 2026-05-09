@@ -4,6 +4,9 @@ import { AuthService } from "../services/auth.service";
 import { UserService } from "../services/user.service";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { success, softError } from "../utils/response.util";
+import { canActorAccessSubject } from "../middleware/permission.middleware";
+import { PermissionCategories, PermissionActions } from "../enums/permissions.enum";
+import { IUser } from "../interfaces/user.interface";
 
 export const AuthController = {
     login: async (req: Request, res: Response) => {
@@ -53,6 +56,30 @@ export const AuthController = {
             }
 
             const payload = req.decoded as tokenPayload;
+
+            const [actorUser, subjectUser] = await Promise.all([
+                UserService.getById(payload.id, payload.companyId),
+                UserService.getById(userId, payload.companyId),
+            ]);
+
+            if (!actorUser) {
+                return res.status(401).json({ message: "Actor not found" });
+            }
+
+            if (!subjectUser) {
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            const hasAccess = canActorAccessSubject(
+                actorUser as IUser,
+                subjectUser as IUser,
+                PermissionCategories.RESET_PASSWORD,
+                PermissionActions.WRITE,
+            );
+            if (!hasAccess) {
+                return res.status(403).json({ message: "Insufficient permissions for this user" });
+            }
+
             await UserService.resetPasswordForUser(userId, newPassword, payload.companyId);
 
             res.json(success({ message: "Password reset successfully" }));
