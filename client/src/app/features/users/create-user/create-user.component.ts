@@ -352,6 +352,8 @@ export class CreateUserPageComponent implements OnInit {
     onSubmit(): void {
         if (this.userForm.invalid) {
             this.userForm.markAllAsTouched();
+            const firstInvalid = document.querySelector(".ng-invalid[formControlName], .ng-invalid[formGroupName]");
+            firstInvalid?.scrollIntoView({ behavior: "smooth", block: "center" });
             return;
         }
 

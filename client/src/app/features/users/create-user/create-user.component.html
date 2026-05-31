@@ -477,13 +477,7 @@
 
             <div class="form-actions">
                 <button mat-button type="button" (click)="onCancel()" [disabled]="loading()">Cancel</button>
-                <button
-                    mat-raised-button
-                    color="primary"
-                    type="button"
-                    (click)="onSubmit()"
-                    [disabled]="userForm.invalid || loading()"
-                >
+                <button mat-raised-button color="primary" type="button" (click)="onSubmit()" [disabled]="loading()">
                     @if (loading()) {
                         <mat-spinner diameter="20"></mat-spinner>
                         Creating...
