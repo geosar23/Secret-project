@@ -104,7 +104,7 @@ function toKeyPart(s: string): string {
  * @example
  * export const LEAVES_PERMISSIONS = definePermissions("leaves", {
  *   actions: ["read", "write", "approve"],
- *   scopes:  ["*", "company", "country", "managed", "self"],
+ *   scopes:  ["*", "country", "managed", "self"],
  * });
  *
  * LEAVES_PERMISSIONS.READ_ALL        // "leaves:read:*"

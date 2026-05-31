@@ -47,6 +47,9 @@ This ensures both sides always agree on what keys exist. When adding a new permi
 ### Permission structure
 
 Permissions follow a `category:scope:action` convention, for example:
+category usually means feature.
+Also dot notations for sub categorizing something is accepted
+users.a:country:read
 
 ```
 users:all:read

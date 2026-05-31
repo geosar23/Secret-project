@@ -62,6 +62,67 @@ Common types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `style`, `perf
 4. Mirror any new permission keys in the client enums.
 5. Add unit tests for components with non-trivial logic.
 
+### Skill file (required)
+
+Every new feature must ship with a **Copilot skill file** so the AI assistant has accurate domain knowledge when working on that feature in the future.
+
+Create `.github/skills/<feature-name>/SKILL.md` with this structure:
+
+```markdown
+---
+name: <feature-name>
+description: >
+    Domain knowledge for the <Feature> feature. USE WHEN: <comma-separated list of
+    situations where this skill should be loaded — editing dialogs, services, models,
+    routes, permission guards, etc.>. Covers: <key files and concepts>.
+---
+
+# <Feature> Feature
+
+## Key Files
+
+| Layer             | File                                                    |
+| ----------------- | ------------------------------------------------------- |
+| Server model      | `server/src/models/<feature>.model.ts`                  |
+| Server interface  | `server/src/interfaces/<feature>.interface.ts`          |
+| Server repository | `server/src/repositories/<feature>.repository.ts`       |
+| Server service    | `server/src/services/<feature>.service.ts`              |
+| Server controller | `server/src/controllers/<feature>.controller.ts`        |
+| Server routes     | `server/src/routes/<feature>.routes.ts`                 |
+| Client feature    | `client/src/app/features/<feature>/`                    |
+| Client service    | `client/src/app/core/services/<feature>.service.ts`     |
+| Client interface  | `client/src/app/core/interfaces/<feature>.interface.ts` |
+
+---
+
+## Data Model
+
+<!-- Paste the TypeScript interface for both server IModel and client IModel -->
+
+---
+
+## Key Behaviours / Rules
+
+<!-- Business rules, constraints, permission requirements, edge cases -->
+
+---
+
+## API Endpoints
+
+<!-- List the routes this feature exposes -->
+```
+
+**Tips for a good skill:**
+
+- The `description` field is what Copilot reads to decide whether to load the skill. Make the `USE WHEN:` list specific and exhaustive — include component names, file names, and action verbs (editing, adding, debugging).
+- Keep the body accurate: file paths must be real, interfaces must match the actual code.
+- Update the skill whenever the feature's model, files, or rules change significantly.
+
+**Existing skills for reference:**
+
+- `.github/skills/permissions/SKILL.md`
+- `.github/skills/roles/SKILL.md`
+
 ---
 
 ## Adding a New Permission
