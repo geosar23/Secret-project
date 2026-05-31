@@ -66,7 +66,7 @@ Status legend:
 - Acceptance criteria:
     - [x] Repositories enforce company scoping for users, roles, departments, countries, sub-departments, employment titles (via `companyModel` factory and `OG_COMPANY_ID` bypass).
     - [x] Tests prove users from company A cannot list or fetch users from company B (`company-isolation.test.ts`).
-    - [x] God user (OG_COMPANY_ID) correctly bypasses the scope filter and sees cross-company data.
+    - [x] God user (OG_COMPANY_ID) correctly bypasses the scope filter and sees cross-company data. (obsolete)
     - [x] Roles are verified to be company-scoped in the test suite.
 
 ### P0-05 Permission-Aware Company Field Visibility (All Management Pages)
@@ -91,7 +91,7 @@ Status legend:
 - Priority: P0
 - Owner: You
 - Estimate: 1-1.5 days
-- Status: [ ]
+- Status: [x]
 - Goal: reduce regression risk in high-use UI flows.
 - Acceptance criteria:
     - [x] User create/edit form behavior tested.
@@ -106,7 +106,7 @@ Status legend:
 - Status: [~]
 - Goal: ensure employee records are complete for HR operations and reporting.
 - Acceptance criteria:
-    - [~] **Phase 1 — Core profile fields.** User model extended with:
+    - [x] **Phase 1 — Core profile fields.** User model extended with:
         - **Identity**: `legalName`, `firstName`, `lastName`, `personalEmail`, `gender` (enum), `birthday` (Date), `maritalStatus` (enum), `nationalities` (string[]), `religion`
         - **Contact**: `workPhone`, `personalPhone`, `additionalPhones` (string[]), `currentAddress`, `homeCountryAddress`, `homeCountryPhone`, `emergencyContact` (name, relationship, phone)
         - **Employment**: `employmentDate` (Date), `employmentType` (enum: full_time | part_time | contractor | intern), `payrollId`, `office` (→ Offices), `isOutsourced` (boolean), `hrRepresentative` (→ Users), `level` (→ Levels)
@@ -114,7 +114,7 @@ Status legend:
         - **Compensation**: `salary` (AES-256-GCM encrypted string; excluded from list endpoints, decrypted on single-user fetch)
         - New reference collections: `Levels` and `Offices` (company-scoped, full CRUD at `/api/levels` and `/api/offices`)
     - [x] **Phase 2 — Documents.** `UserDocuments` collection (passport / national ID / visa / work permit etc): `type` (enum), `documentNumber`, `expiryDate`, `issuingCountry`, `notes`, `attachment` (Supabase Storage, PDF or image ≤10 MB). Full CRUD at `/api/user-documents`. Signed-URL and delete-attachment endpoints included.
-    - [ ] **UI grouping.** Admin user form and employee profile page reorganized into labelled sections: Identity, Contact, Employment, Education.
+    - [x] **UI grouping.** Admin user form and employee profile page reorganized into labelled sections: Identity, Contact, Employment, Education.
     - [ ] Field-level validation is implemented (format/range/required rules where applicable).
     - [ ] Existing users can be migrated/updated safely without breaking old records.
     - [ ] Sensitive fields (especially salary) follow role-based visibility/edit permissions.

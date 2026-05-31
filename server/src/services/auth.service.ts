@@ -27,9 +27,6 @@ export const AuthService = {
         const token = jwt.sign(
             {
                 id: user._id.toString(),
-                email: user.email,
-                name: user.name,
-                roleId: (user.role as unknown as { role: string }).role.toString(),
                 companyId: user.company?._id.toString(),
             },
             JWT_SECRET,

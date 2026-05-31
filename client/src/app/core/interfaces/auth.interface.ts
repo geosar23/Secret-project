@@ -15,9 +15,6 @@ export interface AuthResponse {
 
 export interface tokenPayload {
     id: string;
-    email: string;
-    name?: string;
-    roleId?: string;
-    companyId?: string;
-    exp?: number;
+    companyId: string;
+    exp: number;
 }

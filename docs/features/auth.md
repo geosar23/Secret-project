@@ -12,9 +12,9 @@ The application uses **JWT (JSON Web Token)** based authentication. There are no
 2. Server looks up the user by email (company-agnostic at this step).
 3. Password is verified using **bcryptjs** against the stored hash.
 4. On success, the server signs a JWT containing:
-    - `userId`
-    - `companyId`
-    - `iat` / `exp` (issued-at / expiry)
+    - `id` — user's MongoDB `_id`
+    - `companyId` — company's MongoDB `_id`
+    - `iat` / `exp` — issued-at / expiry (added automatically by the JWT library)
 5. The token is returned to the client.
 
 Failure cases return `401 Unauthorized` with a generic message — no information leakage about whether the email or password was wrong.
