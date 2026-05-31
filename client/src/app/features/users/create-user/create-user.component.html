@@ -298,6 +298,183 @@
                 <input matInput formControlName="homeCountryPhone" />
             </mat-form-field>
 
+            <!-- Additional Phones chip input -->
+            <div class="chip-field">
+                <label class="chip-label">Additional Phone Numbers</label>
+                <div class="chip-row">
+                    <mat-form-field appearance="outline" class="chip-input">
+                        <mat-label>Add phone number</mat-label>
+                        <input
+                            matInput
+                            [value]="additionalPhoneInput()"
+                            (input)="additionalPhoneInput.set($any($event.target).value)"
+                            (keydown.enter)="addAdditionalPhone(); $event.preventDefault()"
+                        />
+                    </mat-form-field>
+                    <button
+                        mat-icon-button
+                        type="button"
+                        (click)="addAdditionalPhone()"
+                        [disabled]="!additionalPhoneInput()"
+                    >
+                        <mat-icon>add</mat-icon>
+                    </button>
+                </div>
+                @if (additionalPhonesArray.length > 0) {
+                    <mat-chip-set>
+                        @for (p of additionalPhonesArray.controls; track $index) {
+                            <mat-chip (removed)="removeAdditionalPhone($index)">
+                                {{ p.value }}
+                                <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                            </mat-chip>
+                        }
+                    </mat-chip-set>
+                }
+            </div>
+
+            <!-- Current Address -->
+            <p class="section-sublabel">Current Address</p>
+            <div formGroupName="currentAddress">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Address Line 1</mat-label>
+                    <input matInput formControlName="line1" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Address Line 2</mat-label>
+                    <input matInput formControlName="line2" />
+                </mat-form-field>
+                <div class="two-col">
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>City</mat-label>
+                        <input matInput formControlName="city" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>State / Province</mat-label>
+                        <input matInput formControlName="state" />
+                    </mat-form-field>
+                </div>
+                <div class="two-col">
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Postal Code</mat-label>
+                        <input matInput formControlName="postalCode" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Country</mat-label>
+                        <input matInput formControlName="country" />
+                    </mat-form-field>
+                </div>
+            </div>
+
+            <!-- Home Country Address -->
+            <p class="section-sublabel">Home Country Address</p>
+            <div formGroupName="homeCountryAddress">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Address Line 1</mat-label>
+                    <input matInput formControlName="line1" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Address Line 2</mat-label>
+                    <input matInput formControlName="line2" />
+                </mat-form-field>
+                <div class="two-col">
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>City</mat-label>
+                        <input matInput formControlName="city" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>State / Province</mat-label>
+                        <input matInput formControlName="state" />
+                    </mat-form-field>
+                </div>
+                <div class="two-col">
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Postal Code</mat-label>
+                        <input matInput formControlName="postalCode" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Country</mat-label>
+                        <input matInput formControlName="country" />
+                    </mat-form-field>
+                </div>
+            </div>
+
+            <!-- Emergency Contact -->
+            <p class="section-sublabel">Emergency Contact</p>
+            <div formGroupName="emergencyContact">
+                <div class="two-col">
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Name</mat-label>
+                        <input matInput formControlName="name" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Relationship</mat-label>
+                        <input matInput formControlName="relationship" />
+                    </mat-form-field>
+                </div>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Phone</mat-label>
+                    <input matInput formControlName="phone" />
+                </mat-form-field>
+            </div>
+
+            <!-- ── EDUCATION ── -->
+            <p class="section-label">Education</p>
+
+            <div formArrayName="education">
+                @for (entry of educationArray.controls; track $index) {
+                    <div [formGroupName]="$index" class="education-entry-form">
+                        <div class="two-col">
+                            <mat-form-field appearance="outline" class="full-width">
+                                <mat-label>Institution</mat-label>
+                                <input matInput formControlName="institution" />
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="full-width">
+                                <mat-label>Degree Level</mat-label>
+                                <mat-select formControlName="degreeLevel">
+                                    <mat-option value="">—</mat-option>
+                                    @for (option of degreeLevelOptions; track option.value) {
+                                        <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                                    }
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+                        <div class="two-col">
+                            <mat-form-field appearance="outline" class="full-width">
+                                <mat-label>Degree Title</mat-label>
+                                <input matInput formControlName="degreeTitle" />
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" class="full-width">
+                                <mat-label>Year Achieved</mat-label>
+                                <input matInput type="number" formControlName="yearAchieved" placeholder="e.g. 2018" />
+                            </mat-form-field>
+                        </div>
+                        <div class="entry-remove-row">
+                            <button
+                                mat-stroked-button
+                                color="warn"
+                                type="button"
+                                (click)="removeEducationEntry($index)"
+                            >
+                                <mat-icon>delete</mat-icon>Remove
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+            <button mat-stroked-button type="button" (click)="addEducationEntry()" class="add-entry-btn">
+                <mat-icon>add</mat-icon>Add Education Entry
+            </button>
+
+            <!-- ── COMPENSATION ── -->
+            @if (canEditCompensation) {
+                <p class="section-label">Compensation</p>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Salary</mat-label>
+                    <input matInput formControlName="salary" placeholder="e.g. 75000" />
+                    <mat-hint>Stored encrypted. Value in local currency.</mat-hint>
+                </mat-form-field>
+            }
+
             <div class="form-actions">
                 <button mat-button type="button" (click)="onCancel()" [disabled]="loading()">Cancel</button>
                 <button

@@ -346,6 +346,22 @@
 
                     <mat-divider class="divider-margin"></mat-divider>
 
+                    <!-- ── COMPENSATION ── -->
+                    @if (canViewCompensation && profile.salary) {
+                        <h3 class="section-title">
+                            <mat-icon>payments</mat-icon>
+                            Compensation
+                        </h3>
+                        <div class="info-grid">
+                            <div class="info-row">
+                                <span class="label">Salary</span>
+                                <span class="value">{{ profile.salary }}</span>
+                            </div>
+                        </div>
+
+                        <mat-divider class="divider-margin"></mat-divider>
+                    }
+
                     <!-- ── COMPANY ── -->
                     <h3 class="section-title">
                         <mat-icon>business</mat-icon>

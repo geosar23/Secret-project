@@ -180,6 +180,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
         return this.permissionService.canResetPassword();
     }
 
+    get canViewCompensation(): boolean {
+        return this.permissionService.canViewCompensation();
+    }
+
     getRoleColor(role: string): string {
         return RoleUtils.getRoleColor(role);
     }

@@ -54,6 +54,44 @@ export class PermissionService {
         ].some(key => hasPermission(effective, key));
     }
 
+    /**
+     * Synchronous check: can the actor view compensation data?
+     */
+    canViewCompensation(): boolean {
+        const user = this.authService.getLocalUser();
+        if (!user) {
+            return false;
+        }
+        const effective = this.computeEffective(user);
+        return [
+            PermissionKeys.USER_PROFILE_COMPENSATION_READ_ALL,
+            PermissionKeys.USER_PROFILE_COMPENSATION_READ_DEPARTMENT,
+            PermissionKeys.USER_PROFILE_COMPENSATION_READ_COUNTRY,
+            PermissionKeys.USER_PROFILE_COMPENSATION_READ_DEPARTMENT_COUNTRY,
+            PermissionKeys.USER_PROFILE_COMPENSATION_READ_MANAGED,
+            PermissionKeys.USER_PROFILE_COMPENSATION_READ_SELF,
+        ].some(key => hasPermission(effective, key));
+    }
+
+    /**
+     * Synchronous check: can the actor write/edit compensation data?
+     */
+    canEditCompensation(): boolean {
+        const user = this.authService.getLocalUser();
+        if (!user) {
+            return false;
+        }
+        const effective = this.computeEffective(user);
+        return [
+            PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_ALL,
+            PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_DEPARTMENT,
+            PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_COUNTRY,
+            PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_DEPARTMENT_COUNTRY,
+            PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_MANAGED,
+            PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_SELF,
+        ].some(key => hasPermission(effective, key));
+    }
+
     private computeEffective(user: IUser): string[] {
         const rolePerms = user.role?.permissions ?? [];
         const grantedPerms = user.grantedPermissions ?? [];

@@ -20,6 +20,7 @@ import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { ActivatedRoute, Router } from "@angular/router";
+import { firstValueFrom } from "rxjs";
 import { UsersService } from "../../../core/services/users.service";
 import { CountryService } from "../../../core/services/country.service";
 import { EmploymentTitleService } from "../../../core/services/employment-title.service";
@@ -31,15 +32,27 @@ import { ToastService } from "../../../core/services/toast.service";
 import { AuthService } from "../../../core/services/auth.service";
 import { PermissionService } from "../../../core/services/permission.service";
 import { BreadcrumbService } from "../../../core/services/breadcrumb.service";
-import { IUser, IUpdateUserRequest, ILevel, IOffice } from "../../../core/interfaces/user.interface";
+import {
+    IUser,
+    IUpdateUserRequest,
+    ILevel,
+    IOffice,
+    IAddress,
+    IEmergencyContact,
+    IEducationEntry,
+} from "../../../core/interfaces/user.interface";
 import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 import { IRole } from "../../../core/interfaces/role.interface";
 import { IDepartment } from "../../../core/interfaces/department.interface";
 import { LoadingButtonComponent } from "../../../shared/components/loading-button/loading-button.component";
-import { firstValueFrom } from "rxjs";
 import { ProfileImageUploadComponent } from "../../../shared/components/profile-image-upload/profile-image-upload.component";
-import { GENDER_OPTIONS, MARITAL_STATUS_OPTIONS, EMPLOYMENT_TYPE_OPTIONS } from "../../../core/enums/profile.enum";
+import {
+    GENDER_OPTIONS,
+    MARITAL_STATUS_OPTIONS,
+    EMPLOYMENT_TYPE_OPTIONS,
+    DEGREE_LEVEL_OPTIONS,
+} from "../../../core/enums/profile.enum";
 
 @Component({
     selector: "app-edit-user",
@@ -84,6 +97,7 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
     readonly genderOptions = GENDER_OPTIONS;
     readonly maritalStatusOptions = MARITAL_STATUS_OPTIONS;
     readonly employmentTypeOptions = EMPLOYMENT_TYPE_OPTIONS;
+    readonly degreeLevelOptions = DEGREE_LEVEL_OPTIONS;
 
     userLoading = true;
     loading = false;
@@ -113,6 +127,8 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
     profileImageLoading = false;
 
     nationalityInput = "";
+    additionalPhoneInput = "";
+    canEditCompensation = false;
 
     userForm: FormGroup = this.fb.group({
         // Core
@@ -142,10 +158,36 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
         workPhone: [""],
         personalPhone: [""],
         homeCountryPhone: [""],
+        additionalPhones: this.fb.array<string>([]),
+        currentAddress: this.fb.group({
+            line1: [""],
+            line2: [""],
+            city: [""],
+            state: [""],
+            postalCode: [""],
+            country: [""],
+        }),
+        homeCountryAddress: this.fb.group({
+            line1: [""],
+            line2: [""],
+            city: [""],
+            state: [""],
+            postalCode: [""],
+            country: [""],
+        }),
+        emergencyContact: this.fb.group({
+            name: [""],
+            relationship: [""],
+            phone: [""],
+        }),
         // Employment
         employmentDate: [null as Date | null],
         employmentType: [""],
         payrollId: [""],
+        // Education
+        education: this.fb.array([]),
+        // Compensation
+        salary: [""],
     });
 
     get nationalitiesArray(): FormArray<FormControl<string>> {
@@ -165,11 +207,70 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
         this.nationalitiesArray.removeAt(index);
     }
 
+    get additionalPhonesArray(): FormArray<FormControl<string>> {
+        return this.userForm.get("additionalPhones") as FormArray<FormControl<string>>;
+    }
+
+    addAdditionalPhone(): void {
+        const val = this.additionalPhoneInput.trim();
+        if (!val) {
+            return;
+        }
+        this.additionalPhonesArray.push(this.fb.control(val) as FormControl<string>);
+        this.additionalPhoneInput = "";
+    }
+
+    removeAdditionalPhone(index: number): void {
+        this.additionalPhonesArray.removeAt(index);
+    }
+
+    get educationArray(): FormArray {
+        return this.userForm.get("education") as FormArray;
+    }
+
+    addEducationEntry(): void {
+        this.educationArray.push(
+            this.fb.group({
+                institution: [""],
+                degreeLevel: [""],
+                degreeTitle: [""],
+                yearAchieved: [null as number | null],
+            }),
+        );
+    }
+
+    removeEducationEntry(index: number): void {
+        this.educationArray.removeAt(index);
+    }
+
+    private hasAnyValue(obj: Record<string, unknown>): boolean {
+        return Object.values(obj).some(v => v !== null && v !== undefined && v !== "");
+    }
+
     private patchForm(u: IUser): void {
         // Rebuild nationalities FormArray
         const nationalitiesArray = this.userForm.get("nationalities") as FormArray;
         nationalitiesArray.clear();
         (u.nationalities ?? []).forEach(n => nationalitiesArray.push(this.fb.control(n) as FormControl<string>));
+
+        // Rebuild additionalPhones FormArray
+        const additionalPhonesArray = this.userForm.get("additionalPhones") as FormArray;
+        additionalPhonesArray.clear();
+        (u.additionalPhones ?? []).forEach(p => additionalPhonesArray.push(this.fb.control(p) as FormControl<string>));
+
+        // Rebuild education FormArray
+        const educationArray = this.userForm.get("education") as FormArray;
+        educationArray.clear();
+        (u.education ?? []).forEach(e =>
+            educationArray.push(
+                this.fb.group({
+                    institution: [e.institution ?? ""],
+                    degreeLevel: [e.degreeLevel ?? ""],
+                    degreeTitle: [e.degreeTitle ?? ""],
+                    yearAchieved: [e.yearAchieved ?? null],
+                }),
+            ),
+        );
 
         this.userForm.patchValue({
             name: u.name,
@@ -195,13 +296,36 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
             workPhone: u.workPhone ?? "",
             personalPhone: u.personalPhone ?? "",
             homeCountryPhone: u.homeCountryPhone ?? "",
+            currentAddress: {
+                line1: u.currentAddress?.line1 ?? "",
+                line2: u.currentAddress?.line2 ?? "",
+                city: u.currentAddress?.city ?? "",
+                state: u.currentAddress?.state ?? "",
+                postalCode: u.currentAddress?.postalCode ?? "",
+                country: u.currentAddress?.country ?? "",
+            },
+            homeCountryAddress: {
+                line1: u.homeCountryAddress?.line1 ?? "",
+                line2: u.homeCountryAddress?.line2 ?? "",
+                city: u.homeCountryAddress?.city ?? "",
+                state: u.homeCountryAddress?.state ?? "",
+                postalCode: u.homeCountryAddress?.postalCode ?? "",
+                country: u.homeCountryAddress?.country ?? "",
+            },
+            emergencyContact: {
+                name: u.emergencyContact?.name ?? "",
+                relationship: u.emergencyContact?.relationship ?? "",
+                phone: u.emergencyContact?.phone ?? "",
+            },
             employmentDate: u.employmentDate ? new Date(u.employmentDate) : null,
             employmentType: u.employmentType ?? "",
             payrollId: u.payrollId ?? "",
+            salary: u.salary ?? "",
         });
     }
 
     ngOnInit(): void {
+        this.canEditCompensation = this.permissionService.canEditCompensation();
         this.userId = this.route.snapshot.paramMap.get("id") ?? "";
         if (!this.userId) {
             this.toast.error("User ID not found in route");
@@ -349,9 +473,15 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
             workPhone: string;
             personalPhone: string;
             homeCountryPhone: string;
+            additionalPhones: string[];
+            currentAddress: IAddress;
+            homeCountryAddress: IAddress;
+            emergencyContact: { name: string; relationship: string; phone: string };
             employmentDate: Date | null;
             employmentType: string;
             payrollId: string;
+            education: IEducationEntry[];
+            salary: string;
         };
 
         const payload: IUpdateUserRequest = {
@@ -379,9 +509,21 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
             workPhone: fv.workPhone || undefined,
             personalPhone: fv.personalPhone || undefined,
             homeCountryPhone: fv.homeCountryPhone || undefined,
+            additionalPhones: fv.additionalPhones.length > 0 ? fv.additionalPhones : undefined,
+            currentAddress: this.hasAnyValue(fv.currentAddress as unknown as Record<string, unknown>)
+                ? fv.currentAddress
+                : undefined,
+            homeCountryAddress: this.hasAnyValue(fv.homeCountryAddress as unknown as Record<string, unknown>)
+                ? fv.homeCountryAddress
+                : undefined,
+            emergencyContact: this.hasAnyValue(fv.emergencyContact as unknown as Record<string, unknown>)
+                ? fv.emergencyContact
+                : undefined,
             employmentDate: fv.employmentDate ? (fv.employmentDate as Date).toISOString() : undefined,
             employmentType: fv.employmentType || undefined,
             payrollId: fv.payrollId || undefined,
+            education: fv.education.length > 0 ? fv.education : undefined,
+            salary: this.canEditCompensation ? fv.salary || undefined : undefined,
         };
 
         this.loading = true;

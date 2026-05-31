@@ -135,11 +135,19 @@ export interface ICreateUserRequest {
     workPhone?: string;
     personalPhone?: string;
     homeCountryPhone?: string;
+    additionalPhones?: string[];
+    currentAddress?: IAddress;
+    homeCountryAddress?: IAddress;
+    emergencyContact?: IEmergencyContact;
     // Employment
     employmentDate?: string;
     employmentType?: string;
     payrollId?: string;
     isOutsourced?: boolean;
+    // Education
+    education?: IEducationEntry[];
+    // Compensation
+    salary?: string;
 }
 
 export interface IUpdateUserRequest {
@@ -168,11 +176,19 @@ export interface IUpdateUserRequest {
     workPhone?: string;
     personalPhone?: string;
     homeCountryPhone?: string;
+    additionalPhones?: string[];
+    currentAddress?: IAddress;
+    homeCountryAddress?: IAddress;
+    emergencyContact?: IEmergencyContact;
     // Employment
     employmentDate?: string;
     employmentType?: string;
     payrollId?: string;
     isOutsourced?: boolean;
+    // Education
+    education?: IEducationEntry[];
+    // Compensation
+    salary?: string;
 }
 
 export interface IUsersListResponse {

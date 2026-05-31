@@ -12,6 +12,7 @@ import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
 import { Router } from "@angular/router";
+import { first } from "rxjs";
 import { UsersService } from "../../../core/services/users.service";
 import { PasswordInputComponent } from "../../../shared/components/password-input/password-input.component";
 import { CountryService } from "../../../core/services/country.service";
@@ -27,10 +28,21 @@ import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 import { IRole } from "../../../core/interfaces/role.interface";
 import { IDepartment } from "../../../core/interfaces/department.interface";
-import { IUser, ILevel, IOffice } from "../../../core/interfaces/user.interface";
-import { first } from "rxjs";
+import {
+    IUser,
+    ILevel,
+    IOffice,
+    IAddress,
+    IEmergencyContact,
+    IEducationEntry,
+} from "../../../core/interfaces/user.interface";
 import { ProfileImageUploadComponent } from "../../../shared/components/profile-image-upload/profile-image-upload.component";
-import { GENDER_OPTIONS, MARITAL_STATUS_OPTIONS, EMPLOYMENT_TYPE_OPTIONS } from "../../../core/enums/profile.enum";
+import {
+    GENDER_OPTIONS,
+    MARITAL_STATUS_OPTIONS,
+    EMPLOYMENT_TYPE_OPTIONS,
+    DEGREE_LEVEL_OPTIONS,
+} from "../../../core/enums/profile.enum";
 
 @Component({
     selector: "app-create-user",
@@ -74,6 +86,7 @@ export class CreateUserPageComponent implements OnInit {
     readonly genderOptions = GENDER_OPTIONS;
     readonly maritalStatusOptions = MARITAL_STATUS_OPTIONS;
     readonly employmentTypeOptions = EMPLOYMENT_TYPE_OPTIONS;
+    readonly degreeLevelOptions = DEGREE_LEVEL_OPTIONS;
 
     loading = signal(false);
     countriesLoading = signal(false);
@@ -96,6 +109,9 @@ export class CreateUserPageComponent implements OnInit {
     selectedProfileImagePreviewUrl = signal<string | null>(null);
 
     nationalityInput = signal("");
+    additionalPhoneInput = signal("");
+
+    canEditCompensation = false;
 
     userForm: FormGroup = this.fb.group({
         // Core
@@ -125,17 +141,52 @@ export class CreateUserPageComponent implements OnInit {
         workPhone: [""],
         personalPhone: [""],
         homeCountryPhone: [""],
+        additionalPhones: this.fb.array<string>([]),
+        currentAddress: this.fb.group({
+            line1: [""],
+            line2: [""],
+            city: [""],
+            state: [""],
+            postalCode: [""],
+            country: [""],
+        }),
+        homeCountryAddress: this.fb.group({
+            line1: [""],
+            line2: [""],
+            city: [""],
+            state: [""],
+            postalCode: [""],
+            country: [""],
+        }),
+        emergencyContact: this.fb.group({
+            name: [""],
+            relationship: [""],
+            phone: [""],
+        }),
         // Employment
         employmentDate: [null as Date | null],
         employmentType: [""],
         payrollId: [""],
+        // Education
+        education: this.fb.array([]),
+        // Compensation
+        salary: [""],
     });
 
     get nationalitiesArray(): FormArray<FormControl<string>> {
         return this.userForm.get("nationalities") as FormArray<FormControl<string>>;
     }
 
+    get additionalPhonesArray(): FormArray<FormControl<string>> {
+        return this.userForm.get("additionalPhones") as FormArray<FormControl<string>>;
+    }
+
+    get educationArray(): FormArray {
+        return this.userForm.get("education") as FormArray;
+    }
+
     ngOnInit(): void {
+        this.canEditCompensation = this.permissionService.canEditCompensation();
         this.loadInitialData();
     }
 
@@ -253,6 +304,10 @@ export class CreateUserPageComponent implements OnInit {
         return /^[a-fA-F0-9]{24}$/.test(trimmed) ? trimmed : undefined;
     }
 
+    private hasAnyValue(obj: Record<string, unknown>): boolean {
+        return Object.values(obj).some(v => typeof v === "string" && v.trim().length > 0);
+    }
+
     addNationality(): void {
         const val = this.nationalityInput().trim();
         if (!val) {
@@ -264,6 +319,34 @@ export class CreateUserPageComponent implements OnInit {
 
     removeNationality(index: number): void {
         this.nationalitiesArray.removeAt(index);
+    }
+
+    addAdditionalPhone(): void {
+        const val = this.additionalPhoneInput().trim();
+        if (!val) {
+            return;
+        }
+        this.additionalPhonesArray.push(this.fb.control(val) as FormControl<string>);
+        this.additionalPhoneInput.set("");
+    }
+
+    removeAdditionalPhone(index: number): void {
+        this.additionalPhonesArray.removeAt(index);
+    }
+
+    addEducationEntry(): void {
+        this.educationArray.push(
+            this.fb.group({
+                institution: [""],
+                degreeLevel: [""],
+                degreeTitle: [""],
+                yearAchieved: [null as number | null],
+            }),
+        );
+    }
+
+    removeEducationEntry(index: number): void {
+        this.educationArray.removeAt(index);
     }
 
     onSubmit(): void {
@@ -279,7 +362,6 @@ export class CreateUserPageComponent implements OnInit {
             email: string;
             password: string;
             role: string;
-            companyId: string;
             countryId: string;
             employmentTitleId: string;
             managerId: string;
@@ -300,9 +382,15 @@ export class CreateUserPageComponent implements OnInit {
             workPhone: string;
             personalPhone: string;
             homeCountryPhone: string;
+            additionalPhones: string[];
+            currentAddress: IAddress;
+            homeCountryAddress: IAddress;
+            emergencyContact: IEmergencyContact;
             employmentDate: Date | null;
             employmentType: string;
             payrollId: string;
+            education: IEducationEntry[];
+            salary: string;
         };
 
         const payload = {
@@ -330,9 +418,21 @@ export class CreateUserPageComponent implements OnInit {
             workPhone: fv.workPhone || undefined,
             personalPhone: fv.personalPhone || undefined,
             homeCountryPhone: fv.homeCountryPhone || undefined,
+            additionalPhones: fv.additionalPhones.length > 0 ? fv.additionalPhones : undefined,
+            currentAddress: this.hasAnyValue(fv.currentAddress as Record<string, unknown>)
+                ? fv.currentAddress
+                : undefined,
+            homeCountryAddress: this.hasAnyValue(fv.homeCountryAddress as Record<string, unknown>)
+                ? fv.homeCountryAddress
+                : undefined,
+            emergencyContact: this.hasAnyValue(fv.emergencyContact as Record<string, unknown>)
+                ? fv.emergencyContact
+                : undefined,
             employmentDate: fv.employmentDate ? (fv.employmentDate as Date).toISOString() : undefined,
             employmentType: fv.employmentType || undefined,
             payrollId: fv.payrollId || undefined,
+            education: fv.education.length > 0 ? fv.education : undefined,
+            salary: this.canEditCompensation && fv.salary?.trim() ? fv.salary.trim() : undefined,
         };
 
         if (!payload.role) {
