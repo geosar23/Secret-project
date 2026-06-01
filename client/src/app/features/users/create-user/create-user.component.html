@@ -13,7 +13,7 @@
 
             <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Display Name</mat-label>
-                <input matInput formControlName="name" placeholder="Enter full name" />
+                <input matInput formControlName="name" placeholder="Full name" />
                 @if (userForm.get("name")?.hasError("required") && userForm.get("name")?.touched) {
                     <mat-error>Name is required</mat-error>
                 }
@@ -29,7 +29,7 @@
                     <mat-error>Email is required</mat-error>
                 }
                 @if (userForm.get("email")?.hasError("email")) {
-                    <mat-error>Please enter a valid email</mat-error>
+                    <mat-error>Invalid email format</mat-error>
                 }
             </mat-form-field>
 
@@ -78,7 +78,7 @@
             ></app-profile-image-upload>
 
             @if (selectedProfileImage()) {
-                <p class="selected-image-name">{{ selectedProfileImage()!.name }}</p>
+                <p class="selected-image-name">Selected: {{ selectedProfileImage()!.name }}</p>
             }
 
             <!-- ── IDENTITY ── -->
@@ -246,7 +246,7 @@
                 <mat-form-field appearance="outline" class="full-width">
                     <mat-label>Manager</mat-label>
                     <mat-select formControlName="managerId">
-                        <mat-option value="">—</mat-option>
+                        <mat-option value="">No manager</mat-option>
                         @if (usersLoading()) {
                             <mat-option disabled>Loading...</mat-option>
                         }
@@ -422,7 +422,7 @@
 
             <div formArrayName="education">
                 @for (entry of educationArray.controls; track $index) {
-                    <div [formGroupName]="$index" class="education-entry-form">
+                    <div [formGroupName]="$index" class="mb-sm">
                         <div class="two-col">
                             <mat-form-field appearance="outline" class="full-width">
                                 <mat-label>Institution</mat-label>
@@ -448,7 +448,7 @@
                                 <input matInput type="number" formControlName="yearAchieved" placeholder="e.g. 2018" />
                             </mat-form-field>
                         </div>
-                        <div class="entry-remove-row">
+                        <div>
                             <button
                                 mat-stroked-button
                                 color="warn"
@@ -477,14 +477,13 @@
 
             <div class="form-actions">
                 <button mat-button type="button" (click)="onCancel()" [disabled]="loading()">Cancel</button>
-                <button mat-raised-button color="primary" type="button" (click)="onSubmit()" [disabled]="loading()">
-                    @if (loading()) {
-                        <mat-spinner diameter="20"></mat-spinner>
-                        Creating...
-                    } @else {
-                        Create User
-                    }
-                </button>
+                <app-loading-button
+                    label="Create User"
+                    loadingLabel="Creating..."
+                    [loading]="loading()"
+                    [minWidth]="'150px'"
+                    (buttonClick)="onSubmit()"
+                ></app-loading-button>
             </div>
         </form>
     </div>

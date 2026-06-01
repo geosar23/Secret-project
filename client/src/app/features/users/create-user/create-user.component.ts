@@ -37,6 +37,7 @@ import {
     IEducationEntry,
 } from "../../../core/interfaces/user.interface";
 import { ProfileImageUploadComponent } from "../../../shared/components/profile-image-upload/profile-image-upload.component";
+import { LoadingButtonComponent } from "../../../shared/components/loading-button/loading-button.component";
 import {
     GENDER_OPTIONS,
     MARITAL_STATUS_OPTIONS,
@@ -61,6 +62,7 @@ import {
         MatIconModule,
         PasswordInputComponent,
         ProfileImageUploadComponent,
+        LoadingButtonComponent,
     ],
     templateUrl: "./create-user.component.html",
     styleUrls: ["./create-user.component.scss"],

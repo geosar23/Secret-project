@@ -6,7 +6,7 @@
         <h1>Edit User</h1>
     </div>
 
-    @if (userLoading) {
+    @if (userLoading()) {
         <div class="loading-state">
             <mat-spinner diameter="48"></mat-spinner>
             <p>Loading user...</p>
@@ -42,10 +42,10 @@
                 <mat-form-field appearance="outline" class="full-width">
                     <mat-label>Role</mat-label>
                     <mat-select formControlName="role">
-                        @if (rolesLoading) {
+                        @if (rolesLoading()) {
                             <mat-option disabled>Loading roles...</mat-option>
                         }
-                        @for (role of roles; track role._id) {
+                        @for (role of roles(); track role._id) {
                             <mat-option [value]="role._id">{{ role.name }}</mat-option>
                         }
                     </mat-select>
@@ -54,10 +54,10 @@
                 <mat-form-field appearance="outline" class="full-width">
                     <mat-label>Country</mat-label>
                     <mat-select formControlName="countryId">
-                        @if (countriesLoading) {
+                        @if (countriesLoading()) {
                             <mat-option disabled>Loading countries...</mat-option>
                         }
-                        @for (country of countries; track country._id) {
+                        @for (country of countries(); track country._id) {
                             <mat-option [value]="country._id">{{ country.name }}</mat-option>
                         }
                     </mat-select>
@@ -70,22 +70,22 @@
                 <div class="image-upload-section">
                     <app-profile-image-upload
                         [label]="'Profile Image'"
-                        [selectedPreviewUrl]="selectedProfileImagePreviewUrl"
-                        [currentImageUrl]="currentProfileImageUrl"
-                        [removeCurrentRequested]="removeProfileImageRequested"
-                        [loading]="loading || profileImageLoading"
-                        [disabled]="loading"
+                        [selectedPreviewUrl]="selectedProfileImagePreviewUrl()"
+                        [currentImageUrl]="currentProfileImageUrl()"
+                        [removeCurrentRequested]="removeProfileImageRequested()"
+                        [loading]="loading() || profileImageLoading()"
+                        [disabled]="loading()"
                         (fileSelected)="onProfileImageSelected($event)"
                         (clearSelection)="clearSelectedProfileImage()"
                         (removeCurrent)="requestProfileImageRemoval()"
                         (validationError)="onProfileImageValidationError($event)"
                     ></app-profile-image-upload>
 
-                    @if (profileImageLoading && !getDisplayedProfileImageUrl()) {
+                    @if (profileImageLoading() && !getDisplayedProfileImageUrl()) {
                         <p class="selected-image-name">Loading image...</p>
                     }
-                    @if (selectedProfileImage) {
-                        <p class="selected-image-name">Selected: {{ selectedProfileImage.name }}</p>
+                    @if (selectedProfileImage()) {
+                        <p class="selected-image-name">Selected: {{ selectedProfileImage()!.name }}</p>
                     }
                 </div>
 
@@ -157,12 +157,17 @@
                             <mat-label>Add nationality</mat-label>
                             <input
                                 matInput
-                                [(ngModel)]="nationalityInput"
-                                [ngModelOptions]="{ standalone: true }"
+                                [value]="nationalityInput()"
+                                (input)="nationalityInput.set($any($event.target).value)"
                                 (keydown.enter)="addNationality(); $event.preventDefault()"
                             />
                         </mat-form-field>
-                        <button mat-icon-button type="button" (click)="addNationality()" [disabled]="!nationalityInput">
+                        <button
+                            mat-icon-button
+                            type="button"
+                            (click)="addNationality()"
+                            [disabled]="!nationalityInput()"
+                        >
                             <mat-icon>add</mat-icon>
                         </button>
                     </div>
@@ -184,10 +189,10 @@
                 <mat-form-field appearance="outline" class="full-width">
                     <mat-label>Employment Title</mat-label>
                     <mat-select formControlName="employmentTitleId">
-                        @if (employmentTitlesLoading) {
+                        @if (employmentTitlesLoading()) {
                             <mat-option disabled>Loading employment titles...</mat-option>
                         }
-                        @for (et of employmentTitles; track et._id) {
+                        @for (et of employmentTitles(); track et._id) {
                             <mat-option [value]="et._id">{{ et.name }}</mat-option>
                         }
                     </mat-select>
@@ -216,10 +221,10 @@
                         <mat-label>Department</mat-label>
                         <mat-select formControlName="departmentId">
                             <mat-option value="">—</mat-option>
-                            @if (departmentsLoading) {
+                            @if (departmentsLoading()) {
                                 <mat-option disabled>Loading...</mat-option>
                             }
-                            @for (d of departments; track d._id) {
+                            @for (d of departments(); track d._id) {
                                 <mat-option [value]="d._id">{{ d.name }}</mat-option>
                             }
                         </mat-select>
@@ -228,10 +233,10 @@
                         <mat-label>Level</mat-label>
                         <mat-select formControlName="levelId">
                             <mat-option value="">—</mat-option>
-                            @if (levelsLoading) {
+                            @if (levelsLoading()) {
                                 <mat-option disabled>Loading...</mat-option>
                             }
-                            @for (l of levels; track l._id) {
+                            @for (l of levels(); track l._id) {
                                 <mat-option [value]="l._id">{{ l.name }}</mat-option>
                             }
                         </mat-select>
@@ -243,10 +248,10 @@
                         <mat-label>Office</mat-label>
                         <mat-select formControlName="officeId">
                             <mat-option value="">—</mat-option>
-                            @if (officesLoading) {
+                            @if (officesLoading()) {
                                 <mat-option disabled>Loading...</mat-option>
                             }
-                            @for (o of offices; track o._id) {
+                            @for (o of offices(); track o._id) {
                                 <mat-option [value]="o._id">{{ o.name }}</mat-option>
                             }
                         </mat-select>
@@ -255,10 +260,10 @@
                         <mat-label>Manager</mat-label>
                         <mat-select formControlName="managerId">
                             <mat-option value="">No manager</mat-option>
-                            @if (usersLoading) {
+                            @if (usersLoading()) {
                                 <mat-option disabled>Loading...</mat-option>
                             }
-                            @for (u of users; track u._id) {
+                            @for (u of users(); track u._id) {
                                 <mat-option [value]="u._id">{{ u.name }}</mat-option>
                             }
                         </mat-select>
@@ -269,10 +274,10 @@
                     <mat-label>HR Representative</mat-label>
                     <mat-select formControlName="hrRepresentativeId">
                         <mat-option value="">—</mat-option>
-                        @if (usersLoading) {
+                        @if (usersLoading()) {
                             <mat-option disabled>Loading...</mat-option>
                         }
-                        @for (u of users; track u._id) {
+                        @for (u of users(); track u._id) {
                             <mat-option [value]="u._id">{{ u.name }}</mat-option>
                         }
                     </mat-select>
@@ -316,8 +321,8 @@
                             <mat-label>Add phone number</mat-label>
                             <input
                                 matInput
-                                [(ngModel)]="additionalPhoneInput"
-                                [ngModelOptions]="{ standalone: true }"
+                                [value]="additionalPhoneInput()"
+                                (input)="additionalPhoneInput.set($any($event.target).value)"
                                 (keydown.enter)="addAdditionalPhone(); $event.preventDefault()"
                             />
                         </mat-form-field>
@@ -325,7 +330,7 @@
                             mat-icon-button
                             type="button"
                             (click)="addAdditionalPhone()"
-                            [disabled]="!additionalPhoneInput"
+                            [disabled]="!additionalPhoneInput()"
                         >
                             <mat-icon>add</mat-icon>
                         </button>
@@ -431,7 +436,7 @@
                 <p class="section-label">Education</p>
                 <div formArrayName="education">
                     @for (entry of educationArray.controls; track $index) {
-                        <div [formGroupName]="$index" class="education-entry-form">
+                        <div [formGroupName]="$index" class="mb-sm">
                             <div class="two-col">
                                 <mat-form-field appearance="outline" class="full-width">
                                     <mat-label>Institution</mat-label>
@@ -462,7 +467,7 @@
                                     />
                                 </mat-form-field>
                             </div>
-                            <div class="entry-remove-row">
+                            <div>
                                 <button
                                     mat-stroked-button
                                     color="warn"
@@ -490,11 +495,11 @@
                 }
 
                 <div class="form-actions">
-                    <button mat-button type="button" (click)="onCancel()" [disabled]="loading">Cancel</button>
+                    <button mat-button type="button" (click)="onCancel()" [disabled]="loading()">Cancel</button>
                     <app-loading-button
                         label="Save Changes"
                         loadingLabel="Saving..."
-                        [loading]="loading"
+                        [loading]="loading()"
                         [minWidth]="'150px'"
                         (buttonClick)="onSubmit()"
                     ></app-loading-button>
