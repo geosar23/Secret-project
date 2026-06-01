@@ -61,6 +61,6 @@ export const config = {
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY as string,
     SUPABASE_STORAGE_BUCKET: process.env.SUPABASE_STORAGE_BUCKET as string,
     SALARY_ENCRYPTION_KEY: process.env.SALARY_ENCRYPTION_KEY as string,
-    CLIENT_URL: process.env.CLIENT_URL ?? "http://localhost:4200",
+    CLIENT_URL: (process.env.CLIENT_URL ?? "http://localhost:4200").split(",").map(u => u.trim()),
     NODE_ENV: process.env.NODE_ENV ?? "development",
 };

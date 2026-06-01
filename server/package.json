@@ -7,7 +7,7 @@
         "dev": "npx ts-node src/server.ts",
         "dev:watch": "npx nodemon src/server.ts",
         "build": "tsc",
-        "start": "node dist/server.ts",
+        "start": "node dist/server.js",
         "test": "jest",
         "test:coverage": "jest --coverage",
         "format": "prettier --write \"src/**/*.{ts,js,json,css,scss,md,html}\"",

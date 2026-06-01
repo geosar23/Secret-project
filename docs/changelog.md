@@ -6,6 +6,17 @@ Significant changes to the application, most recent first.
 
 ## Current
 
+### Docker support
+
+- Added `server/Dockerfile` and `client/Dockerfile` (multi-stage builds).
+- Added `docker-compose.yml` at the repo root for local full-stack orchestration.
+- Added `client/nginx.conf` for SPA routing inside the nginx container.
+- Added `server/.env.example` documenting all required and optional environment variables.
+- `CLIENT_URL` now accepts a comma-separated list of CORS origins — a single `.env` works for both local dev (`http://localhost:4200`) and Docker (`http://localhost`) without changes.
+- Fixed `server/package.json` `start` script pointing at `dist/server.ts` instead of `dist/server.js`.
+
+---
+
 ### Multi-tenancy hardened
 
 - Removed OG company / GOD user concepts. All users and entities are now strictly tenant-isolated with no exceptions.

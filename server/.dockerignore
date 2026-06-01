@@ -1,0 +1,7 @@
+node_modules
+dist
+.env
+coverage
+src/__tests__
+*.test.ts
+*.spec.ts

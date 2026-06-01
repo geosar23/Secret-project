@@ -27,6 +27,18 @@ npm run dev
 # Frontend: http://localhost:4200
 ```
 
+## Docker
+
+```bash
+# Build and run the full stack with Docker
+docker compose build
+docker compose up
+# Backend: http://localhost:3000
+# Frontend: http://localhost
+```
+
+See [Getting Started](./docs/getting-started.md#5-running-with-docker) for PaaS deployment instructions.
+
 ## Documentation
 
 All detailed documentation lives in [`docs/`](./docs/index.md).
