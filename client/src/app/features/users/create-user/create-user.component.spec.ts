@@ -94,7 +94,6 @@ describe("CreateUserPageComponent", () => {
             email: "john@test.com",
             password: "secret123",
             role: "507f1f77bcf86cd799439011",
-            companyId: "507f1f77bcf86cd799439012",
             countryId: "507f1f77bcf86cd799439013",
             employmentTitleId: "507f1f77bcf86cd799439014",
         });

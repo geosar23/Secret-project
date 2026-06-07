@@ -7,9 +7,10 @@ export interface ILogoMetadata {
     uploadedAt: Date;
 }
 
-export interface ILogoUrlResponse {
+export interface ICompanyDataResponse {
     url: string;
     expiresIn: number;
+    name: string;
 }
 
 export interface ICompany {

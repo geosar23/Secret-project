@@ -61,7 +61,6 @@ export class RoleDialogComponent implements OnInit {
     form: FormGroup = this.fb.group({
         name: [this.data.role?.name ?? "", [Validators.required, Validators.minLength(2)]],
         description: [this.data.role?.description ?? "", [Validators.maxLength(255)]],
-        companyId: [this.data.role?.company?._id ?? this.authService.getLocalUser()?.company?._id ?? ""],
         isActive: [this.data.role?.isActive ?? true],
         permissions: [this.data.role?.permissions ?? []],
     });

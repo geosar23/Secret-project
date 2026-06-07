@@ -15,15 +15,13 @@ export interface IRole {
 
 export interface ICreateRoleRequest {
     name: string;
-    description?: string;
-    permissions?: string[];
-    companyId?: string;
+    description: string;
+    permissions: string[];
 }
 
 export interface IUpdateRoleRequest {
     name?: string;
     description?: string;
     permissions?: string[];
-    companyId?: string;
     isActive?: boolean;
 }

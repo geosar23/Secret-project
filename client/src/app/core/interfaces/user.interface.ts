@@ -57,7 +57,6 @@ export interface IUser {
 
     // Role & Organization
     role: IRole;
-    company?: ICompany;
     country?: ICountry;
     employmentTitle?: IEmploymentTitle;
     manager?: IUser;
@@ -210,7 +209,6 @@ export interface IUsersQueryParams {
     limit?: number;
     search?: string;
     roleId?: string;
-    companyId?: string;
     departmentId?: string;
     countryId?: string;
     isActive?: boolean;

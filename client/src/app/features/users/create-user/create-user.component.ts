@@ -246,7 +246,7 @@ export class CreateUserPageComponent implements OnInit {
             });
 
         this.usersService
-            .getUsers({ companyId: this.localUser?.company?._id ?? "", limit: 200 })
+            .getUsers()
             .pipe(first())
             .subscribe({
                 next: res => {

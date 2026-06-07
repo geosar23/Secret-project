@@ -13,8 +13,10 @@ import { AuthService } from "../../../core/services/auth.service";
 import { UsersService } from "../../../core/services/users.service";
 import { CompanyService } from "../../../core/services/company.service";
 import { MatDivider } from "@angular/material/divider";
-import { debounceTime, distinctUntilChanged, filter, switchMap, take } from "rxjs";
+import { debounceTime, distinctUntilChanged, switchMap, take } from "rxjs";
 import { IUser } from "../../../core/interfaces/user.interface";
+import { decodeToken } from "../../../core/utils/token.util";
+import { tokenPayload } from "../../../core/interfaces/auth.interface";
 
 interface NavItem {
     label: string;
@@ -215,34 +217,30 @@ export class HeaderComponent implements OnInit {
     ];
 
     ngOnInit(): void {
-        // Load company name and logo once the user is available
-        this.authService.localUser$
-            .pipe(
-                filter(user => !!user),
-                take(1),
-            )
-            .subscribe(user => {
-                const company = user!.company;
-                if (!company) {
-                    return;
-                }
-                this.companyName.set(company.name ?? "");
-                if (company._id && company.logo) {
-                    this.companyService
-                        .getLogoUrl(company._id)
-                        .pipe(take(1))
-                        .subscribe({
-                            next: res => {
-                                if (res.success && res.data?.url) {
-                                    this.companyLogoUrl.set(res.data.url);
-                                }
-                            },
-                            error: () => {
-                                /* no logo — silent */
-                            },
-                        });
-                }
-            });
+        const token = this.authService.getToken();
+        if (token) {
+            const payload = decodeToken(token) as tokenPayload | null;
+            const companyId = payload?.companyId;
+
+            this.companyName.set("");
+
+            if (companyId) {
+                this.companyService
+                    .getCompanyData(companyId)
+                    .pipe(take(1))
+                    .subscribe({
+                        next: res => {
+                            if (res.success && res.data) {
+                                this.companyLogoUrl.set(res.data.url);
+                                this.companyName.set(res.data.name || "");
+                            }
+                        },
+                        error: () => {
+                            /* no logo — silent */
+                        },
+                    });
+            }
+        }
 
         this.searchControl.valueChanges
             .pipe(
