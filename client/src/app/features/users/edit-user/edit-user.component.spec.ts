@@ -7,6 +7,9 @@ import { UsersService } from "../../../core/services/users.service";
 import { CountryService } from "../../../core/services/country.service";
 import { EmploymentTitleService } from "../../../core/services/employment-title.service";
 import { RoleService } from "../../../core/services/role.service";
+import { DepartmentService } from "../../../core/services/department.service";
+import { LevelService } from "../../../core/services/level.service";
+import { OfficeService } from "../../../core/services/office.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { AuthService } from "../../../core/services/auth.service";
 import { UserRole } from "../../../core/enums/user-role.enum";
@@ -47,6 +50,9 @@ describe("EditUserPageComponent", () => {
         const countryServiceSpy = jasmine.createSpyObj("CountryService", ["getCountries"]);
         const employmentTitleServiceSpy = jasmine.createSpyObj("EmploymentTitleService", ["getEmploymentTitles"]);
         const roleServiceSpy = jasmine.createSpyObj("RoleService", ["getAllRoles"]);
+        const departmentServiceSpy = jasmine.createSpyObj("DepartmentService", ["getDepartments"]);
+        const levelServiceSpy = jasmine.createSpyObj("LevelService", ["getLevels"]);
+        const officeServiceSpy = jasmine.createSpyObj("OfficeService", ["getOffices"]);
         const toastSpy = jasmine.createSpyObj("ToastService", ["error", "success", "warning", "info"]);
         const authServiceSpy = jasmine.createSpyObj("AuthService", ["getLocalUser", "isAuthenticated"], {
             localUser$: of(null),
@@ -57,6 +63,9 @@ describe("EditUserPageComponent", () => {
         countryServiceSpy.getCountries.and.returnValue(of({ success: true, data: [] }));
         employmentTitleServiceSpy.getEmploymentTitles.and.returnValue(of({ success: true, data: [] }));
         roleServiceSpy.getAllRoles.and.returnValue(of({ success: true, data: [] }));
+        departmentServiceSpy.getDepartments.and.returnValue(of({ success: true, data: [] }));
+        levelServiceSpy.getLevels.and.returnValue(of({ success: true, data: [] }));
+        officeServiceSpy.getOffices.and.returnValue(of({ success: true, data: [] }));
         authServiceSpy.getLocalUser.and.returnValue(mockLocalUser);
 
         await TestBed.configureTestingModule({
@@ -73,6 +82,9 @@ describe("EditUserPageComponent", () => {
                 { provide: CountryService, useValue: countryServiceSpy },
                 { provide: EmploymentTitleService, useValue: employmentTitleServiceSpy },
                 { provide: RoleService, useValue: roleServiceSpy },
+                { provide: DepartmentService, useValue: departmentServiceSpy },
+                { provide: LevelService, useValue: levelServiceSpy },
+                { provide: OfficeService, useValue: officeServiceSpy },
                 { provide: ToastService, useValue: toastSpy },
                 { provide: AuthService, useValue: authServiceSpy },
             ],
@@ -91,7 +103,9 @@ describe("EditUserPageComponent", () => {
         expect(usersServiceSpy.getUserById).toHaveBeenCalledWith("user-123");
     });
 
-    it("patches the form with loaded user data", () => {
+    it("patches the form with loaded user data", async () => {
+        await fixture.whenStable();
+        fixture.detectChanges();
         expect(component.userForm.get("name")?.value).toBe("Jane Doe");
         expect(component.userForm.get("email")?.value).toBe("jane@test.com");
     });

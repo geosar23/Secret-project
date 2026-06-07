@@ -21,12 +21,13 @@ All tests live in `server/src/__tests__/`.
 
 ### What is covered
 
-| File                         | Coverage                                                                                                                       |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `auth.test.ts`               | Login, `/me`, token validation, missing/invalid credentials — 7+ scenarios                                                     |
-| `rbac.test.ts`               | Permission grant/revoke endpoints — 401 no auth, 403 insufficient perms, 200 with correct perms                                |
-| `company-isolation.test.ts`  | Proves Company A users cannot read Company B data for users, roles, departments, countries, sub-departments, employment titles |
-| `permission-factory.test.ts` | Unit tests for the `definePermissions` factory and `PermissionChecker` logic                                                   |
+| File           | Coverage                                                                                        |
+| -------------- | ----------------------------------------------------------------------------------------------- |
+| `auth.test.ts` | Login, `/me`, token validation, missing/invalid credentials — 7+ scenarios                      |
+| `rbac.test.ts` | Permission grant/revoke endpoints — 401 no auth, 403 insufficient perms, 200 with correct perms |
+
+c
+| `permission-factory.test.ts` | Unit tests for the `definePermissions` factory and `PermissionChecker` logic |
 
 ### Test helpers
 
