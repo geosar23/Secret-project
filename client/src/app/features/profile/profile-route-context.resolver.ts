@@ -4,8 +4,6 @@ import { ProfileRouteContext } from "../../core/interfaces/profile.interface";
 export const profileRouteContextResolver: ResolveFn<ProfileRouteContext> = route => {
     const routeUserId = route.paramMap.get("id");
     const isOwnProfile = !routeUserId || routeUserId === "me";
-    console.log("Resolving profile route context. Route user id:", routeUserId, "Is own profile:", isOwnProfile);
-
     return {
         isOwnProfile,
         pageTitle: isOwnProfile ? "My Profile" : "User Profile",
