@@ -119,6 +119,41 @@ Status legend:
     - [ ] Existing users can be migrated/updated safely without breaking old records.
     - [ ] Sensitive fields (especially salary) follow role-based visibility/edit permissions.
 
+### P0-07A Foundation Structural Base Audit + Fix Prompt Pipeline
+
+- Priority: P0
+- Owner: You
+- Estimate: 1-1.5 days
+- Status: [ ]
+- Goal: establish a hard quality gate for multi-tenant isolation, RBAC enforcement, schema integrity, and client route completeness before implementing new modules.
+- Acceptance criteria:
+    - [ ] **Phase 0 — Audit tests/scripts added first (red before fix, green after fix).**
+        - [ ] Add `server/src/__tests__/rbac-coverage.test.ts` for write/delete guard coverage on HR entity routes and user-documents.
+        - [ ] Add `server/src/__tests__/schema-integrity.test.ts` to validate user schema integrity (including department scope behavior).
+        - [ ] Add `server/src/__tests__/repository-contract.test.ts` to enforce company-scoped repository behavior consistency.
+        - [ ] Add `client/scripts/check-routes.ts` to assert critical routes exist (`/non-authorized`, `/levels`, `/offices`).
+    - [ ] **Phase 1 — Critical server fixes.**
+        - [ ] Add missing `department` field in user schema and verify department-scoped policy checks work.
+        - [ ] Add permission middleware on write/delete routes for departments, sub-departments, employment-titles, levels, and offices.
+    - [ ] **Phase 2 — Security coverage fixes.**
+        - [ ] Add RBAC middleware for user CRUD routes.
+        - [ ] Add RBAC middleware for role read endpoints.
+        - [ ] Add RBAC middleware for user-document endpoints.
+    - [ ] **Phase 3 — Client completeness fixes.**
+        - [ ] Add `/non-authorized` route + access-denied page.
+        - [ ] Implement missing levels feature page + route.
+        - [ ] Implement missing offices feature page + route.
+        - [ ] Add permission guards to management routes beyond auth-only protection.
+    - [ ] **Phase 4 — Architecture consistency fixes.**
+        - [ ] Refactor user-document repository to align with company-scoped repository contract.
+        - [ ] Implement `permissions.routes.ts` endpoint(s) for permission key discovery.
+        - [ ] Standardize API error semantics (prefer proper 4xx/5xx over `200 + success:false`).
+    - [ ] **Verification gate (mandatory before P0-08).**
+        - [ ] `cd server && npm test` passes including all new audit tests.
+        - [ ] `cd client && npm run build` passes.
+        - [ ] Manual check: plain employee cannot mutate HR entities (403).
+        - [ ] Manual check: `/non-authorized`, `/levels`, `/offices` routes resolve correctly.
+
 ### P0-08 Leaves Module (Single-Step Manager Approval)
 
 - Priority: P0
