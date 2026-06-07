@@ -1,6 +1,4 @@
-import { ICompany } from "./company.interface";
 import { ICountry } from "./country.interface";
-import { IDepartment } from "./department.interface";
 import { IEmploymentTitle } from "./employment-title.interface";
 import { IRole } from "./role.interface";
 
@@ -39,14 +37,12 @@ export interface ILevel {
     _id: string;
     name: string;
     order?: number;
-    company?: { _id: string; name?: string };
 }
 
 export interface IOffice {
     _id: string;
     name: string;
     address?: IAddress;
-    company?: { _id: string; name?: string };
 }
 
 export interface IUser {

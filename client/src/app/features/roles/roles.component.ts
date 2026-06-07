@@ -72,7 +72,6 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
 
             const matchesSearch =
                 data.name.toLowerCase().includes(term) ||
-                (data.company?.name ?? "").toLowerCase().includes(term) ||
                 (data.description ?? "").toLowerCase().includes(term) ||
                 (data.role ?? "").toLowerCase().includes(term) ||
                 (data.permissions ?? []).join(" ").toLowerCase().includes(term);

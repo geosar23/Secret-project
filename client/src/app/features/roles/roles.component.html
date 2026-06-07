@@ -49,13 +49,6 @@
                 <mat-cell *matCellDef="let role" data-label="Name">{{ role.name }}</mat-cell>
             </ng-container>
 
-            <ng-container matColumnDef="company">
-                <mat-header-cell *matHeaderCellDef>Company</mat-header-cell>
-                <mat-cell *matCellDef="let role" data-label="Company">
-                    {{ role.company?.name || (isSystemRole(role) ? "System-wide" : "-") }}
-                </mat-cell>
-            </ng-container>
-
             <!-- Description Column -->
             <ng-container matColumnDef="description">
                 <mat-header-cell *matHeaderCellDef>Description</mat-header-cell>

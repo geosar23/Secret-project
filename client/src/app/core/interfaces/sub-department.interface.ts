@@ -1,4 +1,3 @@
-import { ICompany } from "./company.interface";
 import { IDepartment } from "./department.interface";
 
 export interface ISubDepartment {
@@ -6,7 +5,6 @@ export interface ISubDepartment {
     name: string;
     description?: string;
     department: IDepartment;
-    company?: ICompany;
     isActive?: boolean;
     createdAt?: Date;
     updatedAt?: Date;

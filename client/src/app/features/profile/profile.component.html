@@ -276,10 +276,12 @@
                                 <span class="value">{{ profile.office.name }}</span>
                             </div>
                         }
-                        @if (profile.department) {
+                        @if (profile.employmentTitle?.subDepartment?.department?.name) {
                             <div class="info-row">
                                 <span class="label">Department</span>
-                                <span class="value">{{ profile.department.name }}</span>
+                                <span class="value">{{
+                                    profile.employmentTitle?.subDepartment?.department?.name || ""
+                                }}</span>
                             </div>
                         }
                         @if (profile.manager) {
@@ -350,35 +352,6 @@
                         </div>
 
                         <mat-divider class="divider-margin"></mat-divider>
-                    }
-
-                    <!-- ── COMPANY ── -->
-                    <h3 class="section-title">
-                        <mat-icon>business</mat-icon>
-                        Company
-                    </h3>
-                    @if (profile.company) {
-                        <div class="info-grid">
-                            <div class="info-row">
-                                <span class="label">Company Name</span>
-                                <span class="value">{{ profile.company.name }}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="label">Company Slug</span>
-                                <span class="value">{{ profile.company.slug }}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="label">Company Status</span>
-                                <mat-chip
-                                    [style.background]="profile.company.isActive ? '#1f8f57' : '#b63b43'"
-                                    style="color: white"
-                                >
-                                    {{ profile.company.isActive ? "Active" : "Inactive" }}
-                                </mat-chip>
-                            </div>
-                        </div>
-                    } @else {
-                        <p class="empty-state">No company data available.</p>
                     }
 
                     <mat-divider class="divider-margin"></mat-divider>
