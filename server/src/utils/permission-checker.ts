@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { IUser } from "../interfaces/user.interface";
+import { IUserPopulated } from "../interfaces/user.interface";
 import { AccessContext, PermissionKey } from "../interfaces/permission.interface";
 import { PermissionKeys } from "../enums/permissions.enum";
 
@@ -19,7 +19,7 @@ interface PopulatedRole {
  * Handles the mismatch between IUser types (ObjectId[]) and actual
  * DB storage (string[]) via runtime casts.
  */
-export function getEffectivePermissions(user: IUser): Set<string> {
+export function getEffectivePermissions(user: IUserPopulated): Set<string> {
     const role = user.role as unknown as PopulatedRole;
     const rolePerms: string[] = Array.isArray(role?.permissions) ? role.permissions : [];
     const granted: string[] = (user.grantedPermissions as unknown as string[]) ?? [];
@@ -37,12 +37,12 @@ export function getEffectivePermissions(user: IUser): Set<string> {
  * Exposed so policy functions can construct a context without re-computing
  * effective permissions.
  */
-export function buildActorContext(actor: IUser): AccessContext["actor"] {
+export function buildActorContext(actor: IUserPopulated): AccessContext["actor"] {
     const effective = getEffectivePermissions(actor);
     return {
         id: actor._id!.toString(),
         companyId: (actor.company as unknown as Types.ObjectId | undefined)?.toString() ?? "",
-        departmentId: actor.department?.toString(),
+        departmentId: actor.employmentTitle?.subDepartment?.department?._id?.toString(),
         countryId: actor.country?.toString(),
         managerId: actor.manager?.toString(),
         permissions: effective as unknown as Set<PermissionKey>,
@@ -115,24 +115,24 @@ export const PermissionChecker = {
      * The optional `resource` parameter is reserved for future policy-based
      * scope checks (e.g. canViewUser in user.policy.ts).
      */
-    canAccess: async (user: IUser, permission: string): Promise<boolean> => {
+    canAccess: async (user: IUserPopulated, permission: string): Promise<boolean> => {
         const effective = getEffectivePermissions(user);
         return matchesWildcard(effective, permission);
     },
 
     /** Returns true if the user holds ANY of the given permissions. */
-    hasAnyPermission: async (user: IUser, permissions: string[]): Promise<boolean> => {
+    hasAnyPermission: async (user: IUserPopulated, permissions: string[]): Promise<boolean> => {
         const effective = getEffectivePermissions(user);
         return permissions.some(perm => matchesWildcard(effective, perm));
     },
 
     /** Returns true if the user holds ALL of the given permissions. */
-    hasAllPermissions: async (user: IUser, permissions: string[]): Promise<boolean> => {
+    hasAllPermissions: async (user: IUserPopulated, permissions: string[]): Promise<boolean> => {
         const effective = getEffectivePermissions(user);
         return permissions.every(perm => matchesWildcard(effective, perm));
     },
 
-    hasPermissionInCategory: async (user: IUser, category: string): Promise<boolean> => {
+    hasPermissionInCategory: async (user: IUserPopulated, category: string): Promise<boolean> => {
         const effective = getEffectivePermissions(user);
         return Array.from(effective).some(perm => {
             const [permCategory] = perm.split(":");

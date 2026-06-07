@@ -1,4 +1,10 @@
 import { Types } from "mongoose";
+import { IEmploymentTitlePopulated } from "./employment-title.interface";
+import { ILevel } from "./level.interface";
+import { ICountry } from "./country.interface";
+import { IRole } from "./role.interface";
+import { ICompany } from "./company.interface";
+import { IOffice } from "./office.interface";
 
 export interface IProfileImageMetadata {
     bucket: string;
@@ -40,7 +46,6 @@ export interface IUser {
     // Role & Organization
     role: Types.ObjectId;
     company?: Types.ObjectId;
-    department?: Types.ObjectId;
     country?: Types.ObjectId;
     employmentTitle?: Types.ObjectId;
     manager?: Types.ObjectId;
@@ -99,4 +104,19 @@ export interface IUsersQueryParams {
     isActive?: boolean;
     sortBy?: string;
     sortOrder?: "asc" | "desc";
+}
+
+export interface IUserPopulated
+    extends Omit<
+        IUser,
+        "role" | "company" | "country" | "manager" | "level" | "office" | "hrRepresentative" | "employmentTitle"
+    > {
+    role: IRole;
+    company: ICompany;
+    country?: ICountry;
+    employmentTitle?: IEmploymentTitlePopulated;
+    manager?: IUser;
+    level?: ILevel;
+    office?: IOffice;
+    hrRepresentative?: IUser;
 }

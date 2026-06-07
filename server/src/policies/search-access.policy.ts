@@ -1,5 +1,5 @@
 import { FilterQuery } from "mongoose";
-import { IUser } from "../interfaces/user.interface";
+import { IUserPopulated } from "../interfaces/user.interface";
 import { getEffectivePermissions, matchesWildcard } from "../utils/permission-checker";
 
 interface SearchAccessPermissions {
@@ -34,7 +34,7 @@ interface BuildSearchAccessQueryOptions {
  * - null when actor has no search/list access
  */
 export function buildSearchAccessQuery<TDocument>(
-    actorUser: IUser,
+    actorUser: IUserPopulated,
     options: BuildSearchAccessQueryOptions,
 ): FilterQuery<TDocument> | null {
     const effective = getEffectivePermissions(actorUser);
@@ -50,9 +50,9 @@ export function buildSearchAccessQuery<TDocument>(
     const scopeFilters: FilterQuery<TDocument>[] = [];
 
     if (options.permissions.readDepartment && matchesWildcard(effective, options.permissions.readDepartment)) {
-        if (actorUser.department && options.fields.department) {
+        if (actorUser.employmentTitle?.subDepartment?.department?._id && options.fields.department) {
             scopeFilters.push({
-                [options.fields.department]: actorUser.department,
+                [options.fields.department]: actorUser.employmentTitle.subDepartment?.department._id,
             } as unknown as FilterQuery<TDocument>);
         }
     }
@@ -69,10 +69,15 @@ export function buildSearchAccessQuery<TDocument>(
         matchesWildcard(effective, options.permissions.readDepartmentCountry)
     ) {
         const actorCountryId = actorUser.country;
-        if (actorUser.department && options.fields.department && actorCountryId && options.fields.country) {
+        if (
+            actorUser.employmentTitle?.subDepartment?.department?._id &&
+            options.fields.department &&
+            actorCountryId &&
+            options.fields.country
+        ) {
             scopeFilters.push({
                 $and: [
-                    { [options.fields.department]: actorUser.department },
+                    { [options.fields.department]: actorUser.employmentTitle.subDepartment?.department._id },
                     { [options.fields.country]: actorCountryId },
                 ],
             } as unknown as FilterQuery<TDocument>);

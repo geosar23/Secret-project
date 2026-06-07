@@ -147,7 +147,7 @@ export class UserController {
     static async getUsers(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const actorTokenData = req.decoded as tokenPayload;
-            const actorUser = (await UserService.getById(actorTokenData.id, actorTokenData.companyId)) as IUser | null;
+            const actorUser = await UserService.getById(actorTokenData.id, actorTokenData.companyId);
             if (!actorUser) {
                 res.json(softError("Unauthorized"));
                 return;
@@ -204,13 +204,6 @@ export class UserController {
             setMappedFields(params, USER_CREATE_REQUIRED_FIELDS, req.body as Record<string, unknown>);
 
             const USER_OPTIONAL_FIELDS: UserFieldMap = {
-                departmentId: {
-                    type: "string",
-                    targetField: "department",
-                    isPointer: true,
-                    pointerClass: "Departments",
-                    allowUnset: true,
-                },
                 countryId: {
                     type: "string",
                     targetField: "country",
@@ -312,7 +305,7 @@ export class UserController {
                 return;
             }
 
-            if (!canManageUser(actorUser as IUser, user as IUser)) {
+            if (!canManageUser(actorUser, user)) {
                 res.json(softError("Insufficient permissions to update this user"));
                 return;
             }
@@ -328,13 +321,6 @@ export class UserController {
                     targetField: "company",
                     isPointer: true,
                     pointerClass: "Companies",
-                    allowUnset: true,
-                },
-                departmentId: {
-                    type: "string",
-                    targetField: "department",
-                    isPointer: true,
-                    pointerClass: "Departments",
                     allowUnset: true,
                 },
                 countryId: {
@@ -453,7 +439,7 @@ export class UserController {
                 return;
             }
 
-            const effectivePermissions = [...getEffectivePermissions(user as IUser)];
+            const effectivePermissions = [...getEffectivePermissions(user)];
             res.json(success({ permissions: effectivePermissions }));
         } catch (error: any) {
             console.log("Error in UserController.getEffectivePermissions:", error);

@@ -1,6 +1,6 @@
 import { PermissionKeys, PermissionScopes } from "../enums/permissions.enum";
 import { AccessContext } from "../interfaces/permission.interface";
-import { IUser } from "../interfaces/user.interface";
+import { IUser, IUserPopulated } from "../interfaces/user.interface";
 import { buildActorContext, getEffectivePermissions, matchesWildcard } from "../utils/permission-checker";
 import { FilterQuery } from "mongoose";
 import { buildSearchAccessQuery } from "./search-access.policy";
@@ -9,7 +9,7 @@ import { buildSearchAccessQuery } from "./search-access.policy";
  * Builds a MongoDB filter that limits which users the actor can see in list endpoints.
  * Returns null when the actor has no list visibility for users.
  */
-export function buildUserSearchAccessQuery(actorUser: IUser): FilterQuery<IUser> | null {
+export function buildUserSearchAccessQuery(actorUser: IUserPopulated): FilterQuery<IUser> | null {
     return buildSearchAccessQuery<IUser>(actorUser, {
         permissions: {
             all: PermissionKeys.USERS_MANAGEMENT_WRITE_ALL,
@@ -39,13 +39,20 @@ export const buildUserVisibilityFilter = buildUserSearchAccessQuery;
  * COUNTRY / DEPARTMENT_COUNTRY scopes require `actor.countryId` to be populated
  * externally (e.g. from the actor's company document) — if absent they return false.
  */
-export function canAccessUserByScope(actor: AccessContext["actor"], target: IUser, scope: PermissionScopes): boolean {
+export function canAccessUserByScope(
+    actor: AccessContext["actor"],
+    target: IUserPopulated,
+    scope: PermissionScopes,
+): boolean {
     switch (scope) {
         case PermissionScopes.ALL:
             return true;
 
         case PermissionScopes.DEPARTMENT:
-            return !!actor.departmentId && actor.departmentId === target.department?.toString();
+            return (
+                !!actor.departmentId &&
+                actor.departmentId === target.employmentTitle?.subDepartment?.department?._id.toString()
+            );
 
         case PermissionScopes.COUNTRY:
             // Requires countryId on both actor and target (populated from company doc).
@@ -54,7 +61,7 @@ export function canAccessUserByScope(actor: AccessContext["actor"], target: IUse
         case PermissionScopes.DEPARTMENT_COUNTRY:
             return (
                 !!actor.departmentId &&
-                actor.departmentId === target.department?.toString() &&
+                actor.departmentId === target.employmentTitle?.subDepartment?.department?._id.toString() &&
                 !!actor.countryId &&
                 actor.countryId === target.country?.toString()
             );
@@ -76,7 +83,11 @@ export function canAccessUserByScope(actor: AccessContext["actor"], target: IUse
  * Iterates permission keys from broadest to narrowest scope.
  * Multiple permissions are additive (OR semantics) — any passing scope grants access.
  */
-function checkScopedAccess(actorUser: IUser, targetUser: IUser, scopePairs: [string, PermissionScopes][]): boolean {
+function checkScopedAccess(
+    actorUser: IUserPopulated,
+    targetUser: IUserPopulated,
+    scopePairs: [string, PermissionScopes][],
+): boolean {
     const effective = getEffectivePermissions(actorUser);
     const actorCtx = buildActorContext(actorUser);
 
@@ -95,7 +106,7 @@ function checkScopedAccess(actorUser: IUser, targetUser: IUser, scopePairs: [str
 }
 
 /** Can the actor read a target user (usersManagement category)? */
-export function canViewUser(actorUser: IUser, targetUser: IUser): boolean {
+export function canViewUser(actorUser: IUserPopulated, targetUser: IUserPopulated): boolean {
     return checkScopedAccess(actorUser, targetUser, [
         [PermissionKeys.USERS_MANAGEMENT_READ_ALL, PermissionScopes.ALL],
         [PermissionKeys.USERS_MANAGEMENT_READ_DEPARTMENT, PermissionScopes.DEPARTMENT],
@@ -107,7 +118,7 @@ export function canViewUser(actorUser: IUser, targetUser: IUser): boolean {
 }
 
 /** Can the actor fully manage (read + write) a target user (usersManagement category)? */
-export function canManageUser(actorUser: IUser, targetUser: IUser): boolean {
+export function canManageUser(actorUser: IUserPopulated, targetUser: IUserPopulated): boolean {
     return checkScopedAccess(actorUser, targetUser, [
         [PermissionKeys.USERS_MANAGEMENT_WRITE_ALL, PermissionScopes.ALL],
         [PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
@@ -119,7 +130,7 @@ export function canManageUser(actorUser: IUser, targetUser: IUser): boolean {
 }
 
 /** Can the actor read a target user's profile (userProfile category)? */
-export function canViewUserProfile(actorUser: IUser, targetUser: IUser): boolean {
+export function canViewUserProfile(actorUser: IUserPopulated, targetUser: IUserPopulated): boolean {
     return checkScopedAccess(actorUser, targetUser, [
         [PermissionKeys.USER_PROFILE_READ_ALL, PermissionScopes.ALL],
         [PermissionKeys.USER_PROFILE_READ_DEPARTMENT, PermissionScopes.DEPARTMENT],
@@ -131,7 +142,7 @@ export function canViewUserProfile(actorUser: IUser, targetUser: IUser): boolean
 }
 
 /** Can the actor write (edit) a target user's profile (userProfile:write:{scope})? */
-export function canWriteUserProfile(actorUser: IUser, targetUser: IUser): boolean {
+export function canWriteUserProfile(actorUser: IUserPopulated, targetUser: IUserPopulated): boolean {
     return checkScopedAccess(actorUser, targetUser, [
         [PermissionKeys.USER_PROFILE_WRITE_ALL, PermissionScopes.ALL],
         [PermissionKeys.USER_PROFILE_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
@@ -158,15 +169,15 @@ export function canWriteUserProfile(actorUser: IUser, targetUser: IUser): boolea
  *   ])
  */
 export function canWriteUserProfileSection(
-    actorUser: IUser,
-    targetUser: IUser,
+    actorUser: IUserPopulated,
+    targetUser: IUserPopulated,
     sectionScopePairs: [string, PermissionScopes][],
 ): boolean {
     return checkScopedAccess(actorUser, targetUser, sectionScopePairs);
 }
 
 /** Can the actor write the identity section of a target user's profile? */
-export function canWriteUserProfileIdentity(actorUser: IUser, targetUser: IUser): boolean {
+export function canWriteUserProfileIdentity(actorUser: IUserPopulated, targetUser: IUserPopulated): boolean {
     return canWriteUserProfileSection(actorUser, targetUser, [
         [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_ALL, PermissionScopes.ALL],
         [PermissionKeys.USER_PROFILE_IDENTITY_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
@@ -178,7 +189,7 @@ export function canWriteUserProfileIdentity(actorUser: IUser, targetUser: IUser)
 }
 
 /** Can the actor write the contact section of a target user's profile? */
-export function canWriteUserProfileContact(actorUser: IUser, targetUser: IUser): boolean {
+export function canWriteUserProfileContact(actorUser: IUserPopulated, targetUser: IUserPopulated): boolean {
     return canWriteUserProfileSection(actorUser, targetUser, [
         [PermissionKeys.USER_PROFILE_CONTACT_WRITE_ALL, PermissionScopes.ALL],
         [PermissionKeys.USER_PROFILE_CONTACT_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
@@ -190,7 +201,7 @@ export function canWriteUserProfileContact(actorUser: IUser, targetUser: IUser):
 }
 
 /** Can the actor write the employment section of a target user's profile? */
-export function canWriteUserProfileEmployment(actorUser: IUser, targetUser: IUser): boolean {
+export function canWriteUserProfileEmployment(actorUser: IUserPopulated, targetUser: IUserPopulated): boolean {
     return canWriteUserProfileSection(actorUser, targetUser, [
         [PermissionKeys.USER_PROFILE_EMPLOYMENT_WRITE_ALL, PermissionScopes.ALL],
         [PermissionKeys.USER_PROFILE_EMPLOYMENT_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
@@ -202,7 +213,7 @@ export function canWriteUserProfileEmployment(actorUser: IUser, targetUser: IUse
 }
 
 /** Can the actor write the education section of a target user's profile? */
-export function canWriteUserProfileEducation(actorUser: IUser, targetUser: IUser): boolean {
+export function canWriteUserProfileEducation(actorUser: IUserPopulated, targetUser: IUserPopulated): boolean {
     return canWriteUserProfileSection(actorUser, targetUser, [
         [PermissionKeys.USER_PROFILE_EDUCATION_WRITE_ALL, PermissionScopes.ALL],
         [PermissionKeys.USER_PROFILE_EDUCATION_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
@@ -214,7 +225,7 @@ export function canWriteUserProfileEducation(actorUser: IUser, targetUser: IUser
 }
 
 /** Can the actor write the compensation section of a target user's profile? */
-export function canWriteUserProfileCompensation(actorUser: IUser, targetUser: IUser): boolean {
+export function canWriteUserProfileCompensation(actorUser: IUserPopulated, targetUser: IUserPopulated): boolean {
     return canWriteUserProfileSection(actorUser, targetUser, [
         [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_ALL, PermissionScopes.ALL],
         [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],

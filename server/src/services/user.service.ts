@@ -1,5 +1,5 @@
 import { userRepository } from "../repositories/user.repository";
-import { IProfileImageMetadata, IUser, IUsersQueryParams } from "../interfaces/user.interface";
+import { IProfileImageMetadata, IUser, IUserPopulated, IUsersQueryParams } from "../interfaces/user.interface";
 import { FilterQuery } from "mongoose";
 import { UserModel } from "../models/user.model";
 import bcrypt from "bcryptjs";
@@ -88,7 +88,7 @@ export const UserService = {
         };
     },
 
-    getById: async (id: string, companyId: string, selectFields?: string[]) => {
+    getById: async (id: string, companyId: string, selectFields?: string[]): Promise<IUserPopulated | null> => {
         if (!companyId) {
             throw new Error("Company ID is required for fetching user by ID");
         }
@@ -112,14 +112,14 @@ export const UserService = {
             query = query.select("-password " + selectFields.join(" "));
         }
         const user = await query.lean();
-        if (user && (user as IUser).salary) {
+        if (user && user.salary) {
             try {
-                (user as Record<string, unknown>).salary = decryptString((user as IUser).salary!);
+                (user as Record<string, unknown>).salary = decryptString(user.salary);
             } catch {
                 (user as Record<string, unknown>).salary = undefined;
             }
         }
-        return user;
+        return user as IUserPopulated | null;
     },
     update: async (id: string, data: Partial<IUser>, companyId: string) => {
         if (!companyId) {

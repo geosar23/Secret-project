@@ -6,7 +6,6 @@ import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface
 import { success, softError } from "../utils/response.util";
 import { canActorAccessSubject } from "../middleware/permission.middleware";
 import { PermissionCategories, PermissionActions } from "../enums/permissions.enum";
-import { IUser } from "../interfaces/user.interface";
 
 export const AuthController = {
     login: async (req: Request, res: Response) => {
@@ -71,8 +70,8 @@ export const AuthController = {
             }
 
             const hasAccess = canActorAccessSubject(
-                actorUser as IUser,
-                subjectUser as IUser,
+                actorUser,
+                subjectUser,
                 PermissionCategories.RESET_PASSWORD,
                 PermissionActions.WRITE,
             );

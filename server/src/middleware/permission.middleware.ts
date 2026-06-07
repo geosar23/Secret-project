@@ -6,7 +6,7 @@ import {
     buildActorContext,
 } from "../utils/permission-checker";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
-import { IUser } from "../interfaces/user.interface";
+import { IUserPopulated } from "../interfaces/user.interface";
 import { UserService } from "../services/user.service";
 import { PermissionCategories, PermissionActions, PermissionScopes } from "../enums/permissions.enum";
 import { canAccessUserByScope } from "../policies/user.policy";
@@ -39,7 +39,7 @@ export function userHasPermission(permission: string) {
                 return res.status(401).json({ message: "Authentication required" });
             }
 
-            const user = (await UserService.getById(payload.id, payload.companyId)) as IUser | null;
+            const user = await UserService.getById(payload.id, payload.companyId);
             if (!user) {
                 return res.status(401).json({ message: "User not found" });
             }
@@ -69,7 +69,7 @@ export function userHasAnyPermission(permissions: string[]) {
                 return res.status(401).json({ message: "Authentication required" });
             }
 
-            const user = (await UserService.getById(payload.id, payload.companyId)) as IUser | null;
+            const user = await UserService.getById(payload.id, payload.companyId);
             if (!user) {
                 return res.status(401).json({ message: "User not found" });
             }
@@ -99,7 +99,7 @@ export function userHasAllPermissions(permissions: string[]) {
                 return res.status(401).json({ message: "Authentication required" });
             }
 
-            const user = (await UserService.getById(payload.id, payload.companyId)) as IUser | null;
+            const user = await UserService.getById(payload.id, payload.companyId);
             if (!user) {
                 return res.status(401).json({ message: "User not found" });
             }
@@ -130,8 +130,8 @@ export function userHasAllPermissions(permissions: string[]) {
  * @param action     The permission action (e.g. PermissionActions.WRITE).
  */
 export function canActorAccessSubject(
-    actorUser: IUser,
-    subject: IUser,
+    actorUser: IUserPopulated,
+    subject: IUserPopulated,
     category: PermissionCategories | string,
     action: PermissionActions | string,
 ): boolean {
@@ -169,7 +169,7 @@ export function userHasPermissionCategory(category: string) {
                 return res.status(401).json({ message: "Authentication required" });
             }
 
-            const user = (await UserService.getById(payload.id, payload.companyId)) as IUser | null;
+            const user = await UserService.getById(payload.id, payload.companyId);
             if (!user) {
                 return res.status(401).json({ message: "User not found" });
             }

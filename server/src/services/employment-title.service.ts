@@ -33,10 +33,19 @@ export const EmploymentTitleService = {
             throw new Error("Invalid sub-department for this company");
         }
 
-        return employmentTitleRepository(companyId).create({
+        const repository = employmentTitleRepository(companyId);
+        const created = await repository.create({
             ...data,
             isActive: data.isActive ?? true,
         });
+        return repository
+            .findById(String(created._id))
+            .populate({
+                path: "subDepartment",
+                select: "_id name department",
+                populate: { path: "department", select: "_id name" },
+            })
+            .lean();
     },
 
     update: async (id: string, data: Partial<IEmploymentTitle>, companyId: string) => {
