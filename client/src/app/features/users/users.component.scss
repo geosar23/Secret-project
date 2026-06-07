@@ -41,6 +41,42 @@
             width: 100%;
         }
     }
+
+    .filters-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        margin-top: var(--spacing-sm);
+
+        .btn-sm {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: 0.35rem 0.9rem;
+            font-size: var(--font-size-sm);
+
+            mat-icon {
+                font-size: 1.1rem;
+                width: 1.1rem;
+                height: 1.1rem;
+            }
+
+            .column-badge {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 1.25rem;
+                height: 1.25rem;
+                padding: 0 0.3rem;
+                border-radius: 999px;
+                background: var(--color-primary-500, #1976d2);
+                color: #fff;
+                font-size: 0.7rem;
+                font-weight: 700;
+                line-height: 1;
+            }
+        }
+    }
 }
 
 ::ng-deep mat-chip {

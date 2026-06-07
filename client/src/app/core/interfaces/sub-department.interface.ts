@@ -5,7 +5,7 @@ export interface ISubDepartment {
     _id?: string;
     name: string;
     description?: string;
-    department: IDepartment | string;
+    department: IDepartment;
     company?: ICompany;
     isActive?: boolean;
     createdAt?: Date;

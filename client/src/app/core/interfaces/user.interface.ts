@@ -60,7 +60,6 @@ export interface IUser {
     company?: ICompany;
     country?: ICountry;
     employmentTitle?: IEmploymentTitle;
-    department?: IDepartment;
     manager?: IUser;
     level?: ILevel;
     office?: IOffice;

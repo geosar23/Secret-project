@@ -9,6 +9,8 @@ import { MatPaginatorModule, MatPaginator } from "@angular/material/paginator";
 import { MatSelectModule } from "@angular/material/select";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
+import { MatBadgeModule } from "@angular/material/badge";
+import { MatDialogModule, MatDialog } from "@angular/material/dialog";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { Subject } from "rxjs";
 import { takeUntil, debounceTime, distinctUntilChanged, finalize } from "rxjs/operators";
@@ -25,6 +27,7 @@ import { DepartmentService } from "../../core/services/department.service";
 import { IRole } from "../../core/interfaces/role.interface";
 import { ICountry } from "../../core/interfaces/country.interface";
 import { IDepartment } from "../../core/interfaces/department.interface";
+import { ColumnDef, ColumnSelectorDialogComponent } from "./column-selector-dialog/column-selector-dialog.component";
 
 interface IUserTableData extends IUser {
     roleColor?: string;
@@ -46,6 +49,8 @@ interface IUserTableData extends IUser {
         MatSelectModule,
         MatFormFieldModule,
         MatInputModule,
+        MatBadgeModule,
+        MatDialogModule,
     ],
     templateUrl: "./users.component.html",
     styleUrls: ["./users.component.scss"],
@@ -54,14 +59,105 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     @ViewChild("paginator", { static: false }) public paginator!: MatPaginator;
 
     private destroy$ = new Subject<void>();
+    private readonly columnStorageKey = "users.table.selectedColumns";
 
     searchControl = new FormControl("");
 
     public tableData: MatTableDataSource<IUserTableData> = new MatTableDataSource<IUserTableData>([]);
-    public displayedColumns: string[] = ["name", "email", "role", "status", "createdAt", "actions"];
+    public displayedColumns: string[] = ["name", "actions"];
     private toast = inject(ToastService);
 
     loading = false;
+
+    // Fixed base columns (always shown)
+    private readonly BASE_COLUMNS = ["name", "actions"];
+    private readonly BASE_COLUMN_SET = new Set(this.BASE_COLUMNS);
+    readonly MAX_EXTRA_COLUMNS = 10;
+
+    // All available optional columns
+    readonly availableColumns: ColumnDef[] = [
+        // Organization
+        { key: "country", label: "Country", group: "Organization" },
+        { key: "department", label: "Department", group: "Organization" },
+        { key: "employmentTitle", label: "Employment Title", group: "Organization" },
+        { key: "manager", label: "Manager", group: "Organization" },
+        { key: "level", label: "Level", group: "Organization" },
+        { key: "office", label: "Office", group: "Organization" },
+        { key: "hrRepresentative", label: "HR Representative", group: "Organization" },
+        { key: "role", label: "Role", group: "Organization" },
+        // Identity
+        { key: "legalName", label: "Legal Name", group: "Identity" },
+        { key: "firstName", label: "First Name", group: "Identity" },
+        { key: "lastName", label: "Last Name", group: "Identity" },
+        { key: "gender", label: "Gender", group: "Identity" },
+        { key: "birthday", label: "Birthday", group: "Identity" },
+        { key: "maritalStatus", label: "Marital Status", group: "Identity" },
+        { key: "nationalities", label: "Nationalities", group: "Identity" },
+        { key: "religion", label: "Religion", group: "Identity" },
+        // Contact
+        { key: "email", label: "Email", group: "Contact" },
+        { key: "personalEmail", label: "Personal Email", group: "Contact" },
+        { key: "workPhone", label: "Work Phone", group: "Contact" },
+        { key: "personalPhone", label: "Personal Phone", group: "Contact" },
+        { key: "homeCountryPhone", label: "Home Country Phone", group: "Contact" },
+        // Employment
+        { key: "status", label: "Status", group: "Employment" },
+        { key: "createdAt", label: "Created At", group: "Employment" },
+        { key: "employmentDate", label: "Employment Date", group: "Employment" },
+        { key: "employmentType", label: "Employment Type", group: "Employment" },
+        { key: "payrollId", label: "Payroll ID", group: "Employment" },
+        { key: "isOutsourced", label: "Outsourced", group: "Employment" },
+        { key: "salary", label: "Salary", group: "Employment" },
+        { key: "updatedAt", label: "Updated At", group: "Employment" },
+    ];
+
+    readonly selectableColumns = this.availableColumns.filter(column => !this.BASE_COLUMN_SET.has(column.key));
+    private readonly SELECTABLE_COLUMN_SET = new Set(this.selectableColumns.map(column => column.key));
+
+    // Resolver: maps column key to a display value
+    readonly columnValueMap: Record<string, (user: IUserTableData) => string> = {
+        email: u => u.email || "—",
+        role: u => u.roleName || u.role?.role || "—",
+        status: u => (u.isActive ? "Active" : "Inactive"),
+        createdAt: u => (u.createdAt ? new Date(u.createdAt).toLocaleString() : "—"),
+        country: u => u.country?.name || "—",
+        department: u => u.employmentTitle?.subDepartment?.department?.name || "—",
+        employmentTitle: u => u.employmentTitle?.name || "—",
+        manager: u => u.manager?.name || "—",
+        level: u => u.level?.name || "—",
+        office: u => u.office?.name || "—",
+        hrRepresentative: u => u.hrRepresentative?.name || "—",
+        legalName: u => u.legalName || "—",
+        firstName: u => u.firstName || "—",
+        lastName: u => u.lastName || "—",
+        gender: u => u.gender || "—",
+        birthday: u => (u.birthday ? new Date(u.birthday).toLocaleDateString() : "—"),
+        maritalStatus: u => u.maritalStatus || "—",
+        nationalities: u => u.nationalities?.join(", ") || "—",
+        religion: u => u.religion || "—",
+        personalEmail: u => u.personalEmail || "—",
+        workPhone: u => u.workPhone || "—",
+        personalPhone: u => u.personalPhone || "—",
+        homeCountryPhone: u => u.homeCountryPhone || "—",
+        employmentDate: u => (u.employmentDate ? new Date(u.employmentDate).toLocaleDateString() : "—"),
+        employmentType: u => u.employmentType || "—",
+        payrollId: u => u.payrollId || "—",
+        isOutsourced: u => (u.isOutsourced != null ? (u.isOutsourced ? "Yes" : "No") : "—"),
+        salary: u => u.salary || "—",
+        updatedAt: u => (u.updatedAt ? new Date(u.updatedAt).toLocaleDateString() : "—"),
+    };
+
+    // Currently selected extra column keys (persisted across sessions would need localStorage)
+    selectedExtraColumnKeys: string[] = [];
+
+    // Derived: only the selected extra ColumnDef objects (for template rendering)
+    get activeExtraColumns(): ColumnDef[] {
+        return this.selectableColumns.filter(c => this.selectedExtraColumnKeys.includes(c.key));
+    }
+
+    getCellValue(user: IUserTableData, key: string): string {
+        return this.columnValueMap[key]?.(user) ?? "—";
+    }
 
     roles: IRole[] = [];
     departments: IDepartment[] = [];
@@ -81,8 +177,6 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
         { value: "createdAt:asc", label: "Oldest First" },
         { value: "role:asc", label: "Role (A-Z)" },
         { value: "role:desc", label: "Role (Z-A)" },
-        { value: "companyId:asc", label: "Company ID (A-Z)" },
-        { value: "companyId:desc", label: "Company ID (Z-A)" },
     ];
     selectedSort = "createdAt:desc";
 
@@ -100,9 +194,11 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
         private roleService: RoleService,
         private countryService: CountryService,
         private departmentService: DepartmentService,
+        private dialog: MatDialog,
     ) {}
 
     ngOnInit() {
+        this.restoreColumnSelection();
         this.loadUsers();
         this.loadFilterOptions();
 
@@ -262,24 +358,101 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
         return RoleUtils.getRoleColor(role);
     }
 
+    private syncDisplayedColumns() {
+        const uniqueSelectedColumns = [...new Set(this.selectedExtraColumnKeys)].filter(
+            key => !this.BASE_COLUMN_SET.has(key) && this.SELECTABLE_COLUMN_SET.has(key),
+        );
+        this.selectedExtraColumnKeys = uniqueSelectedColumns;
+        this.displayedColumns = ["name", ...uniqueSelectedColumns, "actions"];
+    }
+
+    private persistColumnSelection() {
+        if (typeof localStorage === "undefined") {
+            return;
+        }
+
+        localStorage.setItem(this.columnStorageKey, JSON.stringify(this.selectedExtraColumnKeys));
+    }
+
+    private restoreColumnSelection() {
+        if (typeof localStorage === "undefined") {
+            this.syncDisplayedColumns();
+            return;
+        }
+
+        const rawValue = localStorage.getItem(this.columnStorageKey);
+
+        if (!rawValue) {
+            this.syncDisplayedColumns();
+            return;
+        }
+
+        try {
+            const parsedValue = JSON.parse(rawValue);
+            this.selectedExtraColumnKeys = Array.isArray(parsedValue) ? parsedValue : [];
+        } catch {
+            this.selectedExtraColumnKeys = [];
+        }
+
+        this.syncDisplayedColumns();
+    }
+
+    openColumnSelector() {
+        const ref = this.dialog.open(ColumnSelectorDialogComponent, {
+            data: {
+                availableColumns: this.selectableColumns,
+                selectedKeys: this.selectedExtraColumnKeys.filter(key => !this.BASE_COLUMN_SET.has(key)),
+                maxColumns: this.MAX_EXTRA_COLUMNS,
+            },
+            width: "600px",
+            maxWidth: "95vw",
+        });
+
+        ref.afterClosed().subscribe((result: string[] | undefined) => {
+            if (!Array.isArray(result)) {
+                return;
+            }
+            this.selectedExtraColumnKeys = result.filter(key => !this.BASE_COLUMN_SET.has(key));
+            this.syncDisplayedColumns();
+            this.persistColumnSelection();
+        });
+    }
+
     downloadUsersAsCSV() {
         if (this.tableData.data.length === 0) {
             return;
         }
 
-        // Define CSV headers
-        const headers = ["Name", "Email", "Role", "Company", "Country", "Status", "Created Date"];
+        const exportColumns = this.displayedColumns.filter(column => column !== "actions");
+        const columnLabels: Record<string, string> = {
+            name: "Name",
+            email: "Email",
+            role: "Role",
+            status: "Status",
+            createdAt: "Created Date",
+        };
 
-        // Map table data to CSV rows
-        const rows = this.tableData.data.map(user => [
-            user.name,
-            user.email,
-            user.roleName || user.role?.role || "N/A",
-            user.company?.name || "N/A",
-            user.country?.name || "N/A",
-            user.isActive ? "Active" : "Inactive",
-            user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A",
-        ]);
+        const headers = exportColumns.map(column => {
+            if (column === "name") {
+                return "Name";
+            }
+
+            return (
+                columnLabels[column] ||
+                this.availableColumns.find(availableColumn => availableColumn.key === column)?.label ||
+                column
+            );
+        });
+
+        const rows = this.tableData.data.map(user =>
+            exportColumns.map(column => {
+                if (column === "name") {
+                    return user.name;
+                }
+
+                return this.columnValueMap[column]?.(user) || "N/A";
+            }),
+        );
 
         // Combine headers and rows
         const csvContent = [headers, ...rows]
@@ -294,6 +467,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             )
             .join("\n");
 
+        console.log(csvContent);
         // Create blob and download
         const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
         const link = document.createElement("a");

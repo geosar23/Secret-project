@@ -561,7 +561,7 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
             countryId: u.country?._id ?? "",
             employmentTitleId: u.employmentTitle?._id ?? "",
             managerId: u.manager?._id ?? "",
-            departmentId: (u.department as IDepartment)?._id ?? "",
+            departmentId: u.employmentTitle?.subDepartment?.department?._id ?? "",
             levelId: u.level?._id ?? "",
             officeId: u.office?._id ?? "",
             hrRepresentativeId: u.hrRepresentative?._id ?? "",
