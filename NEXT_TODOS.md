@@ -164,7 +164,8 @@ CRITICAL — Breaks core functionality
 
 # Issue Impact
 
-1 User schema missing department field — IUser declares it but Mongoose schema doesn't. ALL department-scoped RBAC (DEPARTMENT, DEPARTMENT_COUNTRY) silently returns false for every user. user.policy.ts and search-access.policy.ts are functionally broken for these scopes. Scope-restricted permissions are dead code
+1 User schema missing department field — IUser declares it but Mongoose schema doesn't. ALL department-scoped RBAC (DEPARTMENT, DEPARTMENT_COUNTRY) silently returns false for every user. user.policy.ts and search-access.policy.ts are functionally broken for these scopes. Scope-restricted permissions are dead code (FIXED BY REMOVING DEP FROM USER INTERFACE SINCE ITS DERIVES FROM EMPLOYMENT TITLE)
+
 2 Unguarded HR entity write routes — POST/PUT/DELETE on /departments, /sub-departments, /employment-titles, /levels, /offices have only authMiddleware. Any employee can mutate company structure. Any authenticated user = admin for org data
 HIGH — Security holes
 
