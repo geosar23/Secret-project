@@ -3,6 +3,6 @@ import { CompanyController } from "../controllers/company.controller";
 
 const router = Router();
 
-router.get("/:id/logo-url", CompanyController.getCompanyData);
+router.get("/:id", CompanyController.getCompanyData);
 
 export default router;

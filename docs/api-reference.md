@@ -61,9 +61,9 @@ All endpoints are prefixed with `/api`. All protected endpoints require a `Autho
 
 ## Companies
 
-| Method | Path                          | Auth | Description                             |
-| ------ | ----------------------------- | ---- | --------------------------------------- |
-| GET    | `/api/companies/:id/logo-url` | Yes  | Get a signed URL for the company's logo |
+| Method | Path                 | Auth | Description                                      |
+| ------ | -------------------- | ---- | ------------------------------------------------ |
+| GET    | `/api/companies/:id` | Yes  | Get a signed URL for the company's logo and name |
 
 ---
 

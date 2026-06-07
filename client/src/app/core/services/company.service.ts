@@ -11,6 +11,6 @@ export class CompanyService {
     private apiService = inject(ApiService);
 
     getCompanyData(companyId: string): Observable<JsonResponse<ICompanyDataResponse>> {
-        return this.apiService.get<JsonResponse<ICompanyDataResponse>>(`companies/${companyId}/logo-url`);
+        return this.apiService.get<JsonResponse<ICompanyDataResponse>>(`companies/${companyId}`);
     }
 }

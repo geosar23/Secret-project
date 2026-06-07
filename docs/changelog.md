@@ -25,7 +25,7 @@ Significant changes to the application, most recent first.
 ### Company management removed from UI
 
 - Companies are provisioned outside the app. The UI no longer has a companies management section.
-- Company logo is available read-only via `GET /api/companies/:id/logo-url` (Supabase Storage, signed URL).
+- Company logo and name is available read-only via `GET /api/companies/:id` (Supabase Storage, signed URL).
 
 ### Extended employee profile fields
 
