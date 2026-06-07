@@ -21,7 +21,6 @@ const mockUser: IUser = {
     email: "jane@test.com",
     isActive: true,
     role: { _id: "role-id", role: UserRole.ADMIN, name: "Admin" },
-    company: { _id: "company-id", name: "Test Company" },
     country: { _id: "country-id", name: "Greece" },
     employmentTitle: { _id: "title-id", title: "Engineer" },
     manager: undefined,
