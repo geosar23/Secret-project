@@ -154,6 +154,124 @@ Status legend:
         - [ ] Manual check: plain employee cannot mutate HR entities (403).
         - [ ] Manual check: `/non-authorized`, `/levels`, `/offices` routes resolve correctly.
 
+### NOTES FOR P0-07A
+
+Plan: HRMS Multi-Tenant Foundation Audit
+TL;DR: The codebase has real functionality but has several critical gaps in RBAC coverage, a broken schema field, missing client routes, and architecture inconsistencies. The plan audits these systematically: write failing tests first (red), then produce a fix prompt per issue that a separate agent can execute independently.
+
+Discovered Issues
+CRITICAL — Breaks core functionality
+
+# Issue Impact
+
+1 User schema missing department field — IUser declares it but Mongoose schema doesn't. ALL department-scoped RBAC (DEPARTMENT, DEPARTMENT_COUNTRY) silently returns false for every user. user.policy.ts and search-access.policy.ts are functionally broken for these scopes. Scope-restricted permissions are dead code
+2 Unguarded HR entity write routes — POST/PUT/DELETE on /departments, /sub-departments, /employment-titles, /levels, /offices have only authMiddleware. Any employee can mutate company structure. Any authenticated user = admin for org data
+HIGH — Security holes
+
+# Issue
+
+3 No RBAC on GET /users, GET /users/:id, PUT /users/:id, POST /users/ — listing has a policy inside the controller but fetch/update don't enforce scope at all
+4 No RBAC on GET /roles, GET /roles/:id, GET /roles/hierarchy — any authenticated user reads all role data
+5 No RBAC on /user-documents/\* — any authenticated user can read/write/delete any document in the company
+6 createUserGuard / editUserGuard redirect to /non-authorized — but that route doesn't exist, landing users on a 404 page
+HIGH — Client feature gaps
+
+# Issue
+
+7 features/levels/ Angular folder is missing — backend + level.service.ts exist, no UI or route
+8 features/offices/ Angular folder is missing — backend + office.service.ts exist, no UI or route
+9 Permission route guards only exist for users/create and users/:id/edit — /roles, /departments, /countries, /sub-departments, /employment-titles are unguarded (login only)
+MEDIUM — Architecture integrity
+
+# Issue
+
+10 userDocumentRepository() returns a raw Mongoose model — breaks the repository contract (all others return a pre-scoped object). Future callers can forget to add { company }.
+11 permissions.routes.ts is empty and does nothing — the permissions management API is absent
+12 Soft-error inconsistency — many endpoints return HTTP 200 + { success: false } instead of proper 4xx, breaking monitoring and client error handling
+13 No consistent input validation — ad-hoc typeof checks, no Zod/Joi schema on write endpoints
+Phase 0 — Foundation Audit Tests (Verify Issues Exist)
+Write failing tests that serve as acceptance criteria. After fixes, they go green.
+
+Steps:
+
+0a. New file server/src/**tests**/rbac-coverage.test.ts
+
+For each HR entity route (/departments, /sub-departments, /employment-titles, /levels, /offices): assert that an authenticated plain employee receives 403 on POST, PUT, DELETE
+Assert same for /user-documents write endpoints
+Assert GET /roles requires at minimum authentication
+0b. New file server/src/**tests**/schema-integrity.test.ts
+
+Create a user with a department ObjectId, read it back, assert user.department is populated (currently fails because the field doesn't exist in schema)
+Create a user with a department-scoped permission, run buildUserSearchAccessQuery, assert the generated filter includes a department clause (currently returns empty filter)
+0c. New file server/src/**tests**/repository-contract.test.ts
+
+Assert that calling userDocumentRepository() without arguments returns an object with company-scoped find/create/update/delete methods (not a raw model)
+0d. Client check script client/scripts/check-routes.ts
+
+Read app.routes.ts and assert routes exist for: /non-authorized, /levels, /offices
+Phase 1 — Critical Fix Prompts
+Fix Prompt 1 — User schema department field
+
+Add a department field ({ type: Schema.Types.ObjectId, ref: 'Department', required: false }) to the Mongoose UserModel schema in user.model.ts. Verify that user.policy.ts and search-access.policy.ts department-scope checks now correctly use user.department. Add it to the update allowed fields in the user controller/service. Ensure existing records with no department continue to work (field is optional).
+
+Fix Prompt 2 — HR entity route RBAC
+
+In department.routes.ts, sub-department.routes.ts, employment-title.routes.ts, level.routes.ts, office.routes.ts: add userHasAnyPermission([PermissionKeys.{ENTITY}_MANAGEMENT_WRITE_ALL]) middleware to every POST, PUT, and DELETE route handler. Follow the exact pattern used in country.routes.ts as the reference.
+
+Phase 2 — Security Fix Prompts
+Fix Prompt 3 — User CRUD RBAC
+
+Add permission middleware to user routes in user.routes.ts: GET /users and POST /users require USERS_MANAGEMENT read/write. GET /users/:id and PUT /users/:id must verify the actor has scope to access the subject (use canActorAccessSubject from permission.middleware.ts).
+
+Fix Prompt 4 — Role read RBAC
+
+In role.routes.ts: add userHasAnyPermission([PermissionKeys.ROLES_MANAGEMENT_READ_ALL]) to GET /roles, GET /roles/:id, GET /roles/hierarchy.
+
+Fix Prompt 5 — User documents RBAC
+
+In user-document.routes.ts: add appropriate USERS_MANAGEMENT permission checks to all endpoints. Read endpoints require a read permission; write/delete endpoints require a write permission.
+
+Fix Prompt 6 — /non-authorized route
+
+In app.routes.ts: add a /non-authorized route. Create a minimal NotAuthorizedComponent in client/src/app/features/not-authorized/. The component should display a clear "You don't have permission to access this page" message with a link back to /dashboard.
+
+Phase 3 — Client Completeness Fix Prompts
+Fix Prompt 7 — Levels UI (parallel with Fix 8)
+
+Create client/src/app/features/levels/ with a list table component and a create/edit dialog, following the exact pattern of features/countries/ as reference. Add route /levels to app.routes.ts inside the auth guard. Register LevelService (already exists in core/services/).
+
+Fix Prompt 8 — Offices UI (parallel with Fix 7)
+
+Same as Fix 7 but for features/offices/, following features/countries/ as reference. OfficeService already exists.
+
+Fix Prompt 9 — Permission route guards on management pages
+
+Add permission guards to /roles, /departments, /countries, /sub-departments, /employment-titles in app.routes.ts. Create new guard functions in core/guards/ following the pattern of createUserGuard and editUserGuard, using PermissionService checks for the relevant management permissions.
+
+Phase 4 — Architecture Fix Prompts
+Fix Prompt 10 — userDocumentRepository contract
+
+Refactor user-document.repository.ts to accept companyId: string and return a companyModel(UserDocumentModel, companyId) — identical to all other repositories. Update all callers in user-document.service.ts to pass companyId.
+
+Fix Prompt 11 — Implement permissions.routes.ts
+
+Implement GET /api/permissions in permissions.routes.ts — returns all PermissionKeys grouped by category. Require authMiddleware. Register it in server/src/routes/routes.ts.
+
+Verification
+After all fixes:
+
+cd server && npm test — all tests (including Phase 0 suite) must pass
+cd client && ng build — build must succeed with no errors
+Manual: login as plain employee → attempt POST /api/departments → must get 403
+Manual: navigate to /non-authorized, /levels, /offices → correct pages render
+Manual: login as employee → navigate to /roles → redirected to /non-authorized
+Decisions & Scope Boundaries
+Included: RBAC gaps, schema correctness, missing client routes, repository contract
+Excluded: structured logging, payroll/leave/recruiting features, performance improvements
+Each fix prompt is self-contained — can be handed to a separate agent with no shared context
+Phase 0 tests are written intentionally red (failing) to prove issues exist; they become green after fixes
+Fix prompts in Phase 3 (Levels UI / Offices UI) are independent and can run in parallel
+
 ### P0-08 Leaves Module (Single-Step Manager Approval)
 
 - Priority: P0
