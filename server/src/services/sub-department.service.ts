@@ -25,10 +25,15 @@ export const SubDepartmentService = {
             throw new Error("Invalid department for this company");
         }
 
-        return subDepartmentRepository(companyId).create({
+        const created = await subDepartmentRepository(companyId).create({
             ...data,
             isActive: data.isActive ?? true,
         });
+
+        return subDepartmentRepository(companyId)
+            .findById(String(created._id))
+            .populate("department", "_id name")
+            .lean();
     },
 
     update: async (id: string, data: Partial<ISubDepartment>, companyId: string) => {
@@ -37,7 +42,7 @@ export const SubDepartmentService = {
         if (data.department) {
             const department = await departmentRepository(companyId).findById(String(data.department)).lean();
             if (!department) {
-                throw new Error("Invalid department for this company");
+                throw new Error("Invalid department");
             }
         }
 
