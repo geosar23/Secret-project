@@ -44,7 +44,6 @@ export interface IUser {
     country?: Types.ObjectId;
     employmentTitle?: Types.ObjectId;
     manager?: Types.ObjectId;
-    managedDepartments?: Types.ObjectId[];
     level?: Types.ObjectId;
     office?: Types.ObjectId;
     hrRepresentative?: Types.ObjectId;

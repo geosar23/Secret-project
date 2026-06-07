@@ -300,16 +300,6 @@
                                 <span class="value">{{ profile.isOutsourced ? "Yes" : "No" }}</span>
                             </div>
                         }
-                        @if (profile.managedDepartments && profile.managedDepartments.length > 0) {
-                            <div class="info-row full-span">
-                                <span class="label">Managed Departments</span>
-                                <div class="permissions-list">
-                                    @for (dept of profile.managedDepartments; track $index) {
-                                        <mat-chip>{{ dept.name }}</mat-chip>
-                                    }
-                                </div>
-                            </div>
-                        }
                     </div>
 
                     <mat-divider class="divider-margin"></mat-divider>

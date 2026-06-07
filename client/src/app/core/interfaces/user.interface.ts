@@ -62,7 +62,6 @@ export interface IUser {
     employmentTitle?: IEmploymentTitle;
     department?: IDepartment;
     manager?: IUser;
-    managedDepartments?: IDepartment[];
     level?: ILevel;
     office?: IOffice;
     hrRepresentative?: IUser;
