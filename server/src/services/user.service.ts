@@ -67,6 +67,7 @@ export const UserService = {
                 .populate("manager")
                 .populate("level")
                 .populate("office")
+                .populate("hrRepresentative", "_id name email")
                 .populate({
                     path: "employmentTitle",
                     populate: { path: "subDepartment", populate: { path: "department" } },
