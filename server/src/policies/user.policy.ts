@@ -21,7 +21,6 @@ export function buildUserSearchAccessQuery(actorUser: IUserPopulated): FilterQue
             readSelf: PermissionKeys.USERS_MANAGEMENT_READ_SELF,
         },
         fields: {
-            company: "company",
             department: "department",
             country: "country",
             manager: "manager",

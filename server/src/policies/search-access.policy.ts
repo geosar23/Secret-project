@@ -13,11 +13,10 @@ interface SearchAccessPermissions {
 }
 
 interface SearchAccessFields {
-    company: string;
-    department?: string;
-    country?: string;
-    manager?: string;
-    id?: string;
+    department: string;
+    country: string;
+    manager: string;
+    id: string;
 }
 
 interface BuildSearchAccessQueryOptions {
