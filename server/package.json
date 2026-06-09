@@ -6,7 +6,7 @@
     "scripts": {
         "dev": "npx ts-node src/server.ts",
         "dev:watch": "npx nodemon src/server.ts",
-        "build": "tsc",
+        "build": "tsc -p tsconfig.build.json",
         "start": "node dist/server.js",
         "test": "jest",
         "test:coverage": "jest --coverage",

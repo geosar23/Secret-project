@@ -2,6 +2,11 @@ export enum PermissionCategories {
     ALL = "*",
     USERS_MANAGEMENT = "usersManagement",
     COUNTRIES_MANAGEMENT = "countriesManagement",
+    DEPARTMENTS_MANAGEMENT = "departmentsManagement",
+    SUB_DEPARTMENTS_MANAGEMENT = "subDepartmentsManagement",
+    EMPLOYMENT_TITLES_MANAGEMENT = "employmentTitlesManagement",
+    LEVELS_MANAGEMENT = "levelsManagement",
+    OFFICES_MANAGEMENT = "officesManagement",
     USER_PROFILE = "userProfile",
     USER_PROFILE_IDENTITY = "userProfile.identity",
     USER_PROFILE_CONTACT = "userProfile.contact",
@@ -16,6 +21,11 @@ export const PermissionCategoriesStrings: Record<PermissionCategories, string> =
     [PermissionCategories.ALL]: "All",
     [PermissionCategories.USERS_MANAGEMENT]: "Users Management",
     [PermissionCategories.COUNTRIES_MANAGEMENT]: "Countries Management",
+    [PermissionCategories.DEPARTMENTS_MANAGEMENT]: "Departments Management",
+    [PermissionCategories.SUB_DEPARTMENTS_MANAGEMENT]: "Sub-Departments Management",
+    [PermissionCategories.EMPLOYMENT_TITLES_MANAGEMENT]: "Employment Titles Management",
+    [PermissionCategories.LEVELS_MANAGEMENT]: "Levels Management",
+    [PermissionCategories.OFFICES_MANAGEMENT]: "Offices Management",
     [PermissionCategories.USER_PROFILE]: "User Profile",
     [PermissionCategories.USER_PROFILE_IDENTITY]: "User Profile – Identity",
     [PermissionCategories.USER_PROFILE_CONTACT]: "User Profile – Contact",
@@ -167,6 +177,42 @@ export const COUNTRIES_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCate
     scopes: [PermissionScopes.ALL],
 });
 
+/** All `departmentsManagement` permission keys. */
+export const DEPARTMENTS_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategories.DEPARTMENTS_MANAGEMENT, {
+    actions: [PermissionActions.READ, PermissionActions.WRITE],
+    scopes: [PermissionScopes.ALL],
+});
+
+/** All `subDepartmentsManagement` permission keys. */
+export const SUB_DEPARTMENTS_MANAGEMENT_PERMISSIONS = definePermissions(
+    PermissionCategories.SUB_DEPARTMENTS_MANAGEMENT,
+    {
+        actions: [PermissionActions.READ, PermissionActions.WRITE],
+        scopes: [PermissionScopes.ALL],
+    },
+);
+
+/** All `employmentTitlesManagement` permission keys. */
+export const EMPLOYMENT_TITLES_MANAGEMENT_PERMISSIONS = definePermissions(
+    PermissionCategories.EMPLOYMENT_TITLES_MANAGEMENT,
+    {
+        actions: [PermissionActions.READ, PermissionActions.WRITE],
+        scopes: [PermissionScopes.ALL],
+    },
+);
+
+/** All `levelsManagement` permission keys. */
+export const LEVELS_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategories.LEVELS_MANAGEMENT, {
+    actions: [PermissionActions.READ, PermissionActions.WRITE],
+    scopes: [PermissionScopes.ALL],
+});
+
+/** All `officesManagement` permission keys. */
+export const OFFICES_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategories.OFFICES_MANAGEMENT, {
+    actions: [PermissionActions.READ, PermissionActions.WRITE],
+    scopes: [PermissionScopes.ALL],
+});
+
 /** All `userProfile` permission keys. */
 export const USER_PROFILE_PERMISSIONS = definePermissions(PermissionCategories.USER_PROFILE, {
     actions: [PermissionActions.READ, PermissionActions.WRITE],
@@ -271,6 +317,11 @@ export const PermissionKeys = {
     ALL: `${PermissionCategories.ALL}:${PermissionActions.ALL}:${PermissionScopes.ALL}`,
     ...prefixedKeys("USERS_MANAGEMENT", USERS_MANAGEMENT_PERMISSIONS),
     ...prefixedKeys("COUNTRIES_MANAGEMENT", COUNTRIES_MANAGEMENT_PERMISSIONS),
+    ...prefixedKeys("DEPARTMENTS_MANAGEMENT", DEPARTMENTS_MANAGEMENT_PERMISSIONS),
+    ...prefixedKeys("SUB_DEPARTMENTS_MANAGEMENT", SUB_DEPARTMENTS_MANAGEMENT_PERMISSIONS),
+    ...prefixedKeys("EMPLOYMENT_TITLES_MANAGEMENT", EMPLOYMENT_TITLES_MANAGEMENT_PERMISSIONS),
+    ...prefixedKeys("LEVELS_MANAGEMENT", LEVELS_MANAGEMENT_PERMISSIONS),
+    ...prefixedKeys("OFFICES_MANAGEMENT", OFFICES_MANAGEMENT_PERMISSIONS),
     ...prefixedKeys("USER_PROFILE", USER_PROFILE_PERMISSIONS),
     ...prefixedKeys("USER_PROFILE_IDENTITY", USER_PROFILE_IDENTITY_PERMISSIONS),
     ...prefixedKeys("USER_PROFILE_CONTACT", USER_PROFILE_CONTACT_PERMISSIONS),

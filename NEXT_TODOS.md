@@ -124,17 +124,17 @@ Status legend:
 - Priority: P0
 - Owner: You
 - Estimate: 1-1.5 days
-- Status: [ ]
+- Status: [~]
 - Goal: establish a hard quality gate for multi-tenant isolation, RBAC enforcement, schema integrity, and client route completeness before implementing new modules.
 - Acceptance criteria:
-    - [ ] **Phase 0 — Audit tests/scripts added first (red before fix, green after fix).**
-        - [ ] Add `server/src/__tests__/rbac-coverage.test.ts` for write/delete guard coverage on HR entity routes and user-documents.
-        - [ ] Add `server/src/__tests__/schema-integrity.test.ts` to validate user schema integrity (including department scope behavior).
-        - [ ] Add `server/src/__tests__/repository-contract.test.ts` to enforce company-scoped repository behavior consistency.
-        - [ ] Add `client/scripts/check-routes.ts` to assert critical routes exist (`/non-authorized`, `/levels`, `/offices`).
+    - [x] **Phase 0 — Audit tests/scripts added first (red before fix, green after fix).**
+        - [x] Add `server/src/__tests__/rbac-coverage.test.ts` for write/delete guard coverage on HR entity routes and user-documents.
+        - [x] Add `server/src/__tests__/schema-integrity.test.ts` to validate user schema integrity (including department scope behavior).
+        - [x] Add `server/src/__tests__/repository-contract.test.ts` to enforce company-scoped repository behavior consistency.
+        - [x] Add `client/scripts/check-routes.ts` to assert critical routes exist (`/non-authorized`, `/levels`, `/offices`).
     - [ ] **Phase 1 — Critical server fixes.**
-        - [ ] Add missing `department` field in user schema and verify department-scoped policy checks work.
-        - [ ] Add permission middleware on write/delete routes for departments, sub-departments, employment-titles, levels, and offices.
+        - [ ] Remove `department` field in user schema (derives from title>subdepartment>department) and verify department-scoped policy checks work.
+        - [x] Add permission middleware on write/delete routes for departments, sub-departments, employment-titles, levels, and offices.
     - [ ] **Phase 2 — Security coverage fixes.**
         - [ ] Add RBAC middleware for user CRUD routes.
         - [ ] Add RBAC middleware for role read endpoints.
@@ -272,6 +272,28 @@ Excluded: structured logging, payroll/leave/recruiting features, performance imp
 Each fix prompt is self-contained — can be handed to a separate agent with no shared context
 Phase 0 tests are written intentionally red (failing) to prove issues exist; they become green after fixes
 Fix prompts in Phase 3 (Levels UI / Offices UI) are independent and can run in parallel
+
+### P0-07B Ensuring scoping within Company
+
+- When creating/editing user
+  A) you need first to select department
+  => filtering available sub departmnet => select sub department
+  => filtering available employment titles => select available title
+
+-when creating a user if country is greece then HR reprensetive needs to be from the same country
+
+-Office should be in country
+
+-selecting of non active roles, dep, general hr entite should not be possible
+we should always fetch only the active ones for selection
+
+-also when marking an hr entity is inactive , we should check dependendants entites and asking the user to first change the dependencies and then change it
+
+### P0-07C Client should render optiosn buttons menus based on permissions the user h
+
+### P0-07D Edit Roles should be a dedicated page for better UI, for searching and selecting permissions group them etc
+
+### P0-07E HR employee has permission for self edit but (client?) guard blocks him
 
 ### P0-08 Leaves Module (Single-Step Manager Approval)
 
@@ -457,3 +479,5 @@ Fix prompts in Phase 3 (Levels UI / Offices UI) are independent and can run in p
 -Departments, users, levels, offices, countries, etc all entities necesasary for a functiona app
 -Alternatively add a feature that adds the necessary starting mock data, 1 country eg greece, basic departments (eng , hr, marketing, finance, sales), 1 empl title for each dep , 1 sub department, etc
 -(high) failed sign in needs to trigger a toast warning with server response
+
+### P3 - Titles have salary ranges per country

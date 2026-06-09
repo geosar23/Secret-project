@@ -4,7 +4,8 @@
     "scripts": {
         "start": "ng serve",
         "build": "ng build",
-        "test": "ng test"
+        "test": "ng test",
+        "check-routes": "node scripts/check-routes.ts"
     },
     "private": true,
     "dependencies": {
