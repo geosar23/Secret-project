@@ -6,7 +6,7 @@ import { UserRole } from "../enums/user-role.enum";
 export const ROLE_NAMES: Record<UserRole, string> = {
     [UserRole.SUPER_ADMIN]: "Super Admin",
     [UserRole.ADMIN]: "Admin",
-    [UserRole.HR]: "HR Manager",
+    [UserRole.HR]: "HR",
     [UserRole.MANAGER]: "Manager",
     [UserRole.EMPLOYEE]: "Employee",
 } as const;
