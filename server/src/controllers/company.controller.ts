@@ -22,7 +22,7 @@ export class CompanyController {
 
                 signed = await StorageService.createSignedUrl(logoPath);
             } catch (error) {
-                console.log("Error fetching company logo:", error);
+                console.log("Error getCompanyData:", error);
                 signed = { url: "", expiresIn: 0 };
             }
 
