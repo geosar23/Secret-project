@@ -1,4 +1,6 @@
 import { userRepository } from "../repositories/user.repository";
+import { subDepartmentRepository } from "../repositories/sub-department.repository";
+import { employmentTitleRepository } from "../repositories/employment-title.repository";
 import { IProfileImageMetadata, IUser, IUserPopulated, IUsersQueryParams } from "../interfaces/user.interface";
 import { FilterQuery } from "mongoose";
 import { UserModel } from "../models/user.model";
@@ -31,7 +33,13 @@ export const UserService = {
         }
 
         if (department) {
-            filter.department = department;
+            const subDepts = await subDepartmentRepository(companyId).find({ department }).select("_id").lean();
+            const subDeptIds = subDepts.map(sd => sd._id);
+            const empTitles = await employmentTitleRepository(companyId)
+                .find({ subDepartment: { $in: subDeptIds } })
+                .select("_id")
+                .lean();
+            filter.employmentTitle = { $in: empTitles.map(et => et._id) };
         }
 
         if (country) {
