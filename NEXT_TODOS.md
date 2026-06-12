@@ -64,9 +64,8 @@ Status legend:
 - Status: [x]
 - Goal: prevent cross-company data leaks.
 - Acceptance criteria:
-    - [x] Repositories enforce company scoping for users, roles, departments, countries, sub-departments, employment titles (via `companyModel` factory and `OG_COMPANY_ID` bypass).
+    - [x] Repositories enforce company scoping for users, roles, departments, countries, sub-departments, employment titles (via `companyModel` factory).
     - [x] Tests prove users from company A cannot list or fetch users from company B (`company-isolation.test.ts`).
-    - [x] God user (OG_COMPANY_ID) correctly bypasses the scope filter and sees cross-company data. (obsolete)
     - [x] Roles are verified to be company-scoped in the test suite.
 
 ### P0-05 Permission-Aware Company Field Visibility (All Management Pages)
