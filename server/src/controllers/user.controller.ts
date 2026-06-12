@@ -5,6 +5,7 @@ import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface
 import { IAddress, IEducationEntry, IEmergencyContact, IUser, IUsersQueryParams } from "../interfaces/user.interface";
 import { success, softError } from "../utils/response.util";
 import { buildUserSearchAccessQuery, canManageUser } from "../policies/user.policy";
+import { IActorAccessOnSubject } from "../interfaces/user.interface";
 import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";
 import { isValidPermissionKey } from "../utils/permission-checker";
 import { StorageService } from "../services/storage.service";
@@ -285,6 +286,30 @@ export class UserController {
             res.json(success(user));
         } catch (error: any) {
             console.log("Error in UserController.getById:", error);
+            res.json(softError(error.message, error));
+        }
+    }
+
+    static async accessForSubject(req: AuthenticatedRequest, res: Response): Promise<void> {
+        try {
+            const actorTokenData = req.decoded as tokenPayload;
+            const actorUser = await UserService.getById(actorTokenData.id, actorTokenData.companyId);
+            if (!actorUser) {
+                res.json(softError("Unauthorized"));
+                return;
+            }
+            const userId = req.params.id;
+            const subjectUser = await UserService.getById(userId, actorTokenData.companyId);
+            if (!subjectUser) {
+                res.json(softError("User not found"));
+                return;
+            }
+            const access: IActorAccessOnSubject = {
+                canEdit: canManageUser(actorUser, subjectUser),
+            };
+            res.json(success(access));
+        } catch (error: any) {
+            console.log("Error in UserController.getAccess:", error);
             res.json(softError(error.message, error));
         }
     }

@@ -31,7 +31,7 @@ import { OfficeService } from "../../../core/services/office.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { PermissionService } from "../../../core/services/permission.service";
 import { BreadcrumbService } from "../../../core/services/breadcrumb.service";
-import { IUser, IUpdateUserRequest, ILevel, IOffice } from "../../../core/interfaces/user.interface";
+import { IUser, IUpdateUserRequest, ILevel, IOffice, IEditUserContext } from "../../../core/interfaces/user.interface";
 import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 import { IRole } from "../../../core/interfaces/role.interface";
@@ -381,28 +381,16 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
 
     // ── Private helpers ───────────────────────────────────────────────────────
     private loadUser(): void {
-        this.usersService.getUserById(this.userId).subscribe({
-            next: res => {
-                if (!res.success || !res.data) {
-                    this.toast.error("Failed to load user");
-                    this.router.navigate(["/users"]);
-                    return;
-                }
-                this.loadedUser = res.data;
-                this.patchForm(this.loadedUser);
-                this.userLoading.set(false);
-                this.loadCurrentProfileImage();
-                this.breadcrumbService.set([
-                    { label: "Users", route: "/users" },
-                    { label: res.data.name },
-                    { label: "Edit" },
-                ]);
-            },
-            error: () => {
-                this.toast.error("Failed to load user");
-                this.router.navigate(["/users"]);
-            },
-        });
+        const editContext = this.route.snapshot.data["editContext"] as IEditUserContext;
+        this.loadedUser = editContext.user;
+        this.patchForm(this.loadedUser);
+        this.userLoading.set(false);
+        this.loadCurrentProfileImage();
+        this.breadcrumbService.set([
+            { label: "Users", route: "/users" },
+            { label: editContext.user.name },
+            { label: "Edit" },
+        ]);
     }
 
     private loadReferenceData(): void {

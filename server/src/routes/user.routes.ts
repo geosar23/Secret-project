@@ -7,6 +7,7 @@ import { uploadProfileImage } from "../middleware/upload.middleware";
 const router = Router();
 router.get("/", UserController.getUsers);
 router.get("/effective-permissions", UserController.getEffectivePermissions);
+router.get("/:id/accessForSubject", UserController.accessForSubject);
 router.get("/:id", UserController.getById);
 router.put("/:id", UserController.update);
 router.post("/", UserController.create); //TODO: NOT TESTED

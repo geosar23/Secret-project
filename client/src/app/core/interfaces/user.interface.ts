@@ -191,6 +191,15 @@ export interface IUsersListResponse {
     limit: number;
 }
 
+export interface IActorAccessOnSubject {
+    canEdit: boolean;
+}
+
+export interface IEditUserContext {
+    user: IUser;
+    access: IActorAccessOnSubject;
+}
+
 export interface IUserResponse {
     user: IUser;
 }

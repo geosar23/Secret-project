@@ -23,7 +23,11 @@ export class PermissionService {
     }
 
     /**
-     * Synchronous check for user edit access. Same permission requirement as create.
+     * Synchronous check for user edit access.
+     * True if the actor holds ANY usersManagement:write scope.
+     * Use this for broad UI gating (e.g. showing the Edit button in the users list)
+     * where the subject user is not yet known. For subject-specific access use the
+     * editUserContextResolver which calls the server capabilities endpoint.
      */
     canEditUser(): boolean {
         const user = this.authService.getLocalUser();
@@ -31,7 +35,14 @@ export class PermissionService {
             return false;
         }
         const effective = this.computeEffective(user);
-        return hasPermission(effective, PermissionKeys.USERS_MANAGEMENT_WRITE_ALL);
+        return [
+            PermissionKeys.USERS_MANAGEMENT_WRITE_ALL,
+            PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT,
+            PermissionKeys.USERS_MANAGEMENT_WRITE_COUNTRY,
+            PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT_COUNTRY,
+            PermissionKeys.USERS_MANAGEMENT_WRITE_MANAGED,
+            PermissionKeys.USERS_MANAGEMENT_WRITE_SELF,
+        ].some(key => hasPermission(effective, key));
     }
 
     /**

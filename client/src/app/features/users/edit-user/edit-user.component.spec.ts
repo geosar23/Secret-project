@@ -13,7 +13,7 @@ import { OfficeService } from "../../../core/services/office.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { AuthService } from "../../../core/services/auth.service";
 import { UserRole } from "../../../core/enums/user-role.enum";
-import { IUser } from "../../../core/interfaces/user.interface";
+import { IEditUserContext, IUser } from "../../../core/interfaces/user.interface";
 
 const mockUser: IUser = {
     _id: "user-123",
@@ -25,6 +25,11 @@ const mockUser: IUser = {
     employmentTitle: { _id: "title-id", title: "Engineer" },
     manager: undefined,
 } as unknown as IUser;
+
+const mockEditContext: IEditUserContext = {
+    user: mockUser,
+    access: { canEdit: true },
+};
 
 const mockLocalUser = {
     _id: "local-user-id",
@@ -74,7 +79,10 @@ describe("EditUserPageComponent", () => {
                 {
                     provide: ActivatedRoute,
                     useValue: {
-                        snapshot: { paramMap: { get: () => "user-123" } },
+                        snapshot: {
+                            paramMap: { get: () => "user-123" },
+                            data: { editContext: mockEditContext },
+                        },
                     },
                 },
                 { provide: UsersService, useValue: usersServiceSpy },
@@ -98,8 +106,8 @@ describe("EditUserPageComponent", () => {
         expect(component).toBeTruthy();
     });
 
-    it("fetches the user on init", () => {
-        expect(usersServiceSpy.getUserById).toHaveBeenCalledWith("user-123");
+    it("reads the user from route resolved data", () => {
+        expect(component.userLoading()).toBeFalse();
     });
 
     it("patches the form with loaded user data", async () => {

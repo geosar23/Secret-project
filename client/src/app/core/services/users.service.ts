@@ -10,6 +10,7 @@ import {
     IUsersQueryParams,
     IUser,
     IProfileImageUrlResponse,
+    IActorAccessOnSubject,
 } from "../interfaces/user.interface";
 
 @Injectable({
@@ -30,6 +31,10 @@ export class UsersService {
     ): Observable<JsonResponse<IUser>> {
         const queryString = selectModes === "partial" && fields.length > 0 ? `?fields=${fields.join(",")}` : "";
         return this.apiService.get<JsonResponse<IUser>>(`users/${userId}${queryString}`);
+    }
+
+    getAccessForSubject(userId: string): Observable<JsonResponse<IActorAccessOnSubject>> {
+        return this.apiService.get<JsonResponse<IActorAccessOnSubject>>(`users/${userId}/accessForSubject`);
     }
 
     createUser(data: ICreateUserRequest): Observable<JsonResponse<IUserResponse>> {

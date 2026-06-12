@@ -3,6 +3,7 @@ import { authGuard } from "./core/guards/auth.guard";
 import { createUserGuard } from "./core/guards/create-user.guard";
 import { editUserGuard } from "./core/guards/edit-user.guard";
 import { profileRouteContextResolver } from "./features/profile/profile-route-context.resolver";
+import { editUserContextResolver } from "./features/users/edit-user/edit-user-context.resolver";
 
 export const routes: Routes = [
     { path: "", redirectTo: "/dashboard", pathMatch: "full" },
@@ -41,6 +42,7 @@ export const routes: Routes = [
                     {
                         path: ":id/edit",
                         canActivate: [editUserGuard],
+                        resolve: { editContext: editUserContextResolver },
                         data: { breadcrumb: "Edit User" },
                         loadComponent: () =>
                             import("./features/users/edit-user/edit-user.component").then(m => m.EditUserPageComponent),

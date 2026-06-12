@@ -94,6 +94,11 @@ export interface IUser {
     createdAt?: Date;
     updatedAt?: Date;
 }
+
+export interface IActorAccessOnSubject {
+    canEdit: boolean;
+}
+
 export interface IUsersQueryParams {
     page?: number;
     limit?: number;
