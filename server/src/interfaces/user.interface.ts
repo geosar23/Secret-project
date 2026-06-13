@@ -99,6 +99,18 @@ export interface IActorAccessOnSubject {
     canEdit: boolean;
 }
 
+/**
+ * Resolved scope attributes from a create-user request.
+ * departmentId must be resolved from the requested employmentTitleId before use.
+ */
+export interface IUserCreateScopePayload {
+    countryId?: string;
+    departmentId?: string;
+    managerId?: string;
+}
+
+export type UserCreateAccessResult = { allowed: true } | { allowed: false; reason: string };
+
 export interface IUsersQueryParams {
     page?: number;
     limit?: number;

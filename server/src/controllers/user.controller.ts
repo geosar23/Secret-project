@@ -1,10 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Response } from "express";
 import { UserService } from "../services/user.service";
+import { EmploymentTitleService } from "../services/employment-title.service";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
-import { IAddress, IEducationEntry, IEmergencyContact, IUser, IUsersQueryParams } from "../interfaces/user.interface";
+import {
+    IAddress,
+    IEducationEntry,
+    IEmergencyContact,
+    IUser,
+    IUserCreateScopePayload,
+    IUsersQueryParams,
+} from "../interfaces/user.interface";
 import { success, softError } from "../utils/response.util";
-import { buildUserSearchAccessQuery, canManageUser } from "../policies/user.policy";
+import { buildUserSearchAccessQuery, canManageUser, canCreateUser } from "../policies/user.policy";
 import { IActorAccessOnSubject } from "../interfaces/user.interface";
 import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";
 import { isValidPermissionKey } from "../utils/permission-checker";
@@ -186,6 +194,38 @@ export class UserController {
     static async create(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const actorTokenData = req.decoded as tokenPayload;
+
+            const actorUser = await UserService.getById(actorTokenData.id, actorTokenData.companyId);
+            if (!actorUser) {
+                res.json(softError("Unauthorized"));
+                return;
+            }
+
+            // Resolve department from the requested employment title so scope checks work.
+            const body = req.body as Record<string, unknown>;
+            const requestedEmploymentTitleId =
+                typeof body.employmentTitleId === "string" ? body.employmentTitleId : undefined;
+            let resolvedDepartmentId: string | undefined;
+            if (requestedEmploymentTitleId) {
+                const empTitle = (await EmploymentTitleService.getById(
+                    requestedEmploymentTitleId,
+                    actorTokenData.companyId,
+                )) as { subDepartment?: { department?: { _id?: { toString(): string } } } } | null;
+                resolvedDepartmentId = empTitle?.subDepartment?.department?._id?.toString();
+            }
+
+            const createPayload: IUserCreateScopePayload = {
+                countryId: typeof body.countryId === "string" ? body.countryId : undefined,
+                departmentId: resolvedDepartmentId,
+                managerId: typeof body.managerId === "string" ? body.managerId : undefined,
+            };
+
+            const createResult = canCreateUser(actorUser, createPayload);
+            if (!createResult.allowed) {
+                res.json(softError(createResult.reason));
+                return;
+            }
+
             const params: Partial<IUser> = { isActive: true };
 
             const USER_CREATE_REQUIRED_FIELDS: UserFieldMap = {

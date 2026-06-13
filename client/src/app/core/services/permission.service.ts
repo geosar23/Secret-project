@@ -12,6 +12,10 @@ export class PermissionService {
 
     /**
      * Synchronous check for user creation access.
+     * True if the actor holds ANY usersManagement:write scope.
+     * Use this for broad UI gating (e.g. showing the Create button).
+     * The server enforces which specific attributes (country, department, manager)
+     * the actor is allowed to assign when the form is submitted.
      */
     canCreateUser(): boolean {
         const user = this.authService.getLocalUser();
@@ -19,7 +23,14 @@ export class PermissionService {
             return false;
         }
         const effective = this.computeEffective(user);
-        return hasPermission(effective, PermissionKeys.USERS_MANAGEMENT_WRITE_ALL);
+        return [
+            PermissionKeys.USERS_MANAGEMENT_WRITE_ALL,
+            PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT,
+            PermissionKeys.USERS_MANAGEMENT_WRITE_COUNTRY,
+            PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT_COUNTRY,
+            PermissionKeys.USERS_MANAGEMENT_WRITE_MANAGED,
+            PermissionKeys.USERS_MANAGEMENT_WRITE_SELF,
+        ].some(key => hasPermission(effective, key));
     }
 
     /**

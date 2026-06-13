@@ -1,6 +1,6 @@
 import { PermissionKeys, PermissionScopes } from "../enums/permissions.enum";
 import { AccessContext } from "../interfaces/permission.interface";
-import { IUser, IUserPopulated } from "../interfaces/user.interface";
+import { IUser, IUserCreateScopePayload, IUserPopulated, UserCreateAccessResult } from "../interfaces/user.interface";
 import { buildActorContext, getEffectivePermissions, matchesWildcard } from "../utils/permission-checker";
 import { FilterQuery } from "mongoose";
 import { buildSearchAccessQuery } from "./search-access.policy";
@@ -126,6 +126,96 @@ export function canManageUser(actorUser: IUserPopulated, targetUser: IUserPopula
         [PermissionKeys.USERS_MANAGEMENT_WRITE_MANAGED, PermissionScopes.MANAGED],
         [PermissionKeys.USERS_MANAGEMENT_WRITE_SELF, PermissionScopes.SELF],
     ]);
+}
+
+/**
+ * Can the actor create a new user with the given scope attributes?
+ *
+ * Because no persisted subject exists yet, we compare the actor's context
+ * against the raw IDs supplied in the create request:
+ *   - countryId   — the country to assign to the new user
+ *   - departmentId — resolved from the requested employmentTitleId before calling this
+ *   - managerId   — the manager to assign to the new user
+ *
+ * SELF scope is excluded: creating a user "as yourself" is not meaningful.
+ * Scopes with a required dimension (DEPARTMENT, COUNTRY) require that dimension
+ * to be present in the payload — if absent the actor is denied for that scope.
+ */
+export function canCreateUser(actorUser: IUserPopulated, payload: IUserCreateScopePayload): UserCreateAccessResult {
+    const effective = getEffectivePermissions(actorUser);
+    const actorCtx = buildActorContext(actorUser);
+
+    const scopePairs: [string, PermissionScopes][] = [
+        [PermissionKeys.USERS_MANAGEMENT_WRITE_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USERS_MANAGEMENT_WRITE_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USERS_MANAGEMENT_WRITE_MANAGED, PermissionScopes.MANAGED],
+    ];
+
+    // Track which scopes the actor holds permission for but whose context check failed,
+    // so we can surface a specific reason if all scopes are exhausted.
+    const failedScopes: string[] = [];
+
+    for (const [permKey, scope] of scopePairs) {
+        if (!matchesWildcard(effective, permKey)) {
+            continue;
+        }
+
+        switch (scope) {
+            case PermissionScopes.ALL:
+                return { allowed: true };
+            case PermissionScopes.DEPARTMENT:
+                if (actorCtx.departmentId && payload.departmentId && actorCtx.departmentId === payload.departmentId) {
+                    return { allowed: true };
+                }
+                failedScopes.push(
+                    payload.departmentId
+                        ? "the selected department is outside your permitted scope"
+                        : "your department scope requires a department to be assigned",
+                );
+                break;
+            case PermissionScopes.COUNTRY:
+                if (actorCtx.countryId && payload.countryId && actorCtx.countryId === payload.countryId) {
+                    return { allowed: true };
+                }
+                failedScopes.push(
+                    payload.countryId
+                        ? "the selected country is outside your permitted scope"
+                        : "your country scope requires a country to be assigned",
+                );
+                break;
+            case PermissionScopes.DEPARTMENT_COUNTRY:
+                if (
+                    actorCtx.departmentId &&
+                    payload.departmentId &&
+                    actorCtx.departmentId === payload.departmentId &&
+                    actorCtx.countryId &&
+                    payload.countryId &&
+                    actorCtx.countryId === payload.countryId
+                ) {
+                    return { allowed: true };
+                }
+                failedScopes.push("the selected department and/or country is outside your permitted scope");
+                break;
+            case PermissionScopes.MANAGED:
+                if (payload.managerId && payload.managerId === actorCtx.id) {
+                    return { allowed: true };
+                }
+                failedScopes.push(
+                    payload.managerId
+                        ? "you can only create users you will directly manage"
+                        : "your managed scope requires a manager to be assigned",
+                );
+                break;
+        }
+    }
+
+    if (failedScopes.length === 0) {
+        return { allowed: false, reason: "You do not have permission to create users" };
+    }
+
+    return { allowed: false, reason: `Access denied: ${failedScopes.join("; ")}` };
 }
 
 /** Can the actor read a target user's profile (userProfile category)? */
