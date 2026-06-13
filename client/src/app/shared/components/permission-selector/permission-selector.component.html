@@ -1,0 +1,94 @@
+<div class="permission-selector">
+    <!-- Toolbar -->
+    <div class="selector-toolbar">
+        <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search permissions</mat-label>
+            <input matInput [formControl]="searchControl" placeholder="e.g. read, write, department, profile..." />
+            <mat-icon matPrefix>search</mat-icon>
+            @if (searchControl.value) {
+                <button matSuffix mat-icon-button (click)="searchControl.setValue('')">
+                    <mat-icon>close</mat-icon>
+                </button>
+            }
+        </mat-form-field>
+        <div class="toolbar-actions">
+            <span class="selection-count">{{ totalSelected }} / {{ totalPermissions }} selected</span>
+            <button mat-button type="button" (click)="selectAll()" class="toolbar-btn">
+                <mat-icon>check_box</mat-icon>
+                All
+            </button>
+            <button mat-button type="button" (click)="clearAll()" class="toolbar-btn">
+                <mat-icon>check_box_outline_blank</mat-icon>
+                None
+            </button>
+            <button mat-button type="button" (click)="expandAll()" class="toolbar-btn">
+                <mat-icon>unfold_more</mat-icon>
+            </button>
+            <button mat-button type="button" (click)="collapseAll()" class="toolbar-btn">
+                <mat-icon>unfold_less</mat-icon>
+            </button>
+        </div>
+    </div>
+
+    <!-- Groups -->
+    <mat-accordion multi>
+        @for (group of groups; track group.category) {
+            @if (hasVisiblePermissions(group)) {
+                <mat-expansion-panel [(expanded)]="group.expanded" class="permission-group">
+                    <mat-expansion-panel-header>
+                        <mat-panel-title>
+                            <mat-checkbox
+                                [checked]="isGroupAllSelected(group)"
+                                [indeterminate]="isGroupPartiallySelected(group)"
+                                (change)="toggleGroup(group)"
+                                (click)="$event.stopPropagation()"
+                                color="primary"
+                            ></mat-checkbox>
+                            <span class="group-label">{{ group.categoryLabel }}</span>
+                        </mat-panel-title>
+                        <mat-panel-description>
+                            <span class="group-count">
+                                {{ groupSelectedCount(group) }} / {{ group.permissions.length }}
+                            </span>
+                        </mat-panel-description>
+                    </mat-expansion-panel-header>
+
+                    <div class="permissions-grid">
+                        @for (perm of group.permissions; track perm.key) {
+                            @if (perm.visible) {
+                                <div
+                                    class="permission-row"
+                                    [class.selected]="isSelected(perm.key)"
+                                    (click)="togglePermission(perm.key)"
+                                >
+                                    <mat-checkbox
+                                        [checked]="isSelected(perm.key)"
+                                        (change)="togglePermission(perm.key)"
+                                        (click)="$event.stopPropagation()"
+                                        color="primary"
+                                    ></mat-checkbox>
+                                    <div class="permission-info">
+                                        <div class="permission-labels">
+                                            <span
+                                                class="action-badge"
+                                                [class.action-read]="perm.action === 'read'"
+                                                [class.action-write]="perm.action === 'write'"
+                                                [class.action-wildcard]="perm.action === '*'"
+                                            >
+                                                {{ formatAction(perm.action) }}
+                                            </span>
+                                            <span class="scope-badge">
+                                                {{ formatScope(perm.scope) }}
+                                            </span>
+                                        </div>
+                                        <code class="permission-key" [matTooltip]="perm.key">{{ perm.key }}</code>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </mat-expansion-panel>
+            }
+        }
+    </mat-accordion>
+</div>

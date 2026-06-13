@@ -121,8 +121,9 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
     openCreateDialog(): void {
         this.dialog
             .open(RoleDialogComponent, {
-                width: "460px",
+                width: "900px",
                 maxWidth: "95vw",
+                maxHeight: "90vh",
                 data: { mode: "create" } as RoleDialogData,
             })
             .afterClosed()
@@ -141,8 +142,9 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
     openEditDialog(role: IRole): void {
         this.dialog
             .open(RoleDialogComponent, {
-                width: "460px",
+                width: "900px",
                 maxWidth: "95vw",
+                maxHeight: "90vh",
                 data: { mode: "edit", role } as RoleDialogData,
             })
             .afterClosed()

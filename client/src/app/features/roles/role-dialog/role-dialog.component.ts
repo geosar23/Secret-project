@@ -7,19 +7,11 @@ import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
-import { MatSelectModule } from "@angular/material/select";
-import { MatChipsModule } from "@angular/material/chips";
 import { RoleService } from "../../../core/services/role.service";
 import { AuthService } from "../../../core/services/auth.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { IRole } from "../../../core/interfaces/role.interface";
-import { PermissionCategoriesStrings, PermissionKeys } from "../../../core/enums/permissions.enum";
-
-interface PermissionGroup {
-    category: string;
-    categoryLabel: string;
-    permissions: string[];
-}
+import { PermissionSelectorComponent } from "../../../shared/components/permission-selector/permission-selector.component";
 
 export interface RoleDialogData {
     mode: "create" | "edit";
@@ -38,8 +30,7 @@ export interface RoleDialogData {
         MatButtonModule,
         MatProgressSpinnerModule,
         MatSlideToggleModule,
-        MatSelectModule,
-        MatChipsModule,
+        PermissionSelectorComponent,
     ],
     templateUrl: "./role-dialog.component.html",
     styleUrls: ["./role-dialog.component.scss"],
@@ -55,8 +46,6 @@ export class RoleDialogComponent implements OnInit {
     loading = false;
     isEdit = this.data.mode === "edit";
     isSystemRole = this.data.role?.isSystemRole ?? false;
-
-    readonly permissionGroups: PermissionGroup[] = this.buildPermissionGroups();
 
     form: FormGroup = this.fb.group({
         name: [this.data.role?.name ?? "", [Validators.required, Validators.minLength(2)]],
@@ -75,28 +64,9 @@ export class RoleDialogComponent implements OnInit {
         return (this.form.get("permissions")?.value as string[]) ?? [];
     }
 
-    clearPermissions(): void {
-        this.form.get("permissions")?.setValue([]);
+    onPermissionsChange(permissions: string[]): void {
+        this.form.get("permissions")?.setValue(permissions);
         this.form.get("permissions")?.markAsDirty();
-    }
-
-    private buildPermissionGroups(): PermissionGroup[] {
-        const grouped = new Map<string, string[]>();
-
-        Object.values(PermissionKeys).forEach(key => {
-            const category = key.split(":")[0];
-            if (!grouped.has(category)) {
-                grouped.set(category, []);
-            }
-            grouped.get(category)!.push(key);
-        });
-
-        return Array.from(grouped.entries()).map(([category, keys]) => ({
-            category,
-            categoryLabel:
-                PermissionCategoriesStrings[category as keyof typeof PermissionCategoriesStrings] ?? category,
-            permissions: keys.sort(),
-        }));
     }
 
     onSubmit(): void {
