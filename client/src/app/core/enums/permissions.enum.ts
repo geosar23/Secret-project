@@ -1,6 +1,7 @@
 export enum PermissionCategories {
     ALL = "*",
     USERS_MANAGEMENT = "usersManagement",
+    USER_CREATE = "userCreate",
     COUNTRIES_MANAGEMENT = "countriesManagement",
     DEPARTMENTS_MANAGEMENT = "departmentsManagement",
     SUB_DEPARTMENTS_MANAGEMENT = "subDepartmentsManagement",
@@ -20,6 +21,7 @@ export enum PermissionCategories {
 export const PermissionCategoriesStrings: Record<PermissionCategories, string> = {
     [PermissionCategories.ALL]: "All",
     [PermissionCategories.USERS_MANAGEMENT]: "Users Management",
+    [PermissionCategories.USER_CREATE]: "Create User",
     [PermissionCategories.COUNTRIES_MANAGEMENT]: "Countries Management",
     [PermissionCategories.DEPARTMENTS_MANAGEMENT]: "Departments Management",
     [PermissionCategories.SUB_DEPARTMENTS_MANAGEMENT]: "Sub-Departments Management",
@@ -158,7 +160,7 @@ export function prefixedKeys<const TPrefix extends string, T extends Record<stri
 
 // ─── Per-category permission objects ─────────────────────────────────────────
 
-/** All `usersManagement` permission keys. */
+/** All `usersManagement` permission keys — read/list and write/edit existing users. */
 export const USERS_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategories.USERS_MANAGEMENT, {
     actions: [PermissionActions.READ, PermissionActions.WRITE],
     scopes: [
@@ -168,6 +170,18 @@ export const USERS_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategori
         PermissionScopes.DEPARTMENT_COUNTRY,
         PermissionScopes.MANAGED,
         PermissionScopes.SELF,
+    ],
+});
+
+/** All `userCreate` permission keys — write access for creating new users. */
+export const USER_CREATE_PERMISSIONS = definePermissions(PermissionCategories.USER_CREATE, {
+    actions: [PermissionActions.WRITE],
+    scopes: [
+        PermissionScopes.ALL,
+        PermissionScopes.DEPARTMENT,
+        PermissionScopes.COUNTRY,
+        PermissionScopes.DEPARTMENT_COUNTRY,
+        PermissionScopes.MANAGED,
     ],
 });
 
@@ -316,6 +330,7 @@ export const RESET_PASSWORD_PERMISSIONS = definePermissions(PermissionCategories
 export const PermissionKeys = {
     ALL: `${PermissionCategories.ALL}:${PermissionActions.ALL}:${PermissionScopes.ALL}`,
     ...prefixedKeys("USERS_MANAGEMENT", USERS_MANAGEMENT_PERMISSIONS),
+    ...prefixedKeys("USER_CREATE", USER_CREATE_PERMISSIONS),
     ...prefixedKeys("COUNTRIES_MANAGEMENT", COUNTRIES_MANAGEMENT_PERMISSIONS),
     ...prefixedKeys("DEPARTMENTS_MANAGEMENT", DEPARTMENTS_MANAGEMENT_PERMISSIONS),
     ...prefixedKeys("SUB_DEPARTMENTS_MANAGEMENT", SUB_DEPARTMENTS_MANAGEMENT_PERMISSIONS),

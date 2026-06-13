@@ -12,7 +12,7 @@ export class PermissionService {
 
     /**
      * Synchronous check for user creation access.
-     * True if the actor holds ANY usersManagement:write scope.
+     * True if the actor holds ANY userCreate:write scope.
      * Use this for broad UI gating (e.g. showing the Create button).
      * The server enforces which specific attributes (country, department, manager)
      * the actor is allowed to assign when the form is submitted.
@@ -24,21 +24,20 @@ export class PermissionService {
         }
         const effective = this.computeEffective(user);
         return [
-            PermissionKeys.USERS_MANAGEMENT_WRITE_ALL,
-            PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT,
-            PermissionKeys.USERS_MANAGEMENT_WRITE_COUNTRY,
-            PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT_COUNTRY,
-            PermissionKeys.USERS_MANAGEMENT_WRITE_MANAGED,
-            PermissionKeys.USERS_MANAGEMENT_WRITE_SELF,
+            PermissionKeys.USER_CREATE_WRITE_ALL,
+            PermissionKeys.USER_CREATE_WRITE_DEPARTMENT,
+            PermissionKeys.USER_CREATE_WRITE_COUNTRY,
+            PermissionKeys.USER_CREATE_WRITE_DEPARTMENT_COUNTRY,
+            PermissionKeys.USER_CREATE_WRITE_MANAGED,
         ].some(key => hasPermission(effective, key));
     }
 
     /**
      * Synchronous check for user edit access.
-     * True if the actor holds ANY usersManagement:write scope.
+     * True if the actor holds ANY userEdit:write scope.
      * Use this for broad UI gating (e.g. showing the Edit button in the users list)
      * where the subject user is not yet known. For subject-specific access use the
-     * editUserContextResolver which calls the server capabilities endpoint.
+     * editUserContextResolver which calls the server access endpoint.
      */
     canEditUser(): boolean {
         const user = this.authService.getLocalUser();

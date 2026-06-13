@@ -95,8 +95,20 @@ export interface IUser {
     updatedAt?: Date;
 }
 
+export interface IProfileSectionAccess {
+    read: boolean;
+    write: boolean;
+}
+
 export interface IActorAccessOnSubject {
     canEdit: boolean;
+    sections: {
+        identity: IProfileSectionAccess;
+        contact: IProfileSectionAccess;
+        employment: IProfileSectionAccess;
+        education: IProfileSectionAccess;
+        compensation: IProfileSectionAccess;
+    };
 }
 
 /**

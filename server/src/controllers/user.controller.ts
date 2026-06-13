@@ -12,8 +12,12 @@ import {
     IUsersQueryParams,
 } from "../interfaces/user.interface";
 import { success, softError } from "../utils/response.util";
-import { buildUserSearchAccessQuery, canManageUser, canCreateUser } from "../policies/user.policy";
-import { IActorAccessOnSubject } from "../interfaces/user.interface";
+import {
+    buildUserSearchAccessQuery,
+    buildActorAccessOnSubject,
+    canManageUser,
+    canCreateUser,
+} from "../policies/user.policy";
 import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";
 import { isValidPermissionKey } from "../utils/permission-checker";
 import { StorageService } from "../services/storage.service";
@@ -344,9 +348,7 @@ export class UserController {
                 res.json(softError("User not found"));
                 return;
             }
-            const access: IActorAccessOnSubject = {
-                canEdit: canManageUser(actorUser, subjectUser),
-            };
+            const access = buildActorAccessOnSubject(actorUser, subjectUser);
             res.json(success(access));
         } catch (error: any) {
             console.log("Error in UserController.getAccess:", error);

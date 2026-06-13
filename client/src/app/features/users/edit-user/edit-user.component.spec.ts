@@ -28,7 +28,16 @@ const mockUser: IUser = {
 
 const mockEditContext: IEditUserContext = {
     user: mockUser,
-    access: { canEdit: true },
+    access: {
+        canEdit: true,
+        sections: {
+            identity: { read: true, write: true },
+            contact: { read: true, write: true },
+            employment: { read: true, write: true },
+            education: { read: true, write: true },
+            compensation: { read: true, write: true },
+        },
+    },
 };
 
 const mockLocalUser = {

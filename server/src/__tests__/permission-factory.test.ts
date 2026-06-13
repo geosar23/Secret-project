@@ -96,7 +96,7 @@ describe("USERS_MANAGEMENT_PERMISSIONS", () => {
         expect(USERS_MANAGEMENT_PERMISSIONS.READ_ALL).toBe("usersManagement:read:*");
     });
 
-    it("covers 6 scopes for each of the 2 actions (12 keys total)", () => {
+    it("covers 6 scopes for READ only (6 keys total)", () => {
         expect(Object.keys(USERS_MANAGEMENT_PERMISSIONS)).toHaveLength(12);
     });
 });
@@ -129,6 +129,7 @@ describe("PermissionKeys (flat map)", () => {
     it("preserves all existing key names and values", () => {
         expect(PermissionKeys.USERS_MANAGEMENT_READ_ALL).toBe("usersManagement:read:*");
         expect(PermissionKeys.USERS_MANAGEMENT_WRITE_ALL).toBe("usersManagement:write:*");
+        expect(PermissionKeys.USER_CREATE_WRITE_ALL).toBe("userCreate:write:*");
         expect(PermissionKeys.COUNTRIES_MANAGEMENT_READ_ALL).toBe("countriesManagement:read:*");
         expect(PermissionKeys.USER_PROFILE_READ_SELF).toBe("userProfile:read:self");
         expect(PermissionKeys.USER_PROFILE_WRITE_ALL).toBe("userProfile:write:*");

@@ -1,6 +1,12 @@
 import { PermissionKeys, PermissionScopes } from "../enums/permissions.enum";
 import { AccessContext } from "../interfaces/permission.interface";
-import { IUser, IUserCreateScopePayload, IUserPopulated, UserCreateAccessResult } from "../interfaces/user.interface";
+import {
+    IUser,
+    IUserCreateScopePayload,
+    IUserPopulated,
+    UserCreateAccessResult,
+    IActorAccessOnSubject,
+} from "../interfaces/user.interface";
 import { buildActorContext, getEffectivePermissions, matchesWildcard } from "../utils/permission-checker";
 import { FilterQuery } from "mongoose";
 import { buildSearchAccessQuery } from "./search-access.policy";
@@ -12,7 +18,7 @@ import { buildSearchAccessQuery } from "./search-access.policy";
 export function buildUserSearchAccessQuery(actorUser: IUserPopulated): FilterQuery<IUser> | null {
     return buildSearchAccessQuery<IUser>(actorUser, {
         permissions: {
-            all: PermissionKeys.USERS_MANAGEMENT_WRITE_ALL,
+            all: PermissionKeys.USERS_MANAGEMENT_READ_ALL,
             readAll: PermissionKeys.USERS_MANAGEMENT_READ_ALL,
             readDepartment: PermissionKeys.USERS_MANAGEMENT_READ_DEPARTMENT,
             readCountry: PermissionKeys.USERS_MANAGEMENT_READ_COUNTRY,
@@ -116,7 +122,7 @@ export function canViewUser(actorUser: IUserPopulated, targetUser: IUserPopulate
     ]);
 }
 
-/** Can the actor fully manage (read + write) a target user (usersManagement category)? */
+/** Can the actor manage (write) a target user (usersManagement:write category)? */
 export function canManageUser(actorUser: IUserPopulated, targetUser: IUserPopulated): boolean {
     return checkScopedAccess(actorUser, targetUser, [
         [PermissionKeys.USERS_MANAGEMENT_WRITE_ALL, PermissionScopes.ALL],
@@ -146,11 +152,11 @@ export function canCreateUser(actorUser: IUserPopulated, payload: IUserCreateSco
     const actorCtx = buildActorContext(actorUser);
 
     const scopePairs: [string, PermissionScopes][] = [
-        [PermissionKeys.USERS_MANAGEMENT_WRITE_ALL, PermissionScopes.ALL],
-        [PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
-        [PermissionKeys.USERS_MANAGEMENT_WRITE_COUNTRY, PermissionScopes.COUNTRY],
-        [PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
-        [PermissionKeys.USERS_MANAGEMENT_WRITE_MANAGED, PermissionScopes.MANAGED],
+        [PermissionKeys.USER_CREATE_WRITE_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USER_CREATE_WRITE_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USER_CREATE_WRITE_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USER_CREATE_WRITE_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USER_CREATE_WRITE_MANAGED, PermissionScopes.MANAGED],
     ];
 
     // Track which scopes the actor holds permission for but whose context check failed,
@@ -323,4 +329,107 @@ export function canWriteUserProfileCompensation(actorUser: IUserPopulated, targe
         [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_MANAGED, PermissionScopes.MANAGED],
         [PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_SELF, PermissionScopes.SELF],
     ]);
+}
+
+// ─── Per-section read helpers ─────────────────────────────────────────────────
+
+function canReadUserProfileSection(
+    actorUser: IUserPopulated,
+    targetUser: IUserPopulated,
+    sectionScopePairs: [string, PermissionScopes][],
+): boolean {
+    return checkScopedAccess(actorUser, targetUser, sectionScopePairs);
+}
+
+export function canReadUserProfileIdentity(actorUser: IUserPopulated, targetUser: IUserPopulated): boolean {
+    return canReadUserProfileSection(actorUser, targetUser, [
+        [PermissionKeys.USER_PROFILE_IDENTITY_READ_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USER_PROFILE_IDENTITY_READ_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USER_PROFILE_IDENTITY_READ_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USER_PROFILE_IDENTITY_READ_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USER_PROFILE_IDENTITY_READ_MANAGED, PermissionScopes.MANAGED],
+        [PermissionKeys.USER_PROFILE_IDENTITY_READ_SELF, PermissionScopes.SELF],
+    ]);
+}
+
+export function canReadUserProfileContact(actorUser: IUserPopulated, targetUser: IUserPopulated): boolean {
+    return canReadUserProfileSection(actorUser, targetUser, [
+        [PermissionKeys.USER_PROFILE_CONTACT_READ_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USER_PROFILE_CONTACT_READ_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USER_PROFILE_CONTACT_READ_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USER_PROFILE_CONTACT_READ_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USER_PROFILE_CONTACT_READ_MANAGED, PermissionScopes.MANAGED],
+        [PermissionKeys.USER_PROFILE_CONTACT_READ_SELF, PermissionScopes.SELF],
+    ]);
+}
+
+export function canReadUserProfileEmployment(actorUser: IUserPopulated, targetUser: IUserPopulated): boolean {
+    return canReadUserProfileSection(actorUser, targetUser, [
+        [PermissionKeys.USER_PROFILE_EMPLOYMENT_READ_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USER_PROFILE_EMPLOYMENT_READ_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USER_PROFILE_EMPLOYMENT_READ_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USER_PROFILE_EMPLOYMENT_READ_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USER_PROFILE_EMPLOYMENT_READ_MANAGED, PermissionScopes.MANAGED],
+        [PermissionKeys.USER_PROFILE_EMPLOYMENT_READ_SELF, PermissionScopes.SELF],
+    ]);
+}
+
+export function canReadUserProfileEducation(actorUser: IUserPopulated, targetUser: IUserPopulated): boolean {
+    return canReadUserProfileSection(actorUser, targetUser, [
+        [PermissionKeys.USER_PROFILE_EDUCATION_READ_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USER_PROFILE_EDUCATION_READ_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USER_PROFILE_EDUCATION_READ_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USER_PROFILE_EDUCATION_READ_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USER_PROFILE_EDUCATION_READ_MANAGED, PermissionScopes.MANAGED],
+        [PermissionKeys.USER_PROFILE_EDUCATION_READ_SELF, PermissionScopes.SELF],
+    ]);
+}
+
+export function canReadUserProfileCompensation(actorUser: IUserPopulated, targetUser: IUserPopulated): boolean {
+    return canReadUserProfileSection(actorUser, targetUser, [
+        [PermissionKeys.USER_PROFILE_COMPENSATION_READ_ALL, PermissionScopes.ALL],
+        [PermissionKeys.USER_PROFILE_COMPENSATION_READ_DEPARTMENT, PermissionScopes.DEPARTMENT],
+        [PermissionKeys.USER_PROFILE_COMPENSATION_READ_COUNTRY, PermissionScopes.COUNTRY],
+        [PermissionKeys.USER_PROFILE_COMPENSATION_READ_DEPARTMENT_COUNTRY, PermissionScopes.DEPARTMENT_COUNTRY],
+        [PermissionKeys.USER_PROFILE_COMPENSATION_READ_MANAGED, PermissionScopes.MANAGED],
+        [PermissionKeys.USER_PROFILE_COMPENSATION_READ_SELF, PermissionScopes.SELF],
+    ]);
+}
+
+// ─── Composite access builder ─────────────────────────────────────────────────
+
+/**
+ * Compute the full IActorAccessOnSubject for the edit-user page.
+ * Called once per request by the access endpoint; result is sent to the client
+ * which uses it to show/hide and enable/disable form sections.
+ */
+export function buildActorAccessOnSubject(
+    actorUser: IUserPopulated,
+    subjectUser: IUserPopulated,
+): IActorAccessOnSubject {
+    return {
+        canEdit: canManageUser(actorUser, subjectUser),
+        sections: {
+            identity: {
+                read: canReadUserProfileIdentity(actorUser, subjectUser),
+                write: canWriteUserProfileIdentity(actorUser, subjectUser),
+            },
+            contact: {
+                read: canReadUserProfileContact(actorUser, subjectUser),
+                write: canWriteUserProfileContact(actorUser, subjectUser),
+            },
+            employment: {
+                read: canReadUserProfileEmployment(actorUser, subjectUser),
+                write: canWriteUserProfileEmployment(actorUser, subjectUser),
+            },
+            education: {
+                read: canReadUserProfileEducation(actorUser, subjectUser),
+                write: canWriteUserProfileEducation(actorUser, subjectUser),
+            },
+            compensation: {
+                read: canReadUserProfileCompensation(actorUser, subjectUser),
+                write: canWriteUserProfileCompensation(actorUser, subjectUser),
+            },
+        },
+    };
 }
