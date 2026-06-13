@@ -48,20 +48,29 @@ Examples:
 
 ### `PermissionCategories`
 
-| Enum value                  | String value               |
-| --------------------------- | -------------------------- |
-| `ALL`                       | `*`                        |
-| `USERS_MANAGEMENT`          | `usersManagement`          |
-| `COUNTRIES_MANAGEMENT`      | `countriesManagement`      |
-| `USER_PROFILE`              | `userProfile`              |
-| `USER_PROFILE_IDENTITY`     | `userProfile.identity`     |
-| `USER_PROFILE_CONTACT`      | `userProfile.contact`      |
-| `USER_PROFILE_EMPLOYMENT`   | `userProfile.employment`   |
-| `USER_PROFILE_EDUCATION`    | `userProfile.education`    |
-| `USER_PROFILE_COMPENSATION` | `userProfile.compensation` |
-| `ROLES_MANAGEMENT`          | `rolesManagement`          |
+| Enum value                     | String value                 | Actions available |
+| ------------------------------ | ---------------------------- | ----------------- |
+| `ALL`                          | `*`                          | `*`               |
+| `USERS_MANAGEMENT`             | `usersManagement`            | `read`, `write`   |
+| `USER_CREATE`                  | `userCreate`                 | `write`           |
+| `COUNTRIES_MANAGEMENT`         | `countriesManagement`        | `read`, `write`   |
+| `DEPARTMENTS_MANAGEMENT`       | `departmentsManagement`      | `read`, `write`   |
+| `SUB_DEPARTMENTS_MANAGEMENT`   | `subDepartmentsManagement`   | `read`, `write`   |
+| `EMPLOYMENT_TITLES_MANAGEMENT` | `employmentTitlesManagement` | `read`, `write`   |
+| `LEVELS_MANAGEMENT`            | `levelsManagement`           | `read`, `write`   |
+| `OFFICES_MANAGEMENT`           | `officesManagement`          | `read`, `write`   |
+| `USER_PROFILE`                 | `userProfile`                | `read`, `write`   |
+| `USER_PROFILE_IDENTITY`        | `userProfile.identity`       | `read`, `write`   |
+| `USER_PROFILE_CONTACT`         | `userProfile.contact`        | `read`, `write`   |
+| `USER_PROFILE_EMPLOYMENT`      | `userProfile.employment`     | `read`, `write`   |
+| `USER_PROFILE_EDUCATION`       | `userProfile.education`      | `read`, `write`   |
+| `USER_PROFILE_COMPENSATION`    | `userProfile.compensation`   | `read`, `write`   |
+| `ROLES_MANAGEMENT`             | `rolesManagement`            | `read`, `write`   |
+| `RESET_PASSWORD`               | `resetPassword`              | `write`           |
 
 Sub-categories use dot notation (`userProfile.identity`). The wildcard checker also honours parent-category permissions for sub-categories (e.g. `userProfile:write:*` satisfies `userProfile.identity:write:*`).
+
+> **User management split**: `usersManagement:read:{scope}` gates listing/viewing the users list. `usersManagement:write:{scope}` gates the Edit User page and grant/revoke endpoints. `userCreate:write:{scope}` gates new-user creation and scopes which country, department, and manager the actor may assign.
 
 ### `PermissionActions`
 
@@ -128,13 +137,16 @@ The canonical flat object used everywhere in code:
 ```ts
 PermissionKeys.ALL; // "*:*:*"
 PermissionKeys.USERS_MANAGEMENT_READ_ALL; // "usersManagement:read:*"
-PermissionKeys.USERS_MANAGEMENT_ALL_ALL; // "usersManagement:*:*"
-PermissionKeys.USERS_MANAGEMENT_ALL_DEPARTMENT; // "usersManagement:*:department"
+PermissionKeys.USERS_MANAGEMENT_WRITE_ALL; // "usersManagement:write:*"
+PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT; // "usersManagement:write:department"
+PermissionKeys.USER_CREATE_WRITE_ALL; // "userCreate:write:*"
+PermissionKeys.USER_CREATE_WRITE_MANAGED; // "userCreate:write:managed"
 PermissionKeys.USER_PROFILE_READ_SELF; // "userProfile:read:self"
-PermissionKeys.USER_PROFILE_ALL_ALL; // "userProfile:*:*"
-PermissionKeys.ROLES_MANAGEMENT_ALL_ALL; // "rolesManagement:*:*"
-// Legacy VIEW alias (same value as READ):
-PermissionKeys.ROLES_MANAGEMENT_VIEW_ALL; // == ROLES_MANAGEMENT_READ_ALL
+PermissionKeys.USER_PROFILE_WRITE_ALL; // "userProfile:write:*"
+PermissionKeys.USER_PROFILE_IDENTITY_READ_DEPARTMENT; // "userProfile.identity:read:department"
+PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_ALL; // "userProfile.compensation:write:*"
+PermissionKeys.ROLES_MANAGEMENT_READ_ALL; // "rolesManagement:read:*"
+PermissionKeys.ROLES_MANAGEMENT_WRITE_ALL; // "rolesManagement:write:*"
 ```
 
 **To add a new category**: add entry to `PermissionCategories` + `PermissionCategoriesStrings`, call `definePermissions(...)`, then spread `prefixedKeys(...)` into `PermissionKeys` — in **both** client and server enum files.
@@ -207,6 +219,65 @@ getEffectivePermissions(user) → Set<string>
 
 ---
 
+## User Policy Functions (`server/src/policies/user.policy.ts`)
+
+Subject-specific access decisions (require both actor and subject user documents to be populated):
+
+```ts
+// Page-level gate: can actor open the Edit User page for subject?
+canManageUser(actorUser, subjectUser): boolean    // usersManagement:write:{scope}
+
+// Scope gate: can actor create a user with the given country/dept/manager?
+canCreateUser(actorUser, payload): UserCreateAccessResult
+
+// Profile section checks
+canViewUser(actorUser, subjectUser): boolean      // usersManagement:read:{scope}
+canViewUserProfile(actorUser, subjectUser): boolean
+
+// Per-section read (userProfile.<section>:read:{scope})
+canReadUserProfileIdentity(actorUser, subjectUser): boolean
+canReadUserProfileContact(actorUser, subjectUser): boolean
+canReadUserProfileEmployment(actorUser, subjectUser): boolean
+canReadUserProfileEducation(actorUser, subjectUser): boolean
+canReadUserProfileCompensation(actorUser, subjectUser): boolean
+
+// Per-section write (userProfile.<section>:write:{scope})
+canWriteUserProfileIdentity(actorUser, subjectUser): boolean
+canWriteUserProfileContact(actorUser, subjectUser): boolean
+canWriteUserProfileEmployment(actorUser, subjectUser): boolean
+canWriteUserProfileEducation(actorUser, subjectUser): boolean
+canWriteUserProfileCompensation(actorUser, subjectUser): boolean
+
+// Composite builder — called once per request by GET /:id/accessForSubject
+buildActorAccessOnSubject(actorUser, subjectUser): IActorAccessOnSubject
+```
+
+### `IActorAccessOnSubject`
+
+Returned by `GET /api/users/:id/accessForSubject` and consumed by the Edit User resolver:
+
+```ts
+interface IProfileSectionAccess {
+    read: boolean;
+    write: boolean;
+}
+
+interface IActorAccessOnSubject {
+    canEdit: boolean; // usersManagement:write:{scope} — gates the page
+    sections: {
+        identity: IProfileSectionAccess; // userProfile.identity
+        contact: IProfileSectionAccess; // userProfile.contact
+        employment: IProfileSectionAccess; // userProfile.employment
+        education: IProfileSectionAccess; // userProfile.education
+        compensation: IProfileSectionAccess; // userProfile.compensation
+    };
+}
+```
+
+The client uses `canEdit` to guard the route. Inside the Edit User page it uses `sections.*` to hide (`read: false`), show as read-only (`read: true, write: false`), or make editable (`read: true, write: true`) each profile section.
+
+---
+
 ## Server Middleware (`permission.middleware.ts`)
 
 Route-level guards. Each loads the user from DB, builds effective permissions, then calls the corresponding `PermissionChecker` method.
@@ -235,8 +306,8 @@ Exposes synchronous helpers for checking the local user's effective permissions 
 
 ```ts
 // Synchronous (safe in constructors/field initializers after auth bootstrap)
-permissionService.canCreateUser(): boolean
-permissionService.canEditUser(): boolean
+permissionService.canCreateUser(): boolean  // userCreate:write:{scope}
+permissionService.canEditUser(): boolean    // usersManagement:write:{scope} (broad check — use resolver for subject-specific check)
 ```
 
 Add more helpers following the same `hasPermission(computeEffective(user), PermissionKeys.X)` pattern.

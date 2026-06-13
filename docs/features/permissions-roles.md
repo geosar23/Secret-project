@@ -46,28 +46,79 @@ This ensures both sides always agree on what keys exist. When adding a new permi
 
 ### Permission structure
 
-Permissions follow a `category:scope:action` convention, for example:
-category usually means feature.
-Also dot notations for sub categorizing something is accepted
-users.a:country:read
+Permissions follow a `{category}:{action}:{scope}` format, for example:
 
 ```
-users:all:read
-users:all:write
-roles:all:read
-departments:all:write
+usersManagement:read:*
+usersManagement:write:department
+userProfile.identity:read:self
+userProfile.compensation:write:managed
+userCreate:write:country
+rolesManagement:write:*
 ```
 
-This structure allows the UI to group related permissions and enables future wildcard matching.
+Categories may use dot notation for sub-categories (e.g. `userProfile.identity`). The server's wildcard checker automatically falls back to the parent category, so `userProfile:write:*` satisfies a check for `userProfile.identity:write:*`.
+
+### Permission categories
+
+| Category                   | Actions available | Purpose                                                                  |
+| -------------------------- | ----------------- | ------------------------------------------------------------------------ |
+| `usersManagement`          | `read`, `write`   | List/view users (`read`); open Edit User page (`write`)                  |
+| `userCreate`               | `write`           | Create new users; scopes which country/dept/manager the actor may assign |
+| `userProfile`              | `read`, `write`   | Parent category for all profile sections                                 |
+| `userProfile.identity`     | `read`, `write`   | Identity fields on the Edit User profile                                 |
+| `userProfile.contact`      | `read`, `write`   | Contact fields                                                           |
+| `userProfile.employment`   | `read`, `write`   | Employment fields                                                        |
+| `userProfile.education`    | `read`, `write`   | Education fields                                                         |
+| `userProfile.compensation` | `read`, `write`   | Compensation fields                                                      |
+| `countriesManagement`      | `read`, `write`   | Countries CRUD                                                           |
+| `rolesManagement`          | `read`, `write`   | Roles CRUD                                                               |
+| `resetPassword`            | `write`           | Reset another user's password                                            |
+
+### Scopes
+
+| Scope                | Meaning                                      |
+| -------------------- | -------------------------------------------- |
+| `*`                  | All records within the actor's company       |
+| `department`         | Records in the actor's department            |
+| `country`            | Records in the actor's country               |
+| `department-country` | Records matching both department and country |
+| `managed`            | Records where actor is the direct manager    |
+| `self`               | The actor's own record only                  |
+
+> Company isolation is enforced at the repository layer — all queries are automatically scoped to the actor's company. There is no separate `company` scope.
 
 ### Granting / revoking per user
 
 ```
-POST /api/users/:id/permissions/grant   { permission: "users:all:write" }
-POST /api/users/:id/permissions/revoke  { permission: "users:all:write" }
+POST /api/users/:id/grant-permission   { permission: "userProfile.compensation:write:*" }
+POST /api/users/:id/revoke-permission  { permission: "userProfile.compensation:write:*" }
 ```
 
-Both endpoints require the caller to have the `ALL` permission.
+Both endpoints require the caller to have any `usersManagement:write:{scope}` permission.
+
+### Subject-specific access endpoint
+
+```
+GET /api/users/:id/accessForSubject
+```
+
+Returns `IActorAccessOnSubject` — whether the authenticated actor can edit the subject user and which profile sections they can read or write:
+
+```json
+{
+    "canEdit": true,
+    "sections": {
+        "identity": { "read": true, "write": true },
+        "contact": { "read": true, "write": false },
+        "employment": { "read": true, "write": true },
+        "education": { "read": false, "write": false },
+        "compensation": { "read": false, "write": false }
+    }
+}
+```
+
+The Edit User page resolver calls this endpoint before the component loads; sections with `read: false` are hidden, sections with `read: true, write: false` are shown read-only.
 
 ---
 
@@ -75,15 +126,22 @@ Both endpoints require the caller to have the `ALL` permission.
 
 The `permission.middleware.ts` factory accepts one or more required permission keys and returns an Express middleware that:
 
-1. Reads the effective permissions from `req.user` (computed after auth middleware runs).
-2. Checks that the user holds **all** required permissions.
+1. Reads the effective permissions from the JWT-decoded user (computed after auth middleware runs).
+2. Checks that the user holds **any** (or **all**, depending on variant) required permissions.
 3. Calls `next()` or responds `403 Forbidden`.
 
 Example usage in a route file:
 
 ```ts
-router.delete("/:id", requirePermission("countries:all:write"), controller.delete);
+router.get("/", userHasPermission(PermissionKeys.USERS_MANAGEMENT_READ_ALL), controller.list);
+router.put(
+    "/:id",
+    userHasAnyPermission([PermissionKeys.USERS_MANAGEMENT_WRITE_ALL, PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT]),
+    controller.update,
+);
 ```
+
+For subject-specific checks (does actor have write access to _this particular user_?), use the policy functions in `server/src/policies/user.policy.ts` rather than route-level middleware. The `buildActorAccessOnSubject(actorUser, subjectUser)` function computes the full section-level access object in one call.
 
 ---
 
@@ -103,14 +161,17 @@ The dedicated Permissions page (`client/src/app/features/permissions/`) provides
 
 ## Related Files
 
-| File                                             | Purpose                                          |
-| ------------------------------------------------ | ------------------------------------------------ |
-| `server/src/enums/permissions.enum.ts`           | Source of truth for all permission keys (server) |
-| `server/src/middleware/permission.middleware.ts` | Permission guard middleware factory              |
-| `server/src/models/role.model.ts`                | Role Mongoose schema                             |
-| `server/src/services/role.service.ts`            | Role business logic                              |
-| `server/src/repositories/`                       | Role repository (company-scoped queries)         |
-| `client/src/app/features/roles/`                 | Roles management UI                              |
-| `client/src/app/features/permissions/`           | Permissions management UI                        |
-| `client/src/app/core/services/`                  | PermissionService (client-side checks)           |
-| `client/src/app/core/guards/`                    | Route guards using permission checks             |
+| File                                                 | Purpose                                                    |
+| ---------------------------------------------------- | ---------------------------------------------------------- |
+| `server/src/enums/permissions.enum.ts`               | Source of truth for all permission keys (server)           |
+| `client/src/app/core/enums/permissions.enum.ts`      | Client mirror — must stay in sync with server              |
+| `server/src/middleware/permission.middleware.ts`     | Route-level permission guard middleware                    |
+| `server/src/policies/user.policy.ts`                 | Subject-specific access logic; `buildActorAccessOnSubject` |
+| `server/src/interfaces/user.interface.ts`            | `IActorAccessOnSubject`, `IProfileSectionAccess`           |
+| `server/src/models/role.model.ts`                    | Role Mongoose schema                                       |
+| `server/src/services/role.service.ts`                | Role business logic                                        |
+| `server/src/repositories/`                           | Role repository (company-scoped queries)                   |
+| `client/src/app/features/roles/`                     | Roles management UI                                        |
+| `client/src/app/features/permissions/`               | Permissions management UI                                  |
+| `client/src/app/core/services/permission.service.ts` | Client-side synchronous permission helpers                 |
+| `client/src/app/core/guards/`                        | Route guards using permission checks                       |
