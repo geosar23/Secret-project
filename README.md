@@ -56,7 +56,3 @@ All detailed documentation lives in [`docs/`](./docs/index.md).
 | Contribute code                       | [Contributing](./docs/contributing.md)                      |
 | See what changed                      | [Changelog](./docs/changelog.md)                            |
 | See what's planned                    | [Roadmap](./docs/roadmap.md)                                |
-
-## License
-
-[Add license information]
