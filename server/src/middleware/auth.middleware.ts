@@ -15,12 +15,12 @@ export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: N
         const decoded = jwt.verify(token, config.JWT_SECRET) as tokenPayload;
 
         if (!decoded?.companyId || !decoded?.id) {
-            return res.status(401).json({ message: "Invalid token" });
+            return res.status(401).json({ message: "Unauthorized" });
         }
 
         req.decoded = decoded;
         next();
     } catch {
-        return res.status(401).json({ message: "Invalid token" });
+        return res.status(401).json({ message: "Unauthorized" });
     }
 };
