@@ -14,8 +14,8 @@ export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: N
     try {
         const decoded = jwt.verify(token, config.JWT_SECRET) as tokenPayload;
 
-        if (!decoded?.companyId) {
-            return res.status(403).json({ message: "Invalid token" });
+        if (!decoded?.companyId || !decoded?.id) {
+            return res.status(401).json({ message: "Invalid token" });
         }
 
         req.decoded = decoded;
