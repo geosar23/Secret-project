@@ -24,9 +24,9 @@ describe("Auth gate on protected routes", () => {
         expect(res.status).toBe(401);
     });
 
-    it("GET /api/users — returns 403 with invalid token", async () => {
+    it("GET /api/users — returns 401 with invalid token", async () => {
         const res = await request(app).get("/api/users").set("Authorization", "Bearer not.a.real.token");
-        expect(res.status).toBe(403);
+        expect(res.status).toBe(401);
     });
 
     it("GET /api/roles — returns 401 with no token", async () => {

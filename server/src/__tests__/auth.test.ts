@@ -40,7 +40,7 @@ describe("POST /api/auth/login", () => {
             password: "WrongPassword!",
         });
 
-        expect(res.status).toBe(200); // API uses soft errors (200 + success:false)
+        expect(res.status).toBe(401);
         expect(res.body.success).toBe(false);
         expect(res.body).not.toHaveProperty("data.token");
     });
@@ -51,21 +51,21 @@ describe("POST /api/auth/login", () => {
             password: "Whatever1!",
         });
 
-        expect(res.status).toBe(200);
+        expect(res.status).toBe(401);
         expect(res.body.success).toBe(false);
     });
 
     it("rejects missing credentials", async () => {
         const res = await request(app).post("/api/auth/login").send({});
 
-        expect(res.status).toBe(200);
+        expect(res.status).toBe(400);
         expect(res.body.success).toBe(false);
     });
 
     it("rejects missing password", async () => {
         const res = await request(app).post("/api/auth/login").send({ email: admin.email });
 
-        expect(res.status).toBe(200);
+        expect(res.status).toBe(400);
         expect(res.body.success).toBe(false);
     });
 });
@@ -88,18 +88,18 @@ describe("GET /api/auth/me", () => {
         expect(res.status).toBe(401);
     });
 
-    it("returns 403 for a malformed token", async () => {
+    it("returns 401 for a malformed token", async () => {
         const res = await request(app).get("/api/auth/me").set("Authorization", "Bearer this.is.not.a.valid.jwt");
 
-        expect(res.status).toBe(403);
+        expect(res.status).toBe(401);
     });
 
-    it("returns 403 for a token signed with a different secret", async () => {
+    it("returns 401 for a token signed with a different secret", async () => {
         const badToken = jwt.sign({ id: "fake", companyId: "fake" }, "wrong-secret");
 
         const res = await request(app).get("/api/auth/me").set("Authorization", `Bearer ${badToken}`);
 
-        expect(res.status).toBe(403);
+        expect(res.status).toBe(401);
     });
 });
 

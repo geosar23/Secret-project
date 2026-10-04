@@ -61,7 +61,6 @@ export class UserDocumentController {
 
             const data: Record<string, unknown> = {
                 user: userId,
-                company: requestingUser.companyId,
                 type,
             };
 
@@ -81,7 +80,7 @@ export class UserDocumentController {
                 }
             }
 
-            const doc = await UserDocumentService.create(data as any);
+            const doc = await UserDocumentService.create(requestingUser.companyId, data as any);
             res.json(success(doc));
         } catch (error: any) {
             console.log("Error in UserDocumentController.create:", error);

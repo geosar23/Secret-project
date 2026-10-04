@@ -134,6 +134,17 @@ export function canManageUser(actorUser: IUserPopulated, targetUser: IUserPopula
     ]);
 }
 
+/** An actor may only hand out permissions they hold themselves (prevents privilege escalation). */
+export function canGrantPermissions(actorUser: IUserPopulated, permissions: string[]): boolean {
+    const effective = getEffectivePermissions(actorUser);
+    return permissions.every(p => matchesWildcard(effective, p));
+}
+
+/** Compensation write for a not-yet-existing user: only unscoped (ALL) access qualifies. */
+export function canWriteCompensationOnCreate(actorUser: IUserPopulated): boolean {
+    return matchesWildcard(getEffectivePermissions(actorUser), PermissionKeys.USER_PROFILE_COMPENSATION_WRITE_ALL);
+}
+
 /**
  * Can the actor create a new user with the given scope attributes?
  *

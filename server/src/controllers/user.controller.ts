@@ -9,6 +9,7 @@ import {
     IEmergencyContact,
     IUser,
     IUserCreateScopePayload,
+    IUserPopulated,
     IUsersQueryParams,
 } from "../interfaces/user.interface";
 import { success, softError, hardError, unauthorizedError, forbiddenError } from "../utils/response.util";
@@ -16,8 +17,15 @@ import {
     buildActorAccessOnSubject,
     canManageUser,
     canCreateUser,
+    canViewUser,
+    canViewUserProfile,
+    canReadUserProfileCompensation,
+    canWriteUserProfileCompensation,
+    canWriteCompensationOnCreate,
+    canGrantPermissions,
     buildUserSearchAccessQuery,
 } from "../policies/user.policy";
+import { validateUserReferences } from "../services/user-reference.service";
 import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";
 import { isValidPermissionKey } from "../utils/permission-checker";
 import { StorageService } from "../services/storage.service";
@@ -156,6 +164,17 @@ function applyComplexUserFields(target: Partial<IUser>, body: Record<string, unk
     }
 }
 
+async function canMutateUser(actorTokenData: tokenPayload, userId: string): Promise<boolean> {
+    if (actorTokenData.id === userId) {
+        return true;
+    }
+    const [actor, subject] = await Promise.all([
+        UserService.getById(actorTokenData.id, actorTokenData.companyId),
+        UserService.getById(userId, actorTokenData.companyId),
+    ]);
+    return !!actor && !!subject && canManageUser(actor, subject);
+}
+
 export class UserController {
     static async getUsers(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
@@ -234,16 +253,14 @@ export class UserController {
                 email: { type: "string", targetField: "email", required: true, isEmail: true },
                 password: { type: "string", targetField: "password", required: true, minLength: 6, toBeHashed: true },
                 role: { type: "string", targetField: "role", isPointer: true, pointerClass: "Roles", required: true },
-                companyId: {
-                    type: "string",
-                    targetField: "company",
-                    isPointer: true,
-                    pointerClass: "Companies",
-                    required: true,
-                },
             };
 
-            setMappedFields(params, USER_CREATE_REQUIRED_FIELDS, req.body as Record<string, unknown>);
+            const createBody: Record<string, unknown> = { ...(req.body as Record<string, unknown>) };
+            if (!canWriteCompensationOnCreate(actorUser)) {
+                delete createBody.salary;
+            }
+
+            setMappedFields(params, USER_CREATE_REQUIRED_FIELDS, createBody);
 
             const USER_OPTIONAL_FIELDS: UserFieldMap = {
                 countryId: {
@@ -303,8 +320,17 @@ export class UserController {
                 isOutsourced: { type: "boolean", targetField: "isOutsourced" },
             };
 
-            setMappedFields(params, USER_OPTIONAL_FIELDS, req.body as Record<string, unknown>);
-            applyComplexUserFields(params, req.body as Record<string, unknown>);
+            setMappedFields(params, USER_OPTIONAL_FIELDS, createBody);
+            applyComplexUserFields(params, createBody);
+
+            const refCheck = await validateUserReferences(actorTokenData.companyId, params as Record<string, unknown>);
+            if (refCheck.invalidField) {
+                res.json(softError(`Invalid ${refCheck.invalidField}`));
+                return;
+            }
+            if (refCheck.rolePermissions && !canGrantPermissions(actorUser, refCheck.rolePermissions)) {
+                return forbiddenError(res);
+            }
 
             const newUser = await UserService.create(params as Omit<IUser, "_id">, actorTokenData.companyId);
             res.json(success({ user: newUser }));
@@ -316,15 +342,42 @@ export class UserController {
 
     static async getById(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
-            const requestingUser = req.decoded as tokenPayload;
+            const actorTokenData = req.decoded as tokenPayload;
+            const actorUser = await UserService.getById(actorTokenData.id, actorTokenData.companyId);
+            if (!actorUser) {
+                return unauthorizedError(res);
+            }
+
             const userId = req.params.id;
-            const selectFields = req.query.fields ? (req.query.fields as string).split(",") : undefined;
-            const user = await UserService.getById(userId, requestingUser.companyId, selectFields);
+            const user = await UserService.getById(userId, actorTokenData.companyId);
             if (!user) {
                 res.json(softError("User not found"));
                 return;
             }
-            res.json(success(user));
+
+            const isSelf = actorTokenData.id === userId;
+            if (
+                !isSelf &&
+                !canViewUser(actorUser, user) &&
+                !canViewUserProfile(actorUser, user) &&
+                !canManageUser(actorUser, user)
+            ) {
+                return forbiddenError(res);
+            }
+
+            const { salary, ...rest } = user as IUserPopulated;
+            let data: Record<string, unknown> = { ...rest };
+            if (salary !== undefined && canReadUserProfileCompensation(actorUser, user)) {
+                data.salary = salary;
+            }
+
+            const requestedFields = typeof req.query.fields === "string" ? req.query.fields.split(",") : [];
+            const picked = requestedFields.map(f => f.trim()).filter(f => f in data);
+            if (picked.length > 0) {
+                data = Object.fromEntries(["_id", ...picked].filter(f => f in data).map(f => [f, data[f]]));
+            }
+
+            res.json(success(data));
         } catch (error: any) {
             console.log("Error in UserController.getById:", error);
             return hardError(res);
@@ -377,13 +430,6 @@ export class UserController {
                 name: { type: "string", targetField: "name" },
                 email: { type: "string", targetField: "email", isEmail: true },
                 role: { type: "string", targetField: "role", isPointer: true, pointerClass: "Roles" },
-                companyId: {
-                    type: "string",
-                    targetField: "company",
-                    isPointer: true,
-                    pointerClass: "Companies",
-                    allowUnset: true,
-                },
                 countryId: {
                     type: "string",
                     targetField: "country",
@@ -442,8 +488,31 @@ export class UserController {
                 isActive: { type: "boolean", targetField: "isActive" },
             };
 
-            setMappedFields(sanitizedData, USER_UPDATE_FIELDS, req.body as Record<string, unknown>);
-            applyComplexUserFields(sanitizedData, req.body as Record<string, unknown>);
+            const updateBody: Record<string, unknown> = { ...(req.body as Record<string, unknown>) };
+            if (!canWriteUserProfileCompensation(actorUser, user)) {
+                delete updateBody.salary;
+            }
+
+            setMappedFields(sanitizedData, USER_UPDATE_FIELDS, updateBody);
+            applyComplexUserFields(sanitizedData, updateBody);
+
+            const refCheck = await validateUserReferences(
+                actorTokenData.companyId,
+                sanitizedData as Record<string, unknown>,
+            );
+            if (refCheck.invalidField) {
+                res.json(softError(`Invalid ${refCheck.invalidField}`));
+                return;
+            }
+
+            const currentRoleId = (user.role as unknown as { _id?: { toString(): string } })?._id?.toString();
+            const roleChanged = !!sanitizedData.role && String(sanitizedData.role) !== currentRoleId;
+            if (roleChanged) {
+                const isSelf = actorTokenData.id === userId;
+                if (isSelf || !canGrantPermissions(actorUser, refCheck.rolePermissions ?? [])) {
+                    return forbiddenError(res);
+                }
+            }
 
             const updatedUser = await UserService.update(userId, sanitizedData, actorTokenData.companyId);
             if (!updatedUser) {
@@ -523,10 +592,23 @@ export class UserController {
                 return;
             }
 
-            const targetUser = await UserService.getById(userId, actorTokenData.companyId, ["_id"]);
+            const actorUser = await UserService.getById(actorTokenData.id, actorTokenData.companyId);
+            const targetUser = await UserService.getById(userId, actorTokenData.companyId);
+            if (!actorUser) {
+                return unauthorizedError(res);
+            }
             if (!targetUser) {
                 res.json(softError("User not found"));
                 return;
+            }
+
+            // Self-grant would let a self-scoped editor escalate their own access.
+            if (
+                actorTokenData.id === userId ||
+                !canManageUser(actorUser, targetUser) ||
+                !canGrantPermissions(actorUser, [permissionKey])
+            ) {
+                return forbiddenError(res);
             }
 
             await UserService.grantPermission(userId, permissionKey, actorTokenData.companyId);
@@ -553,10 +635,18 @@ export class UserController {
                 return;
             }
 
-            const targetUser = await UserService.getById(userId, actorTokenData.companyId, ["_id"]);
+            const actorUser = await UserService.getById(actorTokenData.id, actorTokenData.companyId);
+            const targetUser = await UserService.getById(userId, actorTokenData.companyId);
+            if (!actorUser) {
+                return unauthorizedError(res);
+            }
             if (!targetUser) {
                 res.json(softError("User not found"));
                 return;
+            }
+
+            if (!canManageUser(actorUser, targetUser)) {
+                return forbiddenError(res);
             }
 
             await UserService.revokePermission(userId, permissionKey, actorTokenData.companyId);
@@ -571,6 +661,10 @@ export class UserController {
         try {
             const actorTokenData = req.decoded as tokenPayload;
             const userId = req.params.id;
+
+            if (!(await canMutateUser(actorTokenData, userId))) {
+                return forbiddenError(res);
+            }
 
             if (!req.file) {
                 res.json(softError("Image file is required"));
@@ -652,6 +746,10 @@ export class UserController {
         try {
             const actorTokenData = req.decoded as tokenPayload;
             const userId = req.params.id;
+
+            if (!(await canMutateUser(actorTokenData, userId))) {
+                return forbiddenError(res);
+            }
 
             const user = await UserService.getProfileImageMetadata(userId, actorTokenData.companyId);
             if (!user) {

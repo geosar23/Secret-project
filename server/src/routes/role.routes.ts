@@ -10,17 +10,34 @@ const RoleController = wrapController(RoleControllerRaw);
 // Permissions required to mutate roles (create / update / delete)
 const canManageRoles = userHasAnyPermission([PermissionKeys.ROLES_MANAGEMENT_WRITE_ALL]);
 
+// Role lists feed the user create/edit forms, so user managers may read them too
+const canReadRoles = userHasAnyPermission([
+    PermissionKeys.ROLES_MANAGEMENT_READ_ALL,
+    PermissionKeys.ROLES_MANAGEMENT_WRITE_ALL,
+    PermissionKeys.USERS_MANAGEMENT_WRITE_ALL,
+    PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT,
+    PermissionKeys.USERS_MANAGEMENT_WRITE_COUNTRY,
+    PermissionKeys.USERS_MANAGEMENT_WRITE_DEPARTMENT_COUNTRY,
+    PermissionKeys.USERS_MANAGEMENT_WRITE_MANAGED,
+    PermissionKeys.USERS_MANAGEMENT_WRITE_SELF,
+    PermissionKeys.USER_CREATE_WRITE_ALL,
+    PermissionKeys.USER_CREATE_WRITE_DEPARTMENT,
+    PermissionKeys.USER_CREATE_WRITE_COUNTRY,
+    PermissionKeys.USER_CREATE_WRITE_DEPARTMENT_COUNTRY,
+    PermissionKeys.USER_CREATE_WRITE_MANAGED,
+]);
+
 // Get role hierarchy
-router.get("/hierarchy", RoleController.getRoleHierarchy);
+router.get("/hierarchy", canReadRoles, RoleController.getRoleHierarchy);
 
 // Get permissions for a specific role type
-router.get("/:roleType/permissions", RoleController.getRolePermissions);
+router.get("/:roleType/permissions", canReadRoles, RoleController.getRolePermissions);
 
 // Get all roles
-router.get("/", RoleController.getAllRoles);
+router.get("/", canReadRoles, RoleController.getAllRoles);
 
 // Get role by ID
-router.get("/:id", RoleController.getRoleById);
+router.get("/:id", canReadRoles, RoleController.getRoleById);
 
 // Create custom role
 router.post("/", canManageRoles, RoleController.createRole);

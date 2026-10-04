@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { UserController as UserControllerRaw } from "../controllers/user.controller";
-import { userHasAnyPermission } from "../middleware/permission.middleware";
-import { PermissionKeys } from "../enums/permissions.enum";
+import { userHasAnyPermission, userHasPermissionCategory } from "../middleware/permission.middleware";
+import { PermissionCategories, PermissionKeys } from "../enums/permissions.enum";
 import { uploadProfileImage } from "../middleware/upload.middleware";
 import { wrapController } from "../utils/async-handler.util";
 
@@ -12,7 +12,7 @@ router.get("/effective-permissions", UserController.getEffectivePermissions);
 router.get("/:id/accessForSubject", UserController.accessForSubject);
 router.get("/:id", UserController.getById);
 router.put("/:id", UserController.update);
-router.post("/", UserController.create); //TODO: NOT TESTED
+router.post("/", userHasPermissionCategory(PermissionCategories.USER_CREATE), UserController.create);
 router.put("/:id/change-password", UserController.changePassword); //TODO: NOT TESTED
 router.post("/:id/profile-image", uploadProfileImage.single("image"), UserController.uploadProfileImage);
 router.get("/:id/profile-image-url", UserController.getProfileImageUrl);

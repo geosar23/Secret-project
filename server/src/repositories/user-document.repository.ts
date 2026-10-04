@@ -1,6 +1,6 @@
+import { companyModel } from "../models/company.model";
 import { UserDocumentModel } from "../models/user-document.model";
 
-export function userDocumentRepository() {
-    // UserDocuments are always queried with a company filter at the service layer.
-    return UserDocumentModel;
+export function userDocumentRepository(companyId: string) {
+    return companyModel(UserDocumentModel, companyId);
 }

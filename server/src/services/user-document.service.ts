@@ -1,18 +1,20 @@
 import { IUserDocument } from "../interfaces/user-document.interface";
-import { UserDocumentModel } from "../models/user-document.model";
+import { userDocumentRepository } from "../repositories/user-document.repository";
 import { StorageService } from "./storage.service";
 
 export const UserDocumentService = {
     getForUser: (userId: string, companyId: string) =>
-        UserDocumentModel.find({ user: userId, company: companyId }).sort({ createdAt: -1 }).lean(),
+        userDocumentRepository(companyId).find({ user: userId }).sort({ createdAt: -1 }).lean(),
 
-    getById: (id: string, companyId: string) => UserDocumentModel.findOne({ _id: id, company: companyId }).lean(),
+    getById: (id: string, companyId: string) => userDocumentRepository(companyId).findById(id).lean(),
 
-    create: (data: Omit<IUserDocument, "_id" | "createdAt" | "updatedAt">) => UserDocumentModel.create(data),
+    create: (companyId: string, data: Omit<IUserDocument, "_id" | "company" | "createdAt" | "updatedAt">) =>
+        userDocumentRepository(companyId).create(data),
 
     update: async (id: string, companyId: string, data: Partial<IUserDocument>) => {
-        await UserDocumentModel.updateOne({ _id: id, company: companyId }, data);
-        return UserDocumentModel.findOne({ _id: id, company: companyId }).lean();
+        const repo = userDocumentRepository(companyId);
+        await repo.updateOne({ _id: id }, data);
+        return repo.findById(id).lean();
     },
 
     uploadAttachment: async (params: {
@@ -42,12 +44,13 @@ export const UserDocumentService = {
             uploadedAt: new Date(),
         };
 
-        await UserDocumentModel.updateOne({ _id: params.documentId, company: params.companyId }, { attachment });
-        return UserDocumentModel.findOne({ _id: params.documentId, company: params.companyId }).lean();
+        const repo = userDocumentRepository(params.companyId);
+        await repo.updateOne({ _id: params.documentId }, { attachment });
+        return repo.findById(params.documentId).lean();
     },
 
     getAttachmentSignedUrl: async (id: string, companyId: string) => {
-        const doc = await UserDocumentModel.findOne({ _id: id, company: companyId }).lean();
+        const doc = await userDocumentRepository(companyId).findById(id).lean();
         if (!doc?.attachment?.path) {
             throw new Error("No attachment found for this document");
         }
@@ -55,16 +58,18 @@ export const UserDocumentService = {
     },
 
     deleteAttachment: async (id: string, companyId: string) => {
-        const doc = await UserDocumentModel.findOne({ _id: id, company: companyId }).lean();
+        const repo = userDocumentRepository(companyId);
+        const doc = await repo.findById(id).lean();
         if (!doc?.attachment?.path) {
             throw new Error("No attachment found for this document");
         }
         await StorageService.removeFile(doc.attachment.path);
-        await UserDocumentModel.updateOne({ _id: id, company: companyId }, { $unset: { attachment: 1 } });
+        await repo.updateOne({ _id: id }, { $unset: { attachment: 1 } } as never);
     },
 
     delete: async (id: string, companyId: string) => {
-        const doc = await UserDocumentModel.findOne({ _id: id, company: companyId }).lean();
+        const repo = userDocumentRepository(companyId);
+        const doc = await repo.findById(id).lean();
         if (!doc) {
             return;
         }
@@ -75,6 +80,6 @@ export const UserDocumentService = {
                 // best-effort: continue deletion even if storage remove fails
             }
         }
-        await UserDocumentModel.deleteOne({ _id: id, company: companyId });
+        await repo.deleteOne({ _id: id });
     },
 };

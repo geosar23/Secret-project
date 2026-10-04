@@ -1,12 +1,18 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { CompanyService } from "../services/company.service";
 import { StorageService } from "../services/storage.service";
 import { ICompany } from "../interfaces/company.interface";
-import { success, hardError, softError } from "../utils/response.util";
+import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
+import { success, hardError, softError, forbiddenError } from "../utils/response.util";
 
 export class CompanyController {
-    static async getCompanyData(req: Request, res: Response): Promise<void> {
+    static async getCompanyData(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
+            const actor = req.decoded as tokenPayload;
+            if (req.params.id !== actor.companyId) {
+                return forbiddenError(res);
+            }
+
             const company = await CompanyService.getById(req.params.id);
             if (!company) {
                 res.json(softError("Company not found"));
