@@ -1,7 +1,8 @@
 import express from "express";
 import cors from "cors";
 import apiRouter from "./routes";
-import errorMiddleware from "./middleware/error.middleware";
+import errorMiddleware, { notFoundMiddleware } from "./middleware/error.middleware";
+import { tooManyRequestsError } from "./utils/response.util";
 import morgan from "morgan";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
@@ -15,6 +16,7 @@ const app = express();
 const limiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
     max: 100, // limit each IP to 100 requests per 1 minute
+    handler: (_req, res) => tooManyRequestsError(res),
 });
 
 app.use(cors({ origin: config.CLIENT_URL, credentials: true })); // Enable CORS
@@ -26,6 +28,9 @@ app.use(limiter);
 
 // Global API routes (composed)
 app.use("/api", apiRouter);
+
+// Unknown routes
+app.use(notFoundMiddleware);
 
 // Global error handler
 app.use(errorMiddleware);

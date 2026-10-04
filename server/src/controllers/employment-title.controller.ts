@@ -1,23 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextFunction, Response } from "express";
+import { Response } from "express";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { EmploymentTitleService } from "../services/employment-title.service";
-import { softError, success } from "../utils/response.util";
+import { hardError, softError, success } from "../utils/response.util";
 
 export class EmploymentTitleController {
-    static async getAll(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async getAll(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const titles = await EmploymentTitleService.getAll(requestingUser.companyId);
             res.json(success(titles));
         } catch (error: any) {
             console.log("Error in EmploymentTitleController.getAll:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async getById(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async getById(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const title = await EmploymentTitleService.getById(req.params.id, requestingUser.companyId);
@@ -29,12 +28,11 @@ export class EmploymentTitleController {
             res.json(success(title));
         } catch (error: any) {
             console.log("Error in EmploymentTitleController.getById:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async create(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async create(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const { name, description, subDepartmentId } = req.body as {
@@ -65,12 +63,11 @@ export class EmploymentTitleController {
             res.json(success({ employmentTitle }));
         } catch (error: any) {
             console.log("Error in EmploymentTitleController.create:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async update(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async update(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const sanitized: { name?: string; description?: string; isActive?: boolean; subDepartment?: string } = {};
@@ -106,12 +103,11 @@ export class EmploymentTitleController {
             res.json(success({ employmentTitle: updated }));
         } catch (error: any) {
             console.log("Error in EmploymentTitleController.update:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async delete(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async delete(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const result = await EmploymentTitleService.delete(req.params.id, requestingUser.companyId);
@@ -123,8 +119,7 @@ export class EmploymentTitleController {
             res.json(success({}));
         } catch (error: any) {
             console.log("Error in EmploymentTitleController.delete:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 }

@@ -305,7 +305,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             .subscribe({
                 next: (res: JsonResponse<IUsersListResponse>) => {
                     if (!res.success || !res.data) {
-                        this.toast.error(res.message || "Failed to load users");
+                        this.toast.warning(res.message || "Failed to load users");
                         return;
                     }
 

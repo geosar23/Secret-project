@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextFunction, Response } from "express";
+import { Response } from "express";
 import { UserService } from "../services/user.service";
 import { EmploymentTitleService } from "../services/employment-title.service";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
@@ -11,12 +11,12 @@ import {
     IUserCreateScopePayload,
     IUsersQueryParams,
 } from "../interfaces/user.interface";
-import { success, softError } from "../utils/response.util";
+import { success, softError, hardError, unauthorizedError, forbiddenError } from "../utils/response.util";
 import {
-    buildUserSearchAccessQuery,
     buildActorAccessOnSubject,
     canManageUser,
     canCreateUser,
+    buildUserSearchAccessQuery,
 } from "../policies/user.policy";
 import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";
 import { isValidPermissionKey } from "../utils/permission-checker";
@@ -157,13 +157,12 @@ function applyComplexUserFields(target: Partial<IUser>, body: Record<string, unk
 }
 
 export class UserController {
-    static async getUsers(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async getUsers(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const actorTokenData = req.decoded as tokenPayload;
             const actorUser = await UserService.getById(actorTokenData.id, actorTokenData.companyId);
             if (!actorUser) {
-                res.json(softError("Unauthorized"));
-                return;
+                return unauthorizedError(res);
             }
 
             const params: IUsersQueryParams = {
@@ -190,8 +189,7 @@ export class UserController {
             res.json(success(users));
         } catch (error: any) {
             console.log("Error in UserController.getUsers:", error, { decoded: req.decoded, query: req.query });
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
@@ -201,8 +199,7 @@ export class UserController {
 
             const actorUser = await UserService.getById(actorTokenData.id, actorTokenData.companyId);
             if (!actorUser) {
-                res.json(softError("Unauthorized"));
-                return;
+                return unauthorizedError(res);
             }
 
             // Resolve department from the requested employment title so scope checks work.
@@ -313,7 +310,7 @@ export class UserController {
             res.json(success({ user: newUser }));
         } catch (error: any) {
             console.log("Error in UserController.create:", error, { decoded: req.decoded, body: req.body });
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 
@@ -330,7 +327,7 @@ export class UserController {
             res.json(success(user));
         } catch (error: any) {
             console.log("Error in UserController.getById:", error);
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 
@@ -339,8 +336,7 @@ export class UserController {
             const actorTokenData = req.decoded as tokenPayload;
             const actorUser = await UserService.getById(actorTokenData.id, actorTokenData.companyId);
             if (!actorUser) {
-                res.json(softError("Unauthorized"));
-                return;
+                return unauthorizedError(res);
             }
             const userId = req.params.id;
             const subjectUser = await UserService.getById(userId, actorTokenData.companyId);
@@ -352,7 +348,7 @@ export class UserController {
             res.json(success(access));
         } catch (error: any) {
             console.log("Error in UserController.getAccess:", error);
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 
@@ -361,8 +357,7 @@ export class UserController {
             const actorTokenData = req.decoded as tokenPayload;
             const actorUser = await UserService.getById(actorTokenData.id, actorTokenData.companyId);
             if (!actorUser) {
-                res.json(softError("Unauthorized"));
-                return;
+                return unauthorizedError(res);
             }
 
             const userId = req.params.id;
@@ -373,8 +368,7 @@ export class UserController {
             }
 
             if (!canManageUser(actorUser, user)) {
-                res.json(softError("Insufficient permissions to update this user"));
-                return;
+                return forbiddenError(res);
             }
 
             const sanitizedData: Partial<IUser> = {};
@@ -459,7 +453,7 @@ export class UserController {
             res.json(success({ user: updatedUser }));
         } catch (error: any) {
             console.log("Error in UserController.update:", error);
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 
@@ -473,8 +467,7 @@ export class UserController {
             };
 
             if (actorTokenData.id !== userId) {
-                res.json(softError("You can only change your own password"));
-                return;
+                return forbiddenError(res);
             }
 
             if (!currentPassword || !newPassword) {
@@ -491,7 +484,7 @@ export class UserController {
             res.json(success({}));
         } catch (error: any) {
             console.log("Error in UserController.changePassword:", error);
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 
@@ -510,7 +503,7 @@ export class UserController {
             res.json(success({ permissions: effectivePermissions }));
         } catch (error: any) {
             console.log("Error in UserController.getEffectivePermissions:", error);
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 
@@ -540,7 +533,7 @@ export class UserController {
             res.json(success({ userId, permissionKey }));
         } catch (error: any) {
             console.log("Error in UserController.grantPermission:", error);
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 
@@ -570,7 +563,7 @@ export class UserController {
             res.json(success({ userId, permissionKey }));
         } catch (error: any) {
             console.log("Error in UserController.revokePermission:", error);
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 
@@ -626,7 +619,7 @@ export class UserController {
             res.json(success({ user: updatedUser }));
         } catch (error: any) {
             console.log("Error in UserController.uploadProfileImage:", error);
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 
@@ -651,7 +644,7 @@ export class UserController {
             res.json(success({ ...signed }));
         } catch (error: any) {
             console.log("Error in UserController.getProfileImageUrl:", error);
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 
@@ -678,7 +671,7 @@ export class UserController {
             res.json(success({}));
         } catch (error: any) {
             console.log("Error in UserController.deleteProfileImage:", error);
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 }

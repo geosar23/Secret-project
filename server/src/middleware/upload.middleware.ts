@@ -1,4 +1,5 @@
 import multer from "multer";
+import { BadRequestError } from "../utils/app-error.util";
 
 const MAX_PROFILE_IMAGE_SIZE_MB = 5;
 const MAX_DOCUMENT_SIZE_MB = 10;
@@ -8,7 +9,7 @@ export const uploadProfileImage = multer({
     limits: { fileSize: MAX_PROFILE_IMAGE_SIZE_MB * 1024 * 1024 },
     fileFilter: (_req, file, cb) => {
         if (!file.mimetype.startsWith("image/")) {
-            cb(new Error("Only image files are allowed"));
+            cb(new BadRequestError("Only image files are allowed"));
             return;
         }
         cb(null, true);
@@ -29,7 +30,7 @@ export const uploadDocument = multer({
     limits: { fileSize: MAX_DOCUMENT_SIZE_MB * 1024 * 1024 },
     fileFilter: (_req, file, cb) => {
         if (!ALLOWED_DOCUMENT_MIMETYPES.has(file.mimetype)) {
-            cb(new Error("Only PDF or image files are allowed for documents"));
+            cb(new BadRequestError("Only PDF or image files are allowed for documents"));
             return;
         }
         cb(null, true);

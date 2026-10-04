@@ -450,7 +450,90 @@ we should always fetch only the active ones for selection
     - [ ] Rollback procedure documented and tested once.
     - [ ] Smoke test checklist included.
 
+### P1-22 Error Handling Hardening (follow-ups)
+
+- Priority: P1
+- Owner: You
+- Estimate: 3-4 days
+- Status: [~]
+- Goal: finish the error-handling standards that were not implemented in the first pass.
+- Already done: fixed-text hard errors with a stable `code`, typed `AppError` classes, `asyncHandler`/`wrapController` on all routes, central error middleware, 404 route handler, 429 handled by the error format, multer errors mapped, client 401/403/429/5xx/network interceptor, GET-only retry with backoff, request timeouts, token only sent to our API, global `ErrorHandler`.
+- Acceptance criteria:
+    - [ ] **Request ID / correlation ID.**
+        - Middleware generates a UUID per request (or reuses a trusted `X-Request-Id`), stores it on `req`, and sets the `X-Request-Id` response header.
+        - Error responses include `requestId`; every log line for the request includes it (morgan token + logger).
+        - Client shows the id on 5xx toasts ("Reference: abc123") so support can trace it.
+    - [ ] **Structured logging.**
+        - Replace `console.log`/`console.error` and `morgan("dev")` with pino (or winston): JSON in production, pretty in dev, levels (debug/info/warn/error).
+        - Redact `password`, `newPassword`, `authorization`, `token`, `salary`, and cookies in logged bodies/headers.
+        - Use `pino-http` for access logs so they carry the request id.
+        - Stop logging `req.body` in controller catch blocks (currently logs raw bodies).
+    - [ ] **Input validation (zod or Joi).**
+        - Add a `validate({ body, query, params })` middleware; schemas live next to each controller.
+        - Return 400 with `code: "VALIDATION_ERROR"` and per-field `errors: [{ path, code }]` (no free-text server messages, consistent with the hard-error rule).
+        - Replace the ad hoc `typeof` checks and `setMappedFields` validation on all write endpoints (users, roles, departments, sub-departments, employment titles, countries, levels, offices, user-documents, auth).
+        - Add tests for invalid payloads per endpoint.
+    - [ ] **Mongoose / database errors.**
+        - Map in the error middleware: duplicate key (`code 11000`) to 409 `CONFLICT`, `CastError` (bad ObjectId) and `ValidationError` to 400, `MongoServerSelectionError` to 503.
+        - Add a `SERVICE_UNAVAILABLE` code (503) for DB/Supabase outages.
+        - Tests: duplicate email, malformed `:id`.
+    - [ ] **Process-level handlers + graceful shutdown.**
+        - In `server.ts`: handle `unhandledRejection` and `uncaughtException` (log, then exit non-zero so the orchestrator restarts).
+        - Handle `SIGTERM`/`SIGINT`: stop accepting connections, `server.close()`, close mongoose, with a force-exit timeout (about 10s).
+    - [ ] **Auth throttling and enumeration protection.**
+        - `express-rate-limit` on `/api/auth/login` only (for example 5-10 attempts per 15 min per IP + email), stricter than the global limiter.
+        - Wrong password and unknown email must return identical status, body and timing: run a dummy `bcrypt.compare` against a fixed hash when the user is not found.
+        - Optional: temporary account lockout after N failures, and an audit log entry for failures.
+        - Set `app.set("trust proxy", ...)` correctly when deployed behind nginx so the limiter sees the real client IP.
+    - [ ] **Other hardening.**
+        - `helmet` is already enabled: review CSP/HSTS/referrer-policy settings for production.
+        - Body size limits: `express.json({ limit: "100kb" })` and `express.urlencoded`; keep multer limits (5 MB images, 10 MB documents).
+        - Restrict CORS to the exact `CLIENT_URL` per environment (no wildcards).
+    - [ ] **Monitoring.**
+        - Sentry (or similar) on server: capture 5xx and unhandled errors with request id and user id/company id (no PII, no bodies).
+        - Sentry on client via the `ErrorHandler` for uncaught errors, with release/source maps.
+        - Alert on error-rate spikes (see P2-20).
+    - [ ] **Refresh tokens (replace the logout-on-401 behavior).**
+        - Short-lived access token (about 15 min) plus a rotating refresh token in an httpOnly, secure, SameSite cookie, stored hashed server-side so it can be revoked.
+        - Endpoints: `POST /auth/refresh`, `POST /auth/logout` (revokes the refresh token).
+        - Client interceptor: on 401, call refresh once (single-flight, queue parallel requests), retry the original request, and log out only if refresh fails.
+        - Consider moving the token out of `localStorage` (XSS exposure).
+    - [ ] **Migrate controllers to typed errors.**
+        - Remove the per-method `try/catch` + `hardError(res)` in controllers; throw `NotFoundError`, `ForbiddenError`, `ConflictError`, and so on and let the error middleware respond.
+        - Keep the `console.log` of the original error out of controllers (the middleware logs it with the request id).
+        - Do this after the soft-error standardization below, so it is done once.
+    - [ ] **Standardize soft vs hard errors (decision needed).**
+        - Today not-found and validation use `200 + success:false` (soft errors) because the edit-user resolver redirects only on `!success`.
+        - Target: 404 for not found, 400/422 for validation, 409 for conflicts, and the client handles the statuses (resolvers use `catchError` + redirect).
+        - Update the Jest expectations that currently assume 200 (login failures) or 403 (bad token on `/me`; the middleware returns 401).
+        - After this, `softError` can be removed or limited to true business-rule outcomes.
+    - [ ] **Client follow-ups.**
+        - Redirect to login with a `returnUrl` after a 401 and return the user there after login.
+        - Remove the per-component `toast.error(err.error?.message || "...")` duplicates; one global handler (the interceptor already provides a friendly `message`).
+        - Add an opt-out (`HttpContext` flag) for requests that must stay silent (background polling, resolvers).
+        - Branch on `error.error.code` instead of status or message text where behavior differs.
+        - Add unit tests for `errorInterceptor`, `retryInterceptor`, and `GlobalErrorHandler`.
+    - [ ] **Known issues found while doing this.**
+        - `UserController.getUsers` is currently hard-disabled with `return unauthorizedError(res)` ("TEMPORARY"), which breaks `GET /api/users` and 3 RBAC/company-isolation tests; restore it once access control is ready.
+        - `user.controller.ts` has unused imports (`IUsersQueryParams`, `softErrorRes`, `notFoundError`, `badRequestError`, `conflictError`, `buildUserSearchAccessQuery`) that fail lint.
+        - Failing user-document tests (`rbac-coverage`, `repository-contract`): the routes have no permission middleware and the repository is not company-scoped (see P0-07A Phase 2 and 4).
+
 ## Optional Stretch
+
+### P3-22 Upgrade Server to Express 5 (minor)
+
+- Priority: P3
+- Estimate: 0.5 day
+- Status: [ ]
+- Goal: use native async error handling and drop the `asyncHandler`/`wrapController` workaround.
+- Acceptance criteria:
+    - [ ] Upgrade `express` to v5 and `@types/express` to v5 in `server/package.json`.
+    - [ ] `tsc`, lint and Jest pass (record the failing tests beforehand to separate pre-existing failures).
+    - [ ] Check `req.body` usage where no body is sent (it is `undefined` instead of `{}` in v5).
+    - [ ] Re-check the `as RequestHandler` casts in the route files against the v5 types.
+    - [ ] Remove `server/src/utils/async-handler.util.ts` and the `wrapController(...)` lines in the 11 route files.
+    - [ ] Confirm `cors`, `helmet`, `morgan`, `multer`, and `express-rate-limit` work on v5 (verify upload endpoints).
+    - [ ] Route patterns: only literal and `:param` paths are used today; keep it that way (v5 changed wildcard syntax).
 
 ### P2-20 Monitoring Baseline
 

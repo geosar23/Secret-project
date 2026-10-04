@@ -6,6 +6,7 @@ import {
     OnDestroy,
     OnInit,
     signal,
+    WritableSignal,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray, FormControl } from "@angular/forms";
@@ -20,7 +21,7 @@ import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { ActivatedRoute, Router } from "@angular/router";
-import { catchError, firstValueFrom, forkJoin, map, Observable, of } from "rxjs";
+import { catchError, finalize, firstValueFrom, forkJoin, map, Observable, of } from "rxjs";
 import { UsersService } from "../../../core/services/users.service";
 import { CountryService } from "../../../core/services/country.service";
 import { EmploymentTitleService } from "../../../core/services/employment-title.service";
@@ -395,111 +396,40 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
 
     private loadReferenceData(): void {
         forkJoin([
-            this.loadCountries(),
-            this.loadRoles(),
-            this.loadEmploymentTitles(),
-            this.loadUsers(),
-            this.loadDepartments(),
-            this.loadLevels(),
-            this.loadOffices(),
+            this.loadReference(this.countryService.getCountries(), this.countriesLoading, this.countries),
+            this.loadReference(this.roleService.getAllRoles(), this.rolesLoading, this.roles),
+            this.loadReference(
+                this.employmentTitleService.getEmploymentTitles(),
+                this.employmentTitlesLoading,
+                this.employmentTitles,
+            ),
+            this.loadReference(
+                this.usersService
+                    .getUsers({ limit: 200 })
+                    .pipe(map(res => ({ data: (res.data?.users ?? []).filter(u => u._id !== this.userId) }))),
+                this.usersLoading,
+                this.users,
+            ),
+            this.loadReference(this.departmentService.getDepartments(), this.departmentsLoading, this.departments),
+            this.loadReference(this.levelService.getLevels(), this.levelsLoading, this.levels),
+            this.loadReference(this.officeService.getOffices(), this.officesLoading, this.offices),
         ]).subscribe(() => this.loadUser());
     }
 
-    private loadCountries(): Observable<void> {
-        this.countriesLoading.set(true);
-        return this.countryService.getCountries().pipe(
-            map(res => {
-                this.countries.set(res.data ?? []);
-                this.countriesLoading.set(false);
-            }),
-            catchError(() => {
-                this.countriesLoading.set(false);
-                return of(undefined);
-            }),
-        );
-    }
-
-    private loadRoles(): Observable<void> {
-        this.rolesLoading.set(true);
-        return this.roleService.getAllRoles().pipe(
-            map(res => {
-                this.roles.set(res.data ?? []);
-                this.rolesLoading.set(false);
-            }),
-            catchError(() => {
-                this.rolesLoading.set(false);
-                return of(undefined);
-            }),
-        );
-    }
-
-    private loadEmploymentTitles(): Observable<void> {
-        this.employmentTitlesLoading.set(true);
-        return this.employmentTitleService.getEmploymentTitles().pipe(
-            map(res => {
-                this.employmentTitles.set(res.data ?? []);
-                this.employmentTitlesLoading.set(false);
-            }),
-            catchError(() => {
-                this.employmentTitlesLoading.set(false);
-                return of(undefined);
-            }),
-        );
-    }
-
-    private loadUsers(): Observable<void> {
-        this.usersLoading.set(true);
-        return this.usersService.getUsers({ limit: 200 }).pipe(
-            map(res => {
-                this.users.set((res.data?.users ?? []).filter(u => u._id !== this.userId));
-                this.usersLoading.set(false);
-            }),
-            catchError(() => {
-                this.usersLoading.set(false);
-                return of(undefined);
-            }),
-        );
-    }
-
-    private loadDepartments(): Observable<void> {
-        this.departmentsLoading.set(true);
-        return this.departmentService.getDepartments().pipe(
-            map(res => {
-                this.departments.set(res.data ?? []);
-                this.departmentsLoading.set(false);
-            }),
-            catchError(() => {
-                this.departmentsLoading.set(false);
-                return of(undefined);
-            }),
-        );
-    }
-
-    private loadLevels(): Observable<void> {
-        this.levelsLoading.set(true);
-        return this.levelService.getLevels().pipe(
-            map(res => {
-                this.levels.set(res.data ?? []);
-                this.levelsLoading.set(false);
-            }),
-            catchError(() => {
-                this.levelsLoading.set(false);
-                return of(undefined);
-            }),
-        );
-    }
-
-    private loadOffices(): Observable<void> {
-        this.officesLoading.set(true);
-        return this.officeService.getOffices().pipe(
-            map(res => {
-                this.offices.set(res.data ?? []);
-                this.officesLoading.set(false);
-            }),
-            catchError(() => {
-                this.officesLoading.set(false);
-                return of(undefined);
-            }),
+    /**
+     * Loads one reference list. A failure must not block the page (forkJoin must still emit),
+     * so errors are swallowed here; the global error interceptor already informs the user.
+     */
+    private loadReference<T>(
+        source$: Observable<{ data?: T[] }>,
+        loading: WritableSignal<boolean>,
+        target: WritableSignal<T[]>,
+    ): Observable<void> {
+        loading.set(true);
+        return source$.pipe(
+            map(res => target.set(res.data ?? [])),
+            catchError(() => of(undefined)),
+            finalize(() => loading.set(false)),
         );
     }
 

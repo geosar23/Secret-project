@@ -1,9 +1,11 @@
 import { Router } from "express";
-import { EmploymentTitleController } from "../controllers/employment-title.controller";
+import { EmploymentTitleController as EmploymentTitleControllerRaw } from "../controllers/employment-title.controller";
 import { userHasAnyPermission } from "../middleware/permission.middleware";
 import { PermissionKeys } from "../enums/permissions.enum";
+import { wrapController } from "../utils/async-handler.util";
 
 const router = Router();
+const EmploymentTitleController = wrapController(EmploymentTitleControllerRaw);
 
 const canManageEmploymentTitles = userHasAnyPermission([PermissionKeys.EMPLOYMENT_TITLES_MANAGEMENT_WRITE_ALL]);
 

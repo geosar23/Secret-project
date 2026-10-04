@@ -1,23 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextFunction, Response } from "express";
+import { Response } from "express";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { LevelService } from "../services/level.service";
-import { softError, success } from "../utils/response.util";
+import { hardError, softError, success } from "../utils/response.util";
 
 export class LevelController {
-    static async getAll(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async getAll(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const levels = await LevelService.getAll(requestingUser.companyId);
             res.json(success(levels));
         } catch (error: any) {
             console.log("Error in LevelController.getAll:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async getById(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async getById(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const level = await LevelService.getById(req.params.id, requestingUser.companyId);
@@ -28,12 +27,11 @@ export class LevelController {
             res.json(success(level));
         } catch (error: any) {
             console.log("Error in LevelController.getById:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async create(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async create(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const { name, order } = req.body as { name?: string; order?: unknown };
@@ -54,12 +52,11 @@ export class LevelController {
             res.json(success(level));
         } catch (error: any) {
             console.log("Error in LevelController.create:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async update(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async update(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const { name, order, isActive } = req.body as { name?: string; order?: unknown; isActive?: unknown };
@@ -87,20 +84,18 @@ export class LevelController {
             res.json(success(updated));
         } catch (error: any) {
             console.log("Error in LevelController.update:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async delete(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async delete(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             await LevelService.delete(req.params.id, requestingUser.companyId);
             res.json(success({}));
         } catch (error: any) {
             console.log("Error in LevelController.delete:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 }

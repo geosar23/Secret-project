@@ -2,7 +2,7 @@
 import { Response } from "express";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { UserDocumentService } from "../services/user-document.service";
-import { softError, success } from "../utils/response.util";
+import { hardError, softError, success } from "../utils/response.util";
 import { isValidObjectId } from "../utils/field-sanitizer.util";
 import { DocumentType } from "../enums/profile.enum";
 
@@ -23,7 +23,7 @@ export class UserDocumentController {
             res.json(success(docs));
         } catch (error: any) {
             console.log("Error in UserDocumentController.getForUser:", error);
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 
@@ -38,7 +38,7 @@ export class UserDocumentController {
             res.json(success(doc));
         } catch (error: any) {
             console.log("Error in UserDocumentController.getById:", error);
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 
@@ -85,7 +85,7 @@ export class UserDocumentController {
             res.json(success(doc));
         } catch (error: any) {
             console.log("Error in UserDocumentController.create:", error);
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 
@@ -130,7 +130,7 @@ export class UserDocumentController {
             res.json(success(updated));
         } catch (error: any) {
             console.log("Error in UserDocumentController.update:", error);
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 
@@ -164,7 +164,7 @@ export class UserDocumentController {
             res.json(success(updated));
         } catch (error: any) {
             console.log("Error in UserDocumentController.uploadAttachment:", error);
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 
@@ -175,7 +175,7 @@ export class UserDocumentController {
             res.json(success(result));
         } catch (error: any) {
             console.log("Error in UserDocumentController.getAttachmentUrl:", error);
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 
@@ -186,7 +186,7 @@ export class UserDocumentController {
             res.json(success({}));
         } catch (error: any) {
             console.log("Error in UserDocumentController.deleteAttachment:", error);
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 
@@ -197,7 +197,7 @@ export class UserDocumentController {
             res.json(success({}));
         } catch (error: any) {
             console.log("Error in UserDocumentController.delete:", error);
-            res.json(softError(error.message, error));
+            return hardError(res);
         }
     }
 }

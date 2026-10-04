@@ -1,9 +1,11 @@
 import { Router } from "express";
-import { RoleController } from "../controllers/role.controller";
+import { RoleController as RoleControllerRaw } from "../controllers/role.controller";
 import { userHasAnyPermission } from "../middleware/permission.middleware";
 import { PermissionKeys } from "../enums/permissions.enum";
+import { wrapController } from "../utils/async-handler.util";
 
 const router = Router();
+const RoleController = wrapController(RoleControllerRaw);
 
 // Permissions required to mutate roles (create / update / delete)
 const canManageRoles = userHasAnyPermission([PermissionKeys.ROLES_MANAGEMENT_WRITE_ALL]);

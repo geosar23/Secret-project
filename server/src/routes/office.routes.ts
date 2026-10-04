@@ -1,9 +1,11 @@
 import { Router } from "express";
-import { OfficeController } from "../controllers/office.controller";
+import { OfficeController as OfficeControllerRaw } from "../controllers/office.controller";
 import { userHasAnyPermission } from "../middleware/permission.middleware";
 import { PermissionKeys } from "../enums/permissions.enum";
+import { wrapController } from "../utils/async-handler.util";
 
 const router = Router();
+const OfficeController = wrapController(OfficeControllerRaw);
 
 const canManageOffices = userHasAnyPermission([PermissionKeys.OFFICES_MANAGEMENT_WRITE_ALL]);
 

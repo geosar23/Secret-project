@@ -1,10 +1,12 @@
 import { Router } from "express";
-import { UserController } from "../controllers/user.controller";
+import { UserController as UserControllerRaw } from "../controllers/user.controller";
 import { userHasAnyPermission } from "../middleware/permission.middleware";
 import { PermissionKeys } from "../enums/permissions.enum";
 import { uploadProfileImage } from "../middleware/upload.middleware";
+import { wrapController } from "../utils/async-handler.util";
 
 const router = Router();
+const UserController = wrapController(UserControllerRaw);
 router.get("/", UserController.getUsers);
 router.get("/effective-permissions", UserController.getEffectivePermissions);
 router.get("/:id/accessForSubject", UserController.accessForSubject);

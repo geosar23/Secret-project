@@ -1,9 +1,11 @@
 import { Router } from "express";
-import { CountryController } from "../controllers/country.controller";
+import { CountryController as CountryControllerRaw } from "../controllers/country.controller";
 import { userHasAnyPermission } from "../middleware/permission.middleware";
 import { PermissionKeys } from "../enums/permissions.enum";
+import { wrapController } from "../utils/async-handler.util";
 
 const router = Router();
+const CountryController = wrapController(CountryControllerRaw);
 
 const canReadCountries = userHasAnyPermission([PermissionKeys.COUNTRIES_MANAGEMENT_READ_ALL]);
 

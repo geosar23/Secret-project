@@ -1,27 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextFunction, Response } from "express";
+import { Response } from "express";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { IDepartment } from "../interfaces/department.interface";
 import { DepartmentService } from "../services/department.service";
-import { softError, success } from "../utils/response.util";
+import { hardError, softError, success } from "../utils/response.util";
 import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";
 
 type DepartmentFieldMap = FieldMap<IDepartment>;
 
 export class DepartmentController {
-    static async getAll(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async getAll(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const departments = await DepartmentService.getAll(requestingUser.companyId);
             res.json(success(departments));
         } catch (error: any) {
             console.log("Error in DepartmentController.getAll:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async getById(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async getById(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const department = await DepartmentService.getById(req.params.id, requestingUser.companyId);
@@ -33,12 +32,11 @@ export class DepartmentController {
             res.json(success(department));
         } catch (error: any) {
             console.log("Error in DepartmentController.getById:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async create(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async create(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const params: Partial<IDepartment> = { isActive: true };
@@ -78,12 +76,11 @@ export class DepartmentController {
             res.json(success({ department }));
         } catch (error: any) {
             console.log("Error in DepartmentController.create:", error, req.body);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async update(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async update(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const sanitized: { name?: string; description?: string; isActive?: boolean } = {};
@@ -112,12 +109,11 @@ export class DepartmentController {
             res.json(success({ department: updated }));
         } catch (error: any) {
             console.log("Error in DepartmentController.update:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async delete(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async delete(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const result = await DepartmentService.delete(req.params.id, requestingUser.companyId);
@@ -129,8 +125,7 @@ export class DepartmentController {
             res.json(success({}));
         } catch (error: any) {
             console.log("Error in DepartmentController.delete:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 }

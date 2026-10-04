@@ -1,23 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextFunction, Response } from "express";
+import { Response } from "express";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { SubDepartmentService } from "../services/sub-department.service";
-import { softError, success } from "../utils/response.util";
+import { hardError, softError, success } from "../utils/response.util";
 
 export class SubDepartmentController {
-    static async getAll(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async getAll(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const subDepartments = await SubDepartmentService.getAll(requestingUser.companyId);
             res.json(success(subDepartments));
         } catch (error: any) {
             console.log("Error in SubDepartmentController.getAll:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async getById(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async getById(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const subDepartment = await SubDepartmentService.getById(req.params.id, requestingUser.companyId);
@@ -29,12 +28,11 @@ export class SubDepartmentController {
             res.json(success(subDepartment));
         } catch (error: any) {
             console.log("Error in SubDepartmentController.getById:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async create(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async create(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const { name, description, departmentId } = req.body as {
@@ -65,12 +63,11 @@ export class SubDepartmentController {
             res.json(success({ subDepartment }));
         } catch (error: any) {
             console.log("Error in SubDepartmentController.create:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async update(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async update(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const sanitized: { name?: string; description?: string; isActive?: boolean; department?: string } = {};
@@ -106,12 +103,11 @@ export class SubDepartmentController {
             res.json(success({ subDepartment: updated }));
         } catch (error: any) {
             console.log("Error in SubDepartmentController.update:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async delete(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async delete(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const result = await SubDepartmentService.delete(req.params.id, requestingUser.companyId);
@@ -123,8 +119,7 @@ export class SubDepartmentController {
             res.json(success({}));
         } catch (error: any) {
             console.log("Error in SubDepartmentController.delete:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 }

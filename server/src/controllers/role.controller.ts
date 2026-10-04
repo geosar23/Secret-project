@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Response, NextFunction } from "express";
+import { Response } from "express";
 import { RoleService } from "../services/role.service";
-import { success, softError } from "../utils/response.util";
+import { success, softError, hardError, unauthorizedError } from "../utils/response.util";
 import { IRole } from "../interfaces/role.interface";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { UserService } from "../services/user.service";
@@ -14,15 +14,14 @@ export class RoleController {
      * Get all roles
      * GET /api/roles
      */
-    static async getAllRoles(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async getAllRoles(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const user = req.decoded as tokenPayload;
             const roles = await RoleService.getAll(user.companyId);
             res.json(success(roles));
         } catch (error: any) {
             console.log("Error in RoleController.getAllRoles:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
@@ -30,7 +29,7 @@ export class RoleController {
      * Get role by ID
      * GET /api/roles/:id
      */
-    static async getRoleById(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async getRoleById(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const user = req.decoded as tokenPayload;
             const { id } = req.params;
@@ -44,8 +43,7 @@ export class RoleController {
             res.json(success(role));
         } catch (error: any) {
             console.log("Error in RoleController.getRoleById:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
@@ -53,15 +51,14 @@ export class RoleController {
      * Get role hierarchy
      * GET /api/roles/hierarchy
      */
-    static async getRoleHierarchy(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async getRoleHierarchy(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const user = req.decoded as tokenPayload;
             const hierarchy = await RoleService.getHierarchy(user.companyId);
             res.json(success(hierarchy));
         } catch (error: any) {
             console.log("Error in RoleController.getRoleHierarchy:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
@@ -69,7 +66,7 @@ export class RoleController {
      * Get permissions for a specific role
      * GET /api/roles/:roleType/permissions
      */
-    static async getRolePermissions(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async getRolePermissions(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             // const { roleType } = req.params;
             // const permissions = await RoleService.getPermissions(roleType as DefaultUserRoles);
@@ -77,8 +74,7 @@ export class RoleController {
             res.json(success({}));
         } catch (error: any) {
             console.log("Error in RoleController.getRolePermissions:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
@@ -86,7 +82,7 @@ export class RoleController {
      * Create a custom role
      * POST /api/roles
      */
-    static async createRole(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async createRole(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const user = req.decoded as tokenPayload;
             const { name, description, permissions } = req.body as {
@@ -102,7 +98,7 @@ export class RoleController {
 
             const actor = await UserService.getById(user.id, user.companyId);
             if (!actor) {
-                res.json(softError("Unauthorized"));
+                unauthorizedError(res);
                 return;
             }
 
@@ -125,8 +121,7 @@ export class RoleController {
             res.status(201).json(success({ role: newRole }));
         } catch (error: any) {
             console.log("Error in RoleController.createRole:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
@@ -134,7 +129,7 @@ export class RoleController {
      * Update a custom role
      * PUT /api/roles/:id
      */
-    static async updateRole(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async updateRole(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const user = req.decoded as tokenPayload;
             const { id } = req.params;
@@ -142,8 +137,7 @@ export class RoleController {
 
             const actor = await UserService.getById(user.id, user.companyId);
             if (!actor) {
-                res.json(softError("Unauthorized"));
-                return;
+                return unauthorizedError(res);
             }
 
             if (typeof req.body.name === "string" && req.body.name.trim().length > 0) {
@@ -176,8 +170,7 @@ export class RoleController {
             res.json(success({ role: updated }));
         } catch (error: any) {
             console.log("Error in RoleController.updateRole:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
@@ -185,7 +178,7 @@ export class RoleController {
      * Delete a custom role
      * DELETE /api/roles/:id
      */
-    static async deleteRole(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async deleteRole(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const user = req.decoded as tokenPayload;
             const { id } = req.params;
@@ -198,8 +191,7 @@ export class RoleController {
             res.json(success({}));
         } catch (error: any) {
             console.log("Error in RoleController.deleteRole:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 }

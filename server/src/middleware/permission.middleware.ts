@@ -10,6 +10,7 @@ import { IUserPopulated } from "../interfaces/user.interface";
 import { UserService } from "../services/user.service";
 import { PermissionCategories, PermissionActions, PermissionScopes } from "../enums/permissions.enum";
 import { canAccessUserByScope } from "../policies/user.policy";
+import { forbiddenError, hardError, unauthorizedError } from "../utils/response.util";
 
 // Re-export for backwards compatibility
 export type { AuthenticatedRequest };
@@ -36,24 +37,24 @@ export function userHasPermission(permission: string) {
         try {
             const payload = getTokenPayload(req);
             if (!payload) {
-                return res.status(401).json({ message: "Authentication required" });
+                return unauthorizedError(res);
             }
 
             const user = await UserService.getById(payload.id, payload.companyId);
             if (!user) {
-                return res.status(401).json({ message: "User not found" });
+                return unauthorizedError(res);
             }
 
             const hasAccess = await PermissionChecker.canAccess(user, permission);
 
             if (!hasAccess) {
-                return res.status(403).json({ message: "Insufficient permissions", required: permission });
+                return forbiddenError(res);
             }
 
             next();
         } catch (error) {
             console.error("Authorization error:", error);
-            return next({ statusCode: 500, message: "Authorization check failed" });
+            return hardError(res);
         }
     };
 }
@@ -66,24 +67,24 @@ export function userHasAnyPermission(permissions: string[]) {
         try {
             const payload = getTokenPayload(req);
             if (!payload) {
-                return res.status(401).json({ message: "Authentication required" });
+                return unauthorizedError(res);
             }
 
             const user = await UserService.getById(payload.id, payload.companyId);
             if (!user) {
-                return res.status(401).json({ message: "User not found" });
+                return unauthorizedError(res);
             }
 
             const hasAccess = await PermissionChecker.hasAnyPermission(user, permissions);
 
             if (!hasAccess) {
-                return res.status(403).json({ message: "Insufficient permissions", requiredAny: permissions });
+                return forbiddenError(res);
             }
 
             next();
         } catch (error) {
             console.error("Authorization error:", error);
-            return next({ statusCode: 500, message: "Authorization check failed" });
+            return hardError(res);
         }
     };
 }
@@ -96,24 +97,24 @@ export function userHasAllPermissions(permissions: string[]) {
         try {
             const payload = getTokenPayload(req);
             if (!payload) {
-                return res.status(401).json({ message: "Authentication required" });
+                return unauthorizedError(res);
             }
 
             const user = await UserService.getById(payload.id, payload.companyId);
             if (!user) {
-                return res.status(401).json({ message: "User not found" });
+                return unauthorizedError(res);
             }
 
             const hasAccess = await PermissionChecker.hasAllPermissions(user, permissions);
 
             if (!hasAccess) {
-                return res.status(403).json({ message: "Insufficient permissions", requiredAll: permissions });
+                return forbiddenError(res);
             }
 
             next();
         } catch (error) {
             console.error("Authorization error:", error);
-            return next({ statusCode: 500, message: "Authorization check failed" });
+            return hardError(res);
         }
     };
 }
@@ -166,24 +167,24 @@ export function userHasPermissionCategory(category: string) {
         try {
             const payload = getTokenPayload(req);
             if (!payload) {
-                return res.status(401).json({ message: "Authentication required" });
+                return unauthorizedError(res);
             }
 
             const user = await UserService.getById(payload.id, payload.companyId);
             if (!user) {
-                return res.status(401).json({ message: "User not found" });
+                return unauthorizedError(res);
             }
 
             const hasAccess = await PermissionChecker.hasPermissionInCategory(user, category);
 
             if (!hasAccess) {
-                return res.status(403).json({ message: "Insufficient permissions", requiredCategory: category });
+                return forbiddenError(res);
             }
 
             next();
         } catch (error) {
             console.error("Authorization error:", error);
-            return next({ statusCode: 500, message: "Authorization check failed" });
+            return hardError(res);
         }
     };
 }

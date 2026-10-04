@@ -1,9 +1,11 @@
 import { Router } from "express";
-import { LevelController } from "../controllers/level.controller";
+import { LevelController as LevelControllerRaw } from "../controllers/level.controller";
 import { userHasAnyPermission } from "../middleware/permission.middleware";
 import { PermissionKeys } from "../enums/permissions.enum";
+import { wrapController } from "../utils/async-handler.util";
 
 const router = Router();
+const LevelController = wrapController(LevelControllerRaw);
 
 const canManageLevels = userHasAnyPermission([PermissionKeys.LEVELS_MANAGEMENT_WRITE_ALL]);
 

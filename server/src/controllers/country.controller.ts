@@ -1,23 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NextFunction, Response } from "express";
+import { Response } from "express";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { CountryService } from "../services/country.service";
-import { softError, success } from "../utils/response.util";
+import { hardError, softError, success } from "../utils/response.util";
 
 export class CountryController {
-    static async getAll(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async getAll(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const countries = await CountryService.getAll(requestingUser.companyId);
             res.json(success(countries));
         } catch (error: any) {
             console.log("Error in CountryController.getAll:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async getById(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async getById(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const country = await CountryService.getById(req.params.id, requestingUser.companyId);
@@ -29,12 +28,11 @@ export class CountryController {
             res.json(success(country));
         } catch (error: any) {
             console.log("Error in CountryController.getById:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async create(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async create(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const { name, description } = req.body as { name?: string; description?: string };
@@ -55,12 +53,11 @@ export class CountryController {
             res.json(success({ country }));
         } catch (error: any) {
             console.log("Error in CountryController.create:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async update(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async update(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const sanitized: { name?: string; description?: string; isActive?: boolean } = {};
@@ -89,12 +86,11 @@ export class CountryController {
             res.json(success({ country: updated }));
         } catch (error: any) {
             console.log("Error in CountryController.update:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 
-    static async delete(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+    static async delete(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
             const result = await CountryService.delete(req.params.id, requestingUser.companyId);
@@ -106,8 +102,7 @@ export class CountryController {
             res.json(success({}));
         } catch (error: any) {
             console.log("Error in CountryController.delete:", error);
-            res.json(softError(error.message, error));
-            next(error);
+            return hardError(res);
         }
     }
 }

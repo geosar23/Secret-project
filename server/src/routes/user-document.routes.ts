@@ -1,8 +1,10 @@
 import { Router } from "express";
-import { UserDocumentController } from "../controllers/user-document.controller";
+import { UserDocumentController as UserDocumentControllerRaw } from "../controllers/user-document.controller";
 import { uploadDocument } from "../middleware/upload.middleware";
+import { wrapController } from "../utils/async-handler.util";
 
 const router = Router();
+const UserDocumentController = wrapController(UserDocumentControllerRaw);
 
 // Per-user document list + create
 router.get("/user/:userId", UserDocumentController.getForUser);

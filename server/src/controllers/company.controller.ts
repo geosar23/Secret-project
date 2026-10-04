@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { CompanyService } from "../services/company.service";
 import { StorageService } from "../services/storage.service";
 import { ICompany } from "../interfaces/company.interface";
-import { success, softError } from "../utils/response.util";
+import { success, hardError, softError } from "../utils/response.util";
 
 export class CompanyController {
     static async getCompanyData(req: Request, res: Response): Promise<void> {
@@ -28,9 +28,8 @@ export class CompanyController {
 
             res.json(success({ ...signed, name: company.name }));
         } catch (error: unknown) {
-            const message = error instanceof Error ? error.message : "Unknown error";
             console.log("Error in CompanyController.getCompanyData:", error);
-            res.json(softError(message, error));
+            return hardError(res);
         }
     }
 }
