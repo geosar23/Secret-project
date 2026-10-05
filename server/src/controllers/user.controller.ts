@@ -164,6 +164,16 @@ function applyComplexUserFields(target: Partial<IUser>, body: Record<string, unk
     }
 }
 
+function idOf(value: unknown): string | undefined {
+    if (!value) {
+        return undefined;
+    }
+    if (typeof value === "object" && "_id" in value) {
+        return String((value as { _id: unknown })._id);
+    }
+    return String(value);
+}
+
 async function canMutateUser(actorTokenData: tokenPayload, userId: string): Promise<boolean> {
     if (actorTokenData.id === userId) {
         return true;
@@ -325,7 +335,7 @@ export class UserController {
 
             const refCheck = await validateUserReferences(actorTokenData.companyId, params as Record<string, unknown>);
             if (refCheck.invalidField) {
-                res.json(softError(`Invalid ${refCheck.invalidField}`));
+                res.json(softError(refCheck.message ?? `Invalid ${refCheck.invalidField}`));
                 return;
             }
             if (refCheck.rolePermissions && !canGrantPermissions(actorUser, refCheck.rolePermissions)) {
@@ -499,9 +509,18 @@ export class UserController {
             const refCheck = await validateUserReferences(
                 actorTokenData.companyId,
                 sanitizedData as Record<string, unknown>,
+                {
+                    role: idOf(user.role),
+                    country: idOf(user.country),
+                    employmentTitle: idOf(user.employmentTitle),
+                    manager: idOf(user.manager),
+                    level: idOf(user.level),
+                    office: idOf(user.office),
+                    hrRepresentative: idOf(user.hrRepresentative),
+                },
             );
             if (refCheck.invalidField) {
-                res.json(softError(`Invalid ${refCheck.invalidField}`));
+                res.json(softError(refCheck.message ?? `Invalid ${refCheck.invalidField}`));
                 return;
             }
 

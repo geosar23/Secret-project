@@ -3,6 +3,7 @@ import { Response } from "express";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { LevelService } from "../services/level.service";
 import { hardError, softError, success } from "../utils/response.util";
+import { findActiveDependents } from "../services/dependency.service";
 
 export class LevelController {
     static async getAll(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -74,6 +75,14 @@ export class LevelController {
             }
             if (isActive !== undefined && typeof isActive === "boolean") {
                 data.isActive = isActive;
+            }
+
+            if (data.isActive === false) {
+                const blocker = await findActiveDependents("level", req.params.id, requestingUser.companyId);
+                if (blocker) {
+                    res.json(softError(blocker));
+                    return;
+                }
             }
 
             const updated = await LevelService.update(req.params.id, data, requestingUser.companyId);

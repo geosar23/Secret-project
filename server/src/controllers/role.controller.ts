@@ -5,6 +5,7 @@ import { success, softError, hardError, unauthorizedError } from "../utils/respo
 import { IRole } from "../interfaces/role.interface";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { UserService } from "../services/user.service";
+import { findActiveDependents } from "../services/dependency.service";
 
 /**
  * Controller for role management
@@ -158,6 +159,14 @@ export class RoleController {
             if (Object.keys(updates).length === 0) {
                 res.json(softError("No valid fields provided for update"));
                 return;
+            }
+
+            if (updates.isActive === false) {
+                const blocker = await findActiveDependents("role", id, user.companyId);
+                if (blocker) {
+                    res.json(softError(blocker));
+                    return;
+                }
             }
 
             const updated = await RoleService.update(id, updates, user.companyId);

@@ -5,6 +5,7 @@ import { IDepartment } from "../interfaces/department.interface";
 import { DepartmentService } from "../services/department.service";
 import { hardError, softError, success } from "../utils/response.util";
 import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";
+import { findActiveDependents } from "../services/dependency.service";
 
 type DepartmentFieldMap = FieldMap<IDepartment>;
 
@@ -98,6 +99,14 @@ export class DepartmentController {
             if (Object.keys(sanitized).length === 0) {
                 res.json(softError("No valid fields provided for update"));
                 return;
+            }
+
+            if (sanitized.isActive === false) {
+                const blocker = await findActiveDependents("department", req.params.id, requestingUser.companyId);
+                if (blocker) {
+                    res.json(softError(blocker));
+                    return;
+                }
             }
 
             const updated = await DepartmentService.update(req.params.id, sanitized, requestingUser.companyId);

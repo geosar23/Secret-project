@@ -5,6 +5,8 @@ import { OfficeService } from "../services/office.service";
 import { hardError, softError, success } from "../utils/response.util";
 import { isValidObjectId } from "../utils/field-sanitizer.util";
 import { IAddress } from "../interfaces/user.interface";
+import { countryRepository } from "../repositories/country.repository";
+import { findActiveDependents } from "../services/dependency.service";
 
 function sanitizeAddress(raw: Record<string, unknown>): IAddress {
     const result: IAddress = {};
@@ -72,6 +74,14 @@ export class OfficeController {
 
             const data: Record<string, unknown> = { name: name.trim(), isActive: true };
             if (countryId && isValidObjectId(countryId)) {
+                const country = await countryRepository(requestingUser.companyId)
+                    .findOne({ _id: countryId, isActive: true })
+                    .select("_id")
+                    .lean();
+                if (!country) {
+                    res.json(softError("Invalid country"));
+                    return;
+                }
                 data.country = countryId;
             }
             if (address && typeof address === "object") {
@@ -105,13 +115,33 @@ export class OfficeController {
                 data.name = name.trim();
             }
             if (countryId !== undefined) {
-                data.country = typeof countryId === "string" && isValidObjectId(countryId) ? countryId : null;
+                if (typeof countryId === "string" && isValidObjectId(countryId)) {
+                    const country = await countryRepository(requestingUser.companyId)
+                        .findById(countryId)
+                        .select("_id")
+                        .lean();
+                    if (!country) {
+                        res.json(softError("Invalid country"));
+                        return;
+                    }
+                    data.country = countryId;
+                } else {
+                    data.country = null;
+                }
             }
             if (address !== undefined) {
                 data.address = address && typeof address === "object" ? sanitizeAddress(address) : null;
             }
             if (isActive !== undefined && typeof isActive === "boolean") {
                 data.isActive = isActive;
+            }
+
+            if (data.isActive === false) {
+                const blocker = await findActiveDependents("office", req.params.id, requestingUser.companyId);
+                if (blocker) {
+                    res.json(softError(blocker));
+                    return;
+                }
             }
 
             const updated = await OfficeService.update(req.params.id, data as any, requestingUser.companyId);

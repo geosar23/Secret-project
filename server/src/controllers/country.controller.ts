@@ -3,6 +3,7 @@ import { Response } from "express";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { CountryService } from "../services/country.service";
 import { hardError, softError, success } from "../utils/response.util";
+import { findActiveDependents } from "../services/dependency.service";
 
 export class CountryController {
     static async getAll(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -75,6 +76,14 @@ export class CountryController {
             if (Object.keys(sanitized).length === 0) {
                 res.json(softError("No valid fields provided for update"));
                 return;
+            }
+
+            if (sanitized.isActive === false) {
+                const blocker = await findActiveDependents("country", req.params.id, requestingUser.companyId);
+                if (blocker) {
+                    res.json(softError(blocker));
+                    return;
+                }
             }
 
             const updated = await CountryService.update(req.params.id, sanitized, requestingUser.companyId);

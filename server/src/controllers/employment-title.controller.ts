@@ -3,6 +3,9 @@ import { Response } from "express";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import { EmploymentTitleService } from "../services/employment-title.service";
 import { hardError, softError, success } from "../utils/response.util";
+import { isValidObjectId } from "../utils/field-sanitizer.util";
+import { subDepartmentRepository } from "../repositories/sub-department.repository";
+import { findActiveDependents } from "../services/dependency.service";
 
 export class EmploymentTitleController {
     static async getAll(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -45,8 +48,17 @@ export class EmploymentTitleController {
                 res.json(softError("Employment title name is required (min 2 characters)"));
                 return;
             }
-            if (!subDepartmentId || typeof subDepartmentId !== "string") {
-                res.json(softError("subDepartmentId is required"));
+            if (!subDepartmentId || typeof subDepartmentId !== "string" || !isValidObjectId(subDepartmentId)) {
+                res.json(softError("A valid subDepartmentId is required"));
+                return;
+            }
+
+            const subDepartment = await subDepartmentRepository(requestingUser.companyId)
+                .findOne({ _id: subDepartmentId, isActive: true })
+                .select("_id")
+                .lean();
+            if (!subDepartment) {
+                res.json(softError("Invalid sub-department"));
                 return;
             }
 
@@ -82,12 +94,31 @@ export class EmploymentTitleController {
                 sanitized.isActive = req.body.isActive;
             }
             if (typeof req.body.subDepartmentId === "string" && req.body.subDepartmentId.trim().length > 0) {
-                sanitized.subDepartment = req.body.subDepartmentId.trim();
+                const subDepartmentId = req.body.subDepartmentId.trim();
+                const subDepartment = isValidObjectId(subDepartmentId)
+                    ? await subDepartmentRepository(requestingUser.companyId)
+                          .findById(subDepartmentId)
+                          .select("_id")
+                          .lean()
+                    : null;
+                if (!subDepartment) {
+                    res.json(softError("Invalid sub-department"));
+                    return;
+                }
+                sanitized.subDepartment = subDepartmentId;
             }
 
             if (Object.keys(sanitized).length === 0) {
                 res.json(softError("No valid fields provided for update"));
                 return;
+            }
+
+            if (sanitized.isActive === false) {
+                const blocker = await findActiveDependents("employmentTitle", req.params.id, requestingUser.companyId);
+                if (blocker) {
+                    res.json(softError(blocker));
+                    return;
+                }
             }
 
             const updated = await EmploymentTitleService.update(
