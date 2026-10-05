@@ -314,6 +314,13 @@ describe("Company and role read access", () => {
         const res = await request(app).get("/api/roles").set(bearer(hr));
         expect(res.status).toBe(200);
     });
+
+    it("allows GET /api/countries for a user manager but not for a plain employee", async () => {
+        const allowed = await request(app).get("/api/countries").set(bearer(hr));
+        const denied = await request(app).get("/api/countries").set(bearer(employee));
+        expect(allowed.status).toBe(200);
+        expect(denied.status).toBe(403);
+    });
 });
 
 describe("User documents access", () => {

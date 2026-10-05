@@ -2,12 +2,17 @@ import { Router } from "express";
 import { CountryController as CountryControllerRaw } from "../controllers/country.controller";
 import { userHasAnyPermission } from "../middleware/permission.middleware";
 import { PermissionKeys } from "../enums/permissions.enum";
+import { USER_FORM_REFERENCE_READ_PERMISSIONS } from "../policies/permission-groups";
 import { wrapController } from "../utils/async-handler.util";
 
 const router = Router();
 const CountryController = wrapController(CountryControllerRaw);
 
-const canReadCountries = userHasAnyPermission([PermissionKeys.COUNTRIES_MANAGEMENT_READ_ALL]);
+const canReadCountries = userHasAnyPermission([
+    PermissionKeys.COUNTRIES_MANAGEMENT_READ_ALL,
+    PermissionKeys.COUNTRIES_MANAGEMENT_WRITE_ALL,
+    ...USER_FORM_REFERENCE_READ_PERMISSIONS,
+]);
 
 const canManageCountries = userHasAnyPermission([PermissionKeys.COUNTRIES_MANAGEMENT_WRITE_ALL]);
 
