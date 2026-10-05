@@ -1,0 +1,22 @@
+@if (sidebar.open()) {
+    <div class="sidebar-backdrop" (click)="sidebar.close()"></div>
+    <aside class="sidebar" aria-label="Administration">
+        @for (section of sidebar.sections(); track section.label; let first = $first) {
+            @if (!first) {
+                <div class="sidebar-divider"></div>
+            }
+            <div class="sidebar-section-label">{{ section.label }}</div>
+            @for (item of section.items; track item.route) {
+                <a
+                    class="sidebar-item"
+                    [routerLink]="item.route"
+                    routerLinkActive="active"
+                    (click)="sidebar.closeIfOverlay()"
+                >
+                    <mat-icon>{{ item.icon }}</mat-icon>
+                    {{ item.label }}
+                </a>
+            }
+        }
+    </aside>
+}

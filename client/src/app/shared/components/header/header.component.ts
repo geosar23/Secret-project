@@ -13,19 +13,14 @@ import { AuthService } from "../../../core/services/auth.service";
 import { UsersService } from "../../../core/services/users.service";
 import { CompanyService } from "../../../core/services/company.service";
 import { MatDivider } from "@angular/material/divider";
-import { debounceTime, distinctUntilChanged, map, switchMap, take } from "rxjs";
+import { debounceTime, distinctUntilChanged, switchMap, take } from "rxjs";
 import { IUser } from "../../../core/interfaces/user.interface";
 import { decodeToken } from "../../../core/utils/token.util";
 import { tokenPayload } from "../../../core/interfaces/auth.interface";
 import { PermissionService } from "../../../core/services/permission.service";
 import { ManagementArea } from "../../../core/utils/permission-areas";
-
-interface NavItem {
-    label: string;
-    icon: string;
-    route: string;
-    area?: ManagementArea;
-}
+import { SidebarService } from "../../../core/services/sidebar.service";
+import { CurrentUserService } from "../../../core/services/current-user.service";
 
 interface MenuItem {
     label: string;
@@ -76,7 +71,8 @@ export class HeaderComponent implements OnInit {
     filteredResults = signal<SearchResult[]>([]);
 
     localUser$ = this.authService.localUser$;
-    visibleNavItems$ = this.localUser$.pipe(map(() => this.adminNavItems.filter(item => this.isAllowed(item.area))));
+    protected sidebar = inject(SidebarService);
+    protected currentUser = inject(CurrentUserService);
 
     companyName = signal<string>("");
     companyLogoUrl = signal<string | null>(null);
@@ -172,69 +168,20 @@ export class HeaderComponent implements OnInit {
             area: "roles",
         },
         {
+            id: "org-chart",
+            name: "Org Chart",
+            type: "route",
+            icon: "account_tree",
+            route: "/org-chart",
+            description: "Company structure and reporting lines",
+        },
+        {
             id: "profile",
             name: "Profile",
             type: "route",
             icon: "person",
             route: "/profile/me",
             description: "My profile",
-        },
-    ];
-
-    adminNavItems: NavItem[] = [
-        {
-            label: "Users Management",
-            icon: "people",
-            route: "/users",
-            area: "users",
-        },
-        {
-            label: "Roles Management",
-            icon: "admin_panel_settings",
-            route: "/roles",
-            area: "roles",
-        },
-        {
-            label: "Departments Management",
-            icon: "account_tree",
-            route: "/departments",
-            area: "departments",
-        },
-        {
-            label: "Countries Management",
-            icon: "public",
-            route: "/countries",
-            area: "countries",
-        },
-        {
-            label: "Sub-Departments Management",
-            icon: "schema",
-            route: "/sub-departments",
-            area: "subDepartments",
-        },
-        {
-            label: "Employment Titles Management",
-            icon: "badge",
-            route: "/employment-titles",
-            area: "employmentTitles",
-        },
-        {
-            label: "Levels Management",
-            icon: "stairs",
-            route: "/levels",
-            area: "levels",
-        },
-        {
-            label: "Offices Management",
-            icon: "location_city",
-            route: "/offices",
-            area: "offices",
-        },
-        {
-            label: "Permissions Management",
-            icon: "security",
-            route: "/permissions",
-            area: "roles",
         },
     ];
 
@@ -248,6 +195,11 @@ export class HeaderComponent implements OnInit {
             label: "Dashboard",
             icon: "dashboard",
             route: "/dashboard",
+        },
+        {
+            label: "Org Chart",
+            icon: "account_tree",
+            route: "/org-chart",
         },
         {
             label: "Settings",

@@ -1,42 +1,185 @@
-<div class="dashboard">
-    <div class="content">
-        @if (localUser$ | async; as user) {
-            <mat-card class="user-card">
-                <mat-card-header>
-                    <mat-card-title>Your Profile</mat-card-title>
-                </mat-card-header>
-                <mat-card-content>
-                    <p><strong>Name:</strong> {{ user.name }}</p>
-                    <p><strong>Email:</strong> {{ user.email }}</p>
-                    <p><strong>Role:</strong> {{ user.role.name }}</p>
-                </mat-card-content>
-            </mat-card>
+@if (user(); as user) {
+    <div class="dashboard">
+        <!-- HERO -->
+        <section class="hero">
+            @if (profileImageUrl(); as imageUrl) {
+                <img class="avatar-lg" [src]="imageUrl" alt="Profile image" />
+            } @else {
+                <div class="avatar-lg">{{ initials() }}</div>
+            }
+            <div class="hero-text">
+                <h1>{{ greeting() }}, {{ firstName() }} 👋</h1>
+                @if (subtitle()) {
+                    <p>{{ subtitle() }}</p>
+                }
+            </div>
+            <div class="hero-right">
+                <span class="hero-date">{{ today | date: "EEEE, d MMMM" }}</span>
+                <span class="role-pill">{{ user.role.name }}</span>
+            </div>
+        </section>
+
+        <!-- PROFILE STRIP -->
+        <section class="profile-strip">
+            <div class="profile-info">
+                <h2>{{ user.name }}</h2>
+                <p>
+                    {{ user.email }}
+                    @if (user.employmentDate) {
+                        · Hired {{ user.employmentDate | date: "MMM y" }}
+                    }
+                </p>
+            </div>
+            <div class="profile-meta">
+                @if (yearsAtCompany(); as years) {
+                    <div class="meta-item">
+                        <span class="meta-val">{{ years }}</span>
+                        <span class="meta-lbl">Years at company</span>
+                    </div>
+                }
+                @if (user.level) {
+                    <div class="meta-item">
+                        <span class="meta-val">{{ user.level.name }}</span>
+                        <span class="meta-lbl">Level</span>
+                    </div>
+                }
+                @if (user.country) {
+                    <div class="meta-item">
+                        <span class="meta-val">{{ user.country.name }}</span>
+                        <span class="meta-lbl">Country</span>
+                    </div>
+                }
+            </div>
+            <a mat-flat-button color="primary" routerLink="/profile/me" class="edit-btn">
+                <mat-icon>edit</mat-icon>
+                Edit Profile
+            </a>
+        </section>
+
+        <!-- PROFILE COMPLETION -->
+        @if (completion().percent < 100) {
+            <section class="profile-completion">
+                <mat-icon class="pc-icon">account_circle</mat-icon>
+                <span class="pc-title">Profile completion</span>
+                <div
+                    class="pc-bar"
+                    role="progressbar"
+                    [attr.aria-valuenow]="completion().percent"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                >
+                    <div class="pc-fill" [style.width.%]="completion().percent"></div>
+                </div>
+                <span class="pc-pct">{{ completion().percent }}%</span>
+                <span class="pc-hint">— Add your {{ completion().missing[0] }} to continue</span>
+                <a mat-flat-button color="primary" routerLink="/profile/me" class="pc-btn">Complete Now</a>
+            </section>
         }
 
-        <div class="quick-actions">
-            <mat-card class="action-card" routerLink="/profile/me">
-                <mat-card-content>
-                    <mat-icon color="primary" class="action-icon">person</mat-icon>
-                    <h3>My Profile</h3>
-                    <p>View and edit your profile information</p>
-                </mat-card-content>
-            </mat-card>
+        <!-- KPI STRIP (sample data) -->
+        <div class="kpi-grid">
+            @for (kpi of kpis; track kpi.label) {
+                <div class="kpi">
+                    <div class="kpi-ico" [class]="kpi.tone">
+                        <mat-icon>{{ kpi.icon }}</mat-icon>
+                    </div>
+                    <div>
+                        <div class="kpi-val">{{ kpi.value }}</div>
+                        <div class="kpi-lbl">{{ kpi.label }}</div>
+                        <div class="kpi-sub">{{ kpi.hint }}</div>
+                    </div>
+                </div>
+            }
+        </div>
+        <p class="sample-note">
+            <mat-icon>info</mat-icon> Figures above and below marked "Sample data" are placeholders.
+        </p>
 
-            <mat-card class="action-card" routerLink="/users">
-                <mat-card-content>
-                    <mat-icon color="primary" class="action-icon">group</mat-icon>
-                    <h3>User Management</h3>
-                    <p>Create and manage users (Admin/HR only)</p>
-                </mat-card-content>
-            </mat-card>
+        <!-- MAIN GRID -->
+        <div class="main-grid">
+            <!-- WORKSPACE -->
+            <div>
+                <h3 class="sec-title">My Workspace</h3>
+                <div class="mod-grid">
+                    @for (card of workspaceCards; track card.label) {
+                        @if (card.route) {
+                            <a class="mod-card" [routerLink]="card.route">
+                                <mat-icon>{{ card.icon }}</mat-icon>
+                                <h4>{{ card.label }}</h4>
+                                <p>{{ card.description }}</p>
+                            </a>
+                        } @else {
+                            <div class="mod-card disabled" aria-disabled="true">
+                                <mat-icon>{{ card.icon }}</mat-icon>
+                                <h4>{{ card.label }}</h4>
+                                <p>{{ card.description }}</p>
+                                <span class="soon-badge">Soon</span>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
 
-            <mat-card class="action-card" routerLink="/permissions">
-                <mat-card-content>
-                    <mat-icon color="primary" class="action-icon">admin_panel_settings</mat-icon>
-                    <h3>View Permissions</h3>
-                    <p>See what permissions you have access to</p>
-                </mat-card-content>
-            </mat-card>
+            <!-- LEAVE TRACKER (sample data) -->
+            <div>
+                <h3 class="sec-title">Leave Tracker <span class="sample-badge">Sample data</span></h3>
+                <div class="panel">
+                    @for (leave of leaveBalances; track leave.label) {
+                        <div class="leave-row">
+                            <span class="leave-dot" [style.background]="leave.color"></span>
+                            <span class="leave-name">{{ leave.label }}</span>
+                            <div class="leave-bar-wrap">
+                                <div
+                                    class="leave-bar"
+                                    [style.width]="barWidth(leave)"
+                                    [style.background]="leave.color"
+                                ></div>
+                            </div>
+                            <span class="leave-count">{{ leave.used }}/{{ leave.total }}</span>
+                        </div>
+                    }
+                    <button mat-stroked-button color="primary" class="req-btn" type="button" disabled>
+                        <mat-icon>add</mat-icon>
+                        Request Leave
+                    </button>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN (sample data) -->
+            <div class="right-col">
+                <div>
+                    <h3 class="sec-title">Upcoming <span class="sample-badge">Sample data</span></h3>
+                    <div class="panel">
+                        @for (event of upcoming; track event.title) {
+                            <div class="list-item">
+                                <div class="cal-badge">
+                                    <span class="cal-day">{{ event.day }}</span>
+                                    <span class="cal-month">{{ event.month }}</span>
+                                </div>
+                                <div>
+                                    <div class="item-title">{{ event.title }}</div>
+                                    <div class="item-sub">{{ event.sub }}</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="sec-title">Announcements <span class="sample-badge">Sample data</span></h3>
+                    <div class="panel">
+                        @for (ann of announcements; track ann.title) {
+                            <div class="list-item">
+                                <span class="ann-dot" [style.background]="ann.color"></span>
+                                <div>
+                                    <div class="item-title">{{ ann.title }}</div>
+                                    <div class="item-sub">{{ ann.sub }}</div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+}

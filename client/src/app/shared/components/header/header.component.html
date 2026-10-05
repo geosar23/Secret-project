@@ -1,9 +1,11 @@
 <mat-toolbar class="app-header">
     <div class="header-container">
         <div class="header-left">
-            <button mat-icon-button [matMenuTriggerFor]="adminMenu" class="menu-button">
-                <mat-icon>menu</mat-icon>
-            </button>
+            @if (sidebar.hasItems()) {
+                <button mat-icon-button class="menu-button" aria-label="Toggle navigation" (click)="sidebar.toggle()">
+                    <mat-icon>menu</mat-icon>
+                </button>
+            }
 
             <a class="company-brand" routerLink="/dashboard">
                 @if (companyLogoUrl()) {
@@ -17,15 +19,6 @@
                     <span class="company-name">{{ companyName() }}</span>
                 }
             </a>
-
-            <mat-menu #adminMenu="matMenu" xPosition="before">
-                @for (item of visibleNavItems$ | async; track item.route) {
-                    <button mat-menu-item (click)="handleMenuClick(item)">
-                        <mat-icon>{{ item.icon }}</mat-icon>
-                        <span>{{ item.label }}</span>
-                    </button>
-                }
-            </mat-menu>
         </div>
 
         <nav class="header-center">
@@ -105,20 +98,37 @@
                 <mat-icon>notifications</mat-icon>
             </button>
 
-            <button mat-button [matMenuTriggerFor]="userMenu" class="user-button">
-                <mat-icon>account_circle</mat-icon>
-                @if (localUser$ | async; as user) {
-                    <span class="user-name">{{ user.name }}</span>
+            <button type="button" [matMenuTriggerFor]="userMenu" class="user-chip" aria-label="Account menu">
+                @if (currentUser.profileImageUrl(); as imageUrl) {
+                    <img class="avatar" [src]="imageUrl" alt="" />
+                } @else {
+                    <span class="avatar">{{ currentUser.initials() }}</span>
                 }
-                <mat-icon>arrow_drop_down</mat-icon>
+                <span class="user-name">{{ currentUser.user()?.name }}</span>
+                <mat-icon class="chip-arrow">arrow_drop_down</mat-icon>
             </button>
 
-            <mat-menu #userMenu="matMenu" xPosition="before">
+            <mat-menu #userMenu="matMenu" xPosition="before" class="user-menu-panel">
+                @if (currentUser.user(); as user) {
+                    <div class="user-menu-head" (click)="$event.stopPropagation()">
+                        @if (currentUser.profileImageUrl(); as imageUrl) {
+                            <img class="avatar avatar-lg" [src]="imageUrl" alt="" />
+                        } @else {
+                            <span class="avatar avatar-lg">{{ currentUser.initials() }}</span>
+                        }
+                        <div class="user-menu-id">
+                            <span class="user-menu-name">{{ user.name }}</span>
+                            <span class="user-menu-email">{{ user.email }}</span>
+                            <span class="user-menu-role">{{ user.role.name }}</span>
+                        </div>
+                    </div>
+                    <mat-divider></mat-divider>
+                }
                 @for (item of userMenuItems; track $index) {
                     @if (item.divider) {
                         <mat-divider></mat-divider>
                     } @else {
-                        <button mat-menu-item (click)="handleMenuClick(item)">
+                        <button mat-menu-item [class.danger]="item.label === 'Logout'" (click)="handleMenuClick(item)">
                             <mat-icon>{{ item.icon }}</mat-icon>
                             <span>{{ item.label }}</span>
                         </button>
