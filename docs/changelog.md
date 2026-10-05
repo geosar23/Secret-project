@@ -6,6 +6,10 @@ Significant changes to the application, most recent first.
 
 ## Current
 
+### Demo company seed
+
+- Added `npm run seed:demo` (in `server/`) to create a company with default roles, a starter org structure and a super admin. See [Getting Started](./getting-started.md#seed-a-demo-company).
+
 ### Docker support
 
 - Added `server/Dockerfile` and `client/Dockerfile` (multi-stage builds).

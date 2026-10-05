@@ -76,6 +76,60 @@ npm run dev:server
 npm run dev:client
 ```
 
+### Seed a demo company
+
+A fresh database has no companies, roles or users, so nobody can log in. The seed command creates one complete company so you can sign in and use the app straight away.
+
+Run it from `server/` with `MONGO_URI` set in `server/.env`:
+
+```bash
+cd server
+npm run seed:demo -- --name "Acme" --slug acme --email admin@acme.com
+```
+
+| Option       | Required | Default               | Notes                                                                     |
+| ------------ | -------- | --------------------- | ------------------------------------------------------------------------- |
+| `--name`     | No       | `Demo Company`        | Company display name                                                      |
+| `--slug`     | No       | derived from `--name` | Lowercased, non-alphanumerics become `-`. Must be unique                  |
+| `--email`    | No       | `admin@<slug>.com`    | Login email of the super admin. Must be unique across all companies       |
+| `--password` | No       | random, printed once  | Prefer the random one; a value on the command line stays in shell history |
+
+Example output:
+
+```
+Created company "Acme" (65f...)
+{ roles: 5, countries: 1, departments: 5, subDepartments: 5, employmentTitles: 5, levels: 4, offices: 1, users: 1 }
+Login: admin@acme.com / k3V9xQ2mT-Lw
+```
+
+Sign in at `http://localhost:4200` with that email and password.
+
+#### What it creates
+
+Everything belongs to the new company, so the data is isolated from other companies.
+
+- **Roles** (system roles):
+    - `super_admin`: everything.
+    - `admin`: manage users, profiles, roles and all HR entities; create users; reset passwords.
+    - `hr`: manage users and profiles; create users; reset passwords; read HR entities.
+    - `manager`: read their direct reports and their own profile.
+    - `employee`: read their own record and profile.
+- **Country**: Greece.
+- **Org structure**: Engineering, HR, Marketing, Finance and Sales. Each has one sub-department and one employment title (for example Engineering, Software Development, Software Engineer).
+- **Levels**: Junior, Mid, Senior, Lead.
+- **Office**: Athens HQ, in Greece.
+- **User**: one super admin.
+
+The seed creates no demo employees. Add them through the Users page with the super admin.
+
+#### Good to know
+
+- It is **not idempotent**. It stops with an error if the slug or the admin email already exists, and writes nothing in that case. Run it again with a different `--slug` and `--email` to create another company.
+- The Roles schema declares `role` and `name` as unique, but index creation is disabled. If your database already has unique indexes on those fields, seeding a second company fails on a duplicate key. Drop or scope those indexes first.
+- Seeded system roles cannot be deleted or deactivated from the UI.
+- It writes straight to the database named in `MONGO_URI`. Double-check the URI before running it against anything other than a development database.
+- The logic lives in `server/src/services/seed.service.ts` (`seedDemoCompany`). Change the role permissions or the starter org structure there. The command-line wrapper is `server/src/scripts/seedDemoCompany.ts`.
+
 ## 4. Building for Production
 
 ### Backend

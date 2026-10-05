@@ -80,7 +80,7 @@ Status legend: `[ ]` Not started · `[~]` In progress · `[x]` Done
 ### Seeding / Onboarding
 
 - `[ ]` CSV/Excel import flow for initial data loading (departments, users, levels, offices, countries, etc.)
-- `[ ]` Alternatively: a "seed demo data" feature that creates a starting structure (1 country, basic departments, sample titles, sub-departments, etc.)
+- `[x]` A "seed demo data" command that creates a starting structure (1 country, basic departments, sample titles, sub-departments, etc.). See [Getting Started](./getting-started.md#seed-a-demo-company)
 
 ---
 
