@@ -1,0 +1,242 @@
+<div class="org-page">
+    <div class="org-toolbar">
+        <div class="view-toggle" role="group" aria-label="Chart view">
+            <button type="button" [class.active]="view() === 'manager'" (click)="switchView('manager')">
+                <mat-icon>account_tree</mat-icon>
+                <span>Line Manager</span>
+            </button>
+            <button type="button" [class.active]="view() === 'dept'" (click)="switchView('dept')">
+                <mat-icon>corporate_fare</mat-icon>
+                <span>Departments</span>
+            </button>
+        </div>
+
+        <label class="org-search">
+            <mat-icon>search</mat-icon>
+            <input
+                type="text"
+                placeholder="Search people, departments..."
+                [value]="search()"
+                (input)="search.set($any($event.target).value)"
+            />
+            @if (search()) {
+                <button type="button" class="clear" aria-label="Clear search" (click)="search.set('')">
+                    <mat-icon>close</mat-icon>
+                </button>
+            }
+        </label>
+
+        <button mat-icon-button type="button" title="Fit to screen" aria-label="Fit to screen" (click)="fitToScreen()">
+            <mat-icon>fit_screen</mat-icon>
+        </button>
+    </div>
+
+    <div
+        class="canvas-wrap"
+        #canvasWrap
+        [class.panning]="panning()"
+        (wheel)="onWheel($event)"
+        (pointerdown)="onPointerDown($event)"
+        (pointermove)="onPointerMove($event)"
+        (pointerup)="onPointerUp($event)"
+        (pointercancel)="onPointerUp($event)"
+    >
+        @if (loading()) {
+            <div class="state"><mat-spinner diameter="40"></mat-spinner></div>
+        } @else if (error()) {
+            <div class="state">
+                <mat-icon>error_outline</mat-icon>
+                <p>{{ error() }}</p>
+                <button mat-flat-button color="primary" type="button" (click)="load()">Try again</button>
+            </div>
+        } @else if (layout(); as layout) {
+            <div class="canvas" [class.animating]="animating()" [style.transform]="canvasTransform()">
+                <svg class="lines" aria-hidden="true">
+                    @for (edge of layout.edges; track edge.id) {
+                        <path class="connector" [attr.d]="edge.d" />
+                    }
+                </svg>
+
+                @for (item of layout.nodes; track item.node.id) {
+                    <div class="node" [style.left.px]="item.x" [style.top.px]="item.y">
+                        @if (item.node.kind === "person") {
+                            <div
+                                class="card"
+                                role="button"
+                                tabindex="0"
+                                [attr.aria-pressed]="selectedId() === item.node.id"
+                                [style.--card-accent]="item.node.color"
+                                [class.selected]="selectedId() === item.node.id"
+                                [class.dimmed]="isDimmed(item.node.id)"
+                                [class.highlight]="isHighlighted(item.node.id)"
+                                (click)="select(item.node.id)"
+                                (keydown.enter)="select(item.node.id)"
+                            >
+                                <div class="card-top">
+                                    <div class="card-avatar">{{ initials(item.node.name) }}</div>
+                                    <div class="card-id">
+                                        <div class="card-name">
+                                            {{ item.node.name }}
+                                            @if (item.node.id === myId()) {
+                                                <span class="me-chip">You</span>
+                                            }
+                                        </div>
+                                        <div class="card-title">{{ item.node.subtitle || "—" }}</div>
+                                    </div>
+                                </div>
+                                <div class="card-dept">
+                                    <mat-icon>corporate_fare</mat-icon>
+                                    <span>{{ item.node.department }}</span>
+                                </div>
+                                <div class="card-footer">
+                                    <span class="card-email">{{ item.node.email }}</span>
+                                    @if (item.node.children.length) {
+                                        <span class="card-reports">
+                                            <mat-icon>people</mat-icon>
+                                            {{ item.node.children.length }}
+                                        </span>
+                                    }
+                                </div>
+                                @if (item.node.children.length) {
+                                    <button
+                                        type="button"
+                                        class="collapse-btn"
+                                        [attr.aria-label]="
+                                            isCollapsed(item.node.id) ? 'Expand reports' : 'Collapse reports'
+                                        "
+                                        (click)="toggleCollapse($event, item.node.id)"
+                                    >
+                                        <mat-icon>{{
+                                            isCollapsed(item.node.id) ? "expand_more" : "expand_less"
+                                        }}</mat-icon>
+                                    </button>
+                                }
+                            </div>
+                        } @else {
+                            <div
+                                class="dept-card"
+                                role="button"
+                                tabindex="0"
+                                [attr.aria-pressed]="selectedId() === item.node.id"
+                                [style.--card-accent]="item.node.color"
+                                [class.selected]="selectedId() === item.node.id"
+                                [class.dimmed]="isDimmed(item.node.id)"
+                                [class.highlight]="isHighlighted(item.node.id)"
+                                (click)="select(item.node.id)"
+                                (keydown.enter)="select(item.node.id)"
+                            >
+                                <div class="dept-icon">
+                                    <mat-icon>{{ item.node.icon }}</mat-icon>
+                                </div>
+                                <div class="dept-name">{{ item.node.name }}</div>
+                                <div class="dept-count">{{ item.node.subtitle }}</div>
+                                @if (item.node.children.length) {
+                                    <button
+                                        type="button"
+                                        class="collapse-btn"
+                                        [attr.aria-label]="isCollapsed(item.node.id) ? 'Expand' : 'Collapse'"
+                                        (click)="toggleCollapse($event, item.node.id)"
+                                    >
+                                        <mat-icon>{{
+                                            isCollapsed(item.node.id) ? "expand_more" : "expand_less"
+                                        }}</mat-icon>
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        } @else {
+            <div class="state">
+                <mat-icon>groups</mat-icon>
+                <p>There are no employees to show yet.</p>
+            </div>
+        }
+
+        @if (!loading() && !error() && layout()) {
+            <div class="zoom-controls">
+                <button type="button" aria-label="Zoom in" (click)="zoom(1.2)">+</button>
+                <div class="zoom-label">{{ (scale() * 100).toFixed(0) }}%</div>
+                <button type="button" aria-label="Zoom out" (click)="zoom(0.8)">−</button>
+            </div>
+
+            @if (legend().length) {
+                <div class="legend">
+                    <div class="legend-title">Departments</div>
+                    @for (entry of legend(); track entry.name) {
+                        <div class="legend-item">
+                            <span class="legend-dot" [style.background]="entry.color"></span>
+                            {{ entry.name }}
+                        </div>
+                    }
+                </div>
+            }
+        }
+
+        @if (selected(); as node) {
+            <aside class="info-panel" aria-live="polite">
+                <div class="info-header">
+                    <div class="info-avatar" [style.color]="node.color">
+                        @if (node.kind === "person") {
+                            {{ initials(node.name) }}
+                        } @else {
+                            <mat-icon>{{ node.icon }}</mat-icon>
+                        }
+                    </div>
+                    <div class="info-id">
+                        <div class="info-name">{{ node.name }}</div>
+                        <div class="info-role">{{ node.subtitle }}</div>
+                    </div>
+                    <button type="button" class="info-close" aria-label="Close details" (click)="closeInfo()">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                </div>
+                <div class="info-body">
+                    @if (node.kind === "person") {
+                        <div class="info-row">
+                            <mat-icon>corporate_fare</mat-icon>
+                            <div>
+                                <div class="info-label">Department</div>
+                                <div class="info-value">{{ node.department }}</div>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <mat-icon>email</mat-icon>
+                            <div>
+                                <div class="info-label">Email</div>
+                                <a class="info-value" [href]="'mailto:' + node.email">{{ node.email }}</a>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <mat-icon>people</mat-icon>
+                            <div>
+                                <div class="info-label">Direct reports</div>
+                                <div class="info-value">
+                                    {{ selectedStats()?.direct }} direct · {{ selectedStats()?.total }} total
+                                </div>
+                            </div>
+                        </div>
+                    } @else if (node.children.length) {
+                        <div class="info-row">
+                            <mat-icon>account_tree</mat-icon>
+                            <div>
+                                <div class="info-label">
+                                    {{ node.id === "company" ? "Contains" : "Sub-departments" }}
+                                </div>
+                                <div class="info-value">{{ selectedStats()?.total }} in total</div>
+                            </div>
+                        </div>
+                    }
+                    @if (node.children.length) {
+                        <div class="chips">
+                            @for (child of node.children; track child.id) {
+                                <span class="chip">{{ child.name }}</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </aside>
+        }
+    </div>
+</div>

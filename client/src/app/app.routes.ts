@@ -24,6 +24,11 @@ export const routes: Routes = [
                 loadComponent: () => import("./features/dashboard/dashboard.component").then(m => m.DashboardComponent),
             },
             {
+                path: "org-chart",
+                data: { breadcrumb: "Org Chart" },
+                loadComponent: () => import("./features/org-chart/org-chart.component").then(m => m.OrgChartComponent),
+            },
+            {
                 path: "non-authorized",
                 data: { breadcrumb: "Not Authorized" },
                 loadComponent: () => import("./features/notFound/notFound.component").then(m => m.NotFoundComponent),
