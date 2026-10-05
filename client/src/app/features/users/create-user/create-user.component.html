@@ -48,7 +48,7 @@
                     @if (rolesLoading()) {
                         <mat-option disabled>Loading roles...</mat-option>
                     }
-                    @for (role of roles(); track role._id) {
+                    @for (role of roleOptions(); track role._id) {
                         <mat-option [value]="role._id">{{ role.name }}</mat-option>
                     }
                 </mat-select>
@@ -60,7 +60,7 @@
                     @if (countriesLoading()) {
                         <mat-option disabled>Loading countries...</mat-option>
                     }
-                    @for (country of countries(); track country._id) {
+                    @for (country of countryOptions(); track country._id) {
                         <mat-option [value]="country._id">{{ country.name }}</mat-option>
                     }
                 </mat-select>
@@ -173,13 +173,43 @@
             <!-- ── EMPLOYMENT ── -->
             <p class="section-label">Employment</p>
 
+            <div class="two-col">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Department</mat-label>
+                    <mat-select formControlName="departmentId">
+                        <mat-option value="">—</mat-option>
+                        @if (departmentsLoading()) {
+                            <mat-option disabled>Loading...</mat-option>
+                        }
+                        @for (d of departmentOptions(); track d._id) {
+                            <mat-option [value]="d._id">{{ d.name }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Sub-Department</mat-label>
+                    <mat-select formControlName="subDepartmentId">
+                        <mat-option value="">—</mat-option>
+                        @if (subDepartmentOptions().length === 0) {
+                            <mat-option disabled>Select a department first</mat-option>
+                        }
+                        @for (s of subDepartmentOptions(); track s._id) {
+                            <mat-option [value]="s._id">{{ s.name }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+            </div>
+
             <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Employment Title</mat-label>
                 <mat-select formControlName="employmentTitleId">
                     @if (employmentTitlesLoading()) {
                         <mat-option disabled>Loading employment titles...</mat-option>
                     }
-                    @for (et of employmentTitles(); track et._id) {
+                    @if (titleOptions().length === 0) {
+                        <mat-option disabled>Select a department and sub-department first</mat-option>
+                    }
+                    @for (et of titleOptions(); track et._id) {
                         <mat-option [value]="et._id">{{ et.name }}</mat-option>
                     }
                 </mat-select>
@@ -205,32 +235,17 @@
 
             <div class="two-col">
                 <mat-form-field appearance="outline" class="full-width">
-                    <mat-label>Department</mat-label>
-                    <mat-select formControlName="departmentId">
-                        <mat-option value="">—</mat-option>
-                        @if (departmentsLoading()) {
-                            <mat-option disabled>Loading...</mat-option>
-                        }
-                        @for (d of departments(); track d._id) {
-                            <mat-option [value]="d._id">{{ d.name }}</mat-option>
-                        }
-                    </mat-select>
-                </mat-form-field>
-                <mat-form-field appearance="outline" class="full-width">
                     <mat-label>Level</mat-label>
                     <mat-select formControlName="levelId">
                         <mat-option value="">—</mat-option>
                         @if (levelsLoading()) {
                             <mat-option disabled>Loading...</mat-option>
                         }
-                        @for (l of levels(); track l._id) {
+                        @for (l of levelOptions(); track l._id) {
                             <mat-option [value]="l._id">{{ l.name }}</mat-option>
                         }
                     </mat-select>
                 </mat-form-field>
-            </div>
-
-            <div class="two-col">
                 <mat-form-field appearance="outline" class="full-width">
                     <mat-label>Office</mat-label>
                     <mat-select formControlName="officeId">
@@ -238,11 +253,15 @@
                         @if (officesLoading()) {
                             <mat-option disabled>Loading...</mat-option>
                         }
-                        @for (o of offices(); track o._id) {
+                        @for (o of officeOptions(); track o._id) {
                             <mat-option [value]="o._id">{{ o.name }}</mat-option>
                         }
                     </mat-select>
+                    <mat-hint>Only offices in the selected country</mat-hint>
                 </mat-form-field>
+            </div>
+
+            <div class="two-col">
                 <mat-form-field appearance="outline" class="full-width">
                     <mat-label>Manager</mat-label>
                     <mat-select formControlName="managerId">
@@ -250,25 +269,25 @@
                         @if (usersLoading()) {
                             <mat-option disabled>Loading...</mat-option>
                         }
-                        @for (u of users(); track u._id) {
+                        @for (u of managerOptions(); track u._id) {
                             <mat-option [value]="u._id">{{ u.name }}</mat-option>
                         }
                     </mat-select>
                 </mat-form-field>
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>HR Representative</mat-label>
+                    <mat-select formControlName="hrRepresentativeId">
+                        <mat-option value="">—</mat-option>
+                        @if (usersLoading()) {
+                            <mat-option disabled>Loading...</mat-option>
+                        }
+                        @for (u of personOptions(); track u._id) {
+                            <mat-option [value]="u._id">{{ u.name }}</mat-option>
+                        }
+                    </mat-select>
+                    <mat-hint>Only people in the selected country</mat-hint>
+                </mat-form-field>
             </div>
-
-            <mat-form-field appearance="outline" class="full-width">
-                <mat-label>HR Representative</mat-label>
-                <mat-select formControlName="hrRepresentativeId">
-                    <mat-option value="">—</mat-option>
-                    @if (usersLoading()) {
-                        <mat-option disabled>Loading...</mat-option>
-                    }
-                    @for (u of users(); track u._id) {
-                        <mat-option [value]="u._id">{{ u.name }}</mat-option>
-                    }
-                </mat-select>
-            </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Payroll ID</mat-label>

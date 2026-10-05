@@ -2,12 +2,15 @@ import {
     ChangeDetectionStrategy,
     ChangeDetectorRef,
     Component,
+    DestroyRef,
+    computed,
     inject,
     OnDestroy,
     OnInit,
     signal,
     WritableSignal,
 } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray, FormControl } from "@angular/forms";
 import { MatFormFieldModule } from "@angular/material/form-field";
@@ -27,6 +30,7 @@ import { CountryService } from "../../../core/services/country.service";
 import { EmploymentTitleService } from "../../../core/services/employment-title.service";
 import { RoleService } from "../../../core/services/role.service";
 import { DepartmentService } from "../../../core/services/department.service";
+import { SubDepartmentService } from "../../../core/services/sub-department.service";
 import { LevelService } from "../../../core/services/level.service";
 import { OfficeService } from "../../../core/services/office.service";
 import { ToastService } from "../../../core/services/toast.service";
@@ -37,6 +41,8 @@ import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 import { IRole } from "../../../core/interfaces/role.interface";
 import { IDepartment } from "../../../core/interfaces/department.interface";
+import { ISubDepartment } from "../../../core/interfaces/sub-department.interface";
+import { officesIn, peopleIn, selectable, subDepartmentsOf, titlesOf } from "../../../core/utils/user-form-options";
 import { LoadingButtonComponent } from "../../../shared/components/loading-button/loading-button.component";
 import { ProfileImageUploadComponent } from "../../../shared/components/profile-image-upload/profile-image-upload.component";
 import {
@@ -77,9 +83,11 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
     private employmentTitleService = inject(EmploymentTitleService);
     private roleService = inject(RoleService);
     private departmentService = inject(DepartmentService);
+    private subDepartmentService = inject(SubDepartmentService);
     private levelService = inject(LevelService);
     private officeService = inject(OfficeService);
     private toast = inject(ToastService);
+    private destroyRef = inject(DestroyRef);
     private permissionService = inject(PermissionService);
     private breadcrumbService = inject(BreadcrumbService);
     private route = inject(ActivatedRoute);
@@ -109,8 +117,41 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
     employmentTitles = signal<IEmploymentTitle[]>([]);
     users = signal<IUser[]>([]);
     departments = signal<IDepartment[]>([]);
+    subDepartments = signal<ISubDepartment[]>([]);
     levels = signal<ILevel[]>([]);
     offices = signal<IOffice[]>([]);
+
+    private selectedDepartmentId = signal("");
+    private selectedSubDepartmentId = signal("");
+    private selectedCountryId = signal("");
+    /** Values already saved on the user; they stay selectable even if now inactive. */
+    private saved = signal({
+        role: "",
+        country: "",
+        department: "",
+        subDepartment: "",
+        title: "",
+        level: "",
+        office: "",
+        manager: "",
+        hrRepresentative: "",
+    });
+
+    readonly roleOptions = computed(() => selectable(this.roles(), this.saved().role));
+    readonly countryOptions = computed(() => selectable(this.countries(), this.saved().country));
+    readonly departmentOptions = computed(() => selectable(this.departments(), this.saved().department));
+    readonly subDepartmentOptions = computed(() =>
+        subDepartmentsOf(this.subDepartments(), this.selectedDepartmentId(), this.saved().subDepartment),
+    );
+    readonly titleOptions = computed(() =>
+        titlesOf(this.employmentTitles(), this.selectedSubDepartmentId(), this.saved().title),
+    );
+    readonly levelOptions = computed(() => selectable(this.levels(), this.saved().level));
+    readonly officeOptions = computed(() => officesIn(this.offices(), this.selectedCountryId(), this.saved().office));
+    readonly managerOptions = computed(() => selectable(this.users(), this.saved().manager));
+    readonly personOptions = computed(() =>
+        peopleIn(this.users(), this.selectedCountryId(), this.saved().hrRepresentative),
+    );
 
     selectedProfileImage = signal<File | null>(null);
     removeProfileImageRequested = signal(false);
@@ -135,6 +176,7 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
         employmentTitleId: ["", Validators.required],
         managerId: [""],
         departmentId: [""],
+        subDepartmentId: [""],
         levelId: [""],
         officeId: [""],
         hrRepresentativeId: [""],
@@ -385,6 +427,7 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
         const editContext = this.route.snapshot.data["editContext"] as IEditUserContext;
         this.loadedUser = editContext.user;
         this.patchForm(this.loadedUser);
+        this.watchDependentSelections();
         this.userLoading.set(false);
         this.loadCurrentProfileImage();
         this.breadcrumbService.set([
@@ -392,6 +435,32 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
             { label: editContext.user.name },
             { label: "Edit" },
         ]);
+    }
+
+    /** Department narrows sub-departments, which narrow titles; country narrows offices and HR representatives. */
+    private watchDependentSelections(): void {
+        const changes = (name: string) =>
+            this.userForm.get(name)!.valueChanges.pipe(takeUntilDestroyed(this.destroyRef));
+
+        changes("departmentId").subscribe(value => {
+            this.selectedDepartmentId.set(value ?? "");
+            this.userForm.patchValue({ subDepartmentId: "" });
+        });
+        changes("subDepartmentId").subscribe(value => {
+            this.selectedSubDepartmentId.set(value ?? "");
+            this.userForm.patchValue({ employmentTitleId: "" });
+        });
+        changes("countryId").subscribe(value => {
+            this.selectedCountryId.set(value ?? "");
+            const stillValid = (field: string, options: { _id?: string }[]) =>
+                options.some(o => o._id === this.userForm.get(field)?.value);
+            if (!stillValid("officeId", this.officeOptions())) {
+                this.userForm.patchValue({ officeId: "" });
+            }
+            if (!stillValid("hrRepresentativeId", this.personOptions())) {
+                this.userForm.patchValue({ hrRepresentativeId: "" });
+            }
+        });
     }
 
     private loadReferenceData(): void {
@@ -411,6 +480,7 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
                 this.users,
             ),
             this.loadReference(this.departmentService.getDepartments(), this.departmentsLoading, this.departments),
+            this.loadReference(this.subDepartmentService.getSubDepartments(), signal(false), this.subDepartments),
             this.loadReference(this.levelService.getLevels(), this.levelsLoading, this.levels),
             this.loadReference(this.officeService.getOffices(), this.officesLoading, this.offices),
         ]).subscribe(() => this.loadUser());
@@ -472,6 +542,23 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
             ),
         );
 
+        const departmentId = u.employmentTitle?.subDepartment?.department?._id ?? "";
+        const subDepartmentId = u.employmentTitle?.subDepartment?._id ?? "";
+        this.selectedDepartmentId.set(departmentId);
+        this.selectedSubDepartmentId.set(subDepartmentId);
+        this.selectedCountryId.set(u.country?._id ?? "");
+        this.saved.set({
+            role: u.role?._id ?? "",
+            country: u.country?._id ?? "",
+            department: departmentId,
+            subDepartment: subDepartmentId,
+            title: u.employmentTitle?._id ?? "",
+            level: u.level?._id ?? "",
+            office: u.office?._id ?? "",
+            manager: u.manager?._id ?? "",
+            hrRepresentative: u.hrRepresentative?._id ?? "",
+        });
+
         this.userForm.patchValue({
             name: u.name,
             email: u.email,
@@ -479,7 +566,8 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
             countryId: u.country?._id ?? "",
             employmentTitleId: u.employmentTitle?._id ?? "",
             managerId: u.manager?._id ?? "",
-            departmentId: u.employmentTitle?.subDepartment?.department?._id ?? "",
+            departmentId,
+            subDepartmentId,
             levelId: u.level?._id ?? "",
             officeId: u.office?._id ?? "",
             hrRepresentativeId: u.hrRepresentative?._id ?? "",

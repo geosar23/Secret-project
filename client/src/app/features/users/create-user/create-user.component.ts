@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, OnInit, signal } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray, FormControl } from "@angular/forms";
 import { MatFormFieldModule } from "@angular/material/form-field";
@@ -19,6 +20,7 @@ import { CountryService } from "../../../core/services/country.service";
 import { EmploymentTitleService } from "../../../core/services/employment-title.service";
 import { RoleService } from "../../../core/services/role.service";
 import { DepartmentService } from "../../../core/services/department.service";
+import { SubDepartmentService } from "../../../core/services/sub-department.service";
 import { LevelService } from "../../../core/services/level.service";
 import { OfficeService } from "../../../core/services/office.service";
 import { ToastService } from "../../../core/services/toast.service";
@@ -28,6 +30,8 @@ import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
 import { IRole } from "../../../core/interfaces/role.interface";
 import { IDepartment } from "../../../core/interfaces/department.interface";
+import { ISubDepartment } from "../../../core/interfaces/sub-department.interface";
+import { officesIn, peopleIn, selectable, subDepartmentsOf, titlesOf } from "../../../core/utils/user-form-options";
 import {
     IUser,
     ILevel,
@@ -76,8 +80,10 @@ export class CreateUserPageComponent implements OnInit {
     private employmentTitleService = inject(EmploymentTitleService);
     private roleService = inject(RoleService);
     private departmentService = inject(DepartmentService);
+    private subDepartmentService = inject(SubDepartmentService);
     private levelService = inject(LevelService);
     private officeService = inject(OfficeService);
+    private destroyRef = inject(DestroyRef);
     private router = inject(Router);
     private toast = inject(ToastService);
     private authService = inject(AuthService);
@@ -104,8 +110,25 @@ export class CreateUserPageComponent implements OnInit {
     employmentTitles = signal<IEmploymentTitle[]>([]);
     users = signal<IUser[]>([]);
     departments = signal<IDepartment[]>([]);
+    subDepartments = signal<ISubDepartment[]>([]);
     levels = signal<ILevel[]>([]);
     offices = signal<IOffice[]>([]);
+
+    private selectedDepartmentId = signal("");
+    private selectedSubDepartmentId = signal("");
+    private selectedCountryId = signal("");
+
+    readonly roleOptions = computed(() => selectable(this.roles()));
+    readonly countryOptions = computed(() => selectable(this.countries()));
+    readonly departmentOptions = computed(() => selectable(this.departments()));
+    readonly subDepartmentOptions = computed(() =>
+        subDepartmentsOf(this.subDepartments(), this.selectedDepartmentId()),
+    );
+    readonly titleOptions = computed(() => titlesOf(this.employmentTitles(), this.selectedSubDepartmentId()));
+    readonly levelOptions = computed(() => selectable(this.levels()));
+    readonly officeOptions = computed(() => officesIn(this.offices(), this.selectedCountryId()));
+    readonly managerOptions = computed(() => selectable(this.users()));
+    readonly personOptions = computed(() => peopleIn(this.users(), this.selectedCountryId()));
 
     selectedProfileImage = signal<File | null>(null);
     selectedProfileImagePreviewUrl = signal<string | null>(null);
@@ -125,6 +148,7 @@ export class CreateUserPageComponent implements OnInit {
         employmentTitleId: ["", Validators.required],
         managerId: [""],
         departmentId: [""],
+        subDepartmentId: [""],
         levelId: [""],
         officeId: [""],
         hrRepresentativeId: [""],
@@ -189,7 +213,34 @@ export class CreateUserPageComponent implements OnInit {
 
     ngOnInit(): void {
         this.canEditCompensation = this.permissionService.canEditCompensation();
+        this.watchDependentSelections();
         this.loadInitialData();
+    }
+
+    /** Department narrows sub-departments, which narrow titles; country narrows offices and HR representatives. */
+    private watchDependentSelections(): void {
+        const changes = (name: string) =>
+            this.userForm.get(name)!.valueChanges.pipe(takeUntilDestroyed(this.destroyRef));
+
+        changes("departmentId").subscribe(value => {
+            this.selectedDepartmentId.set(value ?? "");
+            this.userForm.patchValue({ subDepartmentId: "" });
+        });
+        changes("subDepartmentId").subscribe(value => {
+            this.selectedSubDepartmentId.set(value ?? "");
+            this.userForm.patchValue({ employmentTitleId: "" });
+        });
+        changes("countryId").subscribe(value => {
+            this.selectedCountryId.set(value ?? "");
+            const stillValid = (field: string, options: { _id?: string }[]) =>
+                options.some(o => o._id === this.userForm.get(field)?.value);
+            if (!stillValid("officeId", this.officeOptions())) {
+                this.userForm.patchValue({ officeId: "" });
+            }
+            if (!stillValid("hrRepresentativeId", this.personOptions())) {
+                this.userForm.patchValue({ hrRepresentativeId: "" });
+            }
+        });
     }
 
     private loadInitialData(): void {
@@ -246,7 +297,7 @@ export class CreateUserPageComponent implements OnInit {
             });
 
         this.usersService
-            .getUsers()
+            .getUsers({ limit: 200 })
             .pipe(first())
             .subscribe({
                 next: res => {
@@ -270,6 +321,11 @@ export class CreateUserPageComponent implements OnInit {
                     this.departmentsLoading.set(false);
                 },
             });
+
+        this.subDepartmentService
+            .getSubDepartments()
+            .pipe(first())
+            .subscribe({ next: res => this.subDepartments.set(res.data ?? []), error: () => undefined });
 
         this.levelService
             .getLevels()

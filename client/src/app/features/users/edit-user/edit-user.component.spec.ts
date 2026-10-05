@@ -9,6 +9,7 @@ import { EmploymentTitleService } from "../../../core/services/employment-title.
 import { RoleService } from "../../../core/services/role.service";
 import { DepartmentService } from "../../../core/services/department.service";
 import { LevelService } from "../../../core/services/level.service";
+import { SubDepartmentService } from "../../../core/services/sub-department.service";
 import { OfficeService } from "../../../core/services/office.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { AuthService } from "../../../core/services/auth.service";
@@ -65,6 +66,7 @@ describe("EditUserPageComponent", () => {
         const roleServiceSpy = jasmine.createSpyObj("RoleService", ["getAllRoles"]);
         const departmentServiceSpy = jasmine.createSpyObj("DepartmentService", ["getDepartments"]);
         const levelServiceSpy = jasmine.createSpyObj("LevelService", ["getLevels"]);
+        const subDepartmentServiceSpy = jasmine.createSpyObj("SubDepartmentService", ["getSubDepartments"]);
         const officeServiceSpy = jasmine.createSpyObj("OfficeService", ["getOffices"]);
         const toastSpy = jasmine.createSpyObj("ToastService", ["error", "success", "warning", "info"]);
         const authServiceSpy = jasmine.createSpyObj("AuthService", ["getLocalUser", "isAuthenticated"], {
@@ -78,6 +80,7 @@ describe("EditUserPageComponent", () => {
         roleServiceSpy.getAllRoles.and.returnValue(of({ success: true, data: [] }));
         departmentServiceSpy.getDepartments.and.returnValue(of({ success: true, data: [] }));
         levelServiceSpy.getLevels.and.returnValue(of({ success: true, data: [] }));
+        subDepartmentServiceSpy.getSubDepartments.and.returnValue(of({ success: true, data: [] }));
         officeServiceSpy.getOffices.and.returnValue(of({ success: true, data: [] }));
         authServiceSpy.getLocalUser.and.returnValue(mockLocalUser);
 
@@ -100,6 +103,7 @@ describe("EditUserPageComponent", () => {
                 { provide: RoleService, useValue: roleServiceSpy },
                 { provide: DepartmentService, useValue: departmentServiceSpy },
                 { provide: LevelService, useValue: levelServiceSpy },
+                { provide: SubDepartmentService, useValue: subDepartmentServiceSpy },
                 { provide: OfficeService, useValue: officeServiceSpy },
                 { provide: ToastService, useValue: toastSpy },
                 { provide: AuthService, useValue: authServiceSpy },
