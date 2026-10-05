@@ -6,6 +6,12 @@ Significant changes to the application, most recent first.
 
 ## Current
 
+### Org chart, new dashboard and admin sidebar
+
+- Added an **Org Chart** page (`/org-chart`) for all employees, with a line-manager view and a departments view, pan/zoom, search and collapsible branches. It is backed by `GET /api/users/org-chart`, which is open to any authenticated user and returns only non-sensitive fields.
+- Redesigned the dashboard (greeting hero, profile strip, profile completion bar, personal workspace). The leave, attendance, announcements and upcoming sections are labelled placeholders until those modules exist.
+- Admin pages moved from the header menu into a permission-filtered sidebar. The header's user menu was restyled.
+
 ### Demo company seed
 
 - Added `npm run seed:demo` (in `server/`) to create a company with default roles, a starter org structure and a super admin. See [Getting Started](./getting-started.md#seed-a-demo-company).

@@ -23,19 +23,20 @@ All endpoints are prefixed with `/api`. All protected endpoints require a `Autho
 
 ## Users
 
-| Method | Path                                | Auth | Description                                                               |
-| ------ | ----------------------------------- | ---- | ------------------------------------------------------------------------- |
-| GET    | `/api/users`                        | Yes  | List users (company-scoped, filterable by role/department/country)        |
-| POST   | `/api/users`                        | Yes  | Create a new user                                                         |
-| GET    | `/api/users/:id`                    | Yes  | Get a single user by ID                                                   |
-| PUT    | `/api/users/:id`                    | Yes  | Update a user                                                             |
-| DELETE | `/api/users/:id`                    | Yes  | Delete a user                                                             |
-| PUT    | `/api/users/:id/password`           | Yes  | Change a user's password                                                  |
-| POST   | `/api/users/:id/permissions/grant`  | Yes  | Grant an individual permission to a user                                  |
-| POST   | `/api/users/:id/permissions/revoke` | Yes  | Revoke an individual permission from a user                               |
-| POST   | `/api/users/:id/profile-image`      | Yes  | Upload a profile image (multipart, field: `image`, max 5 MB, images only) |
-| GET    | `/api/users/:id/profile-image-url`  | Yes  | Get a signed URL for the user's profile image                             |
-| DELETE | `/api/users/:id/profile-image`      | Yes  | Delete the user's profile image                                           |
+| Method | Path                                | Auth | Description                                                                                            |
+| ------ | ----------------------------------- | ---- | ------------------------------------------------------------------------------------------------------ |
+| GET    | `/api/users`                        | Yes  | List users (company-scoped, filterable by role/department/country)                                     |
+| GET    | `/api/users/org-chart`              | Yes  | Org chart data for every employee (no permission needed; name, email, manager, title, department only) |
+| POST   | `/api/users`                        | Yes  | Create a new user                                                                                      |
+| GET    | `/api/users/:id`                    | Yes  | Get a single user by ID                                                                                |
+| PUT    | `/api/users/:id`                    | Yes  | Update a user                                                                                          |
+| DELETE | `/api/users/:id`                    | Yes  | Delete a user                                                                                          |
+| PUT    | `/api/users/:id/password`           | Yes  | Change a user's password                                                                               |
+| POST   | `/api/users/:id/permissions/grant`  | Yes  | Grant an individual permission to a user                                                               |
+| POST   | `/api/users/:id/permissions/revoke` | Yes  | Revoke an individual permission from a user                                                            |
+| POST   | `/api/users/:id/profile-image`      | Yes  | Upload a profile image (multipart, field: `image`, max 5 MB, images only)                              |
+| GET    | `/api/users/:id/profile-image-url`  | Yes  | Get a signed URL for the user's profile image                                                          |
+| DELETE | `/api/users/:id/profile-image`      | Yes  | Delete the user's profile image                                                                        |
 
 ---
 
