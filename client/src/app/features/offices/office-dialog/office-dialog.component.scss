@@ -1,0 +1,20 @@
+.full-width {
+    width: 100%;
+    margin-bottom: var(--spacing-sm);
+}
+
+.row {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.toggle-row {
+    padding: var(--spacing-sm) 0 var(--spacing-xs);
+}
+
+mat-dialog-content {
+    min-width: 21.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}

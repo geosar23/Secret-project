@@ -1,0 +1,40 @@
+<h2 mat-dialog-title>{{ isEdit ? "Edit Level" : "Create Level" }}</h2>
+
+<mat-dialog-content>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Level Name</mat-label>
+            <input matInput formControlName="name" placeholder="Senior" />
+            @if (form.get("name")?.hasError("required") && form.get("name")?.touched) {
+                <mat-error>Level name is required</mat-error>
+            }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Order</mat-label>
+            <input matInput type="number" min="0" formControlName="order" />
+            <mat-hint>Lower numbers rank lower in the hierarchy</mat-hint>
+            @if (form.get("order")?.invalid && form.get("order")?.touched) {
+                <mat-error>Order must be 0 or greater</mat-error>
+            }
+        </mat-form-field>
+
+        @if (isEdit) {
+            <div class="toggle-row">
+                <mat-slide-toggle formControlName="isActive" color="primary">Active</mat-slide-toggle>
+            </div>
+        }
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()" [disabled]="loading">Cancel</button>
+    <button mat-raised-button color="primary" type="button" (click)="onSubmit()" [disabled]="form.invalid || loading">
+        @if (loading) {
+            <mat-spinner diameter="20"></mat-spinner>
+            Saving...
+        } @else {
+            {{ isEdit ? "Save Changes" : "Create" }}
+        }
+    </button>
+</mat-dialog-actions>

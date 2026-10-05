@@ -1,0 +1,58 @@
+.offices-container {
+    padding: var(--spacing-lg);
+    max-width: var(--layout-page-max-width);
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+}
+
+.filters-container {
+    margin-bottom: var(--spacing-lg);
+
+    .search-field {
+        width: 100%;
+        max-width: 25rem;
+    }
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-xl);
+    color: var(--color-text-secondary);
+}
+
+.table-container {
+    margin-top: var(--spacing-lg);
+}
+
+.action-buttons {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-xl);
+    color: var(--color-text-secondary);
+
+    h3 {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    p {
+        font-size: var(--font-size-sm);
+    }
+}

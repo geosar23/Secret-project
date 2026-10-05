@@ -92,6 +92,18 @@ export const routes: Routes = [
                     ),
             },
             {
+                path: "levels",
+                canActivate: [areaGuard("levels")],
+                data: { breadcrumb: "Levels" },
+                loadComponent: () => import("./features/levels/levels.component").then(m => m.LevelsComponent),
+            },
+            {
+                path: "offices",
+                canActivate: [areaGuard("offices")],
+                data: { breadcrumb: "Offices" },
+                loadComponent: () => import("./features/offices/offices.component").then(m => m.OfficesComponent),
+            },
+            {
                 path: "permissions",
                 canActivate: [areaGuard("roles")],
                 data: { breadcrumb: "Permissions" },

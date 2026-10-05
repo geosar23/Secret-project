@@ -37,12 +37,17 @@ export interface ILevel {
     _id: string;
     name: string;
     order?: number;
+    isActive?: boolean;
+    createdAt?: Date;
 }
 
 export interface IOffice {
     _id: string;
     name: string;
     address?: IAddress;
+    country?: ICountry;
+    isActive?: boolean;
+    createdAt?: Date;
 }
 
 export interface IUser {

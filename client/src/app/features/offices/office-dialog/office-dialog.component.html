@@ -1,0 +1,66 @@
+<h2 mat-dialog-title>{{ isEdit ? "Edit Office" : "Create Office" }}</h2>
+
+<mat-dialog-content>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Office Name</mat-label>
+            <input matInput formControlName="name" placeholder="Athens HQ" />
+            @if (form.get("name")?.hasError("required") && form.get("name")?.touched) {
+                <mat-error>Office name is required</mat-error>
+            }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Country</mat-label>
+            <mat-select formControlName="countryId">
+                <mat-option value="">None</mat-option>
+                @for (country of countries; track country._id) {
+                    <mat-option [value]="country._id">{{ country.name }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Address Line 1</mat-label>
+            <input matInput formControlName="line1" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Address Line 2</mat-label>
+            <input matInput formControlName="line2" />
+        </mat-form-field>
+
+        <div class="row">
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>City</mat-label>
+                <input matInput formControlName="city" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>State / Region</mat-label>
+                <input matInput formControlName="state" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Postal Code</mat-label>
+                <input matInput formControlName="postalCode" />
+            </mat-form-field>
+        </div>
+
+        @if (isEdit) {
+            <div class="toggle-row">
+                <mat-slide-toggle formControlName="isActive" color="primary">Active</mat-slide-toggle>
+            </div>
+        }
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()" [disabled]="loading">Cancel</button>
+    <button mat-raised-button color="primary" type="button" (click)="onSubmit()" [disabled]="form.invalid || loading">
+        @if (loading) {
+            <mat-spinner diameter="20"></mat-spinner>
+            Saving...
+        } @else {
+            {{ isEdit ? "Save Changes" : "Create" }}
+        }
+    </button>
+</mat-dialog-actions>

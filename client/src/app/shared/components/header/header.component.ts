@@ -145,6 +145,24 @@ export class HeaderComponent implements OnInit {
             area: "employmentTitles",
         },
         {
+            id: "levels",
+            name: "Levels Management",
+            type: "route",
+            icon: "stairs",
+            route: "/levels",
+            description: "Manage levels",
+            area: "levels",
+        },
+        {
+            id: "offices",
+            name: "Offices Management",
+            type: "route",
+            icon: "location_city",
+            route: "/offices",
+            description: "Manage offices",
+            area: "offices",
+        },
+        {
             id: "permissions",
             name: "Permissions Management",
             type: "route",
@@ -199,6 +217,18 @@ export class HeaderComponent implements OnInit {
             icon: "badge",
             route: "/employment-titles",
             area: "employmentTitles",
+        },
+        {
+            label: "Levels Management",
+            icon: "stairs",
+            route: "/levels",
+            area: "levels",
+        },
+        {
+            label: "Offices Management",
+            icon: "location_city",
+            route: "/offices",
+            area: "offices",
         },
         {
             label: "Permissions Management",
