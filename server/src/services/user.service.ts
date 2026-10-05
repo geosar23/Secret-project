@@ -1,4 +1,5 @@
 import { userIdentityRepository, userRepository } from "../repositories/user.repository";
+import { departmentRepository } from "../repositories/department.repository";
 import { subDepartmentRepository } from "../repositories/sub-department.repository";
 import { employmentTitleRepository } from "../repositories/employment-title.repository";
 import { IProfileImageMetadata, IUser, IUserPopulated, IUsersQueryParams } from "../interfaces/user.interface";
@@ -93,6 +94,50 @@ export const UserService = {
             page,
             limit,
             totalPages: Math.ceil(total / limit),
+        };
+    },
+
+    /**
+     * Company-wide org chart data, readable by every employee. Deliberately limited to
+     * non-sensitive fields; it must not expose anything the users list protects behind permissions.
+     */
+    getOrgChart: async (companyId: string) => {
+        if (!companyId) {
+            throw new Error("Company ID is required for the org chart");
+        }
+        const [users, departments, subDepartments] = await Promise.all([
+            userRepository(companyId)
+                .find({ isActive: true })
+                .select("name email manager employmentTitle")
+                .populate({ path: "employmentTitle", select: "name subDepartment" })
+                .sort({ name: 1 })
+                .lean(),
+            departmentRepository(companyId).find({ isActive: true }).select("name").sort({ name: 1 }).lean(),
+            subDepartmentRepository(companyId)
+                .find({ isActive: true })
+                .select("name department")
+                .sort({ name: 1 })
+                .lean(),
+        ]);
+
+        return {
+            users: users.map(user => {
+                const title = user.employmentTitle as unknown as { name?: string; subDepartment?: unknown } | undefined;
+                return {
+                    _id: String(user._id),
+                    name: user.name,
+                    email: user.email,
+                    managerId: user.manager ? String(user.manager) : null,
+                    title: title?.name ?? null,
+                    subDepartmentId: title?.subDepartment ? String(title.subDepartment) : null,
+                };
+            }),
+            departments: departments.map(d => ({ _id: String(d._id), name: d.name })),
+            subDepartments: subDepartments.map(sd => ({
+                _id: String(sd._id),
+                name: sd.name,
+                departmentId: String(sd.department),
+            })),
         };
     },
 

@@ -761,6 +761,17 @@ export class UserController {
         }
     }
 
+    static async getOrgChart(req: AuthenticatedRequest, res: Response): Promise<void> {
+        try {
+            const actorTokenData = req.decoded as tokenPayload;
+            const orgChart = await UserService.getOrgChart(actorTokenData.companyId);
+            res.json(success(orgChart));
+        } catch (error: any) {
+            console.log("Error in UserController.getOrgChart:", error);
+            return hardError(res);
+        }
+    }
+
     static async deleteProfileImage(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const actorTokenData = req.decoded as tokenPayload;

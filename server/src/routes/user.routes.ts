@@ -9,6 +9,7 @@ const router = Router();
 const UserController = wrapController(UserControllerRaw);
 router.get("/", UserController.getUsers);
 router.get("/effective-permissions", UserController.getEffectivePermissions);
+router.get("/org-chart", UserController.getOrgChart); // any authenticated employee; non-sensitive fields only
 router.get("/:id/accessForSubject", UserController.accessForSubject);
 router.get("/:id", UserController.getById);
 router.put("/:id", UserController.update);
