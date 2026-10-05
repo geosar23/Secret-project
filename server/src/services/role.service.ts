@@ -1,6 +1,4 @@
-import { RoleModel } from "../models/role.model";
 import { IRole } from "../interfaces/role.interface";
-import { DefaultUserRoles } from "../enums/user-role.enum";
 import { roleRepository } from "../repositories/role.repository";
 
 const roleCompanyPopulate = { path: "company", select: "_id name" } as const;
@@ -18,10 +16,6 @@ export const RoleService = {
      */
     getById: (id: string, companyId: string): Promise<IRole | null> => {
         return roleRepository(companyId).findById(id).populate(roleCompanyPopulate).exec();
-    },
-
-    getByRole: (slug: DefaultUserRoles | string): Promise<IRole | null> => {
-        return RoleModel.findOne({ role: slug }).exec();
     },
 
     /**
@@ -80,20 +74,5 @@ export const RoleService = {
 
         const result = await repository.deleteOne({ _id: id });
         return result.deletedCount > 0;
-    },
-
-    /**
-     * Check if role A is higher than role B
-     */
-    isHigherRole: async (roleA: DefaultUserRoles, roleB: DefaultUserRoles): Promise<boolean> => {
-        const [roleAData, roleBData] = await Promise.all([
-            RoleModel.findOne({ role: roleA }).exec(),
-            RoleModel.findOne({ role: roleB }).exec(),
-        ]);
-
-        if (!roleAData || !roleBData) {
-            return false;
-        }
-        return roleAData.level > roleBData.level;
     },
 };

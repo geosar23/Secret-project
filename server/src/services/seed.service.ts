@@ -1,13 +1,12 @@
-import { Types } from "mongoose";
-import { CompanyModel } from "../models/company.model";
-import { RoleModel } from "../models/role.model";
-import { UserModel } from "../models/user.model";
-import { CountryModel } from "../models/country.model";
-import { DepartmentModel } from "../models/department.model";
-import { SubDepartmentModel } from "../models/sub-department.model";
-import { EmploymentTitleModel } from "../models/employment-title.model";
-import { LevelModel } from "../models/level.model";
-import { OfficeModel } from "../models/office.model";
+import { companyRepository } from "../repositories/company.repository";
+import { roleRepository } from "../repositories/role.repository";
+import { userIdentityRepository, userRepository } from "../repositories/user.repository";
+import { countryRepository } from "../repositories/country.repository";
+import { departmentRepository } from "../repositories/department.repository";
+import { subDepartmentRepository } from "../repositories/sub-department.repository";
+import { employmentTitleRepository } from "../repositories/employment-title.repository";
+import { levelRepository } from "../repositories/level.repository";
+import { officeRepository } from "../repositories/office.repository";
 import { DefaultUserRoles } from "../enums/user-role.enum";
 import { PermissionCategories as C } from "../enums/permissions.enum";
 
@@ -107,62 +106,58 @@ const LEVELS = ["Junior", "Mid", "Senior", "Lead"];
 export async function seedDemoCompany(options: SeedDemoCompanyOptions): Promise<SeedDemoCompanyResult> {
     const { companyName, slug, adminEmail, adminPassword } = options;
 
-    if (await CompanyModel.exists({ slug })) {
+    if (await companyRepository().existsBySlug(slug)) {
         throw new Error(`A company with slug "${slug}" already exists`);
     }
-    if (await UserModel.exists({ email: adminEmail })) {
+    if (await userIdentityRepository().emailExists(adminEmail)) {
         throw new Error(`A user with email "${adminEmail}" already exists`);
     }
 
-    const company = await CompanyModel.create({ name: companyName, slug, isActive: true });
-    const companyId = company._id as Types.ObjectId;
+    const company = await companyRepository().create({ name: companyName, slug, isActive: true });
+    const companyId = String(company._id);
 
-    const roles = await RoleModel.insertMany(
-        ROLE_DEFINITIONS.map(def => ({ ...def, isSystemRole: true, isActive: true, company: companyId })),
+    const roles = await roleRepository(companyId).insertMany(
+        ROLE_DEFINITIONS.map(def => ({ ...def, isSystemRole: true, isActive: true })),
     );
     const superAdminRole = roles.find(r => r.role === DefaultUserRoles.SUPER_ADMIN)!;
 
-    const greece = await CountryModel.create({ name: "Greece", company: companyId, isActive: true });
+    const greece = await countryRepository(companyId).create({ name: "Greece", isActive: true });
 
     let subDepartmentCount = 0;
     let titleCount = 0;
     for (const entry of DEPARTMENT_TREE) {
-        const department = await DepartmentModel.create({ name: entry.department, company: companyId });
-        const subDepartment = await SubDepartmentModel.create({
+        const department = await departmentRepository(companyId).create({ name: entry.department });
+        const subDepartment = await subDepartmentRepository(companyId).create({
             name: entry.subDepartment,
             department: department._id,
-            company: companyId,
         });
-        await EmploymentTitleModel.create({
+        await employmentTitleRepository(companyId).create({
             name: entry.title,
             subDepartment: subDepartment._id,
-            company: companyId,
         });
         subDepartmentCount++;
         titleCount++;
     }
 
-    await LevelModel.insertMany(LEVELS.map((name, order) => ({ name, order, company: companyId, isActive: true })));
+    await levelRepository(companyId).insertMany(LEVELS.map((name, order) => ({ name, order, isActive: true })));
 
-    await OfficeModel.create({
+    await officeRepository(companyId).create({
         name: "Athens HQ",
-        company: companyId,
         country: greece._id,
         address: { city: "Athens", country: "Greece" },
     });
 
-    await UserModel.create({
+    await userRepository(companyId).create({
         name: "Super Admin",
         email: adminEmail,
         password: adminPassword,
-        company: companyId,
         role: superAdminRole._id,
         country: greece._id,
         isActive: true,
     });
 
     return {
-        companyId: String(companyId),
+        companyId,
         adminEmail,
         counts: {
             roles: roles.length,

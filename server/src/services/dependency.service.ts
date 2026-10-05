@@ -1,8 +1,12 @@
-import { Types } from "mongoose";
-import { UserModel } from "../models/user.model";
-import { SubDepartmentModel } from "../models/sub-department.model";
-import { EmploymentTitleModel } from "../models/employment-title.model";
-import { OfficeModel } from "../models/office.model";
+import { FilterQuery } from "mongoose";
+import { IUser } from "../interfaces/user.interface";
+import { ISubDepartment } from "../interfaces/sub-department.interface";
+import { IEmploymentTitle } from "../interfaces/employment-title.interface";
+import { IOffice } from "../interfaces/office.interface";
+import { userRepository } from "../repositories/user.repository";
+import { subDepartmentRepository } from "../repositories/sub-department.repository";
+import { employmentTitleRepository } from "../repositories/employment-title.repository";
+import { officeRepository } from "../repositories/office.repository";
 
 export type DependencyEntity =
     | "department"
@@ -25,9 +29,8 @@ export async function findActiveDependents(
     id: string,
     companyId: string,
 ): Promise<string | null> {
-    const company = new Types.ObjectId(companyId);
-    const entityId = new Types.ObjectId(id);
-    const activeUsers = (field: string) => UserModel.countDocuments({ company, [field]: entityId, isActive: true });
+    const activeUsersUsing = (field: keyof IUser) =>
+        userRepository(companyId).count({ [field]: id, isActive: true } as FilterQuery<IUser>);
 
     const found: string[] = [];
     const add = (count: number, singular: string, plural?: string) => {
@@ -39,31 +42,40 @@ export async function findActiveDependents(
     switch (entity) {
         case "department":
             add(
-                await SubDepartmentModel.countDocuments({ company, department: entityId, isActive: true }),
+                await subDepartmentRepository(companyId).count({
+                    department: id,
+                    isActive: true,
+                } as FilterQuery<ISubDepartment>),
                 "sub-department",
             );
             break;
         case "subDepartment":
             add(
-                await EmploymentTitleModel.countDocuments({ company, subDepartment: entityId, isActive: true }),
+                await employmentTitleRepository(companyId).count({
+                    subDepartment: id,
+                    isActive: true,
+                } as FilterQuery<IEmploymentTitle>),
                 "employment title",
             );
             break;
         case "employmentTitle":
-            add(await activeUsers("employmentTitle"), "user");
+            add(await activeUsersUsing("employmentTitle"), "user");
             break;
         case "country":
-            add(await activeUsers("country"), "user");
-            add(await OfficeModel.countDocuments({ company, country: entityId, isActive: true }), "office");
+            add(await activeUsersUsing("country"), "user");
+            add(
+                await officeRepository(companyId).count({ country: id, isActive: true } as FilterQuery<IOffice>),
+                "office",
+            );
             break;
         case "level":
-            add(await activeUsers("level"), "user");
+            add(await activeUsersUsing("level"), "user");
             break;
         case "office":
-            add(await activeUsers("office"), "user");
+            add(await activeUsersUsing("office"), "user");
             break;
         case "role":
-            add(await activeUsers("role"), "user");
+            add(await activeUsersUsing("role"), "user");
             break;
     }
 

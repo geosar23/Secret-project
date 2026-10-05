@@ -1,9 +1,8 @@
-import { userRepository } from "../repositories/user.repository";
+import { userIdentityRepository, userRepository } from "../repositories/user.repository";
 import { subDepartmentRepository } from "../repositories/sub-department.repository";
 import { employmentTitleRepository } from "../repositories/employment-title.repository";
 import { IProfileImageMetadata, IUser, IUserPopulated, IUsersQueryParams } from "../interfaces/user.interface";
 import { FilterQuery } from "mongoose";
-import { UserModel } from "../models/user.model";
 import bcrypt from "bcryptjs";
 import { decryptString } from "../utils/encryption.util";
 
@@ -141,7 +140,7 @@ export const UserService = {
         return updated;
     },
     getByEmail: (email: string) =>
-        UserModel.findOne({ email }).populate("role", "role name").populate("company").lean(),
+        userIdentityRepository().findByEmail(email).populate("role", "role name").populate("company").lean(),
     create: (data: Omit<IUser, "_id">, companyId: string) => {
         if (!companyId) {
             throw new Error("Company ID is required for creating user");

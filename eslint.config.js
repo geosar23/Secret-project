@@ -26,6 +26,25 @@ export default [
         },
     },
 
+    // All DB access goes through repositories (company-scoped wrappers); only they may import models.
+    {
+        files: ["server/src/{services,controllers,middleware,policies,routes,utils}/**/*.ts"],
+        rules: {
+            "no-restricted-imports": [
+                "error",
+                {
+                    patterns: [
+                        {
+                            group: ["**/models/*"],
+                            message:
+                                "Do not import models here. Query through a repository in server/src/repositories.",
+                        },
+                    ],
+                },
+            ],
+        },
+    },
+
     {
         files: ["client/src/**/*.ts"],
         languageOptions: {

@@ -58,6 +58,10 @@ export function companyModel<T>(Model: Model<T>, companyId: string) {
             return Model.create({ ...data, company: companyId });
         },
 
+        insertMany(items: Partial<T>[]) {
+            return Model.insertMany(items.map(item => ({ ...item, company: companyId })));
+        },
+
         updateOne(filter: FilterQuery<T>, update: Partial<T>) {
             return Model.updateOne(withCompany(filter), update);
         },

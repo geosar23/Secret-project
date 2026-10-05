@@ -1,5 +1,5 @@
-import { CompanyModel } from "../models/company.model";
+import { companyRepository } from "../repositories/company.repository";
 
 export const CompanyService = {
-    getById: (id: string) => CompanyModel.findById(id).lean(),
+    getById: (id: string) => companyRepository().findById(id).lean(),
 };

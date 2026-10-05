@@ -29,6 +29,10 @@ export function roleRepository(companyId: string) {
             return RoleModel.create(data);
         },
 
+        insertMany(items: Partial<IRole>[]) {
+            return RoleModel.insertMany(items.map(item => ({ ...item, company: companyId })));
+        },
+
         findOneAndUpdate(filter: FilterQuery<IRole>, update: Partial<IRole>, options: { new: true }) {
             return RoleModel.findOneAndUpdate(withRoleScope(companyId, filter), update, options);
         },

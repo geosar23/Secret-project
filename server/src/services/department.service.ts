@@ -1,6 +1,8 @@
+import { FilterQuery } from "mongoose";
 import { IDepartment } from "../interfaces/department.interface";
-import { SubDepartmentModel } from "../models/sub-department.model";
+import { ISubDepartment } from "../interfaces/sub-department.interface";
 import { departmentRepository } from "../repositories/department.repository";
+import { subDepartmentRepository } from "../repositories/sub-department.repository";
 
 export const DepartmentService = {
     getAll: (companyId: string) =>
@@ -26,7 +28,9 @@ export const DepartmentService = {
     },
 
     delete: async (id: string, companyId: string) => {
-        const hasSubDepartments = await SubDepartmentModel.countDocuments({ department: id, company: companyId });
+        const hasSubDepartments = await subDepartmentRepository(companyId).count({
+            department: id,
+        } as FilterQuery<ISubDepartment>);
         if (hasSubDepartments > 0) {
             throw new Error("Cannot delete department with existing sub-departments");
         }
