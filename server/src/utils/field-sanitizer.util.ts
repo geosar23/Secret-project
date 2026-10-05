@@ -84,7 +84,8 @@ export function setMappedFields<TTarget extends object>(
                 }
 
                 if (config.toBeHashed) {
-                    (target as Record<string, unknown>)[config.targetField as string] = `HASH:${trimmed}`;
+                    // The model's pre-save hook hashes it; a prefix here would be hashed into the password.
+                    (target as Record<string, unknown>)[config.targetField as string] = trimmed;
                     continue;
                 }
 

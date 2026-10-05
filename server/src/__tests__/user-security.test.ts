@@ -257,6 +257,14 @@ describe("POST /api/users — hardening", () => {
         expect(String(created?.company)).toBe(String(COMPANY_A_ID));
         expect(created?.salary).toBeUndefined();
     });
+
+    it("stores the password so the new user can log in", async () => {
+        const res = await request(app)
+            .post("/api/auth/login")
+            .send({ email: "sec-new-4@test.com", password: "Test@1234" });
+        expect(res.status).toBe(200);
+        expect(res.body.data).toHaveProperty("token");
+    });
 });
 
 describe("Permission grant/revoke escalation", () => {
