@@ -51,10 +51,12 @@
                 <mat-divider></mat-divider>
 
                 <div class="action-buttons">
-                    <button mat-raised-button color="primary" (click)="navigateToEdit()" [disabled]="loading()">
-                        <mat-icon>edit</mat-icon>
-                        Edit Profile
-                    </button>
+                    @if (canEditUser) {
+                        <button mat-raised-button color="primary" (click)="navigateToEdit()" [disabled]="loading()">
+                            <mat-icon>edit</mat-icon>
+                            Edit Profile
+                        </button>
+                    }
                     @if (isOwnProfile) {
                         <button mat-stroked-button (click)="openChangePasswordDialog()" [disabled]="loading()">
                             <mat-icon>lock_reset</mat-icon>

@@ -15,6 +15,7 @@ import { takeUntil, debounceTime, distinctUntilChanged } from "rxjs/operators";
 import { ISubDepartment } from "../../core/interfaces/sub-department.interface";
 import { SubDepartmentService } from "../../core/services/sub-department.service";
 import { ToastService } from "../../core/services/toast.service";
+import { PermissionService } from "../../core/services/permission.service";
 import {
     SubDepartmentDialogComponent,
     SubDepartmentDialogData,
@@ -45,12 +46,20 @@ export class SubDepartmentsComponent implements OnInit, AfterViewInit, OnDestroy
     private subDepartmentService = inject(SubDepartmentService);
     private dialog = inject(MatDialog);
     private toast = inject(ToastService);
+    readonly canWrite = inject(PermissionService).canWriteArea("subDepartments");
 
     loading = false;
     searchControl = new FormControl("");
     allSubDepartments: ISubDepartment[] = [];
     tableData = new MatTableDataSource<ISubDepartment>([]);
-    displayedColumns: string[] = ["name", "department", "description", "status", "createdAt", "actions"];
+    displayedColumns: string[] = [
+        "name",
+        "department",
+        "description",
+        "status",
+        "createdAt",
+        ...(this.canWrite ? ["actions"] : []),
+    ];
 
     ngOnInit(): void {
         this.loadSubDepartments();

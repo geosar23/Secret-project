@@ -176,6 +176,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
         });
     }
 
+    get canEditUser(): boolean {
+        return this.permissionService.canEditUser();
+    }
+
     get canResetPassword(): boolean {
         return this.permissionService.canResetPassword();
     }

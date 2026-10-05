@@ -21,6 +21,7 @@ import { IUser, IUsersListResponse, IUsersQueryParams } from "../../core/interfa
 import { RoleUtils } from "../../core/utils/role.utils";
 import { JsonResponse } from "../../core/interfaces/generics.interface";
 import { ToastService } from "../../core/services/toast.service";
+import { PermissionService } from "../../core/services/permission.service";
 import { RoleService } from "../../core/services/role.service";
 import { CountryService } from "../../core/services/country.service";
 import { DepartmentService } from "../../core/services/department.service";
@@ -63,8 +64,12 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
 
     searchControl = new FormControl("");
 
+    private permissionService = inject(PermissionService);
+    readonly canCreate = this.permissionService.canCreateUser();
+    readonly canEdit = this.permissionService.canEditUser();
+
     public tableData: MatTableDataSource<IUserTableData> = new MatTableDataSource<IUserTableData>([]);
-    public displayedColumns: string[] = ["name", "actions"];
+    public displayedColumns: string[] = ["name", ...(this.canEdit ? ["actions"] : [])];
     private toast = inject(ToastService);
 
     loading = false;
@@ -363,7 +368,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             key => !this.BASE_COLUMN_SET.has(key) && this.SELECTABLE_COLUMN_SET.has(key),
         );
         this.selectedExtraColumnKeys = uniqueSelectedColumns;
-        this.displayedColumns = ["name", ...uniqueSelectedColumns, "actions"];
+        this.displayedColumns = ["name", ...uniqueSelectedColumns, ...(this.canEdit ? ["actions"] : [])];
     }
 
     private persistColumnSelection() {

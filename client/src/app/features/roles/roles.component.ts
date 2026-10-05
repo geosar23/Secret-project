@@ -17,6 +17,7 @@ import { takeUntil, debounceTime, distinctUntilChanged } from "rxjs/operators";
 import { RoleService } from "../../core/services/role.service";
 import { IRole } from "../../core/interfaces/role.interface";
 import { ToastService } from "../../core/services/toast.service";
+import { PermissionService } from "../../core/services/permission.service";
 import { RoleDialogComponent, RoleDialogData } from "./role-dialog/role-dialog.component";
 import { AuthService } from "../../core/services/auth.service";
 import { IUser } from "../../core/interfaces/user.interface";
@@ -49,6 +50,7 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
     private roleService = inject(RoleService);
     private dialog = inject(MatDialog);
     private toast = inject(ToastService);
+    readonly canWrite = inject(PermissionService).canWriteArea("roles");
 
     localUser: IUser | null = null;
     loading = false;
@@ -56,7 +58,15 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
     systemRoleFilterControl = new FormControl<"all" | "system" | "custom">("all", { nonNullable: true });
     allRoles: IRole[] = [];
     tableData = new MatTableDataSource<IRole>([]);
-    displayedColumns: string[] = ["name", "description", "permissions", "type", "status", "createdAt", "actions"];
+    displayedColumns: string[] = [
+        "name",
+        "description",
+        "permissions",
+        "type",
+        "status",
+        "createdAt",
+        ...(this.canWrite ? ["actions"] : []),
+    ];
 
     ngOnInit(): void {
         this.authService.localUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {

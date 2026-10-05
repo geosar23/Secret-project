@@ -19,7 +19,7 @@
             </a>
 
             <mat-menu #adminMenu="matMenu" xPosition="before">
-                @for (item of adminNavItems; track $index) {
+                @for (item of visibleNavItems$ | async; track item.route) {
                     <button mat-menu-item (click)="handleMenuClick(item)">
                         <mat-icon>{{ item.icon }}</mat-icon>
                         <span>{{ item.label }}</span>

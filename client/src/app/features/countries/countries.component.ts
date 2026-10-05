@@ -15,6 +15,7 @@ import { takeUntil, debounceTime, distinctUntilChanged } from "rxjs/operators";
 import { ICountry } from "../../core/interfaces/country.interface";
 import { CountryService } from "../../core/services/country.service";
 import { ToastService } from "../../core/services/toast.service";
+import { PermissionService } from "../../core/services/permission.service";
 import { CountryDialogComponent, CountryDialogData } from "./country-dialog/country-dialog.component";
 
 @Component({
@@ -42,12 +43,13 @@ export class CountriesComponent implements OnInit, AfterViewInit, OnDestroy {
     private countryService = inject(CountryService);
     private dialog = inject(MatDialog);
     private toast = inject(ToastService);
+    readonly canWrite = inject(PermissionService).canWriteArea("countries");
 
     loading = false;
     searchControl = new FormControl("");
     allCountries: ICountry[] = [];
     tableData = new MatTableDataSource<ICountry>([]);
-    displayedColumns: string[] = ["name", "description", "status", "createdAt", "actions"];
+    displayedColumns: string[] = ["name", "description", "status", "createdAt", ...(this.canWrite ? ["actions"] : [])];
 
     ngOnInit(): void {
         this.loadCountries();

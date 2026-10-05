@@ -13,6 +13,7 @@ import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { Subject } from "rxjs";
 import { takeUntil, debounceTime, distinctUntilChanged } from "rxjs/operators";
 import { ToastService } from "../../core/services/toast.service";
+import { PermissionService } from "../../core/services/permission.service";
 import { IEmploymentTitle } from "../../core/interfaces/employment-title.interface";
 import { EmploymentTitleService } from "../../core/services/employment-title.service";
 import {
@@ -47,12 +48,20 @@ export class EmploymentTitlesComponent implements OnInit, AfterViewInit, OnDestr
     private employmentTitleService = inject(EmploymentTitleService);
     private dialog = inject(MatDialog);
     private toast = inject(ToastService);
+    readonly canWrite = inject(PermissionService).canWriteArea("employmentTitles");
 
     loading = false;
     searchControl = new FormControl("");
     allEmploymentTitles: IEmploymentTitle[] = [];
     tableData = new MatTableDataSource<IEmploymentTitle>([]);
-    displayedColumns: string[] = ["name", "subDepartment", "department", "status", "createdAt", "actions"];
+    displayedColumns: string[] = [
+        "name",
+        "subDepartment",
+        "department",
+        "status",
+        "createdAt",
+        ...(this.canWrite ? ["actions"] : []),
+    ];
 
     ngOnInit(): void {
         this.loadEmploymentTitles();

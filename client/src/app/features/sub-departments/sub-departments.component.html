@@ -1,10 +1,12 @@
 <div class="sub-departments-container">
     <div class="page-header">
         <h1>Sub-Department Management</h1>
-        <button class="btn btn-primary m-xs" (click)="openCreateDialog()" [disabled]="loading">
-            <mat-icon>add</mat-icon>
-            Create Sub-Department
-        </button>
+        @if (canWrite) {
+            <button class="btn btn-primary m-xs" (click)="openCreateDialog()" [disabled]="loading">
+                <mat-icon>add</mat-icon>
+                Create Sub-Department
+            </button>
+        }
     </div>
 
     <div class="filters-container">

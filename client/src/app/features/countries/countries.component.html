@@ -2,10 +2,12 @@
     <div class="page-header">
         <h1>Country Management</h1>
         <div class="header-actions">
-            <button class="btn btn-primary m-xs" (click)="openCreateDialog()" [disabled]="loading">
-                <mat-icon>add</mat-icon>
-                Create Country
-            </button>
+            @if (canWrite) {
+                <button class="btn btn-primary m-xs" (click)="openCreateDialog()" [disabled]="loading">
+                    <mat-icon>add</mat-icon>
+                    Create Country
+                </button>
+            }
         </div>
     </div>
 

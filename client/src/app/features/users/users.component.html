@@ -11,10 +11,12 @@
                 <mat-icon>download</mat-icon>
                 Download
             </button>
-            <button class="btn btn-primary m-xs" (click)="navigateToCreate()" [disabled]="loading">
-                <mat-icon>add</mat-icon>
-                Create User
-            </button>
+            @if (canCreate) {
+                <button class="btn btn-primary m-xs" (click)="navigateToCreate()" [disabled]="loading">
+                    <mat-icon>add</mat-icon>
+                    Create User
+                </button>
+            }
         </div>
     </div>
 

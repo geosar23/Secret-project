@@ -13,15 +13,18 @@ import { AuthService } from "../../../core/services/auth.service";
 import { UsersService } from "../../../core/services/users.service";
 import { CompanyService } from "../../../core/services/company.service";
 import { MatDivider } from "@angular/material/divider";
-import { debounceTime, distinctUntilChanged, switchMap, take } from "rxjs";
+import { debounceTime, distinctUntilChanged, map, switchMap, take } from "rxjs";
 import { IUser } from "../../../core/interfaces/user.interface";
 import { decodeToken } from "../../../core/utils/token.util";
 import { tokenPayload } from "../../../core/interfaces/auth.interface";
+import { PermissionService } from "../../../core/services/permission.service";
+import { ManagementArea } from "../../../core/utils/permission-areas";
 
 interface NavItem {
     label: string;
     icon: string;
     route: string;
+    area?: ManagementArea;
 }
 
 interface MenuItem {
@@ -39,6 +42,7 @@ interface SearchResult {
     icon: string;
     route?: string;
     description?: string;
+    area?: ManagementArea;
 }
 
 @Component({
@@ -66,11 +70,13 @@ export class HeaderComponent implements OnInit {
     private router = inject(Router);
     private usersService = inject(UsersService);
     private companyService = inject(CompanyService);
+    private permissionService = inject(PermissionService);
 
     searchControl = new FormControl("");
     filteredResults = signal<SearchResult[]>([]);
 
     localUser$ = this.authService.localUser$;
+    visibleNavItems$ = this.localUser$.pipe(map(() => this.adminNavItems.filter(item => this.isAllowed(item.area))));
 
     companyName = signal<string>("");
     companyLogoUrl = signal<string | null>(null);
@@ -91,6 +97,7 @@ export class HeaderComponent implements OnInit {
             icon: "people",
             route: "/users",
             description: "Manage users",
+            area: "users",
         },
         {
             id: "roles",
@@ -99,6 +106,7 @@ export class HeaderComponent implements OnInit {
             icon: "admin_panel_settings",
             route: "/roles",
             description: "Manage roles",
+            area: "roles",
         },
         {
             id: "departments",
@@ -107,6 +115,7 @@ export class HeaderComponent implements OnInit {
             icon: "account_tree",
             route: "/departments",
             description: "Manage departments",
+            area: "departments",
         },
         {
             id: "countries",
@@ -115,6 +124,7 @@ export class HeaderComponent implements OnInit {
             icon: "public",
             route: "/countries",
             description: "Manage countries",
+            area: "countries",
         },
         {
             id: "sub-departments",
@@ -123,6 +133,7 @@ export class HeaderComponent implements OnInit {
             icon: "schema",
             route: "/sub-departments",
             description: "Manage sub-departments",
+            area: "subDepartments",
         },
         {
             id: "employment-titles",
@@ -131,6 +142,7 @@ export class HeaderComponent implements OnInit {
             icon: "badge",
             route: "/employment-titles",
             description: "Manage employment titles",
+            area: "employmentTitles",
         },
         {
             id: "permissions",
@@ -139,6 +151,7 @@ export class HeaderComponent implements OnInit {
             icon: "security",
             route: "/permissions",
             description: "Manage permissions",
+            area: "roles",
         },
         {
             id: "profile",
@@ -155,36 +168,43 @@ export class HeaderComponent implements OnInit {
             label: "Users Management",
             icon: "people",
             route: "/users",
+            area: "users",
         },
         {
             label: "Roles Management",
             icon: "admin_panel_settings",
             route: "/roles",
+            area: "roles",
         },
         {
             label: "Departments Management",
             icon: "account_tree",
             route: "/departments",
+            area: "departments",
         },
         {
             label: "Countries Management",
             icon: "public",
             route: "/countries",
+            area: "countries",
         },
         {
             label: "Sub-Departments Management",
             icon: "schema",
             route: "/sub-departments",
+            area: "subDepartments",
         },
         {
             label: "Employment Titles Management",
             icon: "badge",
             route: "/employment-titles",
+            area: "employmentTitles",
         },
         {
             label: "Permissions Management",
             icon: "security",
             route: "/permissions",
+            area: "roles",
         },
     ];
 
@@ -264,8 +284,9 @@ export class HeaderComponent implements OnInit {
         const lowerSearchTerm = term.toLowerCase();
         const routeResults = this.navigationRoutes.filter(
             route =>
-                route.name.toLowerCase().includes(lowerSearchTerm) ||
-                route.description?.toLowerCase().includes(lowerSearchTerm),
+                this.isAllowed(route.area) &&
+                (route.name.toLowerCase().includes(lowerSearchTerm) ||
+                    route.description?.toLowerCase().includes(lowerSearchTerm)),
         );
 
         // Return routes immediately, user search happens in parallel
@@ -288,6 +309,10 @@ export class HeaderComponent implements OnInit {
         );
 
         return routeResults.slice(0, 8);
+    }
+
+    private isAllowed(area?: ManagementArea): boolean {
+        return !area || this.permissionService.canViewArea(area);
     }
 
     selectResult(resultId: string | SearchResult): void {

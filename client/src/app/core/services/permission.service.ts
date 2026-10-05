@@ -2,13 +2,31 @@ import { Injectable, inject } from "@angular/core";
 import { AuthService } from "./auth.service";
 import { IUser } from "../interfaces/user.interface";
 import { PermissionKeys } from "../enums/permissions.enum";
-import { hasPermission } from "../utils/permission.utils";
+import { hasAnyPermission, hasPermission } from "../utils/permission.utils";
+import { AREA_PERMISSIONS, ManagementArea } from "../utils/permission-areas";
 
 @Injectable({
     providedIn: "root",
 })
 export class PermissionService {
     private authService = inject(AuthService);
+
+    /** True if the actor holds ANY of the given permission keys. */
+    hasAny(keys: readonly string[]): boolean {
+        const user = this.authService.getLocalUser();
+        return !!user && hasAnyPermission(this.computeEffective(user), keys);
+    }
+
+    /** Can the actor open the management page for this area (any read or write permission)? */
+    canViewArea(area: ManagementArea): boolean {
+        const { read, write } = AREA_PERMISSIONS[area];
+        return this.hasAny([...read, ...write]);
+    }
+
+    /** Can the actor create/edit/delete in this area? */
+    canWriteArea(area: ManagementArea): boolean {
+        return this.hasAny(AREA_PERMISSIONS[area].write);
+    }
 
     /**
      * Synchronous check for user creation access.

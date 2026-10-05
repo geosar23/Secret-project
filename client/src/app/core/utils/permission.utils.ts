@@ -22,5 +22,24 @@ export function hasPermission(effectivePermissions: string[], required: string):
         required,
     ];
 
-    return candidates.some(candidate => effectiveSet.has(candidate));
+    if (candidates.some(candidate => effectiveSet.has(candidate))) {
+        return true;
+    }
+
+    // Mirrors the server: "userProfile:write:country" also covers "userProfile.identity:write:country".
+    const dotIndex = category.lastIndexOf(".");
+    if (dotIndex === -1) {
+        return false;
+    }
+    const parent = category.substring(0, dotIndex);
+    return [
+        `${parent}:${wildcard}:${wildcard}`,
+        `${parent}:${action}:${wildcard}`,
+        `${parent}:${wildcard}:${scope}`,
+        `${parent}:${action}:${scope}`,
+    ].some(candidate => effectiveSet.has(candidate));
+}
+
+export function hasAnyPermission(effectivePermissions: string[], required: readonly string[]): boolean {
+    return required.some(key => hasPermission(effectivePermissions, key));
 }

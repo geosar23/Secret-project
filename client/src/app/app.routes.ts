@@ -1,5 +1,6 @@
 import { Routes } from "@angular/router";
 import { authGuard } from "./core/guards/auth.guard";
+import { areaGuard } from "./core/guards/area.guard";
 import { createUserGuard } from "./core/guards/create-user.guard";
 import { editUserGuard } from "./core/guards/edit-user.guard";
 import { profileRouteContextResolver } from "./features/profile/profile-route-context.resolver";
@@ -23,11 +24,17 @@ export const routes: Routes = [
                 loadComponent: () => import("./features/dashboard/dashboard.component").then(m => m.DashboardComponent),
             },
             {
+                path: "non-authorized",
+                data: { breadcrumb: "Not Authorized" },
+                loadComponent: () => import("./features/notFound/notFound.component").then(m => m.NotFoundComponent),
+            },
+            {
                 path: "users",
                 data: { breadcrumb: "Users" },
                 children: [
                     {
                         path: "",
+                        canActivate: [areaGuard("users")],
                         loadComponent: () => import("./features/users/users.component").then(m => m.UsersComponent),
                     },
                     {
@@ -51,28 +58,33 @@ export const routes: Routes = [
             },
             {
                 path: "roles",
+                canActivate: [areaGuard("roles")],
                 data: { breadcrumb: "Roles" },
                 loadComponent: () => import("./features/roles/roles.component").then(m => m.RolesComponent),
             },
             {
                 path: "departments",
+                canActivate: [areaGuard("departments")],
                 data: { breadcrumb: "Departments" },
                 loadComponent: () =>
                     import("./features/departments/departments.component").then(m => m.DepartmentsComponent),
             },
             {
                 path: "countries",
+                canActivate: [areaGuard("countries")],
                 data: { breadcrumb: "Countries" },
                 loadComponent: () => import("./features/countries/countries.component").then(m => m.CountriesComponent),
             },
             {
                 path: "sub-departments",
+                canActivate: [areaGuard("subDepartments")],
                 data: { breadcrumb: "Sub-Departments" },
                 loadComponent: () =>
                     import("./features/sub-departments/sub-departments.component").then(m => m.SubDepartmentsComponent),
             },
             {
                 path: "employment-titles",
+                canActivate: [areaGuard("employmentTitles")],
                 data: { breadcrumb: "Employment Titles" },
                 loadComponent: () =>
                     import("./features/employment-titles/employment-titles.component").then(
@@ -81,6 +93,7 @@ export const routes: Routes = [
             },
             {
                 path: "permissions",
+                canActivate: [areaGuard("roles")],
                 data: { breadcrumb: "Permissions" },
                 loadComponent: () =>
                     import("./features/permissions/permissions.component").then(m => m.PermissionsComponent),

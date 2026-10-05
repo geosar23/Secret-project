@@ -15,6 +15,7 @@ import { takeUntil, debounceTime, distinctUntilChanged } from "rxjs/operators";
 import { DepartmentService } from "../../core/services/department.service";
 import { IDepartment } from "../../core/interfaces/department.interface";
 import { ToastService } from "../../core/services/toast.service";
+import { PermissionService } from "../../core/services/permission.service";
 import { DepartmentDialogComponent, DepartmentDialogData } from "./department-dialog/department-dialog.component";
 
 @Component({
@@ -42,12 +43,13 @@ export class DepartmentsComponent implements OnInit, AfterViewInit, OnDestroy {
     private departmentService = inject(DepartmentService);
     private dialog = inject(MatDialog);
     private toast = inject(ToastService);
+    readonly canWrite = inject(PermissionService).canWriteArea("departments");
 
     loading = false;
     searchControl = new FormControl("");
     allDepartments: IDepartment[] = [];
     tableData = new MatTableDataSource<IDepartment>([]);
-    displayedColumns: string[] = ["name", "description", "status", "createdAt", "actions"];
+    displayedColumns: string[] = ["name", "description", "status", "createdAt", ...(this.canWrite ? ["actions"] : [])];
 
     ngOnInit(): void {
         this.loadDepartments();
