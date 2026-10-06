@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Response } from "express";
-import { RoleService } from "../services/role.service";
+import { RoleService, RoleStatusFilter } from "../services/role.service";
 import { success, softError, hardError, unauthorizedError } from "../utils/response.util";
 import { IRole } from "../interfaces/role.interface";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
@@ -12,16 +12,18 @@ import { findActiveDependents } from "../services/dependency.service";
  */
 export class RoleController {
     /**
-     * Get all roles
-     * GET /api/roles
+     * Get roles
+     * GET /api/roles?status=active|inactive|all (default: all)
      */
-    static async getAllRoles(req: AuthenticatedRequest, res: Response): Promise<void> {
+    static async getRoles(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const user = req.decoded as tokenPayload;
-            const roles = await RoleService.getAll(user.companyId);
+            const status = req.query.status;
+            const filter: RoleStatusFilter = status === "active" || status === "inactive" ? status : "all";
+            const roles = await RoleService.getRoles(user.companyId, filter);
             res.json(success(roles));
         } catch (error: any) {
-            console.log("Error in RoleController.getAllRoles:", error);
+            console.log("Error in RoleController.getRoles:", error);
             return hardError(res);
         }
     }

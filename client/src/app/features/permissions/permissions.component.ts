@@ -59,7 +59,7 @@ export class PermissionsComponent implements OnInit {
             this.permissions = [];
             this.buildForRole(user?.role.permissions, user?.grantedPermissions, user?.revokedPermissions);
         });
-        this.roleService.getAllRoles().subscribe(res => {
+        this.roleService.getRoles("active").subscribe(res => {
             if (res.success) {
                 this.roleData = res.data || [];
             }

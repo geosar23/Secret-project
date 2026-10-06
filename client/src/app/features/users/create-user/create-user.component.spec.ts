@@ -26,7 +26,7 @@ describe("CreateUserPageComponent", () => {
         const usersServiceSpy = jasmine.createSpyObj("UsersService", ["getUsers", "createUser"]);
         const countryServiceSpy = jasmine.createSpyObj("CountryService", ["getCountries"]);
         const employmentTitleServiceSpy = jasmine.createSpyObj("EmploymentTitleService", ["getEmploymentTitles"]);
-        const roleServiceSpy = jasmine.createSpyObj("RoleService", ["getAllRoles"]);
+        const roleServiceSpy = jasmine.createSpyObj("RoleService", ["getRoles"]);
         const toastSpy = jasmine.createSpyObj("ToastService", ["error", "success", "warning"]);
         const authServiceSpy = jasmine.createSpyObj("AuthService", ["getLocalUser", "isAuthenticated"], {
             localUser$: of(null),
@@ -34,7 +34,7 @@ describe("CreateUserPageComponent", () => {
 
         countryServiceSpy.getCountries.and.returnValue(of({ success: true, data: [] }));
         employmentTitleServiceSpy.getEmploymentTitles.and.returnValue(of({ success: true, data: [] }));
-        roleServiceSpy.getAllRoles.and.returnValue(of({ success: true, data: [] }));
+        roleServiceSpy.getRoles.and.returnValue(of({ success: true, data: [] }));
         usersServiceSpy.getUsers.and.returnValue(of({ success: true, data: { users: [], total: 0 } }));
         authServiceSpy.getLocalUser.and.returnValue(mockLocalUser);
 

@@ -165,7 +165,7 @@ export class BulkEditDialogComponent {
             quiet(inject(EmploymentTitleService).getEmploymentTitles()),
             quiet(inject(OfficeService).getOffices()),
             quiet(inject(LevelService).getLevels()),
-            quiet(inject(RoleService).getAllRoles()),
+            quiet(inject(RoleService).getRoles()),
             quiet(this.usersService.getUsers({ limit: 100 }).pipe(map(res => ({ data: res.data?.users ?? [] })))),
         ]).subscribe(([countries, departments, subDepartments, titles, offices, levels, roles, people]) => {
             this.countries.set(countries);

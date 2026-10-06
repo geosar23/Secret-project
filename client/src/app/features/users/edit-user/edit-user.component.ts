@@ -544,7 +544,7 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
     private loadReferenceData(): void {
         forkJoin([
             this.loadReference(this.countryService.getCountries(), this.countriesLoading, this.countries),
-            this.loadReference(this.roleService.getAllRoles(), this.rolesLoading, this.roles),
+            this.loadReference(this.roleService.getRoles(), this.rolesLoading, this.roles),
             this.loadReference(
                 this.employmentTitleService.getEmploymentTitles(),
                 this.employmentTitlesLoading,

@@ -334,7 +334,7 @@ export class CreateUserPageComponent implements OnInit {
             });
 
         this.roleService
-            .getAllRoles()
+            .getRoles()
             .pipe(first())
             .subscribe({
                 next: res => {

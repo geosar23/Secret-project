@@ -282,7 +282,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
 
     private loadFilterOptions() {
         this.roleService
-            .getAllRoles()
+            .getRoles()
             .pipe(takeUntil(this.destroy$))
             .subscribe({
                 next: res => {

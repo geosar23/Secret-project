@@ -1,14 +1,17 @@
 import { IRole } from "../interfaces/role.interface";
 import { roleRepository } from "../repositories/role.repository";
 
+export type RoleStatusFilter = "active" | "inactive" | "all";
+
 const roleCompanyPopulate = { path: "company", select: "_id name" } as const;
 
 export const RoleService = {
     /**
-     * Get all roles
+     * Get roles, optionally filtered by active status
      */
-    getAll: (companyId: string): Promise<IRole[]> => {
-        return roleRepository(companyId).find().populate(roleCompanyPopulate).exec();
+    getRoles: (companyId: string, status: RoleStatusFilter = "all"): Promise<IRole[]> => {
+        const filter = status === "all" ? {} : { isActive: status === "active" };
+        return roleRepository(companyId).find(filter).populate(roleCompanyPopulate).exec();
     },
 
     /**

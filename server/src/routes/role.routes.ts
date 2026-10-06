@@ -25,7 +25,7 @@ router.get("/hierarchy", canReadRoles, RoleController.getRoleHierarchy);
 router.get("/:roleType/permissions", canReadRoles, RoleController.getRolePermissions);
 
 // Get all roles
-router.get("/", canReadRoles, RoleController.getAllRoles);
+router.get("/", canReadRoles, RoleController.getRoles);
 
 // Get role by ID
 router.get("/:id", canReadRoles, RoleController.getRoleById);

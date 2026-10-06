@@ -4,14 +4,16 @@ import { Observable } from "rxjs";
 import { IRole, ICreateRoleRequest, IUpdateRoleRequest } from "../interfaces/role.interface";
 import { JsonResponse } from "../interfaces/generics.interface";
 
+export type RoleStatusFilter = "active" | "inactive" | "all";
+
 @Injectable({
     providedIn: "root",
 })
 export class RoleService {
     private apiService = inject(ApiService);
 
-    getAllRoles(): Observable<JsonResponse<IRole[]>> {
-        return this.apiService.get<JsonResponse<IRole[]>>("roles");
+    getRoles(status: RoleStatusFilter = "all"): Observable<JsonResponse<IRole[]>> {
+        return this.apiService.get<JsonResponse<IRole[]>>(`roles?status=${status}`);
     }
 
     getRoleById(roleId: string): Observable<JsonResponse<IRole>> {

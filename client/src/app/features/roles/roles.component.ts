@@ -61,6 +61,7 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
     displayedColumns: string[] = [
         "name",
         "description",
+        "level",
         "permissions",
         "type",
         "status",
@@ -109,7 +110,7 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
 
     loadRoles(): void {
         this.loading = true;
-        this.roleService.getAllRoles().subscribe({
+        this.roleService.getRoles().subscribe({
             next: res => {
                 if (!res.success || !res.data) {
                     this.toast.error(res.message || "Failed to load roles");

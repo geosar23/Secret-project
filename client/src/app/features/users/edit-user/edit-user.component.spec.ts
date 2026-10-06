@@ -63,7 +63,7 @@ describe("EditUserPageComponent", () => {
         ]);
         const countryServiceSpy = jasmine.createSpyObj("CountryService", ["getCountries"]);
         const employmentTitleServiceSpy = jasmine.createSpyObj("EmploymentTitleService", ["getEmploymentTitles"]);
-        const roleServiceSpy = jasmine.createSpyObj("RoleService", ["getAllRoles"]);
+        const roleServiceSpy = jasmine.createSpyObj("RoleService", ["getRoles"]);
         const departmentServiceSpy = jasmine.createSpyObj("DepartmentService", ["getDepartments"]);
         const levelServiceSpy = jasmine.createSpyObj("LevelService", ["getLevels"]);
         const subDepartmentServiceSpy = jasmine.createSpyObj("SubDepartmentService", ["getSubDepartments"]);
@@ -77,7 +77,7 @@ describe("EditUserPageComponent", () => {
         usersServiceSpy.getUsers.and.returnValue(of({ success: true, data: { users: [], total: 0 } }) as never);
         countryServiceSpy.getCountries.and.returnValue(of({ success: true, data: [] }));
         employmentTitleServiceSpy.getEmploymentTitles.and.returnValue(of({ success: true, data: [] }));
-        roleServiceSpy.getAllRoles.and.returnValue(of({ success: true, data: [] }));
+        roleServiceSpy.getRoles.and.returnValue(of({ success: true, data: [] }));
         departmentServiceSpy.getDepartments.and.returnValue(of({ success: true, data: [] }));
         levelServiceSpy.getLevels.and.returnValue(of({ success: true, data: [] }));
         subDepartmentServiceSpy.getSubDepartments.and.returnValue(of({ success: true, data: [] }));

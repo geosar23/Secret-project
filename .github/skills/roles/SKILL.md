@@ -85,7 +85,7 @@ description: >
 | ------ | ------------------------ | -------------------- | --------------------------------------------------------------------------------------- |
 | GET    | `/hierarchy`             | `getRoleHierarchy`   | Sorted by `level` descending                                                            |
 | GET    | `/:roleType/permissions` | `getRolePermissions` | Stub — returns `{}`                                                                     |
-| GET    | `/`                      | `getAllRoles`        | Company-scoped                                                                          |
+| GET    | `/`                      | `getRoles`           | Company-scoped                                                                          |
 | GET    | `/:id`                   | `getRoleById`        | Company-scoped                                                                          |
 | POST   | `/`                      | `createRole`         | Custom roles only                                                                       |
 | PUT    | `/:id`                   | `updateRole`         | Works for system and custom roles; `name`/`role` slug silently ignored for system roles |
@@ -187,7 +187,7 @@ Fixed: `name`, `description`, `permissions`, `type`, `status`, `createdAt`, `act
 ## Client Service (`RoleService`)
 
 ```ts
-getAllRoles()          → GET  /roles
+getRoles()          → GET  /roles
 getRoleById(id)        → GET  /roles/:id
 createRole(data)       → POST /roles          → JsonResponse<{ role: IRole }>
 updateRole(id, data)   → PUT  /roles/:id      → JsonResponse<{ role: IRole }>
