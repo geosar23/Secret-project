@@ -1,3 +1,4 @@
+import { PageHeaderComponent } from "../../shared/components/page-header/page-header.component";
 import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatTableModule, MatTableDataSource } from "@angular/material/table";
@@ -43,6 +44,7 @@ interface IUserTableData extends IUser {
     selector: "app-users",
     standalone: true,
     imports: [
+        PageHeaderComponent,
         CommonModule,
         ReactiveFormsModule,
         MatTableModule,

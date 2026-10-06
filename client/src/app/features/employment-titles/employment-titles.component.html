@@ -1,13 +1,12 @@
 <div class="employment-titles-container">
-    <div class="page-header">
-        <h1>Employment Titles Management</h1>
+    <app-page-header title="Employment Titles Management">
         @if (canWrite) {
-            <button class="btn btn-primary m-xs" (click)="openCreateDialog()" [disabled]="loading">
+            <button class="btn btn-primary" (click)="openCreateDialog()" [disabled]="loading">
                 <mat-icon>add</mat-icon>
                 Create Employment Title
             </button>
         }
-    </div>
+    </app-page-header>
 
     <div class="filters-container">
         <mat-form-field appearance="outline" class="search-field">

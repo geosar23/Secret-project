@@ -11,6 +11,7 @@ Welcome to the HR SaaS project documentation. This index is your starting point 
     - [Permissions & Roles](./features/permissions-roles.md)
     - [HR Entities](./features/hr-entities.md)
     - [File Storage](./features/file-storage.md)
+    - [Leaves](./features/leaves.md) (design)
 4. [API Reference](./api-reference.md) — full REST endpoint list
 
 ## Other References

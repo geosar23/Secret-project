@@ -1,0 +1,30 @@
+:host {
+    display: block;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+
+    h3 {
+        margin: 0;
+    }
+
+    p {
+        margin: var(--spacing-xs) 0 0;
+        font-size: var(--font-size-sm-minus);
+    }
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm-plus);
+
+    &:empty {
+        display: none;
+    }
+}

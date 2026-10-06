@@ -1,15 +1,12 @@
 <div class="offices-container">
-    <div class="page-header">
-        <h1>Office Management</h1>
-        <div class="header-actions">
-            @if (canWrite) {
-                <button class="btn btn-primary m-xs" (click)="openCreateDialog()" [disabled]="loading">
-                    <mat-icon>add</mat-icon>
-                    Create Office
-                </button>
-            }
-        </div>
-    </div>
+    <app-page-header title="Office Management">
+        @if (canWrite) {
+            <button class="btn btn-primary" (click)="openCreateDialog()" [disabled]="loading">
+                <mat-icon>add</mat-icon>
+                Create Office
+            </button>
+        }
+    </app-page-header>
 
     <div class="filters-container">
         <mat-form-field appearance="outline" class="search-field">

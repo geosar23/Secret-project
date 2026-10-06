@@ -4,11 +4,9 @@
     margin: 0 auto;
 }
 
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-xl);
+app-page-header {
+    display: block;
+    margin-bottom: var(--spacing-md);
 }
 
 .filters-container {

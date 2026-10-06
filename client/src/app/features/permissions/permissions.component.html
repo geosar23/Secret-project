@@ -1,8 +1,8 @@
 <div class="permissions-container">
-    <div class="page-header">
-        <h3>Your Permissions</h3>
-        <p class="text-secondary">Everything your account can do, and where. Preview any role to see how it differs.</p>
-    </div>
+    <app-page-header
+        title="Your Permissions"
+        subtitle="Everything your account can do, and where. Preview any role to see how it differs."
+    />
 
     @if (viewRole) {
         <mat-toolbar class="preview-bar">

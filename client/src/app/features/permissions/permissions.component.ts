@@ -1,3 +1,4 @@
+import { PageHeaderComponent } from "../../shared/components/page-header/page-header.component";
 import { Component, DestroyRef, OnInit, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
@@ -73,6 +74,7 @@ export interface OverrideItem {
     selector: "app-permissions",
     standalone: true,
     imports: [
+        PageHeaderComponent,
         CommonModule,
         ReactiveFormsModule,
         MatToolbarModule,

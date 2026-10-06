@@ -14,13 +14,6 @@
     gap: var(--spacing-md);
 }
 
-.page-header {
-    p {
-        margin: var(--spacing-xs) 0 0;
-        font-size: var(--font-size-sm-minus);
-    }
-}
-
 mat-icon {
     flex-shrink: 0;
 }

@@ -1,16 +1,15 @@
 <div class="roles-container">
-    <div class="page-header">
-        <div>
-            <h3>Role Management</h3>
-            <p class="text-secondary">Define what each role can see and do. Higher levels outrank lower ones.</p>
-        </div>
+    <app-page-header
+        title="Role Management"
+        subtitle="Define what each role can see and do. Higher levels outrank lower ones."
+    >
         @if (canWrite) {
             <button mat-flat-button routerLink="/roles/create" [disabled]="loading">
                 <mat-icon>add</mat-icon>
                 Create Role
             </button>
         }
-    </div>
+    </app-page-header>
 
     <div class="stats">
         <mat-card>

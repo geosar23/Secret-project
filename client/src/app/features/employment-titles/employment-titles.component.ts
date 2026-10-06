@@ -1,3 +1,4 @@
+import { PageHeaderComponent } from "../../shared/components/page-header/page-header.component";
 import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatTableModule, MatTableDataSource } from "@angular/material/table";
@@ -27,6 +28,7 @@ import { IDepartment } from "../../core/interfaces/department.interface";
     selector: "app-employment-titles",
     standalone: true,
     imports: [
+        PageHeaderComponent,
         CommonModule,
         ReactiveFormsModule,
         MatTableModule,

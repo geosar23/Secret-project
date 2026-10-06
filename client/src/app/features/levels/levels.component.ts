@@ -1,3 +1,4 @@
+import { PageHeaderComponent } from "../../shared/components/page-header/page-header.component";
 import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatTableModule, MatTableDataSource } from "@angular/material/table";
@@ -21,6 +22,7 @@ import { LevelDialogComponent, LevelDialogData } from "./level-dialog/level-dial
     selector: "app-levels",
     standalone: true,
     imports: [
+        PageHeaderComponent,
         CommonModule,
         ReactiveFormsModule,
         MatTableModule,

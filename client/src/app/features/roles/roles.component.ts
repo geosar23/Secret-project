@@ -1,3 +1,4 @@
+import { PageHeaderComponent } from "../../shared/components/page-header/page-header.component";
 import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { Router, RouterModule } from "@angular/router";
@@ -39,6 +40,7 @@ interface RoleStats {
     selector: "app-roles",
     standalone: true,
     imports: [
+        PageHeaderComponent,
         CommonModule,
         RouterModule,
         ReactiveFormsModule,
