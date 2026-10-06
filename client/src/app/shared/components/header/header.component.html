@@ -21,77 +21,7 @@
             </a>
         </div>
 
-        <nav class="header-center">
-            <div class="search-wrapper">
-                <div class="search-container">
-                    <mat-icon class="search-icon">search</mat-icon>
-                    <input
-                        matInput
-                        [formControl]="searchControl"
-                        placeholder="Search pages, users..."
-                        class="search-input"
-                        [matAutocomplete]="auto"
-                        autocomplete="off"
-                    />
-                    @if (searchControl.value) {
-                        <button mat-icon-button (click)="clearSearch()" class="clear-btn">
-                            <mat-icon>close</mat-icon>
-                        </button>
-                    }
-                </div>
-
-                <mat-autocomplete
-                    #auto="matAutocomplete"
-                    class="search-autocomplete"
-                    (optionSelected)="selectResult($event.option.value)"
-                >
-                    @if (filteredResults().length > 0) {
-                        <div class="autocomplete-header">
-                            <span class="result-count"
-                                >{{ filteredResults().length }} result{{
-                                    filteredResults().length !== 1 ? "s" : ""
-                                }}
-                                found</span
-                            >
-                        </div>
-                        @for (result of filteredResults(); track result.id) {
-                            <mat-option [value]="result.id" class="search-option" [ngClass]="'type-' + result.type">
-                                <div class="option-container">
-                                    <div class="option-icon-wrapper">
-                                        <mat-icon class="option-icon">{{ result.icon }}</mat-icon>
-                                    </div>
-                                    <div class="option-content">
-                                        <div class="option-title">{{ result.name }}</div>
-                                        @if (result.description) {
-                                            <div class="option-subtitle">{{ result.description }}</div>
-                                        }
-                                        <div class="option-badge">
-                                            {{ result.type === "route" ? "📄 Page" : "👤 User" }}
-                                        </div>
-                                    </div>
-                                    <mat-icon class="option-arrow">arrow_forward</mat-icon>
-                                </div>
-                            </mat-option>
-                        }
-                    } @else if ((searchControl.value?.length ?? 0) >= 2) {
-                        <mat-option disabled class="no-results-option">
-                            <div class="no-results-content">
-                                <mat-icon>search_off</mat-icon>
-                                <span>No results found</span>
-                                <span class="no-results-hint">Try searching for different keywords</span>
-                            </div>
-                        </mat-option>
-                    } @else if ((searchControl.value?.length ?? 0) > 0) {
-                        <mat-option disabled class="hint-option">
-                            <div class="hint-content">
-                                <mat-icon>info</mat-icon>
-                                <span>Type at least 2 characters to search</span>
-                            </div>
-                        </mat-option>
-                    }
-                </mat-autocomplete>
-            </div>
-        </nav>
+        <app-header-search />
 
         <div class="header-right">
             <button mat-icon-button>
