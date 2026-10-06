@@ -5,7 +5,7 @@ import { SubDepartmentService } from "../services/sub-department.service";
 import { hardError, softError, success } from "../utils/response.util";
 import { isValidObjectId } from "../utils/field-sanitizer.util";
 import { departmentRepository } from "../repositories/department.repository";
-import { findActiveDependents } from "../services/dependency.service";
+import { findActiveDependents, findReparentBlocker } from "../services/dependency.service";
 
 export class SubDepartmentController {
     static async getAll(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -95,14 +95,30 @@ export class SubDepartmentController {
             }
             if (typeof req.body.departmentId === "string" && req.body.departmentId.trim().length > 0) {
                 const departmentId = req.body.departmentId.trim();
-                const department = isValidObjectId(departmentId)
-                    ? await departmentRepository(requestingUser.companyId).findById(departmentId).select("_id").lean()
-                    : null;
-                if (!department) {
-                    res.json(softError("Invalid department"));
-                    return;
+                const current = await SubDepartmentService.getById(req.params.id, requestingUser.companyId);
+                const currentDepartmentId = current ? String((current.department as any)?._id) : undefined;
+                if (departmentId !== currentDepartmentId) {
+                    const department = isValidObjectId(departmentId)
+                        ? await departmentRepository(requestingUser.companyId)
+                              .findOne({ _id: departmentId, isActive: true })
+                              .select("_id")
+                              .lean()
+                        : null;
+                    if (!department) {
+                        res.json(softError("Invalid department"));
+                        return;
+                    }
+                    const moveBlocker = await findReparentBlocker(
+                        "subDepartment",
+                        req.params.id,
+                        requestingUser.companyId,
+                    );
+                    if (moveBlocker) {
+                        res.json(softError(moveBlocker));
+                        return;
+                    }
+                    sanitized.department = departmentId;
                 }
-                sanitized.department = departmentId;
             }
 
             if (Object.keys(sanitized).length === 0) {

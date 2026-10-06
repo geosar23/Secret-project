@@ -32,6 +32,16 @@ export function getEffectivePermissions(user: IUserPopulated): Set<string> {
     return effective;
 }
 
+/** Ids of all departments a user belongs to: the primary first, then the secondaries. */
+export function getUserDepartmentIds(user: {
+    primaryDepartment?: unknown;
+    secondaryDepartments?: unknown[];
+}): string[] {
+    const toId = (value: unknown): string => String((value as { _id?: unknown })._id ?? value);
+    const ids = [user.primaryDepartment, ...(user.secondaryDepartments ?? [])].filter(Boolean).map(toId);
+    return [...new Set(ids)];
+}
+
 /**
  * Build the actor portion of an AccessContext from a fully-populated IUser.
  * Exposed so policy functions can construct a context without re-computing
@@ -39,10 +49,12 @@ export function getEffectivePermissions(user: IUserPopulated): Set<string> {
  */
 export function buildActorContext(actor: IUserPopulated): AccessContext["actor"] {
     const effective = getEffectivePermissions(actor);
+    const departmentIds = getUserDepartmentIds(actor);
     return {
         id: actor._id!.toString(),
         companyId: (actor.company as unknown as Types.ObjectId | undefined)?.toString() ?? "",
-        departmentId: actor.employmentTitle?.subDepartment?.department?._id?.toString(),
+        departmentId: departmentIds[0],
+        departmentIds,
         countryId: actor.country?.toString(),
         managerId: actor.manager?.toString(),
         permissions: effective as unknown as Set<PermissionKey>,

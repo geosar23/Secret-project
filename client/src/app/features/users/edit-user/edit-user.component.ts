@@ -42,7 +42,17 @@ import { IEmploymentTitle } from "../../../core/interfaces/employment-title.inte
 import { IRole } from "../../../core/interfaces/role.interface";
 import { IDepartment } from "../../../core/interfaces/department.interface";
 import { ISubDepartment } from "../../../core/interfaces/sub-department.interface";
-import { officesIn, peopleIn, selectable, subDepartmentsOf, titlesOf } from "../../../core/utils/user-form-options";
+import {
+    keepSecondarySubDepartments,
+    officesIn,
+    peopleIn,
+    refId,
+    secondaryDepartmentsOf,
+    secondarySubDepartmentsOf,
+    selectable,
+    subDepartmentsOf,
+    titlesOf,
+} from "../../../core/utils/user-form-options";
 import { LoadingButtonComponent } from "../../../shared/components/loading-button/loading-button.component";
 import { ProfileImageUploadComponent } from "../../../shared/components/profile-image-upload/profile-image-upload.component";
 import { USER_FORM_STEPS, firstInvalidStepIndex } from "../user-form/user-form-steps";
@@ -128,6 +138,7 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
 
     private selectedDepartmentId = signal("");
     private selectedSubDepartmentId = signal("");
+    private selectedSecondaryDepartmentIds = signal<string[]>([]);
     private selectedCountryId = signal("");
     /** Values already saved on the user; they stay selectable even if now inactive. */
     private saved = signal({
@@ -135,6 +146,8 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
         country: "",
         department: "",
         subDepartment: "",
+        secondaryDepartments: [] as string[],
+        secondarySubDepartments: [] as string[],
         title: "",
         level: "",
         office: "",
@@ -150,6 +163,17 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
     );
     readonly titleOptions = computed(() =>
         titlesOf(this.employmentTitles(), this.selectedSubDepartmentId(), this.saved().title),
+    );
+    readonly secondaryDepartmentOptions = computed(() =>
+        secondaryDepartmentsOf(this.departments(), this.selectedDepartmentId(), this.saved().secondaryDepartments),
+    );
+    readonly secondarySubDepartmentOptions = computed(() =>
+        secondarySubDepartmentsOf(
+            this.subDepartments(),
+            [this.selectedDepartmentId(), ...this.selectedSecondaryDepartmentIds()],
+            this.selectedSubDepartmentId(),
+            this.saved().secondarySubDepartments,
+        ),
     );
     readonly levelOptions = computed(() => selectable(this.levels(), this.saved().level));
     readonly officeOptions = computed(() => officesIn(this.offices(), this.selectedCountryId(), this.saved().office));
@@ -182,6 +206,8 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
         managerId: [""],
         departmentId: [""],
         subDepartmentId: [""],
+        secondaryDepartmentIds: [[] as string[]],
+        secondarySubDepartmentIds: [[] as string[]],
         levelId: [""],
         officeId: [""],
         hrRepresentativeId: [""],
@@ -339,7 +365,10 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
             countryId: fv.countryId || undefined,
             employmentTitleId: fv.employmentTitleId || undefined,
             managerId: fv.managerId || undefined,
-            departmentId: fv.departmentId || undefined,
+            primaryDepartmentId: fv.departmentId || undefined,
+            primarySubDepartmentId: fv.subDepartmentId || undefined,
+            secondaryDepartmentIds: fv.secondaryDepartmentIds,
+            secondarySubDepartmentIds: fv.secondarySubDepartmentIds,
             levelId: fv.levelId || undefined,
             officeId: fv.officeId || undefined,
             hrRepresentativeId: fv.hrRepresentativeId || undefined,
@@ -516,17 +545,55 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
     }
 
     /** Department narrows sub-departments, which narrow titles; country narrows offices and HR representatives. */
+    private pruneSecondarySubDepartments(): void {
+        const current = this.userForm.value.secondarySubDepartmentIds as string[];
+        const kept = keepSecondarySubDepartments(
+            this.subDepartments(),
+            current,
+            [this.selectedDepartmentId(), ...this.selectedSecondaryDepartmentIds()],
+            this.selectedSubDepartmentId(),
+        );
+        if (kept.length !== current.length) {
+            this.userForm.patchValue({ secondarySubDepartmentIds: kept });
+        }
+    }
+
     private watchDependentSelections(): void {
         const changes = (name: string) =>
             this.userForm.get(name)!.valueChanges.pipe(takeUntilDestroyed(this.destroyRef));
 
+        // A child selection is cleared only when it no longer belongs to the new parent (or the reference
+        // lists are still loading), so loading a saved user does not wipe the values patched into the form.
         changes("departmentId").subscribe(value => {
             this.selectedDepartmentId.set(value ?? "");
-            this.userForm.patchValue({ subDepartmentId: "" });
+            const subDepartmentId = this.userForm.value.subDepartmentId as string;
+            const subStillFits =
+                !subDepartmentId ||
+                this.subDepartments().length === 0 ||
+                this.subDepartments().some(s => s._id === subDepartmentId && refId(s.department) === value);
+            this.userForm.patchValue({
+                ...(subStillFits ? {} : { subDepartmentId: "" }),
+                secondaryDepartmentIds: (this.userForm.value.secondaryDepartmentIds as string[]).filter(
+                    id => id !== value,
+                ),
+            });
+            this.pruneSecondarySubDepartments();
         });
         changes("subDepartmentId").subscribe(value => {
             this.selectedSubDepartmentId.set(value ?? "");
-            this.userForm.patchValue({ employmentTitleId: "" });
+            const titleId = this.userForm.value.employmentTitleId as string;
+            const titleStillFits =
+                !titleId ||
+                this.employmentTitles().length === 0 ||
+                this.employmentTitles().some(t => t._id === titleId && refId(t.subDepartment) === value);
+            if (!titleStillFits) {
+                this.userForm.patchValue({ employmentTitleId: "" });
+            }
+            this.pruneSecondarySubDepartments();
+        });
+        changes("secondaryDepartmentIds").subscribe(value => {
+            this.selectedSecondaryDepartmentIds.set(value ?? []);
+            this.pruneSecondarySubDepartments();
         });
         changes("countryId").subscribe(value => {
             this.selectedCountryId.set(value ?? "");
@@ -620,16 +687,21 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
             ),
         );
 
-        const departmentId = u.employmentTitle?.subDepartment?.department?._id ?? "";
-        const subDepartmentId = u.employmentTitle?.subDepartment?._id ?? "";
+        const departmentId = u.primaryDepartment?._id ?? "";
+        const subDepartmentId = u.primarySubDepartment?._id ?? "";
+        const secondaryDepartmentIds = (u.secondaryDepartments ?? []).map(d => d._id ?? "");
+        const secondarySubDepartmentIds = (u.secondarySubDepartments ?? []).map(s => s._id ?? "");
         this.selectedDepartmentId.set(departmentId);
         this.selectedSubDepartmentId.set(subDepartmentId);
+        this.selectedSecondaryDepartmentIds.set(secondaryDepartmentIds);
         this.selectedCountryId.set(u.country?._id ?? "");
         this.saved.set({
             role: u.role?._id ?? "",
             country: u.country?._id ?? "",
             department: departmentId,
             subDepartment: subDepartmentId,
+            secondaryDepartments: secondaryDepartmentIds,
+            secondarySubDepartments: secondarySubDepartmentIds,
             title: u.employmentTitle?._id ?? "",
             level: u.level?._id ?? "",
             office: u.office?._id ?? "",
@@ -646,6 +718,8 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
             managerId: u.manager?._id ?? "",
             departmentId,
             subDepartmentId,
+            secondaryDepartmentIds,
+            secondarySubDepartmentIds,
             levelId: u.level?._id ?? "",
             officeId: u.office?._id ?? "",
             hrRepresentativeId: u.hrRepresentative?._id ?? "",

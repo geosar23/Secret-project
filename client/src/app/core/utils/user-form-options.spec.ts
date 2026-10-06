@@ -1,4 +1,15 @@
-import { officesIn, peopleIn, refId, selectable, subDepartmentsOf, titlesOf } from "./user-form-options";
+import {
+    keepSecondarySubDepartments,
+    officesIn,
+    peopleIn,
+    refId,
+    secondaryDepartmentsOf,
+    secondarySubDepartmentsOf,
+    selectable,
+    subDepartmentsOf,
+    titlesOf,
+} from "./user-form-options";
+import { IDepartment } from "../interfaces/department.interface";
 import { IUser, IOffice } from "../interfaces/user.interface";
 import { ISubDepartment } from "../interfaces/sub-department.interface";
 import { IEmploymentTitle } from "../interfaces/employment-title.interface";
@@ -36,6 +47,27 @@ describe("user form options", () => {
         expect(titlesOf(titles, "")).toEqual([]);
         expect(titlesOf(titles, "s1").map(t => t._id)).toEqual(["t1"]);
         expect(titlesOf(titles, "s1", "t3").map(t => t._id)).toEqual(["t1", "t3"]);
+    });
+
+    it("secondaryDepartmentsOf excludes the primary and inactive departments unless already saved", () => {
+        const depts = [
+            { _id: "d1", name: "d1" },
+            { _id: "d2", name: "d2" },
+            { _id: "d3", name: "d3", isActive: false },
+        ] as IDepartment[];
+        expect(secondaryDepartmentsOf(depts, "d1").map(d => d._id)).toEqual(["d2"]);
+        expect(secondaryDepartmentsOf(depts, "d1", ["d3"]).map(d => d._id)).toEqual(["d2", "d3"]);
+    });
+
+    it("secondarySubDepartmentsOf covers every chosen department but never the primary sub-department", () => {
+        const subs = [sub("s1", "d1"), sub("s2", "d2"), sub("s3", "d3"), sub("s4", "d2", false)];
+        expect(secondarySubDepartmentsOf(subs, ["d1", "d2"], "s1").map(s => s._id)).toEqual(["s2"]);
+        expect(secondarySubDepartmentsOf(subs, ["d1", "d2"], "s1", ["s4"]).map(s => s._id)).toEqual(["s2", "s4"]);
+    });
+
+    it("keepSecondarySubDepartments drops ids outside the user's departments or equal to the primary", () => {
+        const subs = [sub("s1", "d1"), sub("s2", "d2"), sub("s3", "d3")];
+        expect(keepSecondarySubDepartments(subs, ["s1", "s2", "s3", "gone"], ["d1", "d2"], "s1")).toEqual(["s2"]);
     });
 
     it("officesIn keeps offices of the country and country-less offices", () => {

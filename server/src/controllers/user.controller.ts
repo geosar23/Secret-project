@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Response } from "express";
 import { UserService } from "../services/user.service";
-import { EmploymentTitleService } from "../services/employment-title.service";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import {
     IAddress,
@@ -26,7 +25,7 @@ import {
     buildUserSearchAccessQuery,
 } from "../policies/user.policy";
 import { validateUserReferences } from "../services/user-reference.service";
-import { FieldMap, setMappedFields } from "../utils/field-sanitizer.util";
+import { FieldMap, isValidObjectId, setMappedFields } from "../utils/field-sanitizer.util";
 import { isValidPermissionKey } from "../utils/permission-checker";
 import { StorageService } from "../services/storage.service";
 import { getEffectivePermissions } from "../utils/permission-checker";
@@ -120,6 +119,16 @@ function applyComplexUserFields(target: Partial<IUser>, body: Record<string, unk
         }
     }
 
+    // Secondary department / sub-department assignments
+    if (Array.isArray(body.secondaryDepartmentIds)) {
+        target.secondaryDepartments = idList(body.secondaryDepartmentIds) as unknown as IUser["secondaryDepartments"];
+    }
+    if (Array.isArray(body.secondarySubDepartmentIds)) {
+        target.secondarySubDepartments = idList(
+            body.secondarySubDepartmentIds,
+        ) as unknown as IUser["secondarySubDepartments"];
+    }
+
     // String arrays
     if (Array.isArray(body.nationalities)) {
         target.nationalities = (body.nationalities as unknown[])
@@ -163,6 +172,10 @@ function applyComplexUserFields(target: Partial<IUser>, body: Record<string, unk
     } else if (body.salary === null || body.salary === "") {
         (target as Record<string, unknown>).salary = null;
     }
+}
+
+function idList(value: unknown): string[] {
+    return Array.isArray(value) ? value.filter(isValidObjectId).map(v => v.trim()) : [];
 }
 
 function idOf(value: unknown): string | undefined {
@@ -232,22 +245,13 @@ export class UserController {
                 return unauthorizedError(res);
             }
 
-            // Resolve department from the requested employment title so scope checks work.
             const body = req.body as Record<string, unknown>;
-            const requestedEmploymentTitleId =
-                typeof body.employmentTitleId === "string" ? body.employmentTitleId : undefined;
-            let resolvedDepartmentId: string | undefined;
-            if (requestedEmploymentTitleId) {
-                const empTitle = (await EmploymentTitleService.getById(
-                    requestedEmploymentTitleId,
-                    actorTokenData.companyId,
-                )) as { subDepartment?: { department?: { _id?: { toString(): string } } } } | null;
-                resolvedDepartmentId = empTitle?.subDepartment?.department?._id?.toString();
-            }
-
             const createPayload: IUserCreateScopePayload = {
                 countryId: typeof body.countryId === "string" ? body.countryId : undefined,
-                departmentId: resolvedDepartmentId,
+                departmentIds: [
+                    ...(typeof body.primaryDepartmentId === "string" ? [body.primaryDepartmentId] : []),
+                    ...idList(body.secondaryDepartmentIds),
+                ],
                 managerId: typeof body.managerId === "string" ? body.managerId : undefined,
             };
 
@@ -285,6 +289,20 @@ export class UserController {
                     targetField: "country",
                     isPointer: true,
                     pointerClass: "Countries",
+                    allowUnset: true,
+                },
+                primaryDepartmentId: {
+                    type: "string",
+                    targetField: "primaryDepartment",
+                    isPointer: true,
+                    pointerClass: "Departments",
+                    allowUnset: true,
+                },
+                primarySubDepartmentId: {
+                    type: "string",
+                    targetField: "primarySubDepartment",
+                    isPointer: true,
+                    pointerClass: "SubDepartments",
                     allowUnset: true,
                 },
                 employmentTitleId: {
@@ -454,6 +472,20 @@ export class UserController {
                     pointerClass: "Countries",
                     allowUnset: true,
                 },
+                primaryDepartmentId: {
+                    type: "string",
+                    targetField: "primaryDepartment",
+                    isPointer: true,
+                    pointerClass: "Departments",
+                    allowUnset: true,
+                },
+                primarySubDepartmentId: {
+                    type: "string",
+                    targetField: "primarySubDepartment",
+                    isPointer: true,
+                    pointerClass: "SubDepartments",
+                    allowUnset: true,
+                },
                 employmentTitleId: {
                     type: "string",
                     targetField: "employmentTitle",
@@ -528,6 +560,10 @@ export class UserController {
                 {
                     role: idOf(user.role),
                     country: idOf(user.country),
+                    primaryDepartment: idOf(user.primaryDepartment),
+                    primarySubDepartment: idOf(user.primarySubDepartment),
+                    secondaryDepartments: (user.secondaryDepartments ?? []).map(d => String(idOf(d))),
+                    secondarySubDepartments: (user.secondarySubDepartments ?? []).map(d => String(idOf(d))),
                     employmentTitle: idOf(user.employmentTitle),
                     manager: idOf(user.manager),
                     level: idOf(user.level),

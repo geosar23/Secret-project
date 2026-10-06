@@ -64,7 +64,7 @@ export class DashboardComponent {
     /** "Software Engineer · Frontend Team" style subtitle, built from whatever org data is populated. */
     readonly subtitle = computed(() => {
         const user = this.user();
-        return [user?.employmentTitle?.name, user?.employmentTitle?.subDepartment?.name, user?.office?.name]
+        return [user?.employmentTitle?.name, user?.primarySubDepartment?.name, user?.office?.name]
             .filter(Boolean)
             .join(" · ");
     });

@@ -198,6 +198,57 @@ async function checkDepartments(companyIds: Set<string>): Promise<void> {
     console.log(`   ${docs.length} documents checked`);
 }
 
+/** Users store primary/secondary department and sub-department; they must agree with the org hierarchy. */
+async function checkUserOrgHierarchy(): Promise<void> {
+    console.log("\nChecking user department assignments...");
+    const [users, subDepts, titles] = await Promise.all([
+        UserModel.find(
+            {},
+            {
+                employmentTitle: 1,
+                primaryDepartment: 1,
+                primarySubDepartment: 1,
+                secondaryDepartments: 1,
+                secondarySubDepartments: 1,
+            },
+        ).lean(),
+        SubDepartmentModel.find({}, { department: 1 }).lean(),
+        EmploymentTitleModel.find({}, { subDepartment: 1 }).lean(),
+    ]);
+    const deptOfSub = new Map(subDepts.map(s => [String(s._id), String(s.department)]));
+    const subOfTitle = new Map(titles.map(t => [String(t._id), String(t.subDepartment)]));
+
+    for (const u of users) {
+        const id = u._id;
+        const primaryDept = u.primaryDepartment ? String(u.primaryDepartment) : undefined;
+        const primarySub = u.primarySubDepartment ? String(u.primarySubDepartment) : undefined;
+        const secondaryDepts = (u.secondaryDepartments ?? []).map(String);
+        const secondarySubs = (u.secondarySubDepartments ?? []).map(String);
+
+        if (u.employmentTitle && !primarySub) {
+            report("Users", id, "has an employment title but no primary sub-department (run backfillUserDepartments)");
+        }
+        if (primarySub && deptOfSub.get(primarySub) !== primaryDept) {
+            report("Users", id, "primarySubDepartment does not belong to primaryDepartment");
+        }
+        if (u.employmentTitle && primarySub && subOfTitle.get(String(u.employmentTitle)) !== primarySub) {
+            report("Users", id, "employmentTitle does not belong to primarySubDepartment");
+        }
+        if (primaryDept && secondaryDepts.includes(primaryDept)) {
+            report("Users", id, "primaryDepartment is also listed as a secondary department");
+        }
+        if (primarySub && secondarySubs.includes(primarySub)) {
+            report("Users", id, "primarySubDepartment is also listed as a secondary sub-department");
+        }
+        const allowed = new Set([primaryDept, ...secondaryDepts]);
+        for (const sub of secondarySubs) {
+            if (!allowed.has(deptOfSub.get(sub))) {
+                report("Users", id, `secondary sub-department ${sub} is outside the user's departments`);
+            }
+        }
+    }
+}
+
 async function checkSubDepartments(companyIds: Set<string>, departmentIds: Set<string>): Promise<void> {
     console.log("\n── Sub-Departments ─────────────────────────────────────────");
     const docs = await SubDepartmentModel.find({}).lean();
@@ -451,6 +502,7 @@ async function run(): Promise<void> {
     await checkCompanies();
     await checkRoles(companyIds);
     await checkUsers(companyIds, roleIds);
+    await checkUserOrgHierarchy();
     await checkDepartments(companyIds);
     await checkSubDepartments(companyIds, departmentIds);
     await checkEmploymentTitles(companyIds, subDeptIds);

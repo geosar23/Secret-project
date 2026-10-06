@@ -1,7 +1,6 @@
 import { userIdentityRepository, userRepository } from "../repositories/user.repository";
 import { departmentRepository } from "../repositories/department.repository";
 import { subDepartmentRepository } from "../repositories/sub-department.repository";
-import { employmentTitleRepository } from "../repositories/employment-title.repository";
 import { IProfileImageMetadata, IUser, IUserPopulated, IUsersQueryParams } from "../interfaces/user.interface";
 import { FilterQuery } from "mongoose";
 import bcrypt from "bcryptjs";
@@ -33,13 +32,10 @@ export const UserService = {
         }
 
         if (department) {
-            const subDepts = await subDepartmentRepository(companyId).find({ department }).select("_id").lean();
-            const subDeptIds = subDepts.map(sd => sd._id);
-            const empTitles = await employmentTitleRepository(companyId)
-                .find({ subDepartment: { $in: subDeptIds } })
-                .select("_id")
-                .lean();
-            filter.employmentTitle = { $in: empTitles.map(et => et._id) };
+            filter.$and = [
+                ...(filter.$and || []),
+                { $or: [{ primaryDepartment: department }, { secondaryDepartments: department }] },
+            ];
         }
 
         if (country) {
@@ -76,10 +72,11 @@ export const UserService = {
                 .populate("level")
                 .populate("office")
                 .populate("hrRepresentative", "_id name email")
-                .populate({
-                    path: "employmentTitle",
-                    populate: { path: "subDepartment", populate: { path: "department" } },
-                })
+                .populate("employmentTitle")
+                .populate("primaryDepartment", "_id name")
+                .populate("primarySubDepartment", "_id name")
+                .populate("secondaryDepartments", "_id name")
+                .populate("secondarySubDepartments", "_id name")
                 .sort(sortOptions)
                 .skip(skip)
                 .limit(limit)
@@ -108,8 +105,8 @@ export const UserService = {
         const [users, departments, subDepartments] = await Promise.all([
             userRepository(companyId)
                 .find({ isActive: true })
-                .select("name email manager employmentTitle")
-                .populate({ path: "employmentTitle", select: "name subDepartment" })
+                .select("name email manager employmentTitle primarySubDepartment")
+                .populate({ path: "employmentTitle", select: "name" })
                 .sort({ name: 1 })
                 .lean(),
             departmentRepository(companyId).find({ isActive: true }).select("name").sort({ name: 1 }).lean(),
@@ -122,14 +119,14 @@ export const UserService = {
 
         return {
             users: users.map(user => {
-                const title = user.employmentTitle as unknown as { name?: string; subDepartment?: unknown } | undefined;
+                const title = user.employmentTitle as unknown as { name?: string } | undefined;
                 return {
                     _id: String(user._id),
                     name: user.name,
                     email: user.email,
                     managerId: user.manager ? String(user.manager) : null,
                     title: title?.name ?? null,
-                    subDepartmentId: title?.subDepartment ? String(title.subDepartment) : null,
+                    subDepartmentId: user.primarySubDepartment ? String(user.primarySubDepartment) : null,
                 };
             }),
             departments: departments.map(d => ({ _id: String(d._id), name: d.name })),
@@ -155,10 +152,11 @@ export const UserService = {
             .populate("level")
             .populate("office")
             .populate("hrRepresentative", "_id name email")
-            .populate({
-                path: "employmentTitle",
-                populate: { path: "subDepartment", populate: { path: "department" } },
-            })
+            .populate("employmentTitle")
+            .populate("primaryDepartment", "_id name")
+            .populate("primarySubDepartment", "_id name")
+            .populate("secondaryDepartments", "_id name")
+            .populate("secondarySubDepartments", "_id name")
             .select("-password")
             .lean();
         if (selectFields && selectFields.length > 0) {

@@ -142,7 +142,11 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
         status: u => (u.isActive ? "Active" : "Inactive"),
         createdAt: u => (u.createdAt ? new Date(u.createdAt).toLocaleString() : "—"),
         country: u => u.country?.name || "—",
-        department: u => u.employmentTitle?.subDepartment?.department?.name || "—",
+        department: u =>
+            [u.primaryDepartment, ...(u.secondaryDepartments ?? [])]
+                .map(d => d?.name)
+                .filter(Boolean)
+                .join(", ") || "—",
         employmentTitle: u => u.employmentTitle?.name || "—",
         manager: u => u.manager?.name || "—",
         level: u => u.level?.name || "—",

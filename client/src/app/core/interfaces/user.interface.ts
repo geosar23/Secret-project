@@ -50,6 +50,12 @@ export interface IOffice {
     createdAt?: Date;
 }
 
+/** A populated department or sub-department reference on a user. */
+export interface IOrgRef {
+    _id?: string;
+    name: string;
+}
+
 export interface IUser {
     _id?: string;
     name: string;
@@ -59,6 +65,10 @@ export interface IUser {
     // Role & Organization
     role: IRole;
     country?: ICountry;
+    primaryDepartment?: IOrgRef;
+    primarySubDepartment?: IOrgRef;
+    secondaryDepartments?: IOrgRef[];
+    secondarySubDepartments?: IOrgRef[];
     employmentTitle?: IEmploymentTitle;
     manager?: IUser;
     level?: ILevel;
@@ -113,9 +123,12 @@ export interface ICreateUserRequest {
     password: string;
     role: string;
     countryId?: string;
+    primaryDepartmentId?: string;
+    primarySubDepartmentId?: string;
+    secondaryDepartmentIds?: string[];
+    secondarySubDepartmentIds?: string[];
     employmentTitleId?: string;
     managerId?: string;
-    departmentId?: string;
     levelId?: string;
     officeId?: string;
     hrRepresentativeId?: string;
@@ -153,10 +166,13 @@ export interface IUpdateUserRequest {
     email?: string;
     role?: string;
     countryId?: string;
+    primaryDepartmentId?: string;
+    primarySubDepartmentId?: string;
+    secondaryDepartmentIds?: string[];
+    secondarySubDepartmentIds?: string[];
     employmentTitleId?: string;
     managerId?: string;
     isActive?: boolean;
-    departmentId?: string;
     levelId?: string;
     officeId?: string;
     hrRepresentativeId?: string;

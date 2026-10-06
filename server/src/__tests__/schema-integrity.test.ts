@@ -20,15 +20,16 @@ describe("Schema integrity audit", () => {
         await disconnectTestDB();
     });
 
-    it("User schema should not include a direct department field; department is derived from title hierarchy", () => {
-        const departmentPath = UserModel.schema.path("department");
-        const employmentTitlePath = UserModel.schema.path("employmentTitle");
-
-        expect(departmentPath).toBeUndefined();
-        expect(employmentTitlePath).toBeDefined();
+    it("User schema stores primary and secondary department / sub-department, with no legacy department field", () => {
+        expect(UserModel.schema.path("department")).toBeUndefined();
+        expect(UserModel.schema.path("primaryDepartment")).toBeDefined();
+        expect(UserModel.schema.path("primarySubDepartment")).toBeDefined();
+        expect(UserModel.schema.path("secondaryDepartments")).toBeDefined();
+        expect(UserModel.schema.path("secondarySubDepartments")).toBeDefined();
+        expect(UserModel.schema.path("employmentTitle")).toBeDefined();
     });
 
-    it("Department filter in getUsers should return matching users via employmentTitle -> subDepartment -> department", async () => {
+    it("Department filter in getUsers matches users by primary or secondary department", async () => {
         const companyId = TEST_COMPANY_ID.toString();
 
         const role = await RoleModel.create({
@@ -88,6 +89,8 @@ describe("Schema integrity audit", () => {
             role: role._id,
             company: TEST_COMPANY_ID,
             employmentTitle: employmentTitleA._id,
+            primaryDepartment: departmentA._id,
+            primarySubDepartment: subDepartmentA._id,
             isActive: true,
         } as unknown as Record<string, unknown>);
 
@@ -98,6 +101,20 @@ describe("Schema integrity audit", () => {
             role: role._id,
             company: TEST_COMPANY_ID,
             employmentTitle: employmentTitleB._id,
+            primaryDepartment: departmentB._id,
+            primarySubDepartment: subDepartmentB._id,
+            isActive: true,
+        } as unknown as Record<string, unknown>);
+
+        await UserModel.create({
+            name: "Dual Department User",
+            email: "dual-dept-user@test.com",
+            password: "Password@123",
+            role: role._id,
+            company: TEST_COMPANY_ID,
+            primaryDepartment: departmentB._id,
+            primarySubDepartment: subDepartmentB._id,
+            secondaryDepartments: [departmentA._id],
             isActive: true,
         } as unknown as Record<string, unknown>);
 
@@ -110,14 +127,14 @@ describe("Schema integrity audit", () => {
             companyId,
         );
 
-        expect(result.users).toHaveLength(1);
-        expect(result.users[0].email).toBe("dept-a-user@test.com");
+        expect(result.users.map(u => u.email).sort()).toEqual(["dept-a-user@test.com", "dual-dept-user@test.com"]);
     });
 
     it("buildUserSearchAccessQuery should generate a department scope filter", () => {
         const actorId = new mongoose.Types.ObjectId();
         const actorCountryId = new mongoose.Types.ObjectId();
         const actorDepartmentId = new mongoose.Types.ObjectId();
+        const actorSecondaryDepartmentId = new mongoose.Types.ObjectId();
 
         const actor = {
             _id: actorId,
@@ -129,21 +146,17 @@ describe("Schema integrity audit", () => {
             },
             company: { _id: TEST_COMPANY_ID, name: "Test Company", slug: "test-company", isActive: true },
             country: actorCountryId,
-            employmentTitle: {
-                _id: new mongoose.Types.ObjectId(),
-                subDepartment: {
-                    _id: new mongoose.Types.ObjectId(),
-                    department: {
-                        _id: actorDepartmentId,
-                    },
-                },
-            },
+            primaryDepartment: { _id: actorDepartmentId },
+            secondaryDepartments: [{ _id: actorSecondaryDepartmentId }],
             grantedPermissions: [],
             revokedPermissions: [],
         };
 
         const filter = buildUserSearchAccessQuery(actor as never);
 
-        expect(filter).toEqual({ department: actorDepartmentId });
+        const ids = [String(actorDepartmentId), String(actorSecondaryDepartmentId)];
+        expect(JSON.parse(JSON.stringify(filter))).toEqual({
+            $or: [{ primaryDepartment: { $in: ids } }, { secondaryDepartments: { $in: ids } }],
+        });
     });
 });

@@ -311,6 +311,14 @@ export class BulkEditDialogComponent {
                 continue;
             }
 
+            // A title must belong to the user's primary sub-department, so moving to a new title moves that too.
+            if (data["employmentTitleId"]) {
+                data["primaryDepartmentId"] = this.titleDepartment() ?? "";
+                data["primarySubDepartmentId"] = this.titleSubDepartment() ?? "";
+                previous["primaryDepartmentId"] = refId(user.primaryDepartment);
+                previous["primarySubDepartmentId"] = refId(user.primarySubDepartment);
+            }
+
             const newCountry = data["countryId"];
             if (newCountry && !("officeId" in data)) {
                 const officeCountry = refId(user.office?.country);

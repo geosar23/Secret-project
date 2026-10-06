@@ -256,6 +256,27 @@
                                     </mat-form-field>
 
                                     <mat-form-field appearance="outline">
+                                        <mat-label>Additional Departments</mat-label>
+                                        <mat-select formControlName="secondaryDepartmentIds" multiple>
+                                            @for (d of secondaryDepartmentOptions(); track d._id) {
+                                                <mat-option [value]="d._id">{{ d.name }}</mat-option>
+                                            }
+                                        </mat-select>
+                                        <mat-hint>Optional. The department above is the primary one.</mat-hint>
+                                    </mat-form-field>
+                                    <mat-form-field appearance="outline">
+                                        <mat-label>Additional Sub-Departments</mat-label>
+                                        <mat-select formControlName="secondarySubDepartmentIds" multiple>
+                                            @if (secondarySubDepartmentOptions().length === 0) {
+                                                <mat-option disabled>Select a department first</mat-option>
+                                            }
+                                            @for (s of secondarySubDepartmentOptions(); track s._id) {
+                                                <mat-option [value]="s._id">{{ s.name }}</mat-option>
+                                            }
+                                        </mat-select>
+                                    </mat-form-field>
+
+                                    <mat-form-field appearance="outline">
                                         <mat-label>Employment Type</mat-label>
                                         <mat-select formControlName="employmentType">
                                             <mat-option value="">—</mat-option>

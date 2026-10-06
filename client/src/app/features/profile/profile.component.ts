@@ -186,11 +186,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     get departmentName(): string {
-        return this.profile?.employmentTitle?.subDepartment?.department?.name ?? "";
+        return this.profile?.primaryDepartment?.name ?? "";
     }
 
     get jobSubtitle(): string {
-        const subDepartment = this.profile?.employmentTitle?.subDepartment?.name;
+        const subDepartment = this.profile?.primarySubDepartment?.name;
         const placement = [this.departmentName, subDepartment].filter(Boolean).join(" › ");
         return [this.profile?.employmentTitle?.name, placement, this.profile?.office?.name].filter(Boolean).join(" · ");
     }

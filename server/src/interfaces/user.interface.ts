@@ -47,6 +47,10 @@ export interface IUser {
     role: Types.ObjectId;
     company?: Types.ObjectId;
     country?: Types.ObjectId;
+    primaryDepartment?: Types.ObjectId;
+    primarySubDepartment?: Types.ObjectId;
+    secondaryDepartments?: Types.ObjectId[];
+    secondarySubDepartments?: Types.ObjectId[];
     employmentTitle?: Types.ObjectId;
     manager?: Types.ObjectId;
     level?: Types.ObjectId;
@@ -113,11 +117,11 @@ export interface IActorAccessOnSubject {
 
 /**
  * Resolved scope attributes from a create-user request.
- * departmentId must be resolved from the requested employmentTitleId before use.
+ * departmentIds are the requested primary and secondary departments.
  */
 export interface IUserCreateScopePayload {
     countryId?: string;
-    departmentId?: string;
+    departmentIds?: string[];
     managerId?: string;
 }
 
@@ -135,11 +139,32 @@ export interface IUsersQueryParams {
     sortOrder?: "asc" | "desc";
 }
 
+/** A populated department / sub-department reference. */
+export interface IOrgRef {
+    _id: Types.ObjectId;
+    name?: string;
+}
+
 export interface IUserPopulated
     extends Omit<
         IUser,
-        "role" | "company" | "country" | "manager" | "level" | "office" | "hrRepresentative" | "employmentTitle"
+        | "role"
+        | "company"
+        | "country"
+        | "manager"
+        | "level"
+        | "office"
+        | "hrRepresentative"
+        | "employmentTitle"
+        | "primaryDepartment"
+        | "primarySubDepartment"
+        | "secondaryDepartments"
+        | "secondarySubDepartments"
     > {
+    primaryDepartment?: IOrgRef;
+    primarySubDepartment?: IOrgRef;
+    secondaryDepartments?: IOrgRef[];
+    secondarySubDepartments?: IOrgRef[];
     role: IRole;
     company: ICompany;
     country?: ICountry;

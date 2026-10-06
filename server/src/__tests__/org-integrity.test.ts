@@ -216,3 +216,108 @@ describe("User reference rules", () => {
         expect(res.body.success).toBe(true);
     });
 });
+
+describe("User department assignments", () => {
+    const create = (extra: Record<string, unknown>, email: string) =>
+        request(app)
+            .post("/api/users")
+            .set(bearer())
+            .send({ name: "New", email, password: "Test@1234", role: ids.role, ...extra });
+
+    let org: { deptA: string; deptB: string; subA: string; subB: string; titleA: string };
+
+    beforeAll(async () => {
+        const deptA = await DepartmentModel.create({ name: "Assign A", company: COMPANY_A_ID });
+        const deptB = await DepartmentModel.create({ name: "Assign B", company: COMPANY_A_ID });
+        const subA = await SubDepartmentModel.create({ name: "Sub A", department: deptA._id, company: COMPANY_A_ID });
+        const subB = await SubDepartmentModel.create({ name: "Sub B", department: deptB._id, company: COMPANY_A_ID });
+        const titleA = await EmploymentTitleModel.create({
+            name: "Title A",
+            subDepartment: subA._id,
+            company: COMPANY_A_ID,
+        });
+        org = { deptA: id(deptA), deptB: id(deptB), subA: id(subA), subB: id(subB), titleA: id(titleA) };
+    });
+
+    const primary = () => ({ primaryDepartmentId: org.deptA, primarySubDepartmentId: org.subA });
+
+    it("accepts a consistent primary department, sub-department and title", async () => {
+        const res = await create({ ...primary(), employmentTitleId: org.titleA }, "assign-1@test.com");
+        expect(res.body.success).toBe(true);
+    });
+
+    it("accepts secondary departments and sub-departments", async () => {
+        const res = await create(
+            { ...primary(), secondaryDepartmentIds: [org.deptB], secondarySubDepartmentIds: [org.subB] },
+            "assign-2@test.com",
+        );
+        expect(res.body.success).toBe(true);
+    });
+
+    it("rejects a sub-department outside the primary department", async () => {
+        const res = await create(
+            { primaryDepartmentId: org.deptA, primarySubDepartmentId: org.subB },
+            "assign-3@test.com",
+        );
+        expect(res.body.success).toBe(false);
+        expect(res.body.message).toBe("The primary sub-department does not belong to the primary department");
+    });
+
+    it("rejects a title outside the primary sub-department", async () => {
+        const res = await create(
+            { primaryDepartmentId: org.deptB, primarySubDepartmentId: org.subB, employmentTitleId: org.titleA },
+            "assign-4@test.com",
+        );
+        expect(res.body.success).toBe(false);
+        expect(res.body.message).toBe("The employment title does not belong to the primary sub-department");
+    });
+
+    it("requires a primary sub-department when a title is set", async () => {
+        const res = await create({ employmentTitleId: org.titleA }, "assign-5@test.com");
+        expect(res.body.success).toBe(false);
+    });
+
+    it("rejects the primary department listed as a secondary one", async () => {
+        const res = await create({ ...primary(), secondaryDepartmentIds: [org.deptA] }, "assign-6@test.com");
+        expect(res.body.success).toBe(false);
+        expect(res.body.message).toBe("A secondary department cannot be the primary one");
+    });
+
+    it("rejects a secondary sub-department outside the user's departments", async () => {
+        const res = await create({ ...primary(), secondarySubDepartmentIds: [org.subB] }, "assign-7@test.com");
+        expect(res.body.success).toBe(false);
+        expect(res.body.message).toBe("Each secondary sub-department must belong to one of the user's departments");
+    });
+
+    it("rejects another company's department", async () => {
+        const res = await create({ primaryDepartmentId: ids.deptB }, "assign-8@test.com");
+        expect(res.body.success).toBe(false);
+        expect(res.body.message).toBe("Invalid primaryDepartment");
+    });
+
+    it("blocks deactivating a department or sub-department that users belong to", async () => {
+        const dept = await request(app).put(`/api/departments/${org.deptB}`).set(bearer()).send({ isActive: false });
+        expect(dept.body.success).toBe(false);
+        expect(dept.body.message).toMatch(/Cannot deactivate.*user/);
+
+        const sub = await request(app).put(`/api/sub-departments/${org.subA}`).set(bearer()).send({ isActive: false });
+        expect(sub.body.success).toBe(false);
+        expect(sub.body.message).toMatch(/Cannot deactivate.*user/);
+    });
+
+    it("blocks moving a sub-department or title that users are assigned to", async () => {
+        const sub = await request(app)
+            .put(`/api/sub-departments/${org.subA}`)
+            .set(bearer())
+            .send({ departmentId: org.deptB });
+        expect(sub.body.success).toBe(false);
+        expect(sub.body.message).toMatch(/Cannot move/);
+
+        const title = await request(app)
+            .put(`/api/employment-titles/${org.titleA}`)
+            .set(bearer())
+            .send({ subDepartmentId: org.subB });
+        expect(title.body.success).toBe(false);
+        expect(title.body.message).toMatch(/Cannot move/);
+    });
+});

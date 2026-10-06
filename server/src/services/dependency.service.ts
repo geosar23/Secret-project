@@ -39,8 +39,15 @@ export async function findActiveDependents(
         }
     };
 
+    const activeUsersInAny = (fields: (keyof IUser)[]) =>
+        userRepository(companyId).count({
+            $or: fields.map(field => ({ [field]: id })),
+            isActive: true,
+        } as FilterQuery<IUser>);
+
     switch (entity) {
         case "department":
+            add(await activeUsersInAny(["primaryDepartment", "secondaryDepartments"]), "user");
             add(
                 await subDepartmentRepository(companyId).count({
                     department: id,
@@ -50,6 +57,7 @@ export async function findActiveDependents(
             );
             break;
         case "subDepartment":
+            add(await activeUsersInAny(["primarySubDepartment", "secondarySubDepartments"]), "user");
             add(
                 await employmentTitleRepository(companyId).count({
                     subDepartment: id,
@@ -82,4 +90,26 @@ export async function findActiveDependents(
     return found.length > 0
         ? `Cannot deactivate: ${found.join(" and ")} still depend on it. Reassign them first.`
         : null;
+}
+
+/**
+ * Users store their department and sub-department directly, so moving a sub-department to another
+ * department or a title to another sub-department would leave those users inconsistent.
+ * Returns a message when any user (active or not) still references the entity, or null.
+ */
+export async function findReparentBlocker(
+    entity: "subDepartment" | "employmentTitle",
+    id: string,
+    companyId: string,
+): Promise<string | null> {
+    const filter =
+        entity === "subDepartment"
+            ? { $or: [{ primarySubDepartment: id }, { secondarySubDepartments: id }] }
+            : { employmentTitle: id };
+    const count = await userRepository(companyId).count(filter as FilterQuery<IUser>);
+    if (count === 0) {
+        return null;
+    }
+    const parent = entity === "subDepartment" ? "department" : "sub-department";
+    return `Cannot move to another ${parent}: ${count} ${count === 1 ? "user is" : "users are"} assigned. Reassign them first.`;
 }

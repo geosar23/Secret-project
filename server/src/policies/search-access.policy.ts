@@ -1,6 +1,6 @@
 import { FilterQuery } from "mongoose";
 import { IUserPopulated } from "../interfaces/user.interface";
-import { getEffectivePermissions, matchesWildcard } from "../utils/permission-checker";
+import { getEffectivePermissions, getUserDepartmentIds, matchesWildcard } from "../utils/permission-checker";
 
 interface SearchAccessPermissions {
     all: string;
@@ -13,7 +13,8 @@ interface SearchAccessPermissions {
 }
 
 interface SearchAccessFields {
-    department: string;
+    /** Document fields holding a department id; a document matches when any of them contains one of the actor's. */
+    department: string[];
     country: string;
     manager: string;
     id: string;
@@ -47,12 +48,15 @@ export function buildSearchAccessQuery<TDocument>(
     }
 
     const scopeFilters: FilterQuery<TDocument>[] = [];
+    const actorDepartmentIds = getUserDepartmentIds(actorUser);
+    const departmentFilter = (): FilterQuery<TDocument> =>
+        ({
+            $or: options.fields.department.map(field => ({ [field]: { $in: actorDepartmentIds } })),
+        }) as unknown as FilterQuery<TDocument>;
 
     if (options.permissions.readDepartment && matchesWildcard(effective, options.permissions.readDepartment)) {
-        if (actorUser.employmentTitle?.subDepartment?.department?._id && options.fields.department) {
-            scopeFilters.push({
-                [options.fields.department]: actorUser.employmentTitle.subDepartment?.department._id,
-            } as unknown as FilterQuery<TDocument>);
+        if (actorDepartmentIds.length > 0 && options.fields.department.length > 0) {
+            scopeFilters.push(departmentFilter());
         }
     }
 
@@ -69,16 +73,13 @@ export function buildSearchAccessQuery<TDocument>(
     ) {
         const actorCountryId = actorUser.country;
         if (
-            actorUser.employmentTitle?.subDepartment?.department?._id &&
-            options.fields.department &&
+            actorDepartmentIds.length > 0 &&
+            options.fields.department.length > 0 &&
             actorCountryId &&
             options.fields.country
         ) {
             scopeFilters.push({
-                $and: [
-                    { [options.fields.department]: actorUser.employmentTitle.subDepartment?.department._id },
-                    { [options.fields.country]: actorCountryId },
-                ],
+                $and: [departmentFilter(), { [options.fields.country]: actorCountryId }],
             } as unknown as FilterQuery<TDocument>);
         }
     }

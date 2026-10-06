@@ -57,7 +57,13 @@ beforeAll(async () => {
 
     await UserModel.updateOne(
         { _id: employee._id },
-        { manager: manager._id, employmentTitle: title._id, salary: "encrypted-secret" },
+        {
+            manager: manager._id,
+            employmentTitle: title._id,
+            primaryDepartment: departmentId,
+            primarySubDepartment: subDepartmentId,
+            salary: "encrypted-secret",
+        },
     );
 });
 

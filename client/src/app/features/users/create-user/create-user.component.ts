@@ -31,7 +31,16 @@ import { IEmploymentTitle } from "../../../core/interfaces/employment-title.inte
 import { IRole } from "../../../core/interfaces/role.interface";
 import { IDepartment } from "../../../core/interfaces/department.interface";
 import { ISubDepartment } from "../../../core/interfaces/sub-department.interface";
-import { officesIn, peopleIn, selectable, subDepartmentsOf, titlesOf } from "../../../core/utils/user-form-options";
+import {
+    keepSecondarySubDepartments,
+    officesIn,
+    peopleIn,
+    secondaryDepartmentsOf,
+    secondarySubDepartmentsOf,
+    selectable,
+    subDepartmentsOf,
+    titlesOf,
+} from "../../../core/utils/user-form-options";
 import {
     IUser,
     ILevel,
@@ -121,6 +130,7 @@ export class CreateUserPageComponent implements OnInit {
 
     private selectedDepartmentId = signal("");
     private selectedSubDepartmentId = signal("");
+    private selectedSecondaryDepartmentIds = signal<string[]>([]);
     private selectedCountryId = signal("");
 
     readonly roleOptions = computed(() => selectable(this.roles()));
@@ -130,6 +140,16 @@ export class CreateUserPageComponent implements OnInit {
         subDepartmentsOf(this.subDepartments(), this.selectedDepartmentId()),
     );
     readonly titleOptions = computed(() => titlesOf(this.employmentTitles(), this.selectedSubDepartmentId()));
+    readonly secondaryDepartmentOptions = computed(() =>
+        secondaryDepartmentsOf(this.departments(), this.selectedDepartmentId()),
+    );
+    readonly secondarySubDepartmentOptions = computed(() =>
+        secondarySubDepartmentsOf(
+            this.subDepartments(),
+            [this.selectedDepartmentId(), ...this.selectedSecondaryDepartmentIds()],
+            this.selectedSubDepartmentId(),
+        ),
+    );
     readonly levelOptions = computed(() => selectable(this.levels()));
     readonly officeOptions = computed(() => officesIn(this.offices(), this.selectedCountryId()));
     readonly managerOptions = computed(() => selectable(this.users()));
@@ -154,6 +174,8 @@ export class CreateUserPageComponent implements OnInit {
         managerId: [""],
         departmentId: [""],
         subDepartmentId: [""],
+        secondaryDepartmentIds: [[] as string[]],
+        secondarySubDepartmentIds: [[] as string[]],
         levelId: [""],
         officeId: [""],
         hrRepresentativeId: [""],
@@ -273,17 +295,41 @@ export class CreateUserPageComponent implements OnInit {
     }
 
     /** Department narrows sub-departments, which narrow titles; country narrows offices and HR representatives. */
+    private pruneSecondarySubDepartments(): void {
+        const current = this.userForm.value.secondarySubDepartmentIds as string[];
+        const kept = keepSecondarySubDepartments(
+            this.subDepartments(),
+            current,
+            [this.selectedDepartmentId(), ...this.selectedSecondaryDepartmentIds()],
+            this.selectedSubDepartmentId(),
+        );
+        if (kept.length !== current.length) {
+            this.userForm.patchValue({ secondarySubDepartmentIds: kept });
+        }
+    }
+
     private watchDependentSelections(): void {
         const changes = (name: string) =>
             this.userForm.get(name)!.valueChanges.pipe(takeUntilDestroyed(this.destroyRef));
 
         changes("departmentId").subscribe(value => {
             this.selectedDepartmentId.set(value ?? "");
-            this.userForm.patchValue({ subDepartmentId: "" });
+            this.userForm.patchValue({
+                subDepartmentId: "",
+                secondaryDepartmentIds: (this.userForm.value.secondaryDepartmentIds as string[]).filter(
+                    id => id !== value,
+                ),
+            });
+            this.pruneSecondarySubDepartments();
         });
         changes("subDepartmentId").subscribe(value => {
             this.selectedSubDepartmentId.set(value ?? "");
             this.userForm.patchValue({ employmentTitleId: "" });
+            this.pruneSecondarySubDepartments();
+        });
+        changes("secondaryDepartmentIds").subscribe(value => {
+            this.selectedSecondaryDepartmentIds.set(value ?? []);
+            this.pruneSecondarySubDepartments();
         });
         changes("countryId").subscribe(value => {
             this.selectedCountryId.set(value ?? "");
@@ -505,6 +551,9 @@ export class CreateUserPageComponent implements OnInit {
             employmentTitleId: string;
             managerId: string;
             departmentId: string;
+            subDepartmentId: string;
+            secondaryDepartmentIds: string[];
+            secondarySubDepartmentIds: string[];
             levelId: string;
             officeId: string;
             hrRepresentativeId: string;
@@ -540,7 +589,11 @@ export class CreateUserPageComponent implements OnInit {
             countryId: this.toObjectIdOrUndefined(fv.countryId),
             employmentTitleId: this.toObjectIdOrUndefined(fv.employmentTitleId),
             managerId: this.toObjectIdOrUndefined(fv.managerId),
-            departmentId: this.toObjectIdOrUndefined(fv.departmentId),
+            primaryDepartmentId: this.toObjectIdOrUndefined(fv.departmentId),
+            primarySubDepartmentId: this.toObjectIdOrUndefined(fv.subDepartmentId),
+            secondaryDepartmentIds: fv.secondaryDepartmentIds.length > 0 ? fv.secondaryDepartmentIds : undefined,
+            secondarySubDepartmentIds:
+                fv.secondarySubDepartmentIds.length > 0 ? fv.secondarySubDepartmentIds : undefined,
             levelId: this.toObjectIdOrUndefined(fv.levelId),
             officeId: this.toObjectIdOrUndefined(fv.officeId),
             hrRepresentativeId: this.toObjectIdOrUndefined(fv.hrRepresentativeId),

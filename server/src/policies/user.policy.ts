@@ -7,7 +7,12 @@ import {
     UserCreateAccessResult,
     IActorAccessOnSubject,
 } from "../interfaces/user.interface";
-import { buildActorContext, getEffectivePermissions, matchesWildcard } from "../utils/permission-checker";
+import {
+    buildActorContext,
+    getEffectivePermissions,
+    getUserDepartmentIds,
+    matchesWildcard,
+} from "../utils/permission-checker";
 import { FilterQuery } from "mongoose";
 import { buildSearchAccessQuery } from "./search-access.policy";
 
@@ -27,7 +32,7 @@ export function buildUserSearchAccessQuery(actorUser: IUserPopulated): FilterQue
             readSelf: PermissionKeys.USERS_MANAGEMENT_READ_SELF,
         },
         fields: {
-            department: "department",
+            department: ["primaryDepartment", "secondaryDepartments"],
             country: "country",
             manager: "manager",
             id: "_id",
@@ -37,6 +42,12 @@ export function buildUserSearchAccessQuery(actorUser: IUserPopulated): FilterQue
 
 // Backwards-compatible alias; remove after call sites migrate.
 export const buildUserVisibilityFilter = buildUserSearchAccessQuery;
+
+/** True when the actor and target share at least one department (primary or secondary). */
+function sharesDepartment(actor: AccessContext["actor"], target: IUserPopulated): boolean {
+    const targetIds = new Set(getUserDepartmentIds(target));
+    return (actor.departmentIds ?? []).some(id => targetIds.has(id));
+}
 
 /**
  * Check whether the actor's scope restriction is satisfied for a specific target user.
@@ -54,10 +65,7 @@ export function canAccessUserByScope(
             return true;
 
         case PermissionScopes.DEPARTMENT:
-            return (
-                !!actor.departmentId &&
-                actor.departmentId === target.employmentTitle?.subDepartment?.department?._id.toString()
-            );
+            return sharesDepartment(actor, target);
 
         case PermissionScopes.COUNTRY:
             // Requires countryId on both actor and target (populated from company doc).
@@ -65,10 +73,7 @@ export function canAccessUserByScope(
 
         case PermissionScopes.DEPARTMENT_COUNTRY:
             return (
-                !!actor.departmentId &&
-                actor.departmentId === target.employmentTitle?.subDepartment?.department?._id.toString() &&
-                !!actor.countryId &&
-                actor.countryId === target.country?.toString()
+                sharesDepartment(actor, target) && !!actor.countryId && actor.countryId === target.country?.toString()
             );
 
         case PermissionScopes.MANAGED:
@@ -81,6 +86,13 @@ export function canAccessUserByScope(
         default:
             return false;
     }
+}
+
+/** Create scope: at least one department requested, and every one of them is among the actor's departments. */
+function departmentsWithinScope(actor: AccessContext["actor"], payload: IUserCreateScopePayload): boolean {
+    const requested = payload.departmentIds ?? [];
+    const actorIds = new Set(actor.departmentIds ?? []);
+    return requested.length > 0 && requested.every(id => actorIds.has(id));
 }
 
 /**
@@ -151,7 +163,7 @@ export function canWriteCompensationOnCreate(actorUser: IUserPopulated): boolean
  * Because no persisted subject exists yet, we compare the actor's context
  * against the raw IDs supplied in the create request:
  *   - countryId   — the country to assign to the new user
- *   - departmentId — resolved from the requested employmentTitleId before calling this
+ *   - departmentIds — the requested primary and secondary departments; all must be ones the actor belongs to
  *   - managerId   — the manager to assign to the new user
  *
  * SELF scope is excluded: creating a user "as yourself" is not meaningful.
@@ -183,11 +195,11 @@ export function canCreateUser(actorUser: IUserPopulated, payload: IUserCreateSco
             case PermissionScopes.ALL:
                 return { allowed: true };
             case PermissionScopes.DEPARTMENT:
-                if (actorCtx.departmentId && payload.departmentId && actorCtx.departmentId === payload.departmentId) {
+                if (departmentsWithinScope(actorCtx, payload)) {
                     return { allowed: true };
                 }
                 failedScopes.push(
-                    payload.departmentId
+                    payload.departmentIds?.length
                         ? "the selected department is outside your permitted scope"
                         : "your department scope requires a department to be assigned",
                 );
@@ -204,9 +216,7 @@ export function canCreateUser(actorUser: IUserPopulated, payload: IUserCreateSco
                 break;
             case PermissionScopes.DEPARTMENT_COUNTRY:
                 if (
-                    actorCtx.departmentId &&
-                    payload.departmentId &&
-                    actorCtx.departmentId === payload.departmentId &&
+                    departmentsWithinScope(actorCtx, payload) &&
                     actorCtx.countryId &&
                     payload.countryId &&
                     actorCtx.countryId === payload.countryId
