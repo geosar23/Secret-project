@@ -11,8 +11,8 @@ Status legend: `[ ]` Not started · `[~]` In progress · `[x]` Done
 ### Employee Profile — UI & Validation
 
 - `[~]` Admin user form and employee profile page reorganised into labelled sections: Identity, Contact, Employment, Education
-- `[ ]` Field-level validation (format / range / required rules)
-- `[ ]` Sensitive fields (especially salary) behind role-based visibility/edit permissions
+- `[x]` Field-level validation (format / range / required rules)
+- `[x]` Sensitive fields (especially salary) behind role-based visibility/edit permissions
 
 ### Leaves Module (Single-Step Manager Approval)
 

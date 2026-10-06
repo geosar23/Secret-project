@@ -114,9 +114,9 @@ Status legend:
         - New reference collections: `Levels` and `Offices` (company-scoped, full CRUD at `/api/levels` and `/api/offices`)
     - [x] **Phase 2 — Documents.** `UserDocuments` collection (passport / national ID / visa / work permit etc): `type` (enum), `documentNumber`, `expiryDate`, `issuingCountry`, `notes`, `attachment` (Supabase Storage, PDF or image ≤10 MB). Full CRUD at `/api/user-documents`. Signed-URL and delete-attachment endpoints included.
     - [x] **UI grouping.** Admin user form and employee profile page reorganized into labelled sections: Identity, Contact, Employment, Education.
-    - [ ] Field-level validation is implemented (format/range/required rules where applicable).
-    - [ ] Existing users can be migrated/updated safely without breaking old records.
-    - [ ] Sensitive fields (especially salary) follow role-based visibility/edit permissions.
+    - [x] Field-level validation is implemented (`server/src/utils/user-profile-validator.util.ts`, enforced on user create/update).
+    - [x] Existing users can be migrated/updated safely without breaking old records (unchanged legacy values are not re-validated; `dataHealthChecks` reports legacy profile data).
+    - [x] Sensitive fields (especially salary) follow role-based visibility/edit permissions.
 
 ### P0-07A Foundation Structural Base Audit + Fix Prompt Pipeline
 
