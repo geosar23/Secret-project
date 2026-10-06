@@ -1,8 +1,4 @@
 <div class="profile-container">
-    <div class="profile-header">
-        <h1>{{ pageTitle }}</h1>
-    </div>
-
     @if (loading() && !profile) {
         <div class="loading-container">
             <mat-spinner></mat-spinner>
@@ -10,101 +6,240 @@
     }
 
     @if (profile) {
-        <div class="profile-layout">
-            <mat-card class="identity-card">
-                <div class="identity-top">
-                    <div class="profile-image-wrapper">
-                        @if (profileImageUrl) {
-                            <img [src]="profileImageUrl" alt="Profile image" class="profile-image" />
-                        } @else {
-                            <div class="profile-image-placeholder">
-                                {{ profile.name.charAt(0).toUpperCase() }}
-                            </div>
-                        }
+        <!-- ── HERO ── -->
+        <section class="hero-card">
+            <div class="hero-cover"></div>
+            <div class="hero-body">
+                <div class="avatar-wrapper">
+                    @if (profileImageUrl) {
+                        <img [src]="profileImageUrl" alt="Profile image" class="avatar" />
+                    } @else {
+                        <div class="avatar avatar-placeholder">{{ profile.name.charAt(0).toUpperCase() }}</div>
+                    }
 
-                        @if (imageLoading()) {
-                            <div class="profile-image-overlay">
-                                <mat-spinner diameter="30"></mat-spinner>
-                            </div>
-                        }
-                    </div>
-
-                    <div class="identity-main">
-                        <h2>{{ profile.name }}</h2>
-                        <p>{{ profile.email }}</p>
-                        <div class="identity-chips">
-                            <mat-chip
-                                [style.background]="profile.isActive ? '#1f8f57' : '#b63b43'"
-                                style="color: white"
-                            >
-                                {{ profile.isActive ? "Active" : "Inactive" }}
-                            </mat-chip>
-                            @if (profile.role) {
-                                <mat-chip [style.background]="getRoleColor(profile.role.role)">
-                                    {{ profile.role.name }}
-                                </mat-chip>
-                            }
+                    @if (imageLoading()) {
+                        <div class="avatar-overlay">
+                            <mat-spinner diameter="30"></mat-spinner>
                         </div>
+                    }
+                </div>
+
+                <div class="hero-who">
+                    <h1>{{ profile.name }}</h1>
+                    @if (jobSubtitle) {
+                        <p class="hero-sub">{{ jobSubtitle }}</p>
+                    }
+                    <div class="hero-chips">
+                        <span class="chip" [class.chip-ok]="profile.isActive" [class.chip-off]="!profile.isActive">
+                            <span class="chip-dot"></span>
+                            {{ profile.isActive ? "Active" : "Inactive" }}
+                        </span>
+                        @if (profile.role) {
+                            <span class="chip chip-role" [style.color]="getRoleColor(profile.role.role)">
+                                <mat-icon>verified_user</mat-icon>
+                                {{ profile.role.name }}
+                            </span>
+                        }
+                        <span class="chip chip-soft">{{ profile.email }}</span>
                     </div>
                 </div>
 
-                <mat-divider></mat-divider>
-
-                <div class="action-buttons">
-                    @if (canEditUser) {
-                        <button mat-raised-button color="primary" (click)="navigateToEdit()" [disabled]="loading()">
+                @if (canEditUser) {
+                    <div class="hero-actions">
+                        <button mat-flat-button color="primary" (click)="navigateToEdit()" [disabled]="loading()">
                             <mat-icon>edit</mat-icon>
                             Edit Profile
                         </button>
-                    }
-                    @if (isOwnProfile) {
-                        <button mat-stroked-button (click)="openChangePasswordDialog()" [disabled]="loading()">
-                            <mat-icon>lock_reset</mat-icon>
-                            Change Password
-                        </button>
-                    }
-                    @if (!isOwnProfile && canResetPassword) {
-                        <button
-                            mat-stroked-button
-                            color="warn"
-                            (click)="openResetPasswordDialog()"
-                            [disabled]="loading()"
-                        >
-                            <mat-icon>lock_reset</mat-icon>
-                            Reset Password
-                        </button>
-                    }
-                </div>
-            </mat-card>
+                    </div>
+                }
+            </div>
 
-            <mat-card class="details-card">
-                <div class="profile-info">
-                    <!-- ── IDENTITY ── -->
-                    <h3 class="section-title">
-                        <mat-icon>badge</mat-icon>
-                        Identity
-                    </h3>
-                    <div class="info-grid">
+            <div class="facts">
+                <div class="fact">
+                    <div class="fact-icon"><mat-icon>corporate_fare</mat-icon></div>
+                    <div class="fact-text">
+                        <span class="fact-label">Department</span>
+                        <span class="fact-value">{{ departmentName || "—" }}</span>
+                    </div>
+                </div>
+                <div class="fact">
+                    <div class="fact-icon"><mat-icon>supervisor_account</mat-icon></div>
+                    <div class="fact-text">
+                        <span class="fact-label">Reports to</span>
+                        <span class="fact-value">{{ profile.manager?.name || "—" }}</span>
+                    </div>
+                </div>
+                <div class="fact">
+                    <div class="fact-icon"><mat-icon>event</mat-icon></div>
+                    <div class="fact-text">
+                        <span class="fact-label">With us since</span>
+                        <span class="fact-value">
+                            @if (profile.employmentDate) {
+                                {{ profile.employmentDate | date: "MMM yyyy" }}
+                            } @else {
+                                —
+                            }
+                        </span>
+                    </div>
+                </div>
+                <div class="fact">
+                    <div class="fact-icon"><mat-icon>location_on</mat-icon></div>
+                    <div class="fact-text">
+                        <span class="fact-label">Office</span>
+                        <span class="fact-value">{{ profile.office?.name || "—" }}</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── TABS ── -->
+        <div class="tabs" role="tablist" aria-label="Profile sections">
+            @for (tab of tabs; track tab.id) {
+                <button
+                    type="button"
+                    class="tab"
+                    role="tab"
+                    [class.active]="activeTab() === tab.id"
+                    [attr.aria-selected]="activeTab() === tab.id"
+                    (click)="selectTab(tab.id)"
+                >
+                    <mat-icon>{{ tab.icon }}</mat-icon>
+                    <span>{{ tab.label }}</span>
+                </button>
+            }
+        </div>
+
+        <!-- ── OVERVIEW ── -->
+        @if (activeTab() === "overview") {
+            <div class="tab-panel overview-grid">
+                <div class="stack">
+                    <section class="card">
+                        <h3 class="card-title"><mat-icon>badge</mat-icon>Identity</h3>
+                        <div class="fields">
+                            @if (profile.firstName || profile.lastName) {
+                                <div class="field">
+                                    <span class="label">Display Name</span>
+                                    <span class="value">{{ profile.firstName }} {{ profile.lastName }}</span>
+                                </div>
+                            }
+                            @if (profile.legalName) {
+                                <div class="field">
+                                    <span class="label">Legal Name</span>
+                                    <span class="value">{{ profile.legalName }}</span>
+                                </div>
+                            }
+                            @if (profile.birthday) {
+                                <div class="field">
+                                    <span class="label">Birthday</span>
+                                    <span class="value">{{ profile.birthday | date: "mediumDate" }}</span>
+                                </div>
+                            }
+                            @if (profile.nationalities && profile.nationalities.length > 0) {
+                                <div class="field">
+                                    <span class="label">Nationalities</span>
+                                    <div class="tag-list">
+                                        @for (n of profile.nationalities; track $index) {
+                                            <span class="tag">{{ n }}</span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        @if (!hasIdentityInfo) {
+                            <p class="empty-state">No identity information available.</p>
+                        }
+                    </section>
+
+                    <section class="card">
+                        <h3 class="card-title"><mat-icon>contacts</mat-icon>Contact</h3>
+                        <div class="fields">
+                            @if (profile.workPhone) {
+                                <div class="field">
+                                    <span class="label">Work Phone</span>
+                                    <span class="value">{{ profile.workPhone }}</span>
+                                </div>
+                            }
+                            @if (profile.personalEmail) {
+                                <div class="field">
+                                    <span class="label">Personal Email</span>
+                                    <span class="value">{{ profile.personalEmail }}</span>
+                                </div>
+                            }
+                        </div>
+                        @if (!profile.workPhone && !profile.personalEmail) {
+                            <p class="empty-state">No contact information available.</p>
+                        }
+                    </section>
+                </div>
+
+                <div class="stack">
+                    <section class="card">
+                        <h3 class="card-title"><mat-icon>account_tree</mat-icon>Reporting line</h3>
+                        @if (profile.manager || profile.hrRepresentative) {
+                            @if (profile.manager) {
+                                <div class="person">
+                                    <div class="person-av">{{ profile.manager.name.charAt(0).toUpperCase() }}</div>
+                                    <div class="person-text">
+                                        <b>{{ profile.manager.name }}</b>
+                                        <span>Manager</span>
+                                    </div>
+                                </div>
+                            }
+                            @if (profile.hrRepresentative) {
+                                <div class="person">
+                                    <div class="person-av">
+                                        {{ profile.hrRepresentative.name.charAt(0).toUpperCase() }}
+                                    </div>
+                                    <div class="person-text">
+                                        <b>{{ profile.hrRepresentative.name }}</b>
+                                        <span>HR Representative</span>
+                                    </div>
+                                </div>
+                            }
+                        } @else {
+                            <p class="empty-state">No manager assigned.</p>
+                        }
+                    </section>
+
+                    <section class="card">
+                        <h3 class="card-title"><mat-icon>schedule</mat-icon>Timeline</h3>
+                        <div class="fields single">
+                            <div class="field">
+                                <span class="label">Member Since</span>
+                                <span class="value">{{ profile.createdAt | date: "medium" }}</span>
+                            </div>
+                            @if (profile.updatedAt) {
+                                <div class="field">
+                                    <span class="label">Last Updated</span>
+                                    <span class="value">{{ profile.updatedAt | date: "medium" }}</span>
+                                </div>
+                            }
+                        </div>
+                    </section>
+                </div>
+            </div>
+        }
+
+        <!-- ── PERSONAL ── -->
+        @if (activeTab() === "personal") {
+            <div class="tab-panel">
+                <section class="card">
+                    <h3 class="card-title"><mat-icon>badge</mat-icon>Identity</h3>
+                    <div class="fields">
                         @if (profile.firstName || profile.lastName) {
-                            <div class="info-row">
+                            <div class="field">
                                 <span class="label">Display Name</span>
                                 <span class="value">{{ profile.firstName }} {{ profile.lastName }}</span>
                             </div>
                         }
                         @if (profile.legalName) {
-                            <div class="info-row">
+                            <div class="field">
                                 <span class="label">Legal Name</span>
                                 <span class="value">{{ profile.legalName }}</span>
                             </div>
                         }
-                        @if (profile.personalEmail) {
-                            <div class="info-row">
-                                <span class="label">Personal Email</span>
-                                <span class="value">{{ profile.personalEmail }}</span>
-                            </div>
-                        }
                         @if (profile.gender) {
-                            <div class="info-row">
+                            <div class="field">
                                 <span class="label">Gender</span>
                                 <span class="value">{{
                                     genderLabels[profile.gender] || (profile.gender | titlecase)
@@ -112,13 +247,13 @@
                             </div>
                         }
                         @if (profile.birthday) {
-                            <div class="info-row">
+                            <div class="field">
                                 <span class="label">Birthday</span>
                                 <span class="value">{{ profile.birthday | date: "mediumDate" }}</span>
                             </div>
                         }
                         @if (profile.maritalStatus) {
-                            <div class="info-row">
+                            <div class="field">
                                 <span class="label">Marital Status</span>
                                 <span class="value">{{
                                     maritalStatusLabels[profile.maritalStatus] || (profile.maritalStatus | titlecase)
@@ -126,93 +261,88 @@
                             </div>
                         }
                         @if (profile.religion) {
-                            <div class="info-row">
+                            <div class="field">
                                 <span class="label">Religion</span>
                                 <span class="value">{{ profile.religion }}</span>
                             </div>
                         }
                         @if (profile.nationalities && profile.nationalities.length > 0) {
-                            <div class="info-row full-span">
+                            <div class="field wide">
                                 <span class="label">Nationalities</span>
-                                <div class="permissions-list">
+                                <div class="tag-list">
                                     @for (n of profile.nationalities; track $index) {
-                                        <mat-chip>{{ n }}</mat-chip>
+                                        <span class="tag">{{ n }}</span>
                                     }
                                 </div>
                             </div>
                         }
                     </div>
-                    @if (
-                        !profile.firstName &&
-                        !profile.lastName &&
-                        !profile.legalName &&
-                        !profile.personalEmail &&
-                        !profile.gender &&
-                        !profile.birthday &&
-                        !profile.maritalStatus &&
-                        !profile.religion &&
-                        (!profile.nationalities || profile.nationalities.length === 0)
-                    ) {
+                    @if (!hasIdentityInfo && !profile.gender && !profile.maritalStatus && !profile.religion) {
                         <p class="empty-state">No identity information available.</p>
                     }
+                </section>
+            </div>
+        }
 
-                    <mat-divider class="divider-margin"></mat-divider>
-
-                    <!-- ── CONTACT ── -->
-                    <h3 class="section-title">
-                        <mat-icon>contacts</mat-icon>
-                        Contact
-                    </h3>
-                    <div class="info-grid">
+        <!-- ── CONTACT ── -->
+        @if (activeTab() === "contact") {
+            <div class="tab-panel">
+                <section class="card">
+                    <h3 class="card-title"><mat-icon>contacts</mat-icon>Contact</h3>
+                    <div class="fields">
                         @if (profile.workPhone) {
-                            <div class="info-row">
+                            <div class="field">
                                 <span class="label">Work Phone</span>
                                 <span class="value">{{ profile.workPhone }}</span>
                             </div>
                         }
                         @if (profile.personalPhone) {
-                            <div class="info-row">
+                            <div class="field">
                                 <span class="label">Personal Phone</span>
                                 <span class="value">{{ profile.personalPhone }}</span>
                             </div>
                         }
                         @if (profile.homeCountryPhone) {
-                            <div class="info-row">
+                            <div class="field">
                                 <span class="label">Home Country Phone</span>
                                 <span class="value">{{ profile.homeCountryPhone }}</span>
                             </div>
                         }
+                        @if (profile.personalEmail) {
+                            <div class="field">
+                                <span class="label">Personal Email</span>
+                                <span class="value">{{ profile.personalEmail }}</span>
+                            </div>
+                        }
                         @if (profile.additionalPhones && profile.additionalPhones.length > 0) {
-                            <div class="info-row full-span">
+                            <div class="field wide">
                                 <span class="label">Additional Numbers</span>
-                                <div class="permissions-list">
+                                <div class="tag-list">
                                     @for (p of profile.additionalPhones; track $index) {
-                                        <mat-chip>{{ p }}</mat-chip>
+                                        <span class="tag">{{ p }}</span>
                                     }
                                 </div>
                             </div>
                         }
                         @if (profile.currentAddress) {
-                            <div class="info-row full-span">
+                            <div class="field wide">
                                 <span class="label">Current Address</span>
-                                <span class="value address-value">
-                                    {{ profile.currentAddress | profileAddress }}
-                                </span>
+                                <span class="value address-value">{{ profile.currentAddress | profileAddress }}</span>
                             </div>
                         }
                         @if (profile.homeCountryAddress) {
-                            <div class="info-row full-span">
+                            <div class="field wide">
                                 <span class="label">Home Country Address</span>
-                                <span class="value address-value">
-                                    {{ profile.homeCountryAddress | profileAddress }}
-                                </span>
+                                <span class="value address-value">{{
+                                    profile.homeCountryAddress | profileAddress
+                                }}</span>
                             </div>
                         }
                         @if (
                             profile.emergencyContact &&
                             (profile.emergencyContact.name || profile.emergencyContact.phone)
                         ) {
-                            <div class="info-row full-span">
+                            <div class="field wide">
                                 <span class="label">Emergency Contact</span>
                                 <span class="value">
                                     {{ profile.emergencyContact.name }}
@@ -226,40 +356,33 @@
                             </div>
                         }
                     </div>
-                    @if (
-                        !profile.workPhone &&
-                        !profile.personalPhone &&
-                        !profile.homeCountryPhone &&
-                        (!profile.additionalPhones || profile.additionalPhones.length === 0) &&
-                        !profile.currentAddress &&
-                        !profile.homeCountryAddress &&
-                        !profile.emergencyContact
-                    ) {
+                    @if (!hasContactInfo) {
                         <p class="empty-state">No contact information available.</p>
                     }
+                </section>
+            </div>
+        }
 
-                    <mat-divider class="divider-margin"></mat-divider>
-
-                    <!-- ── EMPLOYMENT ── -->
-                    <h3 class="section-title">
-                        <mat-icon>work</mat-icon>
-                        Employment
-                    </h3>
-                    <div class="info-grid">
+        <!-- ── EMPLOYMENT ── -->
+        @if (activeTab() === "employment") {
+            <div class="tab-panel stack">
+                <section class="card">
+                    <h3 class="card-title"><mat-icon>work</mat-icon>Employment</h3>
+                    <div class="fields">
                         @if (profile.employmentTitle) {
-                            <div class="info-row">
+                            <div class="field">
                                 <span class="label">Title</span>
                                 <span class="value">{{ profile.employmentTitle.name }}</span>
                             </div>
                         }
                         @if (profile.level) {
-                            <div class="info-row">
+                            <div class="field">
                                 <span class="label">Level</span>
                                 <span class="value">{{ profile.level.name }}</span>
                             </div>
                         }
                         @if (profile.employmentType) {
-                            <div class="info-row">
+                            <div class="field">
                                 <span class="label">Employment Type</span>
                                 <span class="value">{{
                                     employmentTypeLabels[profile.employmentType] || (profile.employmentType | titlecase)
@@ -267,52 +390,46 @@
                             </div>
                         }
                         @if (profile.employmentDate) {
-                            <div class="info-row">
+                            <div class="field">
                                 <span class="label">Start Date</span>
                                 <span class="value">{{ profile.employmentDate | date: "mediumDate" }}</span>
                             </div>
                         }
                         @if (profile.office) {
-                            <div class="info-row">
+                            <div class="field">
                                 <span class="label">Office</span>
                                 <span class="value">{{ profile.office.name }}</span>
                             </div>
                         }
-                        @if (profile.employmentTitle?.subDepartment?.department?.name) {
-                            <div class="info-row">
+                        @if (departmentName) {
+                            <div class="field">
                                 <span class="label">Department</span>
-                                <span class="value">{{
-                                    profile.employmentTitle?.subDepartment?.department?.name || ""
-                                }}</span>
+                                <span class="value">{{ departmentName }}</span>
                             </div>
                         }
                         @if (profile.manager) {
-                            <div class="info-row">
+                            <div class="field">
                                 <span class="label">Manager</span>
                                 <span class="value">{{ profile.manager.name }}</span>
                             </div>
                         }
                         @if (profile.hrRepresentative) {
-                            <div class="info-row">
+                            <div class="field">
                                 <span class="label">HR Representative</span>
                                 <span class="value">{{ profile.hrRepresentative.name }}</span>
                             </div>
                         }
                         @if (profile.isOutsourced !== undefined) {
-                            <div class="info-row">
+                            <div class="field">
                                 <span class="label">Outsourced</span>
                                 <span class="value">{{ profile.isOutsourced ? "Yes" : "No" }}</span>
                             </div>
                         }
                     </div>
+                </section>
 
-                    <mat-divider class="divider-margin"></mat-divider>
-
-                    <!-- ── EDUCATION ── -->
-                    <h3 class="section-title">
-                        <mat-icon>school</mat-icon>
-                        Education
-                    </h3>
+                <section class="card">
+                    <h3 class="card-title"><mat-icon>school</mat-icon>Education</h3>
                     @if (profile.education && profile.education.length > 0) {
                         <div class="education-list">
                             @for (entry of profile.education; track $index) {
@@ -337,105 +454,119 @@
                     } @else {
                         <p class="empty-state">No education information available.</p>
                     }
+                </section>
 
-                    <mat-divider class="divider-margin"></mat-divider>
-
-                    <!-- ── COMPENSATION ── -->
-                    @if (canViewCompensation && profile.salary) {
-                        <h3 class="section-title">
-                            <mat-icon>payments</mat-icon>
-                            Compensation
-                        </h3>
-                        <div class="info-grid">
-                            <div class="info-row">
+                @if (canViewCompensation && profile.salary) {
+                    <section class="card">
+                        <h3 class="card-title"><mat-icon>payments</mat-icon>Compensation</h3>
+                        <div class="fields">
+                            <div class="field">
                                 <span class="label">Salary</span>
                                 <span class="value">{{ profile.salary }}</span>
                             </div>
                         </div>
+                    </section>
+                }
+            </div>
+        }
 
-                        <mat-divider class="divider-margin"></mat-divider>
-                    }
+        <!-- ── SECURITY ── -->
+        @if (activeTab() === "security") {
+            <div class="tab-panel stack">
+                <section class="card">
+                    <h3 class="card-title"><mat-icon>shield</mat-icon>Account &amp; security</h3>
 
-                    <mat-divider class="divider-margin"></mat-divider>
-
-                    <!-- ── ROLE & PERMISSIONS ── -->
-                    <h3 class="section-title">
-                        <mat-icon>security</mat-icon>
-                        Role and Permissions
-                    </h3>
-                    @if (profile.role) {
-                        <div class="info-grid">
-                            <div class="info-row">
-                                <span class="label">Role Code</span>
-                                <span class="value">{{ profile.role.role }}</span>
+                    @if (isOwnProfile) {
+                        <div class="sec-row">
+                            <div class="sec-icon"><mat-icon>lock</mat-icon></div>
+                            <div class="sec-text">
+                                <b>Password</b>
+                                <span>Change the password you use to sign in</span>
                             </div>
+                            <button
+                                mat-stroked-button
+                                color="primary"
+                                (click)="openChangePasswordDialog()"
+                                [disabled]="loading()"
+                            >
+                                <mat-icon>lock_reset</mat-icon>
+                                Change Password
+                            </button>
+                        </div>
+                    }
+                    @if (!isOwnProfile && canResetPassword) {
+                        <div class="sec-row">
+                            <div class="sec-icon"><mat-icon>lock</mat-icon></div>
+                            <div class="sec-text">
+                                <b>Password</b>
+                                <span>Reset this user's password</span>
+                            </div>
+                            <button
+                                mat-stroked-button
+                                color="warn"
+                                (click)="openResetPasswordDialog()"
+                                [disabled]="loading()"
+                            >
+                                <mat-icon>lock_reset</mat-icon>
+                                Reset Password
+                            </button>
+                        </div>
+                    }
+                    @if (profile.role) {
+                        <div class="sec-row">
+                            <div class="sec-icon"><mat-icon>verified_user</mat-icon></div>
+                            <div class="sec-text">
+                                <b>Role</b>
+                                <span>{{ profile.role.name }} ({{ profile.role.role }})</span>
+                            </div>
+                        </div>
+                    }
+                </section>
+
+                @if (profile.role) {
+                    <section class="card">
+                        <h3 class="card-title"><mat-icon>security</mat-icon>Role and Permissions</h3>
+                        <div class="fields">
                             @if (profile.role.description) {
-                                <div class="info-row full-span">
+                                <div class="field wide">
                                     <span class="label">Description</span>
                                     <span class="value">{{ profile.role.description }}</span>
                                 </div>
                             }
                             @if (profile.role.permissions && profile.role.permissions.length > 0) {
-                                <div class="info-row full-span">
+                                <div class="field wide">
                                     <span class="label">Role Permissions</span>
-                                    <div class="permissions-list">
+                                    <div class="tag-list">
                                         @for (perm of profile.role.permissions; track $index) {
-                                            <mat-chip>{{ perm }}</mat-chip>
+                                            <span class="tag">{{ perm }}</span>
                                         }
                                     </div>
                                 </div>
                             }
-                        </div>
-                    }
-                    @if (
-                        (profile.grantedPermissions && profile.grantedPermissions.length > 0) ||
-                        (profile.revokedPermissions && profile.revokedPermissions.length > 0)
-                    ) {
-                        <div class="info-grid compact-top">
                             @if (profile.grantedPermissions && profile.grantedPermissions.length > 0) {
-                                <div class="info-row full-span">
+                                <div class="field wide">
                                     <span class="label">Granted Permissions</span>
-                                    <div class="permissions-list">
+                                    <div class="tag-list">
                                         @for (perm of profile.grantedPermissions; track $index) {
-                                            <mat-chip color="accent">{{ perm }}</mat-chip>
+                                            <span class="tag tag-granted">{{ perm }}</span>
                                         }
                                     </div>
                                 </div>
                             }
                             @if (profile.revokedPermissions && profile.revokedPermissions.length > 0) {
-                                <div class="info-row full-span">
+                                <div class="field wide">
                                     <span class="label">Revoked Permissions</span>
-                                    <div class="permissions-list">
+                                    <div class="tag-list">
                                         @for (perm of profile.revokedPermissions; track $index) {
-                                            <mat-chip color="warn">{{ perm }}</mat-chip>
+                                            <span class="tag tag-revoked">{{ perm }}</span>
                                         }
                                     </div>
                                 </div>
                             }
                         </div>
-                    }
-
-                    <mat-divider class="divider-margin"></mat-divider>
-
-                    <!-- ── TIMELINE ── -->
-                    <h3 class="section-title">
-                        <mat-icon>schedule</mat-icon>
-                        Timeline
-                    </h3>
-                    <div class="info-grid">
-                        <div class="info-row">
-                            <span class="label">Member Since</span>
-                            <span class="value">{{ profile.createdAt | date: "medium" }}</span>
-                        </div>
-                        @if (profile.updatedAt) {
-                            <div class="info-row">
-                                <span class="label">Last Updated</span>
-                                <span class="value">{{ profile.updatedAt | date: "medium" }}</span>
-                            </div>
-                        }
-                    </div>
-                </div>
-            </mat-card>
-        </div>
+                    </section>
+                }
+            </div>
+        }
     }
 </div>

@@ -1,13 +1,10 @@
 import { Component, OnInit, OnDestroy, inject, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { MatCardModule } from "@angular/material/card";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatIconModule } from "@angular/material/icon";
-import { MatChipsModule } from "@angular/material/chips";
-import { MatDividerModule } from "@angular/material/divider";
 import { MatDialog } from "@angular/material/dialog";
 import { ActivatedRoute, Router } from "@angular/router";
 import { AuthService } from "../../core/services/auth.service";
@@ -29,19 +26,18 @@ import {
     EMPLOYMENT_TYPE_LABELS,
     DEGREE_LEVEL_LABELS,
 } from "../../core/enums/profile.enum";
+export type ProfileTabId = "overview" | "personal" | "contact" | "employment" | "security";
+
 @Component({
     selector: "app-profile",
     standalone: true,
     imports: [
         CommonModule,
-        MatCardModule,
         MatFormFieldModule,
         MatInputModule,
         MatButtonModule,
         MatProgressSpinnerModule,
         MatIconModule,
-        MatChipsModule,
-        MatDividerModule,
         ProfileAddressPipe,
     ],
     templateUrl: "./profile.component.html",
@@ -70,6 +66,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
     loading = signal(false);
     isOwnProfile = true;
     pageTitle = "My Profile";
+
+    readonly tabs: { id: ProfileTabId; label: string; icon: string }[] = [
+        { id: "overview", label: "Overview", icon: "dashboard" },
+        { id: "personal", label: "Personal", icon: "badge" },
+        { id: "contact", label: "Contact", icon: "contacts" },
+        { id: "employment", label: "Employment", icon: "work" },
+        { id: "security", label: "Security", icon: "shield" },
+    ];
+    activeTab = signal<ProfileTabId>("overview");
 
     ngOnInit(): void {
         this.route.data.pipe(takeUntil(this.destroy$)).subscribe(data => {
@@ -174,6 +179,43 @@ export class ProfileComponent implements OnInit, OnDestroy {
             maxWidth: "95vw",
             data: { userId: this.profile._id as string } as ChangePasswordDialogData,
         });
+    }
+
+    selectTab(tab: ProfileTabId): void {
+        this.activeTab.set(tab);
+    }
+
+    get departmentName(): string {
+        return this.profile?.employmentTitle?.subDepartment?.department?.name ?? "";
+    }
+
+    get jobSubtitle(): string {
+        const subDepartment = this.profile?.employmentTitle?.subDepartment?.name;
+        const placement = [this.departmentName, subDepartment].filter(Boolean).join(" › ");
+        return [this.profile?.employmentTitle?.name, placement, this.profile?.office?.name].filter(Boolean).join(" · ");
+    }
+
+    get hasIdentityInfo(): boolean {
+        const p = this.profile;
+        return !!(
+            p &&
+            (p.firstName || p.lastName || p.legalName || p.birthday || (p.nationalities && p.nationalities.length > 0))
+        );
+    }
+
+    get hasContactInfo(): boolean {
+        const p = this.profile;
+        return !!(
+            p &&
+            (p.workPhone ||
+                p.personalPhone ||
+                p.homeCountryPhone ||
+                p.personalEmail ||
+                (p.additionalPhones && p.additionalPhones.length > 0) ||
+                p.currentAddress ||
+                p.homeCountryAddress ||
+                (p.emergencyContact && (p.emergencyContact.name || p.emergencyContact.phone)))
+        );
     }
 
     get canEditUser(): boolean {
