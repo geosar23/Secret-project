@@ -1,107 +1,266 @@
 <div class="permissions-container">
-    <app-sticky-alert
-        [isActive]="viewAsRoleActive"
-        [isLoading]="isLoading"
-        title="View As Role Active"
-        message="You are currently viewing permissions as"
-        [backgroundColor]="'linear-gradient(135deg, #f59e0b, #ec4899)'"
-        icon="info"
-        [opacity]="0.9"
-        [zIndex]="1"
-        [contentLabel]="getRoleName(selectedRole)"
-        [contentColor]="getRoleColor(selectedRole)"
-        [showCloseButton]="false"
-    ></app-sticky-alert>
+    <div class="page-header">
+        <h1>Your Permissions</h1>
+        <p class="text-secondary">Everything your account can do, and where. Preview any role to see how it differs.</p>
+    </div>
+
+    @if (viewRole) {
+        <mat-toolbar class="preview-bar">
+            <mat-icon>visibility</mat-icon>
+            <div class="preview-text">
+                <strong>Previewing the {{ viewRole.name }} role</strong>
+                <span>Read-only preview. {{ previewSummary }}</span>
+            </div>
+            <mat-slide-toggle class="compare-toggle" [checked]="compare" (change)="onCompareChange($event.checked)">
+                Compare with mine
+            </mat-slide-toggle>
+            <button mat-flat-button class="stop-btn" (click)="stopPreview()">
+                <mat-icon>close</mat-icon>
+                Stop previewing
+            </button>
+        </mat-toolbar>
+    }
+
     @if (localUser) {
-        <mat-card class="header">
-            <mat-card-content>
-                <h1>Your Permissions</h1>
-                <div class="user-info">
-                    <span class="user-name">{{ localUser.name }}</span>
-                    <mat-chip [style.background]="getRoleColor(localUser.role.role || '')">
-                        {{ getRoleName(localUser.role.role || "") }}
-                    </mat-chip>
-                </div>
-            </mat-card-content>
-        </mat-card>
-
-        <mat-card class="legend">
-            <mat-card-content>
-                <h3>Role Hierarchy</h3>
-                <div class="roles">
-                    @for (roleInfo of roleData; track roleInfo.role; let isLast = $last) {
-                        <mat-chip [style.background]="getRoleColor(roleInfo.role)">
-                            {{ roleInfo.name }}
-                        </mat-chip>
-                        @if (!isLast) {
-                            <span class="arrow">→</span>
+        <mat-card class="identity">
+            <mat-card-content class="identity-content">
+                <div class="avatar" aria-hidden="true">{{ localUser.name.charAt(0).toUpperCase() }}</div>
+                <div>
+                    <h2>
+                        {{ localUser.name }}
+                        <span class="badge role-badge" [style.background]="getRoleColor(localUser.role.role || '')">
+                            {{ getRoleName(localUser.role.role || "") }}
+                        </span>
+                    </h2>
+                    <p class="text-secondary">
+                        {{ localUser.email }}
+                        @if (localUser.country; as country) {
+                            · {{ country.name }}
                         }
-                    }
-                </div>
-                <div class="row">
-                    <div class="col-6 col-md-6">
-                        <mat-form-field appearance="fill">
-                            <mat-label>View default role permissions</mat-label>
-                            <mat-select [(value)]="selectedRole" [disabled]="viewAsRoleActive || isLoading">
-                                <mat-option value="">-- Select Role --</mat-option>
-                                @for (role of roleData; track role.role) {
-                                    <mat-option [value]="role.role">
-                                        {{ role.name }}
-                                    </mat-option>
-                                }
-                            </mat-select>
-                        </mat-form-field>
-                        <button
-                            mat-raised-button
-                            color="primary"
-                            class="m-sm mb-lg"
-                            (click)="toggleRoleImpersonation()"
-                            [disabled]="isLoading || !selectedRole"
-                        >
-                            @if (isLoading) {
-                                <mat-spinner diameter="20"></mat-spinner>
-                            }
-
-                            @if (viewAsRoleActive) {
-                                Stop
-                            } @else {
-                                View As
-                            }
-                        </button>
-                    </div>
+                        @if (localUser.role.level !== undefined) {
+                            · Role level {{ localUser.role.level }}
+                        }
+                    </p>
                 </div>
             </mat-card-content>
         </mat-card>
 
-        <div class="permissions-grid">
-            @for (p of permissions; track p.category) {
-                <mat-card class="category-card" [class.full-width]="p.category === PermissionCategories.ALL">
-                    <mat-card-content>
-                        <h2 class="category-title">{{ PermissionCategoriesStrings[p.category] }}</h2>
-                        <div class="permissions-list">
-                            @for (item of p.permissions; track item.key) {
-                                <div class="permission-item" [class.has-permission]="item.hasPermission">
-                                    <div class="permission-status">
-                                        <mat-icon
-                                            [class.granted]="item.hasPermission"
-                                            [class.denied]="!item.hasPermission"
-                                        >
-                                            @if (item.hasPermission) {
-                                                check_circle
-                                            } @else {
-                                                cancel
-                                            }
-                                        </mat-icon>
-                                    </div>
-                                    <div class="permission-details">
-                                        <div class="permission-code">{{ item.key }}</div>
-                                    </div>
-                                </div>
+        <mat-card class="hierarchy">
+            <mat-card-content>
+                <h3><mat-icon>stairs</mat-icon>Role hierarchy</h3>
+                <p class="text-secondary">Pick a role to preview its permissions. Nothing changes on your account.</p>
+                <div class="path">
+                    @for (role of roleData; track role._id; let isLast = $last) {
+                        <div class="step">
+                            <button
+                                type="button"
+                                class="role-card"
+                                [class.selected]="viewRole?.role === role.role"
+                                [class.me]="isMyRole(role)"
+                                [style.--role-color]="getRoleColor(role.role)"
+                                [attr.aria-pressed]="viewRole?.role === role.role"
+                                (click)="selectRole(role)"
+                            >
+                                @if (isMyRole(role)) {
+                                    <span class="you">YOU</span>
+                                }
+                                <strong>{{ role.name }}</strong>
+                                <span>Level {{ role.level }}</span>
+                            </button>
+                            @if (!isLast) {
+                                <mat-icon class="arrow">arrow_forward</mat-icon>
                             }
                         </div>
-                    </mat-card-content>
-                </mat-card>
+                    }
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <div class="tiles">
+            <mat-card>
+                <mat-card-content class="tile">
+                    <div class="tile-icon"><mat-icon>verified_user</mat-icon></div>
+                    <div class="tile-body">
+                        <strong>
+                            {{ tiles.granted }}<small> / {{ tiles.total }}</small>
+                            @if (viewRole) {
+                                <span class="delta" [class.neg]="tiles.delta < 0" [class.pos]="tiles.delta >= 0">
+                                    {{ tiles.delta > 0 ? "+" : "" }}{{ tiles.delta }}
+                                </span>
+                            }
+                        </strong>
+                        <span>Permissions granted</span>
+                        <mat-progress-bar mode="determinate" [value]="(tiles.granted / tiles.total) * 100" />
+                    </div>
+                </mat-card-content>
+            </mat-card>
+            <mat-card>
+                <mat-card-content class="tile">
+                    <div class="tile-icon"><mat-icon>edit_note</mat-icon></div>
+                    <div class="tile-body">
+                        <strong> {{ tiles.read }} <small>read</small> · {{ tiles.write }} <small>write</small> </strong>
+                        <span>Ways to view vs. change data</span>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+            <mat-card>
+                <mat-card-content class="tile">
+                    <div class="tile-icon"><mat-icon>public</mat-icon></div>
+                    <div class="tile-body">
+                        <strong>{{ tiles.widest }}</strong>
+                        <span>Widest scope in use</span>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+
+        <mat-card class="matrix">
+            <div class="matrix-toolbar">
+                <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+                    <mat-label>Filter</mat-label>
+                    <mat-icon matPrefix>search</mat-icon>
+                    <input matInput [formControl]="searchControl" placeholder="Filter areas" />
+                </mat-form-field>
+                <mat-button-toggle-group
+                    aria-label="Access filter"
+                    [value]="areaFilter"
+                    (change)="onFilterChange($event.value)"
+                >
+                    <mat-button-toggle value="all">All</mat-button-toggle>
+                    <mat-button-toggle value="granted">Granted</mat-button-toggle>
+                    <mat-button-toggle value="none">No access</mat-button-toggle>
+                    @if (viewRole && compare) {
+                        <mat-button-toggle value="diff">Differences</mat-button-toggle>
+                    }
+                </mat-button-toggle-group>
+                <span class="result-count text-secondary">
+                    <strong>{{ areaCount }}</strong> area{{ areaCount === 1 ? "" : "s" }}
+                </span>
+            </div>
+
+            <table mat-table [dataSource]="rows" class="matrix-table">
+                <ng-container matColumnDef="group">
+                    <mat-cell *matCellDef="let row" class="group-cell">{{ row.label }}</mat-cell>
+                </ng-container>
+
+                <ng-container matColumnDef="area">
+                    <mat-header-cell *matHeaderCellDef>Area</mat-header-cell>
+                    <mat-cell *matCellDef="let row" data-label="Area">
+                        <div class="area-name">
+                            <strong>{{ row.name }}</strong>
+                            <span>{{ row.category }}</span>
+                        </div>
+                    </mat-cell>
+                </ng-container>
+
+                <ng-container matColumnDef="read">
+                    <mat-header-cell *matHeaderCellDef>Read</mat-header-cell>
+                    <mat-cell *matCellDef="let row" data-label="Read">
+                        <ng-container *ngTemplateOutlet="cell; context: { chips: row.read }"></ng-container>
+                    </mat-cell>
+                </ng-container>
+
+                <ng-container matColumnDef="write">
+                    <mat-header-cell *matHeaderCellDef>Write</mat-header-cell>
+                    <mat-cell *matCellDef="let row" data-label="Write">
+                        <ng-container *ngTemplateOutlet="cell; context: { chips: row.write }"></ng-container>
+                    </mat-cell>
+                </ng-container>
+
+                <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+                <mat-row *matRowDef="let row; columns: groupColumns; when: isGroup" class="group-row"></mat-row>
+                <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+            </table>
+
+            @if (!rows.length) {
+                <div class="empty-state">
+                    <mat-icon>search_off</mat-icon>
+                    <p>No areas match.</p>
+                </div>
+            }
+
+            <div class="legend">
+                @if (viewRole && compare) {
+                    <span><span class="scope-chip granted">All</span>Same as yours</span>
+                    <span>
+                        <span class="scope-chip lost"><mat-icon>remove</mat-icon>All</span>
+                        You have it, {{ viewRole.name }} doesn't
+                    </span>
+                    <span>
+                        <span class="scope-chip gain"><mat-icon>add</mat-icon>All</span>
+                        {{ viewRole.name }} has it, you don't
+                    </span>
+                } @else {
+                    <span><span class="scope-chip granted">All</span>Granted, with the scope it applies to</span>
+                    @if (!viewRole) {
+                        <span>
+                            <span class="scope-chip revoked"><mat-icon>block</mat-icon>All</span>
+                            Revoked on your account
+                        </span>
+                    }
+                    <span class="no-access"><mat-icon>block</mat-icon>No access</span>
+                }
+            </div>
+        </mat-card>
+
+        @if (overrides.length) {
+            <mat-expansion-panel class="overrides">
+                <mat-expansion-panel-header>
+                    <mat-panel-title>
+                        <mat-icon>tune</mat-icon>
+                        Direct overrides on your account
+                        <span class="badge badge-warning">{{ overrides.length }}</span>
+                    </mat-panel-title>
+                </mat-expansion-panel-header>
+                <p class="text-secondary">
+                    Your effective permissions are your role, plus anything granted to you, minus anything revoked.
+                </p>
+                <mat-list>
+                    @for (item of overrides; track item.kind + item.key) {
+                        <mat-list-item>
+                            <mat-icon matListItemIcon [class]="item.kind">
+                                {{ item.kind === "revoked" ? "block" : "add_circle" }}
+                            </mat-icon>
+                            <code matListItemTitle>{{ item.key }}</code>
+                            <span
+                                class="badge"
+                                [class.badge-error]="item.kind === 'revoked'"
+                                [class.badge-success]="item.kind === 'granted'"
+                                matListItemMeta
+                            >
+                                {{ item.kind === "revoked" ? "Revoked" : "Granted" }}
+                            </span>
+                        </mat-list-item>
+                    }
+                </mat-list>
+            </mat-expansion-panel>
+        }
+    }
+</div>
+
+<ng-template #cell let-chips="chips">
+    @if (chips === null) {
+        <span class="not-applicable">Not applicable</span>
+    } @else if (!chips.length) {
+        <span class="no-access"><mat-icon>block</mat-icon>No access</span>
+    } @else {
+        <div class="chips">
+            @for (chip of chips; track chip.label) {
+                <span class="scope-chip" [ngClass]="chip.state" [attr.title]="chip.title">
+                    @switch (chip.state) {
+                        @case ("revoked") {
+                            <mat-icon>block</mat-icon>
+                        }
+                        @case ("lost") {
+                            <mat-icon>remove</mat-icon>
+                        }
+                        @case ("gain") {
+                            <mat-icon>add</mat-icon>
+                        }
+                    }
+                    {{ chip.label }}
+                </span>
             }
         </div>
     }
-</div>
+</ng-template>

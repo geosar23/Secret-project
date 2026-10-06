@@ -1,0 +1,1275 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>HR SAAS — Your Permissions (Redesign)</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <style>
+            :root {
+                --primary: #c2185b;
+                --primary-dark: #880e4f;
+                --primary-light: #f8bbd0;
+                --primary-lighter: #fce4ec;
+                --accent: #ff4081;
+                --bg: #fff5f8;
+                --surface: #fff;
+                --text-primary: #1a0a10;
+                --text-secondary: #6b4c57;
+                --text-muted: #9e7a85;
+                --border: #f3d6e0;
+                --ok: #2e7d32;
+                --ok-bg: #e8f5e9;
+                --info: #1565c0;
+                --info-bg: #e3f2fd;
+                --warn: #e65100;
+                --warn-bg: #fff3e0;
+                --danger: #c62828;
+                --danger-bg: #fdecec;
+                --shadow-sm: 0 1px 4px rgba(194, 24, 91, 0.07);
+                --shadow-md: 0 4px 18px rgba(194, 24, 91, 0.11);
+                --shadow-lg: 0 8px 36px rgba(194, 24, 91, 0.18);
+                --r: 12px;
+                --rl: 18px;
+                --navbar-h: 64px;
+                --side-w: 264px;
+            }
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                font-family: "DM Sans", sans-serif;
+                background: var(--bg);
+                color: var(--text-primary);
+                min-height: 100vh;
+            }
+            .mi {
+                font-family: "Material Icons";
+                font-size: 20px;
+                line-height: 1;
+                font-weight: 400;
+                font-style: normal;
+                display: inline-block;
+                text-transform: none;
+                letter-spacing: 0;
+            }
+            button {
+                font-family: inherit;
+                color: inherit;
+            }
+
+            .navbar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 60;
+                height: var(--navbar-h);
+                background: var(--primary);
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                padding: 0 20px;
+                box-shadow: 0 2px 12px rgba(136, 14, 79, 0.28);
+                color: #fff;
+            }
+            .hamb {
+                background: none;
+                border: 0;
+                color: #fff;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+            }
+            .brand {
+                font-family: "Playfair Display", serif;
+                font-size: 20px;
+                font-weight: 700;
+            }
+            .search {
+                flex: 1;
+                max-width: 460px;
+                margin: 0 auto 0 24px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.14);
+                border: 1px solid rgba(255, 255, 255, 0.22);
+                border-radius: 26px;
+                padding: 8px 16px;
+            }
+            .search input {
+                background: none;
+                border: 0;
+                outline: 0;
+                color: #fff;
+                font: 14px "DM Sans";
+                width: 100%;
+            }
+            .search input::placeholder {
+                color: rgba(255, 255, 255, 0.65);
+            }
+            .nav-av {
+                width: 34px;
+                height: 34px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.25);
+                border: 2px solid rgba(255, 255, 255, 0.4);
+                display: grid;
+                place-items: center;
+                font-weight: 700;
+                font-size: 13px;
+            }
+            .side {
+                position: fixed;
+                top: var(--navbar-h);
+                bottom: 0;
+                left: 0;
+                width: var(--side-w);
+                background: #fff;
+                border-right: 1px solid var(--border);
+                padding: 16px 12px;
+                overflow: auto;
+                z-index: 50;
+            }
+            .side .lbl {
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1.2px;
+                color: var(--text-muted);
+                padding: 12px 12px 6px;
+            }
+            .side a {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                padding: 10px 14px;
+                border-radius: 10px;
+                font-size: 14px;
+                font-weight: 500;
+                color: var(--text-secondary);
+            }
+            .side a .mi {
+                color: var(--text-muted);
+            }
+            .side a.on {
+                background: var(--primary-lighter);
+                color: var(--primary);
+                font-weight: 700;
+            }
+            .side a.on .mi {
+                color: var(--primary);
+            }
+            .side hr {
+                border: 0;
+                height: 1px;
+                background: var(--border);
+                margin: 10px 12px;
+            }
+            .main {
+                margin-left: var(--side-w);
+                padding: calc(var(--navbar-h) + 20px) 32px 60px;
+            }
+            .crumbs {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 12px;
+                color: var(--text-muted);
+                margin-bottom: 10px;
+            }
+            .crumbs b {
+                color: var(--text-primary);
+            }
+
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                height: 40px;
+                padding: 0 20px;
+                border-radius: 20px;
+                font: 600 14px "DM Sans";
+                cursor: pointer;
+                border: 1px solid transparent;
+                transition: 0.18s;
+                white-space: nowrap;
+            }
+            .btn .mi {
+                font-size: 18px;
+            }
+            .btn.flat {
+                background: var(--primary);
+                color: #fff;
+            }
+            .btn.flat:hover {
+                background: var(--primary-dark);
+            }
+            .btn.stroked {
+                background: #fff;
+                color: var(--primary);
+                border-color: var(--primary-light);
+            }
+            .btn.stroked:hover {
+                background: var(--primary-lighter);
+            }
+            .btn.onbar {
+                background: #fff;
+                color: #7a3200;
+                height: 34px;
+                padding: 0 16px;
+            }
+            .ff {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+            .ff input {
+                width: 100%;
+                height: 42px;
+                border: 1px solid #d9b7c4;
+                border-radius: 10px;
+                padding: 0 14px 0 44px;
+                font: 15px "DM Sans";
+                background: #fff;
+                outline: 0;
+                color: var(--text-primary);
+            }
+            .ff input:focus {
+                border: 2px solid var(--primary);
+                padding-left: 43px;
+            }
+            .ff .lab {
+                position: absolute;
+                top: -8px;
+                left: 10px;
+                background: #fff;
+                padding: 0 4px;
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--text-muted);
+                z-index: 1;
+            }
+            .ff .lead {
+                position: absolute;
+                left: 14px;
+                color: var(--text-muted);
+            }
+            .bt {
+                display: inline-flex;
+                border: 1px solid #d9b7c4;
+                border-radius: 20px;
+                overflow: hidden;
+                background: #fff;
+            }
+            .bt button {
+                border: 0;
+                background: none;
+                padding: 0 14px;
+                height: 34px;
+                font: 600 13px "DM Sans";
+                cursor: pointer;
+                color: var(--text-secondary);
+                border-right: 1px solid #d9b7c4;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                white-space: nowrap;
+            }
+            .bt button:last-child {
+                border-right: 0;
+            }
+            .bt button.on {
+                background: var(--primary-lighter);
+                color: var(--primary-dark);
+            }
+            .bt button.on::before {
+                content: "check";
+                font-family: "Material Icons";
+                font-size: 14px;
+            }
+            .badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                padding: 2px 10px;
+                border-radius: 12px;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.4px;
+                text-transform: uppercase;
+            }
+            .card {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--rl);
+                box-shadow: var(--shadow-sm);
+            }
+            .sw {
+                width: 36px;
+                height: 20px;
+                border-radius: 10px;
+                background: #cdb5bf;
+                position: relative;
+                display: inline-block;
+                cursor: pointer;
+                transition: 0.2s;
+                border: 0;
+                flex-shrink: 0;
+            }
+            .sw::after {
+                content: "";
+                position: absolute;
+                top: 2px;
+                left: 2px;
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                background: #fff;
+                transition: 0.2s;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+            }
+            .sw.on {
+                background: var(--primary);
+            }
+            .sw.on::after {
+                left: 18px;
+            }
+            .vtoggle {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 12px;
+                font-weight: 600;
+                color: #6a1b9a;
+                background: #f3e5f5;
+                border-radius: 16px;
+                padding: 5px 12px 5px 8px;
+                cursor: pointer;
+                border: 0;
+            }
+            .vtoggle .sw {
+                background: #ce93d8;
+            }
+            .vtoggle .sw.on {
+                background: #6a1b9a;
+            }
+
+            .head {
+                display: flex;
+                align-items: flex-end;
+                justify-content: space-between;
+                gap: 16px;
+                margin-bottom: 18px;
+                flex-wrap: wrap;
+            }
+            .head h1 {
+                font: 700 32px "DM Sans";
+            }
+            .head p {
+                font-size: 13px;
+                color: var(--text-muted);
+                margin-top: 3px;
+            }
+
+            /* view-as banner (mat-toolbar) */
+            .vbar {
+                position: sticky;
+                top: calc(var(--navbar-h) + 8px);
+                z-index: 40;
+                display: none;
+                align-items: center;
+                gap: 14px;
+                flex-wrap: wrap;
+                padding: 10px 12px 10px 18px;
+                border-radius: 14px;
+                margin-bottom: 16px;
+                color: #fff;
+                background: linear-gradient(100deg, #f2994a, #e8527f);
+                box-shadow: var(--shadow-md);
+            }
+            .vbar.show {
+                display: flex;
+                animation: down 0.25s ease;
+            }
+            @keyframes down {
+                from {
+                    opacity: 0;
+                    transform: translateY(-8px);
+                }
+                to {
+                    opacity: 1;
+                    transform: none;
+                }
+            }
+            .vbar .t {
+                flex: 1;
+                min-width: 200px;
+                font-size: 14px;
+            }
+            .vbar .t b {
+                font-weight: 700;
+            }
+            .vbar .t span {
+                opacity: 0.92;
+                font-size: 13px;
+                display: block;
+            }
+            .vbar .cmp {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                background: rgba(255, 255, 255, 0.18);
+                border-radius: 18px;
+                padding: 5px 12px 5px 8px;
+                border: 0;
+                cursor: pointer;
+                color: #fff;
+            }
+            .vbar .cmp .sw {
+                background: rgba(255, 255, 255, 0.4);
+            }
+            .vbar .cmp .sw.on {
+                background: #fff;
+            }
+            .vbar .cmp .sw.on::after {
+                background: var(--warn);
+            }
+
+            /* identity */
+            .idc {
+                display: grid;
+                grid-template-columns: auto 1fr;
+                gap: 20px;
+                align-items: center;
+                padding: 22px 26px;
+            }
+            .av {
+                width: 68px;
+                height: 68px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #2a1a22, #6b1b3e);
+                color: #fff;
+                display: grid;
+                place-items: center;
+                font: 700 26px "Playfair Display";
+                border: 3px solid #fff;
+                box-shadow: var(--shadow-md);
+            }
+            .idc h2 {
+                font-size: 22px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            .idc p {
+                font-size: 13px;
+                color: var(--text-muted);
+                margin-top: 3px;
+            }
+
+            /* hierarchy */
+            .hier {
+                padding: 22px 26px;
+                margin-top: 16px;
+            }
+            .hier h3,
+            .sec h3 {
+                font-size: 16px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .hier h3 .mi,
+            .sec h3 .mi {
+                color: var(--primary);
+            }
+            .hier .sub {
+                font-size: 13px;
+                color: var(--text-muted);
+                margin: 3px 0 16px;
+            }
+            .path {
+                display: flex;
+                align-items: stretch;
+                gap: 0;
+                flex-wrap: wrap;
+                row-gap: 12px;
+            }
+            .step {
+                display: flex;
+                align-items: center;
+            }
+            .step .arrow {
+                color: #d9b7c4;
+                margin: 0 6px;
+            }
+            .hc {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 3px;
+                padding: 9px 16px;
+                border-radius: 14px;
+                border: 1.5px solid var(--border);
+                background: #fff;
+                cursor: pointer;
+                position: relative;
+                transition: 0.15s;
+                min-width: 104px;
+            }
+            .hc:hover {
+                border-color: var(--c);
+                box-shadow: var(--shadow-sm);
+            }
+            .hc b {
+                font-size: 13px;
+                display: flex;
+                align-items: center;
+                gap: 7px;
+            }
+            .hc b::before {
+                content: "";
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: var(--c);
+            }
+            .hc span {
+                font-size: 11px;
+                color: var(--text-muted);
+            }
+            .hc.on {
+                background: var(--c);
+                border-color: var(--c);
+                box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+            }
+            .hc.on b,
+            .hc.on span {
+                color: #fff;
+            }
+            .hc.on b::before {
+                background: #fff;
+            }
+            .hc .you {
+                position: absolute;
+                top: -9px;
+                right: 10px;
+                font-size: 9px;
+                font-weight: 700;
+                letter-spacing: 0.6px;
+                background: var(--primary);
+                color: #fff;
+                border-radius: 8px;
+                padding: 1px 7px;
+            }
+            .hc.me:not(.on) {
+                border-color: var(--c);
+                background: color-mix(in srgb, var(--c) 7%, #fff);
+            }
+
+            /* tiles */
+            .tiles {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 14px;
+                margin-top: 16px;
+            }
+            .tile {
+                padding: 18px 20px;
+                display: flex;
+                align-items: center;
+                gap: 14px;
+            }
+            .tile .i {
+                width: 44px;
+                height: 44px;
+                border-radius: 12px;
+                display: grid;
+                place-items: center;
+                background: var(--primary-lighter);
+                color: var(--primary);
+                flex-shrink: 0;
+            }
+            .tile b {
+                font-size: 24px;
+                line-height: 1;
+                display: block;
+            }
+            .tile span {
+                font-size: 12px;
+                color: var(--text-muted);
+            }
+            .tile .d {
+                font-size: 12px;
+                font-weight: 700;
+                margin-left: 6px;
+            }
+            .d.neg {
+                color: var(--danger);
+            }
+            .d.pos {
+                color: var(--ok);
+            }
+            .bar {
+                height: 6px;
+                border-radius: 3px;
+                background: var(--primary-lighter);
+                overflow: hidden;
+                margin-top: 8px;
+            }
+            .bar i {
+                display: block;
+                height: 100%;
+                background: var(--primary);
+            }
+
+            /* matrix */
+            .sec {
+                margin-top: 16px;
+                overflow: visible;
+            }
+            .ptool {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+                padding: 16px 20px;
+                border-bottom: 1px solid var(--border);
+            }
+            .ptool .ff {
+                flex: 1;
+                min-width: 200px;
+                max-width: 320px;
+            }
+            .ptool .res {
+                margin-left: auto;
+                font-size: 13px;
+                color: var(--text-muted);
+            }
+            .mh,
+            .mr {
+                display: grid;
+                grid-template-columns: minmax(170px, 1.1fr) minmax(0, 2fr) minmax(0, 2fr);
+                gap: 16px;
+                align-items: center;
+                padding: 13px 20px;
+            }
+            .mh {
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+                color: var(--primary);
+                background: #fffafc;
+                border-bottom: 1px solid var(--border);
+            }
+            .mr {
+                border-bottom: 1px solid var(--border);
+            }
+            .mr:last-child {
+                border-bottom: 0;
+            }
+            .cat b {
+                font-size: 14px;
+                display: block;
+            }
+            .cat span {
+                font-size: 11px;
+                color: var(--text-muted);
+                font-family: ui-monospace, Consolas, monospace;
+            }
+            .cell {
+                display: flex;
+                gap: 6px;
+                flex-wrap: wrap;
+                align-items: center;
+                min-height: 30px;
+            }
+            .grp {
+                padding: 10px 20px 6px;
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1.2px;
+                color: var(--text-muted);
+                background: var(--bg);
+            }
+            .sc {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 3px 11px;
+                border-radius: 14px;
+                font-size: 12px;
+                font-weight: 600;
+                background: var(--ok-bg);
+                color: var(--ok);
+                border: 1.5px solid transparent;
+            }
+            .sc.lost {
+                background: #fff;
+                color: var(--danger);
+                border: 1.5px dashed #e57373;
+                text-decoration: line-through;
+            }
+            .sc.gain {
+                background: #fff;
+                color: var(--ok);
+                border: 1.5px solid #81c784;
+            }
+            .sc.rev {
+                background: #fff;
+                color: var(--danger);
+                border: 1.5px solid #e57373;
+            }
+            .sc .mi {
+                font-size: 13px;
+            }
+            .none {
+                font-size: 12px;
+                color: #c9b3bc;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+            .none .mi {
+                font-size: 15px;
+            }
+            .na {
+                font-size: 12px;
+                color: #d9c5cd;
+                font-style: italic;
+            }
+            .legend {
+                display: flex;
+                gap: 16px;
+                flex-wrap: wrap;
+                padding: 12px 20px;
+                border-top: 1px solid var(--border);
+                font-size: 12px;
+                color: var(--text-muted);
+                background: #fffcfd;
+                border-radius: 0 0 var(--rl) var(--rl);
+            }
+            .legend span {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+            }
+
+            /* overrides / expansion */
+            .exp {
+                margin-top: 16px;
+            }
+            .exp summary {
+                list-style: none;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 16px 22px;
+                cursor: pointer;
+                font-size: 15px;
+                font-weight: 700;
+            }
+            .exp summary::-webkit-details-marker {
+                display: none;
+            }
+            .exp summary .mi {
+                color: var(--primary);
+            }
+            .exp summary .chev {
+                margin-left: auto;
+                color: var(--text-muted);
+                transition: 0.2s;
+            }
+            .exp[open] summary .chev {
+                transform: rotate(180deg);
+            }
+            .exp .bd {
+                padding: 0 22px 20px;
+                border-top: 1px solid var(--border);
+            }
+            .ov {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px 0;
+                border-bottom: 1px solid var(--border);
+                font-size: 13px;
+            }
+            .ov:last-child {
+                border-bottom: 0;
+            }
+            .ov code {
+                font-family: ui-monospace, Consolas, monospace;
+                font-size: 12px;
+                background: #f8f2f4;
+                padding: 3px 8px;
+                border-radius: 6px;
+            }
+            .ov .badge {
+                margin-left: auto;
+            }
+            .hide {
+                display: none !important;
+            }
+            .empty {
+                padding: 40px 20px;
+                text-align: center;
+                color: var(--text-muted);
+            }
+            .empty .mi {
+                font-size: 38px;
+                color: var(--primary-light);
+            }
+
+            body.annot [data-mat] {
+                outline: 1.5px dashed #6a1b9a;
+                outline-offset: 2px;
+                position: relative;
+            }
+            body.annot [data-mat]::before {
+                content: attr(data-mat);
+                position: absolute;
+                top: -10px;
+                left: 8px;
+                background: #6a1b9a;
+                color: #fff;
+                font: 700 9.5px "DM Sans";
+                padding: 1px 6px;
+                border-radius: 4px;
+                z-index: 45;
+                white-space: nowrap;
+                pointer-events: none;
+                text-transform: none;
+                letter-spacing: 0.2px;
+            }
+
+            @media (max-width: 1100px) {
+                .tiles {
+                    grid-template-columns: 1fr;
+                }
+            }
+            @media (max-width: 900px) {
+                .side {
+                    transform: translateX(-100%);
+                }
+                .main {
+                    margin-left: 0;
+                    padding: calc(var(--navbar-h) + 14px) 14px 60px;
+                }
+                .search {
+                    display: none;
+                }
+                .mh {
+                    display: none;
+                }
+                .mr {
+                    grid-template-columns: 1fr;
+                    gap: 8px;
+                }
+                .cell::before {
+                    content: attr(data-l);
+                    font-size: 10px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    color: var(--text-muted);
+                    width: 44px;
+                }
+            }
+            @media (max-width: 700px) {
+                .head h1 {
+                    font-size: 26px;
+                }
+                .idc {
+                    grid-template-columns: 1fr;
+                    padding: 18px;
+                }
+                .hier {
+                    padding: 18px;
+                }
+                .path {
+                    flex-wrap: nowrap;
+                    overflow-x: auto;
+                    padding: 12px 4px 6px;
+                    margin: 0 -4px;
+                    scrollbar-width: none;
+                }
+                .path::-webkit-scrollbar {
+                    display: none;
+                }
+                .hc {
+                    min-width: 96px;
+                }
+                .ptool .res {
+                    margin-left: 0;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <nav class="navbar">
+            <button class="hamb"><span class="mi">menu</span></button><span class="brand">Company-A2</span>
+            <div class="search"><span class="mi">search</span><input placeholder="Search pages, users..." /></div>
+            <span class="mi">notifications</span>
+            <div class="nav-av">S</div>
+        </nav>
+        <aside class="side">
+            <div class="lbl">People</div>
+            <a><span class="mi">group</span>Users Management</a
+            ><a><span class="mi">admin_panel_settings</span>Roles Management</a
+            ><a class="on"><span class="mi">security</span>Permissions</a>
+            <hr />
+            <div class="lbl">Organization</div>
+            <a><span class="mi">account_tree</span>Departments</a
+            ><a><span class="mi">device_hub</span>Sub-Departments</a><a><span class="mi">public</span>Countries</a
+            ><a><span class="mi">business</span>Offices</a><a><span class="mi">work</span>Employment Titles</a
+            ><a><span class="mi">stairs</span>Levels</a>
+        </aside>
+
+        <main class="main">
+            <div class="crumbs">
+                <span class="mi" style="font-size: 16px; color: var(--primary)">home</span>›<b>Permissions</b>
+            </div>
+            <div class="head">
+                <div>
+                    <h1>Your Permissions</h1>
+                    <p>Everything your account can do, and where. Preview any role to see how it differs.</p>
+                </div>
+                <button class="vtoggle" id="annotBtn">
+                    <span class="sw" id="annotSw"></span>Show Material components
+                </button>
+            </div>
+
+            <div class="vbar" id="vbar" data-mat="mat-toolbar"></div>
+
+            <section class="card idc" data-mat="mat-card">
+                <div class="av">S</div>
+                <div>
+                    <h2>
+                        Saros
+                        <span class="badge" style="background: #e74b48; color: #fff" data-mat="mat-chip / badge"
+                            >Super Admin</span
+                        >
+                    </h2>
+                    <p>saros@gmail.com · Strategy · Greece · Role level 99</p>
+                </div>
+            </section>
+
+            <section class="card hier" data-mat="mat-card">
+                <h3><span class="mi">stairs</span>Role hierarchy</h3>
+                <p class="sub">Pick a role to preview its permissions. Nothing changes on your account.</p>
+                <div class="path" id="path" data-mat="mat-chip-listbox (single select)"></div>
+            </section>
+
+            <div class="tiles" id="tiles"></div>
+
+            <section class="card sec" data-mat="mat-card">
+                <div class="ptool">
+                    <div class="ff" data-mat="mat-form-field outline + matPrefix">
+                        <span class="lab">Filter</span><span class="mi lead">search</span
+                        ><input id="q" placeholder="Filter areas" />
+                    </div>
+                    <div class="bt" id="flt" data-mat="mat-button-toggle-group"></div>
+                    <span class="res" id="res"></span>
+                </div>
+                <div data-mat="mat-table (or mat-list per area)">
+                    <div class="mh"><span>Area</span><span>Read</span><span>Write</span></div>
+                    <div id="rows"></div>
+                </div>
+                <div class="legend" id="legend"></div>
+            </section>
+
+            <details class="card exp" data-mat="mat-expansion-panel">
+                <summary>
+                    <span class="mi">tune</span>Direct overrides on your account<span
+                        class="badge"
+                        style="background: var(--warn-bg); color: var(--warn)"
+                        >1</span
+                    ><span class="mi chev">expand_more</span>
+                </summary>
+                <div class="bd">
+                    <p style="font-size: 13px; color: var(--text-muted); padding: 14px 0 4px">
+                        Your effective permissions are your role, plus anything granted to you, minus anything revoked.
+                    </p>
+                    <div class="ov" data-mat="mat-list-item">
+                        <span class="mi" style="color: var(--danger)">block</span
+                        ><code>userProfile.compensation:write:*</code><span>Revoked for you</span
+                        ><span class="badge" style="background: var(--danger-bg); color: var(--danger)">Revoked</span>
+                    </div>
+                </div>
+            </details>
+        </main>
+
+        <script>
+            const $ = s => document.querySelector(s),
+                esc = s =>
+                    String(s ?? "").replace(
+                        /[&<>"]/g,
+                        c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
+                    );
+            const SC = {
+                "*": "All",
+                department: "Dept",
+                "department-country": "Dept + Country",
+                country: "Country",
+                managed: "Managed",
+                self: "Self",
+            };
+            const ORDER = ["*", "department-country", "department", "country", "managed", "self"];
+            const S6 = ["*", "department", "country", "department-country", "managed", "self"],
+                S5 = S6.slice(0, 5),
+                S1 = ["*"];
+            const CATS = [
+                ["Users", null],
+                ["usersManagement", "Users Management", S6, S5],
+                ["userCreate", "Create User", null, S5],
+                ["resetPassword", "Reset Password", null, S5],
+                ["User profile", null],
+                ["userProfile.identity", "Identity", S6, S6],
+                ["userProfile.contact", "Contact", S6, S6],
+                ["userProfile.employment", "Employment", S6, S6],
+                ["userProfile.education", "Education", S6, S6],
+                ["userProfile.compensation", "Compensation", S6, S5],
+                ["Organization", null],
+                ["countriesManagement", "Countries", S1, S1],
+                ["departmentsManagement", "Departments", S1, S1],
+                ["subDepartmentsManagement", "Sub-Departments", S1, S1],
+                ["employmentTitlesManagement", "Employment Titles", S1, S1],
+                ["levelsManagement", "Levels", S1, S1],
+                ["officesManagement", "Offices", S1, S1],
+                ["Access", null],
+                ["rolesManagement", "Roles Management", S1, S1],
+            ].map(c =>
+                c[1] === null && c.length === 2 ? { group: c[0] } : { k: c[0], n: c[1], read: c[2], write: c[3] },
+            );
+            const LEAF = CATS.filter(c => c.k),
+                TOTAL = LEAF.reduce((s, c) => s + (c.read?.length || 0) + (c.write?.length || 0), 0);
+            const mk = () => Object.fromEntries(LEAF.map(c => [c.k, { read: new Set(), write: new Set() }]));
+            const set = (m, k, a, sc) => {
+                (Array.isArray(k) ? k : [k]).forEach(x => sc.forEach(s => m[x][a].add(s)));
+            };
+            const profs = [
+                "userProfile.identity",
+                "userProfile.contact",
+                "userProfile.employment",
+                "userProfile.education",
+            ];
+            function build(name) {
+                const m = mk();
+                if (name === "Super Admin") {
+                    LEAF.forEach(c => {
+                        c.read && set(m, c.k, "read", c.read);
+                        c.write && set(m, c.k, "write", c.write);
+                    });
+                } else if (name === "Admin") {
+                    LEAF.forEach(c => {
+                        c.read && set(m, c.k, "read", c.read);
+                        c.write &&
+                            c.k !== "rolesManagement" &&
+                            c.k !== "userProfile.compensation" &&
+                            set(m, c.k, "write", c.write);
+                    });
+                } else if (name === "HR") {
+                    set(m, ["usersManagement", "userCreate", "resetPassword"], "write", ["department-country"]);
+                    set(m, "usersManagement", "read", ["department-country"]);
+                    set(m, profs, "read", ["department-country"]);
+                    set(m, profs.slice(0, 3), "write", ["department-country"]);
+                    set(m, "userProfile.compensation", "read", ["department-country"]);
+                    set(m, ["officesManagement", "departmentsManagement", "countriesManagement"], "read", ["*"]);
+                } else if (name === "Department Head") {
+                    set(m, "usersManagement", "read", ["department"]);
+                    set(m, profs.slice(0, 3), "read", ["department"]);
+                    set(m, "usersManagement", "write", ["department"]);
+                    set(m, "departmentsManagement", "read", ["*"]);
+                } else if (name === "Manager") {
+                    set(m, "usersManagement", "read", ["managed", "self"]);
+                    set(m, profs.slice(0, 3), "read", ["managed", "self"]);
+                    set(m, profs.slice(0, 2), "write", ["self"]);
+                } else if (name === "Employee") {
+                    set(m, ["usersManagement", ...profs], "read", ["self"]);
+                    set(m, profs.slice(0, 2), "write", ["self"]);
+                }
+                return m;
+            }
+            const ROLES = [
+                ["Employee", "#6b6d6d", 10],
+                ["Manager", "#2fbf71", 40],
+                ["HR", "#4ea8e4", 50],
+                ["Department Head", "#8E24AA", 70],
+                ["Admin", "#eb8d36", 80],
+                ["Super Admin", "#e74b48", 99],
+            ];
+            const ME = "Super Admin";
+            const mine = build(ME);
+            mine["userProfile.compensation"].write.delete("*"); // direct revocation
+            const REVOKED = { "userProfile.compensation": { write: new Set(["*"]) } };
+            const S = { view: null, compare: false, filter: "all", q: "" };
+            const cnt = m => LEAF.reduce((s, c) => s + m[c.k].read.size + m[c.k].write.size, 0);
+            const cntA = (m, a) => LEAF.reduce((s, c) => s + m[c.k][a].size, 0);
+            const cur = () => (S.view ? build(S.view) : mine);
+
+            function draw() {
+                const view = cur(),
+                    n = cnt(view),
+                    nm = cnt(mine);
+                $("#path").innerHTML = ROLES.map(
+                    ([r, c, l], i) =>
+                        `<div class="step"><button class="hc ${S.view === r ? "on" : ""} ${r === ME ? "me" : ""}" style="--c:${c}" data-role="${r}" aria-pressed="${S.view === r}">${r === ME ? '<span class="you">YOU</span>' : ""}<b>${r}</b><span>Level ${l}</span></button>${i < ROLES.length - 1 ? '<span class="mi arrow">arrow_forward</span>' : ""}</div>`,
+                ).join("");
+                const vb = $("#vbar");
+                if (S.view) {
+                    const lost = LEAF.reduce(
+                        (s, c) =>
+                            s +
+                            ["read", "write"].reduce(
+                                (t, a) => t + [...mine[c.k][a]].filter(x => !view[c.k][a].has(x)).length,
+                                0,
+                            ),
+                        0,
+                    );
+                    vb.className = "vbar show";
+                    vb.innerHTML = `<span class="mi" style="font-size:26px">visibility</span><div class="t"><b>Previewing the ${S.view} role</b><span>Read-only preview. ${lost ? `${lost} permissions fewer than your account.` : "Same access as your account."}</span></div>
+     <button class="cmp" id="cmp" data-mat="mat-slide-toggle"><span class="sw ${S.compare ? "on" : ""}"></span>Compare with mine</button><button class="btn onbar" data-stop data-mat="button[mat-flat-button]"><span class="mi">close</span>Stop previewing</button>`;
+                } else vb.className = "vbar";
+                const dn = S.view ? n - nm : 0;
+                const wide = m => {
+                    const all = LEAF.some(c => m[c.k].read.has("*") || m[c.k].write.has("*"));
+                    return all
+                        ? "All"
+                        : LEAF.some(
+                                c => m[c.k].read.has("department-country") || m[c.k].write.has("department-country"),
+                            )
+                          ? "Dept + Country"
+                          : LEAF.some(c => m[c.k].read.has("department"))
+                            ? "Department"
+                            : LEAF.some(c => m[c.k].read.has("managed"))
+                              ? "Managed"
+                              : "Self";
+                };
+                $("#tiles").innerHTML =
+                    `<div class="card tile" data-mat="mat-card"><div class="i"><span class="mi">verified_user</span></div><div style="flex:1"><b>${n}<small style="font-size:14px;color:var(--text-muted);font-weight:500"> / ${TOTAL}</small>${S.view ? `<span class="d ${dn < 0 ? "neg" : "pos"}">${dn > 0 ? "+" : ""}${dn}</span>` : ""}</b><span>Permissions granted</span><div class="bar" data-mat="mat-progress-bar"><i style="width:${(n / TOTAL) * 100}%"></i></div></div></div>
+   <div class="card tile" data-mat="mat-card"><div class="i"><span class="mi">edit_note</span></div><div><b>${cntA(view, "read")} <small style="font-size:14px;color:var(--text-muted);font-weight:500">read</small> · ${cntA(view, "write")} <small style="font-size:14px;color:var(--text-muted);font-weight:500">write</small></b><span>Ways to view vs. change data</span></div></div>
+   <div class="card tile" data-mat="mat-card"><div class="i"><span class="mi">public</span></div><div><b>${wide(view)}</b><span>Widest scope in use</span></div></div>`;
+                $("#flt").innerHTML = [
+                    ["all", "All"],
+                    ["granted", "Granted"],
+                    ["none", "No access"],
+                    ...(S.view && S.compare ? [["diff", "Differences"]] : []),
+                ]
+                    .map(([v, l]) => `<button class="${S.filter === v ? "on" : ""}" data-flt="${v}">${l}</button>`)
+                    .join("");
+                const q = S.q.toLowerCase();
+                let out = "",
+                    last = null,
+                    shown = 0;
+                CATS.forEach(c => {
+                    if (c.group) {
+                        last = c.group;
+                        return;
+                    }
+                    if (q && !c.n.toLowerCase().includes(q)) return;
+                    const has = a => view[c.k][a].size > 0,
+                        hasM = a => mine[c.k][a].size > 0;
+                    const diff =
+                        S.view &&
+                        ["read", "write"].some(
+                            a =>
+                                [...mine[c.k][a]].some(x => !view[c.k][a].has(x)) ||
+                                [...view[c.k][a]].some(x => !mine[c.k][a].has(x)),
+                        );
+                    if (S.filter === "granted" && !(has("read") || has("write"))) return;
+                    if (S.filter === "none" && (has("read") || has("write"))) return;
+                    if (S.filter === "diff" && !diff) return;
+                    if (last) {
+                        out += `<div class="grp">${last}</div>`;
+                        last = null;
+                    }
+                    const cell = a => {
+                        if (!c[a])
+                            return `<div class="cell" data-l="${a}"><span class="na">Not applicable</span></div>`;
+                        const set = new Set([
+                            ...view[c.k][a],
+                            ...(S.view && S.compare ? mine[c.k][a] : []),
+                            ...(!S.view ? REVOKED[c.k]?.[a] || [] : []),
+                        ]);
+                        if (!set.size)
+                            return `<div class="cell" data-l="${a}"><span class="none"><span class="mi">block</span>No access</span></div>`;
+                        return `<div class="cell" data-l="${a}">${ORDER.filter(s => set.has(s))
+                            .map(s => {
+                                const inV = view[c.k][a].has(s),
+                                    inM = mine[c.k][a].has(s);
+                                if (!S.view && REVOKED[c.k]?.[a]?.has(s))
+                                    return `<span class="sc rev" title="Revoked for your account"><span class="mi">block</span>${SC[s]}</span>`;
+                                if (S.view && S.compare) {
+                                    if (inV && inM) return `<span class="sc">${SC[s]}</span>`;
+                                    if (inM && !inV)
+                                        return `<span class="sc lost" title="You have this, ${S.view} does not"><span class="mi">remove</span>${SC[s]}</span>`;
+                                    return `<span class="sc gain"><span class="mi">add</span>${SC[s]}</span>`;
+                                }
+                                return `<span class="sc">${SC[s]}</span>`;
+                            })
+                            .join("")}</div>`;
+                    };
+                    shown++;
+                    out += `<div class="mr"><div class="cat"><b>${c.n}</b><span>${c.k}</span></div>${cell("read")}${cell("write")}</div>`;
+                });
+                $("#rows").innerHTML =
+                    out || `<div class="empty"><span class="mi">search_off</span><p>No areas match.</p></div>`;
+                $("#res").innerHTML = `<b>${shown}</b> area${shown === 1 ? "" : "s"}`;
+                $("#legend").innerHTML =
+                    S.view && S.compare
+                        ? `<span><span class="sc">All</span>Same as yours</span><span><span class="sc lost"><span class="mi">remove</span>All</span>You have it, ${S.view} doesn't</span><span><span class="sc gain"><span class="mi">add</span>All</span>${S.view} has it, you don't</span>`
+                        : `<span><span class="sc">All</span>Granted, with the scope it applies to</span>${!S.view ? '<span><span class="sc rev"><span class="mi">block</span>All</span>Revoked on your account</span>' : ""}<span><span class="none"><span class="mi">block</span>No access</span></span>`;
+            }
+            document.addEventListener("click", e => {
+                const t = e.target.closest("[data-role],[data-stop],#cmp,[data-flt],#annotBtn");
+                if (!t) return;
+                if (t.id === "annotBtn") {
+                    document.body.classList.toggle("annot");
+                    $("#annotSw").classList.toggle("on");
+                } else if (t.dataset.role) {
+                    S.view = S.view === t.dataset.role ? null : t.dataset.role;
+                    if (!S.view || S.view === ME) S.compare = false;
+                    if (S.view === ME) S.view = null;
+                    S.filter = "all";
+                    draw();
+                } else if (t.hasAttribute("data-stop")) {
+                    S.view = null;
+                    S.compare = false;
+                    S.filter = "all";
+                    draw();
+                } else if (t.id === "cmp") {
+                    S.compare = !S.compare;
+                    if (!S.compare && S.filter === "diff") S.filter = "all";
+                    draw();
+                } else if (t.dataset.flt) {
+                    S.filter = t.dataset.flt;
+                    draw();
+                }
+            });
+            $("#q").addEventListener("input", e => {
+                S.q = e.target.value;
+                draw();
+                $("#q").focus();
+            });
+            draw();
+        </script>
+    </body>
+</html>

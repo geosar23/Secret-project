@@ -1,0 +1,1866 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>HR SAAS — Roles Management (Redesign)</title>
+        <link
+            href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+        <style>
+            :root {
+                --primary: #c2185b;
+                --primary-dark: #880e4f;
+                --primary-light: #f8bbd0;
+                --primary-lighter: #fce4ec;
+                --accent: #ff4081;
+                --bg: #fff5f8;
+                --surface: #fff;
+                --text-primary: #1a0a10;
+                --text-secondary: #6b4c57;
+                --text-muted: #9e7a85;
+                --border: #f3d6e0;
+                --ok: #2e7d32;
+                --ok-bg: #e8f5e9;
+                --info: #1565c0;
+                --info-bg: #e3f2fd;
+                --warn: #e65100;
+                --warn-bg: #fff3e0;
+                --danger: #c62828;
+                --shadow-sm: 0 1px 4px rgba(194, 24, 91, 0.07);
+                --shadow-md: 0 4px 18px rgba(194, 24, 91, 0.11);
+                --shadow-lg: 0 8px 36px rgba(194, 24, 91, 0.18);
+                --r: 12px;
+                --rl: 18px;
+                --navbar-h: 64px;
+                --side-w: 264px;
+            }
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                font-family: "DM Sans", sans-serif;
+                background: var(--bg);
+                color: var(--text-primary);
+                min-height: 100vh;
+            }
+            .mi {
+                font-family: "Material Icons";
+                font-size: 20px;
+                line-height: 1;
+                font-weight: 400;
+                font-style: normal;
+                display: inline-block;
+                text-transform: none;
+                letter-spacing: 0;
+            }
+            button {
+                font-family: inherit;
+                color: inherit;
+            }
+
+            /* shell */
+            .navbar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 60;
+                height: var(--navbar-h);
+                background: var(--primary);
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                padding: 0 20px;
+                box-shadow: 0 2px 12px rgba(136, 14, 79, 0.28);
+                color: #fff;
+            }
+            .hamb {
+                background: none;
+                border: 0;
+                color: #fff;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+            }
+            .brand {
+                font-family: "Playfair Display", serif;
+                font-size: 20px;
+                font-weight: 700;
+            }
+            .search {
+                flex: 1;
+                max-width: 460px;
+                margin: 0 auto 0 24px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: rgba(255, 255, 255, 0.14);
+                border: 1px solid rgba(255, 255, 255, 0.22);
+                border-radius: 26px;
+                padding: 8px 16px;
+            }
+            .search input {
+                background: none;
+                border: 0;
+                outline: 0;
+                color: #fff;
+                font: 14px "DM Sans";
+                width: 100%;
+            }
+            .search input::placeholder {
+                color: rgba(255, 255, 255, 0.65);
+            }
+            .nav-av {
+                width: 34px;
+                height: 34px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.25);
+                border: 2px solid rgba(255, 255, 255, 0.4);
+                display: grid;
+                place-items: center;
+                font-weight: 700;
+                font-size: 13px;
+            }
+            .side {
+                position: fixed;
+                top: var(--navbar-h);
+                bottom: 0;
+                left: 0;
+                width: var(--side-w);
+                background: #fff;
+                border-right: 1px solid var(--border);
+                padding: 16px 12px;
+                overflow: auto;
+                z-index: 50;
+            }
+            .side .lbl {
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1.2px;
+                color: var(--text-muted);
+                padding: 12px 12px 6px;
+            }
+            .side a {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                padding: 10px 14px;
+                border-radius: 10px;
+                font-size: 14px;
+                font-weight: 500;
+                color: var(--text-secondary);
+                cursor: pointer;
+            }
+            .side a .mi {
+                color: var(--text-muted);
+            }
+            .side a.on {
+                background: var(--primary-lighter);
+                color: var(--primary);
+                font-weight: 700;
+            }
+            .side a.on .mi {
+                color: var(--primary);
+            }
+            .side hr {
+                border: 0;
+                height: 1px;
+                background: var(--border);
+                margin: 10px 12px;
+            }
+            .main {
+                margin-left: var(--side-w);
+                padding: calc(var(--navbar-h) + 20px) 32px 90px;
+            }
+            .crumbs {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 12px;
+                color: var(--text-muted);
+                margin-bottom: 10px;
+            }
+            .crumbs b {
+                color: var(--text-primary);
+            }
+            .crumbs a {
+                color: var(--primary);
+                cursor: pointer;
+            }
+
+            /* Material-ish primitives */
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                height: 40px;
+                padding: 0 20px;
+                border-radius: 20px;
+                font: 600 14px "DM Sans";
+                cursor: pointer;
+                border: 1px solid transparent;
+                transition: 0.18s;
+                white-space: nowrap;
+            }
+            .btn .mi {
+                font-size: 18px;
+            }
+            .btn.flat {
+                background: var(--primary);
+                color: #fff;
+                box-shadow: 0 3px 10px rgba(194, 24, 91, 0.28);
+            }
+            .btn.flat:hover {
+                background: var(--primary-dark);
+            }
+            .btn.flat[disabled] {
+                background: #e6c9d4;
+                box-shadow: none;
+            }
+            .btn.stroked {
+                background: #fff;
+                color: var(--primary);
+                border-color: var(--primary-light);
+            }
+            .btn.stroked:hover {
+                background: var(--primary-lighter);
+            }
+            .btn.text {
+                background: none;
+                color: var(--primary);
+                padding: 0 12px;
+            }
+            .btn.text:hover {
+                background: var(--primary-lighter);
+            }
+            .ib {
+                background: none;
+                border: 0;
+                cursor: pointer;
+                width: 38px;
+                height: 38px;
+                border-radius: 50%;
+                display: grid;
+                place-items: center;
+                color: var(--text-secondary);
+            }
+            .ib:hover {
+                background: var(--primary-lighter);
+                color: var(--primary);
+            }
+            .ff {
+                position: relative;
+                display: flex;
+                align-items: center;
+            }
+            .ff input,
+            .ff select,
+            .ff textarea {
+                width: 100%;
+                height: 50px;
+                border: 1px solid #d9b7c4;
+                border-radius: 10px;
+                padding: 0 14px;
+                font: 15px "DM Sans";
+                background: #fff;
+                outline: 0;
+                color: var(--text-primary);
+                appearance: none;
+                -webkit-appearance: none;
+                transition: 0.15s;
+            }
+            .ff textarea {
+                height: 92px;
+                padding: 14px;
+                resize: none;
+            }
+            .ff input:focus,
+            .ff select:focus,
+            .ff textarea:focus {
+                border: 2px solid var(--primary);
+                padding-left: 13px;
+            }
+            .ff input:disabled {
+                background: #f8f2f4;
+                color: var(--text-muted);
+            }
+            .ff .lab {
+                position: absolute;
+                top: -8px;
+                left: 10px;
+                background: #fff;
+                padding: 0 4px;
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--text-muted);
+                z-index: 1;
+            }
+            .ff.s input {
+                padding-left: 44px;
+            }
+            .ff .lead {
+                position: absolute;
+                left: 14px;
+                color: var(--text-muted);
+            }
+            .ff .tail {
+                position: absolute;
+                right: 10px;
+                color: var(--text-muted);
+                pointer-events: none;
+            }
+            .hint {
+                font-size: 12px;
+                color: var(--text-muted);
+                margin: 4px 0 0 14px;
+            }
+            .bt {
+                display: inline-flex;
+                border: 1px solid #d9b7c4;
+                border-radius: 20px;
+                overflow: hidden;
+                background: #fff;
+            }
+            .bt button {
+                border: 0;
+                background: none;
+                padding: 0 16px;
+                height: 36px;
+                font: 600 13px "DM Sans";
+                cursor: pointer;
+                color: var(--text-secondary);
+                border-right: 1px solid #d9b7c4;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                white-space: nowrap;
+            }
+            .bt button:last-child {
+                border-right: 0;
+            }
+            .bt button.on {
+                background: var(--primary-lighter);
+                color: var(--primary-dark);
+            }
+            .bt.sm button {
+                height: 30px;
+                padding: 0 11px;
+                font-size: 12px;
+            }
+            .bt.sc button.on::before {
+                content: "check";
+                font-family: "Material Icons";
+                font-size: 14px;
+            }
+            .badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                padding: 2px 10px;
+                border-radius: 12px;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.4px;
+                text-transform: uppercase;
+            }
+            .badge.sys {
+                background: var(--info-bg);
+                color: var(--info);
+            }
+            .badge.cus {
+                background: #f3eef0;
+                color: var(--text-secondary);
+            }
+            .badge.on {
+                background: var(--ok-bg);
+                color: var(--ok);
+            }
+            .badge.off {
+                background: #fdecec;
+                color: var(--danger);
+            }
+            .badge i {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: currentColor;
+            }
+            .card {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--rl);
+                box-shadow: var(--shadow-sm);
+            }
+            .bar {
+                height: 6px;
+                border-radius: 3px;
+                background: var(--primary-lighter);
+                overflow: hidden;
+                min-width: 60px;
+            }
+            .bar i {
+                display: block;
+                height: 100%;
+                background: var(--primary);
+                border-radius: 3px;
+            }
+            .sw {
+                width: 36px;
+                height: 20px;
+                border-radius: 10px;
+                background: #cdb5bf;
+                position: relative;
+                display: inline-block;
+                cursor: pointer;
+                transition: 0.2s;
+                border: 0;
+                flex-shrink: 0;
+            }
+            .sw::after {
+                content: "";
+                position: absolute;
+                top: 2px;
+                left: 2px;
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                background: #fff;
+                transition: 0.2s;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+            }
+            .sw.on {
+                background: var(--primary);
+            }
+            .sw.on::after {
+                left: 18px;
+            }
+            .sw[disabled] {
+                opacity: 0.45;
+                cursor: not-allowed;
+            }
+            .cbx {
+                width: 18px;
+                height: 18px;
+                border-radius: 4px;
+                border: 2px solid #a98895;
+                background: #fff;
+                display: inline-grid;
+                place-items: center;
+                cursor: pointer;
+                padding: 0;
+                flex-shrink: 0;
+            }
+            .cbx .mi {
+                font-size: 14px;
+                color: #fff;
+                opacity: 0;
+            }
+            .cbx.on {
+                background: var(--primary);
+                border-color: var(--primary);
+            }
+            .cbx.on .mi {
+                opacity: 1;
+            }
+
+            /* header */
+            .head {
+                display: flex;
+                align-items: flex-end;
+                justify-content: space-between;
+                gap: 16px;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+            }
+            .head h1 {
+                font: 700 32px "DM Sans";
+            }
+            .head p {
+                font-size: 13px;
+                color: var(--text-muted);
+                margin-top: 3px;
+            }
+            .vtoggle {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 12px;
+                font-weight: 600;
+                color: #6a1b9a;
+                background: #f3e5f5;
+                border-radius: 16px;
+                padding: 5px 12px 5px 8px;
+                cursor: pointer;
+                border: 0;
+            }
+            .vtoggle .sw {
+                background: #ce93d8;
+            }
+            .vtoggle .sw.on {
+                background: #6a1b9a;
+            }
+
+            /* stats */
+            .stats {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 14px;
+                margin-bottom: 18px;
+            }
+            .stat {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                padding: 16px 18px;
+            }
+            .stat .i {
+                width: 42px;
+                height: 42px;
+                border-radius: 12px;
+                display: grid;
+                place-items: center;
+                background: var(--primary-lighter);
+                color: var(--primary);
+            }
+            .stat b {
+                font-size: 24px;
+                display: block;
+                line-height: 1;
+            }
+            .stat span {
+                font-size: 12px;
+                color: var(--text-muted);
+            }
+
+            /* toolbar */
+            .tool {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+                padding: 16px 18px;
+                border-bottom: 1px solid var(--border);
+            }
+            .tool .ff {
+                flex: 1;
+                min-width: 220px;
+                max-width: 380px;
+            }
+            .tool .grp {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .tool .grp > span {
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+                color: var(--text-muted);
+            }
+            .tool .res {
+                margin-left: auto;
+                font-size: 13px;
+                color: var(--text-muted);
+            }
+            .tool .res b {
+                color: var(--text-primary);
+            }
+
+            /* table */
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            th {
+                text-align: left;
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.7px;
+                color: var(--primary);
+                padding: 14px 16px;
+                white-space: nowrap;
+                border-bottom: 1px solid var(--border);
+                user-select: none;
+            }
+            th.sort {
+                cursor: pointer;
+            }
+            th.sort .mi {
+                font-size: 15px;
+                vertical-align: -3px;
+                opacity: 0.35;
+            }
+            th.sort.on .mi {
+                opacity: 1;
+            }
+            td {
+                padding: 14px 16px;
+                font-size: 14px;
+                border-bottom: 1px solid var(--border);
+                vertical-align: middle;
+            }
+            tr.row {
+                cursor: pointer;
+                transition: 0.12s;
+            }
+            tr.row:hover {
+                background: #fffafc;
+            }
+            tr.row:last-child td {
+                border-bottom: 0;
+            }
+            .rn {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                min-width: 220px;
+            }
+            .rn .av {
+                width: 38px;
+                height: 38px;
+                border-radius: 11px;
+                display: grid;
+                place-items: center;
+                color: #fff;
+                font-weight: 700;
+                flex-shrink: 0;
+            }
+            .rn b {
+                display: block;
+                font-size: 14px;
+            }
+            .rn span {
+                display: block;
+                font-size: 12px;
+                color: var(--text-muted);
+                max-width: 280px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .cell-bar {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                min-width: 130px;
+            }
+            .cell-bar b {
+                font-size: 13px;
+                min-width: 30px;
+            }
+            .cell-bar .bar {
+                flex: 1;
+            }
+            .users {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 13px;
+                color: var(--text-secondary);
+            }
+            .stk {
+                display: flex;
+            }
+            .stk i {
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                border: 2px solid #fff;
+                margin-left: -8px;
+                background: var(--primary-light);
+                display: block;
+            }
+            .stk i:first-child {
+                margin-left: 0;
+            }
+            .stk i:nth-child(2) {
+                background: #90caf9;
+            }
+            .stk i:nth-child(3) {
+                background: #a5d6a7;
+            }
+            .foot {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 18px;
+                font-size: 13px;
+                color: var(--text-muted);
+                border-top: 1px solid var(--border);
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .menu {
+                position: absolute;
+                right: 10px;
+                z-index: 30;
+                background: #fff;
+                border-radius: 10px;
+                box-shadow: var(--shadow-lg);
+                border: 1px solid var(--border);
+                min-width: 190px;
+                padding: 6px;
+                display: none;
+            }
+            .menu.show {
+                display: block;
+            }
+            .menu button {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                width: 100%;
+                border: 0;
+                background: none;
+                padding: 10px 12px;
+                border-radius: 8px;
+                font: 14px "DM Sans";
+                cursor: pointer;
+                text-align: left;
+            }
+            .menu button:hover {
+                background: var(--primary-lighter);
+            }
+            .menu .mi {
+                color: var(--text-muted);
+                font-size: 19px;
+            }
+            .menu .dg {
+                color: var(--danger);
+            }
+            .menu .dg .mi {
+                color: var(--danger);
+            }
+            .cards {
+                display: none;
+            }
+
+            /* editor */
+            .ed-head {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                margin-bottom: 6px;
+                flex-wrap: wrap;
+            }
+            .ed-head h1 {
+                font: 700 28px "DM Sans";
+            }
+            .ed-head .sp {
+                flex: 1;
+            }
+            .tabs {
+                display: flex;
+                border-bottom: 1px solid var(--border);
+                margin: 14px 0 18px;
+                overflow-x: auto;
+                scrollbar-width: none;
+            }
+            .tab {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 0 22px;
+                height: 48px;
+                border: 0;
+                background: none;
+                font: 600 14px "DM Sans";
+                color: var(--text-muted);
+                cursor: pointer;
+                border-bottom: 3px solid transparent;
+                margin-bottom: -1px;
+                white-space: nowrap;
+            }
+            .tab.on {
+                color: var(--primary);
+                border-bottom-color: var(--primary);
+            }
+            .tab:hover {
+                color: var(--primary);
+            }
+            .tab .ct {
+                font-size: 11px;
+                background: var(--primary-lighter);
+                color: var(--primary);
+                border-radius: 10px;
+                padding: 0 7px;
+                line-height: 18px;
+            }
+            .two {
+                display: grid;
+                grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+                gap: 18px;
+                align-items: start;
+            }
+            .pad {
+                padding: 22px 24px;
+            }
+            .stack {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+            .card h3 {
+                font-size: 16px;
+                font-weight: 700;
+                margin-bottom: 16px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .card h3 .mi {
+                color: var(--primary);
+            }
+            .trow {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 14px;
+                padding: 12px 0;
+                border-top: 1px solid var(--border);
+            }
+            .trow b {
+                font-size: 14px;
+                display: block;
+            }
+            .trow span {
+                font-size: 12px;
+                color: var(--text-muted);
+            }
+            .kv {
+                display: flex;
+                justify-content: space-between;
+                font-size: 13px;
+                padding: 9px 0;
+                border-top: 1px solid var(--border);
+            }
+            .kv span {
+                color: var(--text-muted);
+            }
+            .rank {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                margin-top: 6px;
+            }
+            .rk {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 12px;
+                color: var(--text-muted);
+            }
+            .rk i {
+                width: calc(var(--w) * 1%);
+                height: 8px;
+                border-radius: 4px;
+                background: var(--primary-light);
+            }
+            .rk.me i {
+                background: var(--primary);
+            }
+            .rk.me {
+                color: var(--text-primary);
+                font-weight: 700;
+            }
+            .rk b {
+                min-width: 90px;
+                font-weight: 500;
+            }
+
+            /* permission matrix */
+            .ptool {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+                padding: 14px 18px;
+                border-bottom: 1px solid var(--border);
+                position: sticky;
+                top: var(--navbar-h);
+                background: #fff;
+                z-index: 10;
+                border-radius: var(--rl) var(--rl) 0 0;
+            }
+            .ptool .ff {
+                flex: 1;
+                min-width: 200px;
+                max-width: 320px;
+            }
+            .ptool .ff input {
+                height: 42px;
+            }
+            .ptool .cnt {
+                margin-left: auto;
+                font-size: 13px;
+                color: var(--text-muted);
+            }
+            .ptool .cnt b {
+                color: var(--primary);
+                font-size: 15px;
+            }
+            .mx {
+                width: 100%;
+            }
+            .mx .mh,
+            .mx .mr {
+                display: grid;
+                grid-template-columns: minmax(170px, 1.1fr) minmax(0, 2fr) minmax(0, 2fr);
+                gap: 16px;
+                align-items: center;
+                padding: 12px 18px;
+            }
+            .mx .mh {
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+                color: var(--primary);
+                border-bottom: 1px solid var(--border);
+                background: #fffafc;
+            }
+            .mx .mr {
+                border-bottom: 1px solid var(--border);
+            }
+            .mx .mr:last-child {
+                border-bottom: 0;
+            }
+            .mx .mr:hover {
+                background: #fffcfd;
+            }
+            .mx .cat b {
+                font-size: 14px;
+                display: block;
+            }
+            .mx .cat span {
+                font-size: 11px;
+                color: var(--text-muted);
+                font-family: ui-monospace, Consolas, monospace;
+            }
+            .mx .cell {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+                min-height: 36px;
+            }
+            .mx .na {
+                font-size: 12px;
+                color: #c9b3bc;
+            }
+            .mx .grp {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 18px 6px;
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1.2px;
+                color: var(--text-muted);
+                background: var(--bg);
+            }
+            .chg {
+                box-shadow: inset 3px 0 0 var(--accent);
+                background: #fff8fb;
+            }
+            .snack {
+                position: fixed;
+                left: calc(var(--side-w) + (100vw - var(--side-w)) / 2);
+                bottom: 24px;
+                transform: translate(-50%, 200%);
+                z-index: 80;
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                background: #2a0f1b;
+                color: #fff;
+                border-radius: 14px;
+                padding: 10px 12px 10px 20px;
+                box-shadow: var(--shadow-lg);
+                transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+                font-size: 14px;
+                max-width: calc(100vw - 20px);
+            }
+            .snack.show {
+                transform: translate(-50%, 0);
+            }
+            .snack button {
+                background: none;
+                border: 0;
+                color: #ff80ab;
+                font: 700 14px "DM Sans";
+                padding: 8px 12px;
+                border-radius: 8px;
+                cursor: pointer;
+            }
+            .snack button:hover {
+                background: rgba(255, 255, 255, 0.1);
+            }
+            .ul {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                padding: 12px 20px;
+                border-bottom: 1px solid var(--border);
+            }
+            .ul:last-child {
+                border-bottom: 0;
+            }
+            .ul .a {
+                width: 38px;
+                height: 38px;
+                border-radius: 50%;
+                background: var(--primary-lighter);
+                color: var(--primary);
+                display: grid;
+                place-items: center;
+                font-weight: 700;
+            }
+            .ul b {
+                font-size: 14px;
+                display: block;
+            }
+            .ul span {
+                font-size: 12px;
+                color: var(--text-muted);
+            }
+            .ul .badge {
+                margin-left: auto;
+            }
+            .empty {
+                padding: 50px 20px;
+                text-align: center;
+                color: var(--text-muted);
+            }
+            .empty .mi {
+                font-size: 40px;
+                color: var(--primary-light);
+            }
+            .hide {
+                display: none !important;
+            }
+
+            /* Material annotation overlay */
+            body.annot [data-mat] {
+                outline: 1.5px dashed #6a1b9a;
+                outline-offset: 2px;
+                position: relative;
+            }
+            body.annot [data-mat]::before {
+                content: attr(data-mat);
+                position: absolute;
+                top: -10px;
+                left: 8px;
+                background: #6a1b9a;
+                color: #fff;
+                font: 700 9.5px "DM Sans";
+                padding: 1px 6px;
+                border-radius: 4px;
+                z-index: 40;
+                white-space: nowrap;
+                pointer-events: none;
+                letter-spacing: 0.2px;
+                text-transform: none;
+            }
+            body.annot .bt.sc button.on::before {
+                content: "check";
+            }
+            body.annot th[data-mat]::before {
+                top: -2px;
+            }
+
+            @media (max-width: 1280px) {
+                th:nth-child(4),
+                td:nth-child(4),
+                th:nth-child(5),
+                td:nth-child(5) {
+                    display: none;
+                }
+            }
+            @media (max-width: 1100px) {
+                .stats {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+                .two {
+                    grid-template-columns: 1fr;
+                }
+            }
+            @media (max-width: 820px) {
+                .tscroll {
+                    display: none !important;
+                }
+                .cards {
+                    display: block;
+                }
+                .rc {
+                    padding: 14px;
+                    border-bottom: 1px solid var(--border);
+                    display: flex;
+                    gap: 12px;
+                    align-items: flex-start;
+                    cursor: pointer;
+                }
+                .rc .bd {
+                    flex: 1;
+                    min-width: 0;
+                }
+                .rc .meta {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 6px;
+                    margin-top: 8px;
+                    align-items: center;
+                    font-size: 12px;
+                    color: var(--text-muted);
+                }
+            }
+            @media (max-width: 900px) {
+                .side {
+                    transform: translateX(-100%);
+                }
+                .main {
+                    margin-left: 0;
+                    padding: calc(var(--navbar-h) + 14px) 14px 90px;
+                }
+                .search {
+                    display: none;
+                }
+                .snack {
+                    left: 50%;
+                }
+                .mx .mh {
+                    display: none;
+                }
+                .mx .mr {
+                    grid-template-columns: 1fr;
+                    gap: 8px;
+                }
+                .mx .cell::before {
+                    content: attr(data-l);
+                    font-size: 10px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    color: var(--text-muted);
+                    width: 46px;
+                }
+            }
+            @media (max-width: 700px) {
+                .head h1 {
+                    font-size: 26px;
+                }
+                .stats {
+                    grid-template-columns: 1fr 1fr;
+                }
+                .stat {
+                    padding: 12px;
+                }
+                .stat b {
+                    font-size: 20px;
+                }
+                .tscroll {
+                    display: none;
+                }
+                .cards {
+                    display: block;
+                }
+                .rc {
+                    padding: 14px;
+                    border-bottom: 1px solid var(--border);
+                    display: flex;
+                    gap: 12px;
+                    align-items: flex-start;
+                    cursor: pointer;
+                }
+                .rc .bd {
+                    flex: 1;
+                    min-width: 0;
+                }
+                .rc .meta {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 6px;
+                    margin-top: 8px;
+                    align-items: center;
+                    font-size: 12px;
+                    color: var(--text-muted);
+                }
+                .tool .grp {
+                    width: 100%;
+                    flex-wrap: wrap;
+                }
+                .tool .res {
+                    margin-left: 0;
+                }
+                .ed-head h1 {
+                    font-size: 22px;
+                }
+                .pad {
+                    padding: 16px;
+                }
+                .tab {
+                    padding: 0 16px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <nav class="navbar">
+            <button class="hamb"><span class="mi">menu</span></button><span class="brand">Company-A2</span>
+            <div class="search"><span class="mi">search</span><input placeholder="Search pages, users..." /></div>
+            <span class="mi">notifications</span>
+            <div class="nav-av">S</div>
+        </nav>
+        <aside class="side">
+            <div class="lbl">People</div>
+            <a><span class="mi">group</span>Users Management</a
+            ><a class="on"><span class="mi">admin_panel_settings</span>Roles Management</a
+            ><a><span class="mi">security</span>Permissions</a>
+            <hr />
+            <div class="lbl">Organization</div>
+            <a><span class="mi">account_tree</span>Departments</a
+            ><a><span class="mi">device_hub</span>Sub-Departments</a><a><span class="mi">public</span>Countries</a
+            ><a><span class="mi">business</span>Offices</a><a><span class="mi">work</span>Employment Titles</a
+            ><a><span class="mi">stairs</span>Levels</a>
+        </aside>
+
+        <main class="main">
+            <!-- LIST VIEW -->
+            <section id="vList">
+                <div class="crumbs">
+                    <span class="mi" style="font-size: 16px; color: var(--primary)">home</span>›<b>Roles</b>
+                </div>
+                <div class="head">
+                    <div>
+                        <h1>Role Management</h1>
+                        <p>Define what each role can see and do. Higher levels outrank lower ones.</p>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center">
+                        <button class="vtoggle" id="annotBtn">
+                            <span class="sw" id="annotSw"></span>Show Material components
+                        </button>
+                        <button class="btn flat" id="createBtn" data-mat="button[mat-flat-button]">
+                            <span class="mi">add</span>Create Role
+                        </button>
+                    </div>
+                </div>
+                <div class="stats" id="stats"></div>
+                <div class="card" data-mat="mat-card (outlined)" style="overflow: visible">
+                    <div class="tool">
+                        <div class="ff" data-mat="mat-form-field outline + matPrefix">
+                            <span class="lab">Search</span><span class="mi lead">search</span
+                            ><input
+                                id="q"
+                                placeholder="Search roles by name or description"
+                                style="padding-left: 44px"
+                            />
+                        </div>
+                        <div class="grp">
+                            <span>Type</span>
+                            <div class="bt sm sc" data-mat="mat-button-toggle-group" id="fType"></div>
+                        </div>
+                        <div class="grp">
+                            <span>Status</span>
+                            <div class="bt sm sc" data-mat="mat-button-toggle-group" id="fStatus"></div>
+                        </div>
+                        <span class="res" id="res"></span>
+                    </div>
+                    <div class="tscroll" style="overflow: visible">
+                        <table data-mat="table[mat-table] + matSort">
+                            <thead id="thead"></thead>
+                            <tbody id="tbody"></tbody>
+                        </table>
+                    </div>
+                    <div class="cards" id="cards"></div>
+                    <div class="foot" data-mat="mat-paginator">
+                        <span id="range"></span><span>Rows per page: 10</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- EDITOR VIEW -->
+            <section id="vEdit" class="hide"></section>
+        </main>
+        <div class="snack" id="snack"></div>
+
+        <script>
+            const $ = s => document.querySelector(s),
+                esc = s =>
+                    String(s ?? "").replace(
+                        /[&<>"]/g,
+                        c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c],
+                    );
+            /* ───── permission model (mirrors category:action:scope) ───── */
+            const SC = {
+                "*": "All",
+                department: "Dept",
+                "department-country": "Dept + Country",
+                country: "Country",
+                managed: "Managed",
+                self: "Self",
+            };
+            const S6 = ["*", "department", "country", "department-country", "managed", "self"],
+                S5 = S6.slice(0, 5),
+                S1 = ["*"];
+            const CATS = [
+                ["Users", null],
+                ["usersManagement", "Users Management", S6, S5],
+                ["userCreate", "Create User", null, S5],
+                ["resetPassword", "Reset Password", null, S5],
+                ["User profile", null],
+                ["userProfile.identity", "Identity", S6, S6],
+                ["userProfile.contact", "Contact", S6, S6],
+                ["userProfile.employment", "Employment", S6, S6],
+                ["userProfile.education", "Education", S6, S6],
+                ["userProfile.compensation", "Compensation", S6, S5],
+                ["Organization", null],
+                ["countriesManagement", "Countries", S1, S1],
+                ["departmentsManagement", "Departments", S1, S1],
+                ["subDepartmentsManagement", "Sub-Departments", S1, S1],
+                ["employmentTitlesManagement", "Employment Titles", S1, S1],
+                ["levelsManagement", "Levels", S1, S1],
+                ["officesManagement", "Offices", S1, S1],
+                ["Access", null],
+                ["rolesManagement", "Roles Management", S1, S1],
+            ].map(c =>
+                c[1] === null && c.length === 2 ? { group: c[0] } : { k: c[0], n: c[1], read: c[2], write: c[3] },
+            );
+            const LEAF = CATS.filter(c => c.k);
+            const TOTAL = LEAF.reduce((s, c) => s + (c.read?.length || 0) + (c.write?.length || 0), 0);
+            const mk = () => Object.fromEntries(LEAF.map(c => [c.k, { read: new Set(), write: new Set() }]));
+            const set = (m, k, a, sc) => {
+                (Array.isArray(k) ? k : [k]).forEach(x => sc.forEach(s => m[x][a].add(s)));
+            };
+            const profs = [
+                "userProfile.identity",
+                "userProfile.contact",
+                "userProfile.employment",
+                "userProfile.education",
+            ];
+            function build(name) {
+                const m = mk();
+                if (name === "Super Admin") {
+                    LEAF.forEach(c => {
+                        c.read && set(m, c.k, "read", c.read);
+                        c.write && set(m, c.k, "write", c.write);
+                    });
+                } else if (name === "Admin") {
+                    LEAF.forEach(c => {
+                        c.read && set(m, c.k, "read", c.read);
+                        c.write &&
+                            c.k !== "rolesManagement" &&
+                            c.k !== "userProfile.compensation" &&
+                            set(m, c.k, "write", c.write);
+                    });
+                } else if (name === "HR") {
+                    set(m, ["usersManagement", "userCreate", "resetPassword"], "write", ["department-country"]);
+                    set(m, "usersManagement", "read", ["department-country"]);
+                    set(m, profs, "read", ["department-country"]);
+                    set(m, profs.slice(0, 3), "write", ["department-country"]);
+                    set(m, "userProfile.compensation", "read", ["department-country"]);
+                    set(m, ["officesManagement", "departmentsManagement", "countriesManagement"], "read", ["*"]);
+                } else if (name === "Department Head") {
+                    set(m, "usersManagement", "read", ["department"]);
+                    set(m, profs.slice(0, 3), "read", ["department"]);
+                    set(m, "usersManagement", "write", ["department"]);
+                    set(m, "departmentsManagement", "read", ["*"]);
+                } else if (name === "Manager") {
+                    set(m, "usersManagement", "read", ["managed", "self"]);
+                    set(m, profs.slice(0, 3), "read", ["managed", "self"]);
+                    set(m, profs.slice(0, 2), "write", ["self"]);
+                } else if (name === "Employee") {
+                    set(m, ["usersManagement", ...profs], "read", ["self"]);
+                    set(m, profs.slice(0, 2), "write", ["self"]);
+                } else if (name === "Test1") {
+                    set(m, "usersManagement", "read", ["self"]);
+                }
+                return m;
+            }
+            const cnt = m => LEAF.reduce((s, c) => s + m[c.k].read.size + m[c.k].write.size, 0);
+            const COLOR = {
+                "Super Admin": "#e74b48",
+                Admin: "#eb8d36",
+                HR: "#4ea8e4",
+                Manager: "#48db85",
+                Employee: "#6b6d6d",
+                "Department Head": "#8E24AA",
+                Test1: "#9E7A85",
+                test: "#9E7A85",
+            };
+            let roles = [
+                {
+                    id: 1,
+                    name: "Test1",
+                    desc: "Test1",
+                    level: 15,
+                    sys: false,
+                    active: false,
+                    users: 0,
+                    created: "3/27/26",
+                },
+                {
+                    id: 2,
+                    name: "Manager",
+                    desc: "Department/team manager – team-level access",
+                    level: 40,
+                    sys: true,
+                    active: true,
+                    users: 11,
+                    created: "5/8/26",
+                },
+                {
+                    id: 3,
+                    name: "Super Admin",
+                    desc: "Full access",
+                    level: 99,
+                    sys: true,
+                    active: true,
+                    users: 1,
+                    created: "5/8/26",
+                },
+                {
+                    id: 4,
+                    name: "Employee",
+                    desc: "Regular employee – own data only",
+                    level: 10,
+                    sys: true,
+                    active: true,
+                    users: 3,
+                    created: "5/8/26",
+                },
+                {
+                    id: 5,
+                    name: "HR",
+                    desc: "HR staff – employee and leave management",
+                    level: 50,
+                    sys: true,
+                    active: true,
+                    users: 14,
+                    created: "5/8/26",
+                },
+                {
+                    id: 6,
+                    name: "Admin",
+                    desc: "Admin",
+                    level: 80,
+                    sys: true,
+                    active: true,
+                    users: 10,
+                    created: "5/8/26",
+                },
+                { id: 7, name: "test", desc: "t", level: 55, sys: false, active: false, users: 0, created: "6/8/26" },
+                {
+                    id: 8,
+                    name: "Department Head",
+                    desc: "Role of DEP HEAD. Grants permissions to users of his department",
+                    level: 70,
+                    sys: false,
+                    active: true,
+                    users: 10,
+                    created: "6/13/26",
+                },
+            ].map(r => ({ ...r, perm: build(r.name) }));
+            const S = { q: "", type: "all", status: "all", sort: "level", dir: -1 };
+
+            /* ───── list ───── */
+            const seg = (el, opts, key) => {
+                $(el).innerHTML = opts
+                    .map(([v, l]) => `<button data-seg="${key}|${v}" class="${S[key] === v ? "on" : ""}">${l}</button>`)
+                    .join("");
+            };
+            function list() {
+                seg(
+                    "#fType",
+                    [
+                        ["all", "All"],
+                        ["system", "System"],
+                        ["custom", "Custom"],
+                    ],
+                    "type",
+                );
+                seg(
+                    "#fStatus",
+                    [
+                        ["all", "All"],
+                        ["active", "Active"],
+                        ["inactive", "Inactive"],
+                    ],
+                    "status",
+                );
+                let r = roles.filter(
+                    x =>
+                        (!S.q || (x.name + x.desc).toLowerCase().includes(S.q.toLowerCase())) &&
+                        (S.type === "all" || (S.type === "system") === x.sys) &&
+                        (S.status === "all" || (S.status === "active") === x.active),
+                );
+                r.sort((a, b) => {
+                    const va = S.sort === "perm" ? cnt(a.perm) : a[S.sort],
+                        vb = S.sort === "perm" ? cnt(b.perm) : b[S.sort];
+                    return (va > vb ? 1 : va < vb ? -1 : 0) * S.dir;
+                });
+                $("#stats").innerHTML = [
+                    ["admin_panel_settings", roles.length, "Total roles"],
+                    ["verified", roles.filter(x => x.sys).length, "System roles"],
+                    ["tune", roles.filter(x => !x.sys).length, "Custom roles"],
+                    ["person_off", roles.filter(x => !x.active).length, "Inactive"],
+                ]
+                    .map(
+                        ([i, n, l]) =>
+                            `<div class="card stat" data-mat="mat-card"><div class="i"><span class="mi">${i}</span></div><div><b>${n}</b><span>${l}</span></div></div>`,
+                    )
+                    .join("");
+                const th = (k, l, sortable = true) =>
+                    `<th class="${sortable ? "sort" : ""} ${S.sort === k ? "on" : ""}" ${sortable ? `data-sort="${k}"` : ""}>${l}${sortable ? `<span class="mi">${S.sort === k && S.dir === 1 ? "arrow_upward" : "arrow_downward"}</span>` : ""}</th>`;
+                $("#thead").innerHTML =
+                    `<tr>${th("name", "Role")}${th("level", "Level")}${th("perm", "Permissions")}${th("users", "Users")}${th("sys", "Type", false)}${th("active", "Status", false)}<th style="text-align:right">Actions</th></tr>`;
+                $("#tbody").innerHTML = r.length
+                    ? r
+                          .map(x => {
+                              const c = cnt(x.perm);
+                              return `<tr class="row" data-open="${x.id}"><td><div class="rn"><div class="av" style="background:${COLOR[x.name] || "#C2185B"}">${esc(x.name[0].toUpperCase())}</div><div><b>${esc(x.name)}</b><span>${esc(x.desc)}</span></div></div></td>
+   <td><div class="cell-bar" data-mat="mat-progress-bar"><b>${x.level}</b><div class="bar"><i style="width:${x.level}%"></i></div></div></td>
+   <td><div class="cell-bar"><b>${c}</b><div class="bar"><i style="width:${(c / TOTAL) * 100}%"></i></div></div></td>
+   <td><div class="users"><div class="stk">${"<i></i>".repeat(Math.min(3, x.users))}</div>${x.users ? x.users : '<span class="dim" style="color:var(--text-muted)">None</span>'}</div></td>
+   <td><span class="badge ${x.sys ? "sys" : "cus"}">${x.sys ? "System" : "Custom"}</span></td>
+   <td><span style="display:inline-flex;align-items:center;gap:8px"><button class="sw ${x.active ? "on" : ""}" data-tog="${x.id}" ${x.sys ? "disabled" : ""} aria-label="Toggle active" data-mat="mat-slide-toggle"></button><span style="font-size:12px;color:var(--text-muted)">${x.active ? "Active" : "Inactive"}</span></span></td>
+   <td style="text-align:right;position:relative"><button class="ib" data-open="${x.id}" aria-label="Edit role"><span class="mi">edit</span></button><button class="ib" data-menu="${x.id}" aria-label="More actions" data-mat="mat-menu"><span class="mi">more_vert</span></button>
+    <div class="menu" id="m${x.id}"><button data-open="${x.id}"><span class="mi">edit</span>Edit</button><button data-dup="${x.id}"><span class="mi">content_copy</span>Duplicate</button><button data-users="${x.id}"><span class="mi">group</span>View ${x.users} users</button>${x.sys ? "" : `<button class="dg" data-del="${x.id}"><span class="mi">delete</span>Delete</button>`}</div></td></tr>`;
+                          })
+                          .join("")
+                    : `<tr><td colspan="7"><div class="empty"><span class="mi">search_off</span><p>No roles match these filters.</p></div></td></tr>`;
+                $("#cards").innerHTML = r
+                    .map(
+                        x =>
+                            `<div class="rc" data-open="${x.id}"><div class="rn" style="min-width:0"><div class="av" style="background:${COLOR[x.name] || "#C2185B"}">${esc(x.name[0].toUpperCase())}</div></div><div class="bd"><b>${esc(x.name)}</b><span style="font-size:12px;color:var(--text-muted)">${esc(x.desc)}</span><div class="meta"><span class="badge ${x.sys ? "sys" : "cus"}">${x.sys ? "System" : "Custom"}</span><span class="badge ${x.active ? "on" : "off"}"><i></i>${x.active ? "Active" : "Inactive"}</span><span>Lvl ${x.level}</span><span>${cnt(x.perm)} perms</span><span>${x.users} users</span></div></div></div>`,
+                    )
+                    .join("");
+                $("#res").innerHTML = `<b>${r.length}</b> role${r.length === 1 ? "" : "s"}`;
+                $("#range").textContent = `1–${r.length} of ${r.length}`;
+            }
+            /* ───── editor ───── */
+            let E = null;
+            function openEditor(id, fresh) {
+                const src = fresh ? null : roles.find(r => r.id === id);
+                E = {
+                    isNew: !src,
+                    src,
+                    name: src?.name || "",
+                    desc: src?.desc || "",
+                    level: src?.level || "",
+                    active: src ? src.active : true,
+                    sys: !!src?.sys,
+                    perm: src ? clone(src.perm) : mk(),
+                    orig: src ? clone(src.perm) : mk(),
+                    tab: "details",
+                    q: "",
+                    filter: "all",
+                    users: src?.users || 0,
+                };
+                if (fresh && id)
+                    Object.assign(E, { perm: clone(roles.find(r => r.id === id).perm), name: "", desc: "", level: "" });
+                $("#vList").classList.add("hide");
+                $("#vEdit").classList.remove("hide");
+                scrollTo(0, 0);
+                drawEditor();
+            }
+            const clone = m =>
+                Object.fromEntries(
+                    Object.entries(m).map(([k, v]) => [k, { read: new Set(v.read), write: new Set(v.write) }]),
+                );
+            const changes = () =>
+                LEAF.reduce(
+                    (s, c) =>
+                        s +
+                        ["read", "write"].reduce((t, a) => {
+                            const A = E.perm[c.k][a],
+                                B = E.orig[c.k][a];
+                            return t + [...A].filter(x => !B.has(x)).length + [...B].filter(x => !A.has(x)).length;
+                        }, 0),
+                    0,
+                );
+            function drawEditor() {
+                const n = cnt(E.perm),
+                    ch = changes();
+                const usersList = ["Saros", "HR Greece", "HR Italy", "Eleni Stavrou", "Nikos Papadopoulos"];
+                $("#vEdit").innerHTML = `
+   <div class="crumbs"><span class="mi" style="font-size:16px;color:var(--primary)">home</span>›<a data-back>Roles</a>›<b>${E.isNew ? "New role" : esc(E.name)}</b></div>
+   <div class="ed-head"><button class="ib" data-back aria-label="Back to roles"><span class="mi">arrow_back</span></button><h1>${E.isNew ? "Create Role" : "Edit Role"}</h1>${E.src ? `<span class="badge ${E.sys ? "sys" : "cus"}">${E.sys ? "System role" : "Custom role"}</span>` : ""}<span class="sp"></span>
+    <button class="btn stroked" data-back data-mat="button[mat-stroked-button]">Cancel</button><button class="btn flat" data-save ${E.name && E.level ? "" : "disabled"} data-mat="button[mat-flat-button]"><span class="mi">save</span>${E.isNew ? "Create role" : "Save changes"}</button></div>
+   <div class="tabs" data-mat="mat-tab-group (nav tabs)"><button class="tab ${E.tab === "details" ? "on" : ""}" data-tab="details"><span class="mi">tune</span>Details</button><button class="tab ${E.tab === "perms" ? "on" : ""}" data-tab="perms"><span class="mi">lock_open</span>Permissions<span class="ct">${n}</span></button><button class="tab ${E.tab === "users" ? "on" : ""}" data-tab="users"><span class="mi">group</span>Users<span class="ct">${E.users}</span></button></div>
+   ${
+       E.tab === "details"
+           ? `<div class="two"><div class="card pad" data-mat="mat-card"><h3><span class="mi">badge</span>Role details</h3><div class="stack">
+      <div><div class="ff" data-mat="mat-form-field outline"><span class="lab">Role Name*</span><input data-f="name" value="${esc(E.name)}" placeholder="e.g. Regional Manager" ${E.sys ? "disabled" : ""}></div>${E.sys ? '<div class="hint">Name cannot be changed for system roles</div>' : ""}</div>
+      <div><div class="ff" data-mat="mat-form-field + textarea matInput"><span class="lab">Description</span><textarea data-f="desc" maxlength="255" placeholder="What is this role for?">${esc(E.desc)}</textarea></div><div class="hint">${E.desc.length}/255</div></div>
+      <div><div class="ff" data-mat="mat-form-field + input[type=number]"><span class="lab">Level*</span><input data-f="level" type="number" min="1" max="100" value="${E.level}" ${E.sys ? "disabled" : ""}></div><div class="hint">${E.sys ? "Level cannot be changed for system roles" : "Hierarchy level (higher = more powerful)"}</div></div>
+      ${E.isNew ? `<div class="ff" data-mat="mat-form-field + mat-select"><span class="lab">Start from</span><select data-copy><option value="">Blank role</option>${roles.map(r => `<option value="${r.id}">Copy of ${esc(r.name)}</option>`).join("")}</select><span class="mi tail">arrow_drop_down</span></div>` : ""}
+      <div class="trow" style="padding-bottom:0"><div><b>Active</b><span>Inactive roles can't be assigned to new users</span></div><button class="sw ${E.active ? "on" : ""}" data-active aria-label="Active" data-mat="mat-slide-toggle"></button></div></div></div>
+     <div class="stack"><div class="card pad" data-mat="mat-card"><h3><span class="mi">insights</span>Summary</h3>
+      <div class="kv" style="border-top:0"><span>Permissions granted</span><b>${n} / ${TOTAL}</b></div><div class="bar" style="margin:4px 0 10px" data-mat="mat-progress-bar"><i style="width:${(n / TOTAL) * 100}%"></i></div>
+      <div class="kv"><span>Users with this role</span><b>${E.users}</b></div><div class="kv"><span>Created</span><b>${E.src?.created || "—"}</b></div>
+      <div class="d" style="margin-top:14px;font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px">Where it sits in the hierarchy</div>
+      <div class="rank">${[
+          ...roles.filter(r => !E.src || r.id !== E.src.id),
+          { name: E.name || "This role", level: +E.level || 0, me: 1 },
+      ]
+          .sort((a, b) => b.level - a.level)
+          .map(
+              r =>
+                  `<div class="rk ${r.me ? "me" : ""}"><b>${esc(r.name)}</b><i style="--w:${r.level}"></i>${r.level}</div>`,
+          )
+          .join("")}</div></div></div></div>`
+           : ""
+   }
+   ${E.tab === "perms" ? permsTab() : ""}
+   ${
+       E.tab === "users"
+           ? `<div class="card" data-mat="mat-selection-list / mat-list">${
+                 E.users
+                     ? usersList
+                           .slice(0, Math.min(5, E.users))
+                           .map(
+                               u =>
+                                   `<div class="ul"><div class="a">${u[0]}</div><div><b>${u}</b><span>${u.toLowerCase().replace(/\s/g, ".")}@company.com</span></div><span class="badge on">Active</span></div>`,
+                           )
+                           .join("") +
+                       (E.users > 5
+                           ? `<div class="ul"><span>+ ${E.users - 5} more</span><button class="btn text" style="margin-left:auto">Open in Users</button></div>`
+                           : "")
+                     : '<div class="empty"><span class="mi">group_off</span><p>No users have this role yet.</p></div>'
+             }</div>`
+           : ""
+   }`;
+                const sn = $("#snack");
+                if (ch && !E.isNew && E.tab !== "users") {
+                    sn.innerHTML = `<span>${ch} unsaved permission change${ch === 1 ? "" : "s"}</span><button data-undoall>Reset</button><button data-save>Save</button>`;
+                    sn.classList.add("show");
+                } else sn.classList.remove("show");
+            }
+            function permsTab() {
+                const n = cnt(E.perm),
+                    q = E.q.toLowerCase();
+                let out = "",
+                    lastGroup = null;
+                CATS.forEach(c => {
+                    if (c.group) {
+                        lastGroup = c.group;
+                        return;
+                    }
+                    if (q && !c.n.toLowerCase().includes(q)) return;
+                    const has = a => E.perm[c.k][a].size > 0;
+                    if (E.filter === "granted" && !(has("read") || has("write"))) return;
+                    if (E.filter === "none" && (has("read") || has("write"))) return;
+                    if (lastGroup) {
+                        out += `<div class="grp">${lastGroup}</div>`;
+                        lastGroup = null;
+                    }
+                    const cell = a => {
+                        const sc = c[a];
+                        if (!sc) return `<div class="cell"><span class="na">Not applicable</span></div>`;
+                        if (sc.length === 1)
+                            return `<div class="cell" data-l="${a}"><span class="sw ${E.perm[c.k][a].has("*") ? "on" : ""}" data-pt="${c.k}|${a}|*" role="switch" tabindex="0" data-mat="mat-slide-toggle"></span><span style="font-size:13px;color:var(--text-secondary)">${E.perm[c.k][a].has("*") ? "Allowed" : "Not allowed"}</span></div>`;
+                        return `<div class="cell" data-l="${a}"><div class="bt sm sc" data-mat="mat-button-toggle-group multiple">${sc.map(s => `<button class="${E.perm[c.k][a].has(s) ? "on" : ""}" data-pt="${c.k}|${a}|${s}" aria-pressed="${E.perm[c.k][a].has(s)}">${SC[s]}</button>`).join("")}</div></div>`;
+                    };
+                    const diff = ["read", "write"].some(
+                        a =>
+                            [...E.perm[c.k][a]].some(x => !E.orig[c.k][a].has(x)) ||
+                            [...E.orig[c.k][a]].some(x => !E.perm[c.k][a].has(x)),
+                    );
+                    out += `<div class="mr ${diff ? "chg" : ""}"><div class="cat"><b>${c.n}</b><span>${c.k}</span></div>${cell("read")}${cell("write")}</div>`;
+                });
+                return `<div class="card" data-mat="mat-card" style="overflow:visible"><div class="ptool">
+    <div class="ff" data-mat="mat-form-field outline"><span class="lab">Filter</span><span class="mi lead">search</span><input data-pq value="${esc(E.q)}" placeholder="Filter areas" style="padding-left:44px"></div>
+    <div class="bt sm sc" data-mat="mat-button-toggle-group">${[
+        ["all", "All"],
+        ["granted", "Granted"],
+        ["none", "Not granted"],
+    ]
+        .map(([v, l]) => `<button class="${E.filter === v ? "on" : ""}" data-pf="${v}">${l}</button>`)
+        .join("")}</div>
+    <button class="btn stroked" data-presetmenu style="height:36px;position:relative" data-mat="button[mat-stroked-button] + mat-menu"><span class="mi">bolt</span>Presets<span class="mi">arrow_drop_down</span></button>
+    <span class="cnt"><b>${n}</b> / ${TOTAL} granted</span></div>
+    <div class="menu" id="presetMenu" style="right:auto;left:360px;top:64px"><button data-preset="read"><span class="mi">visibility</span>Read-only everywhere</button><button data-preset="self"><span class="mi">person</span>Own data only</button><button data-preset="clear"><span class="mi">block</span>Clear all</button><button data-preset="full"><span class="mi">done_all</span>Full access</button></div>
+    <div class="mx" data-mat="mat-table (grid) or mat-expansion-panel per group"><div class="mh"><span>Area</span><span>Read</span><span>Write</span></div>${out || '<div class="empty"><span class="mi">search_off</span><p>No areas match.</p></div>'}</div></div>
+    <p class="hint" style="margin-top:10px">Choose where each action applies. <b>All</b> covers everyone, narrower scopes limit it to a department, country, a manager's team, or the person's own record.</p>`;
+            }
+            /* ───── events ───── */
+            let snackT;
+            function toast(msg) {
+                const s = $("#snack");
+                s.innerHTML = `<span>${msg}</span>`;
+                s.classList.add("show");
+                clearTimeout(snackT);
+                snackT = setTimeout(() => s.classList.remove("show"), 3000);
+            }
+            document.addEventListener("click", e => {
+                const t = e.target.closest(
+                    "[data-seg],[data-sort],[data-open],[data-tog],[data-menu],[data-dup],[data-del],[data-users],#createBtn,#annotBtn,[data-back],[data-tab],[data-save],[data-undoall],[data-active],[data-pt],[data-pf],[data-presetmenu],[data-preset]",
+                );
+                if (!t) {
+                    document.querySelectorAll(".menu.show").forEach(m => m.classList.remove("show"));
+                    return;
+                }
+                if (t.id === "annotBtn") {
+                    document.body.classList.toggle("annot");
+                    $("#annotSw").classList.toggle("on");
+                } else if (t.dataset.seg) {
+                    const [k, v] = t.dataset.seg.split("|");
+                    S[k] = v;
+                    list();
+                } else if (t.dataset.sort) {
+                    S.dir = S.sort === t.dataset.sort ? -S.dir : 1;
+                    S.sort = t.dataset.sort;
+                    list();
+                } else if (t.dataset.tog) {
+                    e.stopPropagation();
+                    const r = roles.find(x => x.id == t.dataset.tog);
+                    r.active = !r.active;
+                    list();
+                    toast(`${r.name} is now ${r.active ? "active" : "inactive"}`);
+                } else if (t.dataset.menu) {
+                    e.stopPropagation();
+                    const m = $("#m" + t.dataset.menu),
+                        was = m.classList.contains("show");
+                    document.querySelectorAll(".menu.show").forEach(x => x.classList.remove("show"));
+                    if (!was) m.classList.add("show");
+                } else if (t.dataset.dup) {
+                    const r = roles.find(x => x.id == t.dataset.dup);
+                    openEditor(r.id, true);
+                    E.name = r.name + " (copy)";
+                    E.sys = false;
+                    E.isNew = true;
+                    drawEditor();
+                } else if (t.dataset.del) {
+                    const i = roles.findIndex(x => x.id == t.dataset.del);
+                    const [r] = roles.splice(i, 1);
+                    list();
+                    toast(`${r.name} deleted`);
+                } else if (t.dataset.users) {
+                    openEditor(+t.dataset.users);
+                    E.tab = "users";
+                    drawEditor();
+                } else if (t.dataset.open) {
+                    openEditor(+t.dataset.open);
+                } else if (t.id === "createBtn") {
+                    openEditor(null, true);
+                } else if (t.hasAttribute("data-back")) {
+                    $("#vEdit").classList.add("hide");
+                    $("#vList").classList.remove("hide");
+                    $("#snack").classList.remove("show");
+                    E = null;
+                    list();
+                } else if (t.dataset.tab) {
+                    E.tab = t.dataset.tab;
+                    drawEditor();
+                } else if (t.hasAttribute("data-active")) {
+                    E.active = !E.active;
+                    drawEditor();
+                } else if (t.dataset.pt) {
+                    const [k, a, s] = t.dataset.pt.split("|"),
+                        X = E.perm[k][a];
+                    X.has(s) ? X.delete(s) : X.add(s);
+                    const y = scrollY;
+                    drawEditor();
+                    scrollTo(0, y);
+                } else if (t.dataset.pf) {
+                    E.filter = t.dataset.pf;
+                    drawEditor();
+                } else if (t.hasAttribute("data-presetmenu")) {
+                    e.stopPropagation();
+                    $("#presetMenu").classList.toggle("show");
+                } else if (t.dataset.preset) {
+                    const p = t.dataset.preset;
+                    LEAF.forEach(c =>
+                        ["read", "write"].forEach(a => {
+                            const X = E.perm[c.k][a];
+                            X.clear();
+                            if (!c[a]) return;
+                            if (p === "full") c[a].forEach(s => X.add(s));
+                            if (p === "read" && a === "read") X.add(c.read.includes("*") ? "*" : c.read[0]);
+                            if (p === "self" && c[a].includes("self") && c.k.startsWith("user") && c.k !== "userCreate")
+                                X.add("self");
+                        }),
+                    );
+                    drawEditor();
+                } else if (t.hasAttribute("data-undoall")) {
+                    E.perm = clone(E.orig);
+                    drawEditor();
+                } else if (t.hasAttribute("data-save")) {
+                    if (E.isNew) {
+                        roles.push({
+                            id: Date.now(),
+                            name: E.name,
+                            desc: E.desc,
+                            level: +E.level,
+                            sys: false,
+                            active: E.active,
+                            users: 0,
+                            created: "today",
+                            perm: clone(E.perm),
+                        });
+                    } else {
+                        Object.assign(E.src, {
+                            name: E.name,
+                            desc: E.desc,
+                            level: +E.level || E.src.level,
+                            active: E.active,
+                            perm: clone(E.perm),
+                        });
+                    }
+                    const nm = E.name;
+                    $("#vEdit").classList.add("hide");
+                    $("#vList").classList.remove("hide");
+                    E = null;
+                    list();
+                    toast(`${nm} saved`);
+                }
+            });
+            document.addEventListener("input", e => {
+                if (e.target.id === "q") {
+                    S.q = e.target.value;
+                    list();
+                    return;
+                }
+                if (!E) return;
+                if (e.target.dataset.f) {
+                    E[e.target.dataset.f] = e.target.value;
+                    const p = e.target.selectionStart,
+                        f = e.target.dataset.f;
+                    drawEditor();
+                    const i = document.querySelector(`[data-f="${f}"]`);
+                    i.focus();
+                    try {
+                        i.setSelectionRange(p, p);
+                    } catch (_) {}
+                } else if (e.target.dataset.pq !== undefined) {
+                    E.q = e.target.value;
+                    const p = e.target.selectionStart;
+                    drawEditor();
+                    const i = document.querySelector("[data-pq]");
+                    i.focus();
+                    i.setSelectionRange(p, p);
+                }
+            });
+            document.addEventListener("change", e => {
+                if (e.target.dataset.copy !== undefined && E) {
+                    const r = roles.find(x => x.id == e.target.value);
+                    E.perm = r ? clone(r.perm) : mk();
+                    drawEditor();
+                }
+            });
+            list();
+        </script>
+    </body>
+</html>
