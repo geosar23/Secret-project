@@ -8,12 +8,6 @@
     margin: 0 auto;
 }
 
-.loading-container {
-    display: flex;
-    justify-content: center;
-    padding: var(--spacing-2xl);
-}
-
 // ── Hero ──
 .hero-card {
     overflow: hidden;
@@ -88,7 +82,7 @@
     background: linear-gradient(135deg, var(--color-primary-700), var(--color-primary-400));
     color: var(--color-text-on-primary);
     font-size: var(--font-size-4xl);
-    font-weight: var(--font-weight-bold);
+    font-weight: var(--font-weight-medium);
 }
 
 .avatar-overlay {
@@ -136,7 +130,7 @@
     padding: var(--spacing-3xs) var(--spacing-sm-plus);
     border-radius: var(--radius-pill);
     font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-medium);
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -223,16 +217,14 @@
 }
 
 .fact-label {
-    font-size: var(--font-size-2xs);
-    font-weight: var(--font-weight-bold);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
     color: var(--color-text-secondary);
 }
 
 .fact-value {
     font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-medium);
     color: var(--color-text-primary);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -265,8 +257,8 @@
     background: none;
     color: var(--color-text-secondary);
     font: inherit;
-    font-size: var(--font-size-sm-plus);
-    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
     white-space: nowrap;
     cursor: pointer;
     transition:
@@ -307,12 +299,9 @@
     gap: var(--spacing-lg);
 }
 
+// Global .card (styles.scss) supplies background, border, radius and shadow.
 .card {
     padding: var(--spacing-lg) var(--spacing-lg-minus);
-    background: var(--color-bg-primary);
-    border: 1px solid var(--color-primary-100);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
 }
 
 .card-title {
@@ -321,7 +310,7 @@
     gap: var(--spacing-sm-plus);
     margin: 0 0 var(--spacing-lg);
     font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-bold);
+    font-weight: var(--font-weight-medium);
     color: var(--color-text-primary);
 
     mat-icon {
@@ -350,15 +339,13 @@
     }
 
     .label {
-        font-size: var(--font-size-2xs);
-        font-weight: var(--font-weight-bold);
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-medium);
         color: var(--color-text-secondary);
     }
 
     .value {
-        font-size: var(--font-size-sm-plus);
+        font-size: var(--font-size-sm);
         font-weight: var(--font-weight-medium);
         color: var(--color-text-primary);
         line-height: var(--line-height-normal);
@@ -389,7 +376,7 @@
     background: var(--color-bg-primary);
     color: var(--color-text-secondary);
     font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-medium);
     overflow-wrap: anywhere;
 }
 
@@ -403,7 +390,7 @@
     color: var(--color-error);
 }
 
-.empty-state {
+.empty-note {
     margin: 0;
     padding: var(--spacing-md);
     border: 1px dashed var(--color-border);
@@ -436,7 +423,7 @@
     background: var(--color-primary-600);
     color: var(--color-text-on-primary);
     font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-bold);
+    font-weight: var(--font-weight-medium);
 }
 
 .person-text {
@@ -469,7 +456,7 @@
 
     .edu-title {
         font-size: var(--font-size-sm);
-        font-weight: var(--font-weight-semibold);
+        font-weight: var(--font-weight-medium);
         color: var(--color-text-primary);
     }
 
@@ -524,7 +511,7 @@
     min-width: 0;
 
     b {
-        font-size: var(--font-size-sm-plus);
+        font-size: var(--font-size-sm);
     }
 
     span {
@@ -620,11 +607,11 @@
     }
 
     .fact-label {
-        font-size: 0.5625rem;
+        font-size: var(--font-size-xs);
     }
 
     .fact-value {
-        font-size: var(--font-size-xs-plus);
+        font-size: var(--font-size-xs);
     }
 
     // Sticky five-up tab bar: icon over label, no sideways scrolling.
@@ -647,7 +634,7 @@
         justify-content: center;
         gap: var(--spacing-3xs);
         padding: var(--spacing-sm) var(--spacing-3xs) var(--spacing-sm-plus);
-        font-size: var(--font-size-2xs);
+        font-size: var(--font-size-xs);
 
         mat-icon {
             width: 1.3rem;

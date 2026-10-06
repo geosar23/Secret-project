@@ -146,7 +146,7 @@
                             }
                         </div>
                         @if (!hasIdentityInfo) {
-                            <p class="empty-state">No identity information available.</p>
+                            <p class="empty-note">No identity information available.</p>
                         }
                     </section>
 
@@ -167,7 +167,7 @@
                             }
                         </div>
                         @if (!profile.workPhone && !profile.personalEmail) {
-                            <p class="empty-state">No contact information available.</p>
+                            <p class="empty-note">No contact information available.</p>
                         }
                     </section>
                 </div>
@@ -197,7 +197,7 @@
                                 </div>
                             }
                         } @else {
-                            <p class="empty-state">No manager assigned.</p>
+                            <p class="empty-note">No manager assigned.</p>
                         }
                     </section>
 
@@ -278,7 +278,7 @@
                         }
                     </div>
                     @if (!hasIdentityInfo && !profile.gender && !profile.maritalStatus && !profile.religion) {
-                        <p class="empty-state">No identity information available.</p>
+                        <p class="empty-note">No identity information available.</p>
                     }
                 </section>
             </div>
@@ -357,7 +357,7 @@
                         }
                     </div>
                     @if (!hasContactInfo) {
-                        <p class="empty-state">No contact information available.</p>
+                        <p class="empty-note">No contact information available.</p>
                     }
                 </section>
             </div>
@@ -452,7 +452,7 @@
                             }
                         </div>
                     } @else {
-                        <p class="empty-state">No education information available.</p>
+                        <p class="empty-note">No education information available.</p>
                     }
                 </section>
 
