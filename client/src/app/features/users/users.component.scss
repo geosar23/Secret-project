@@ -12,6 +12,11 @@
     gap: var(--spacing-md);
     margin-bottom: var(--spacing-lg);
 
+    p {
+        margin: var(--spacing-xs) 0 0;
+        font-size: var(--font-size-sm-minus);
+    }
+
     .header-actions {
         display: flex;
         gap: var(--spacing-sm-plus);
