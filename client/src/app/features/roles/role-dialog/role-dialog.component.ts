@@ -50,6 +50,10 @@ export class RoleDialogComponent implements OnInit {
     form: FormGroup = this.fb.group({
         name: [this.data.role?.name ?? "", [Validators.required, Validators.minLength(2)]],
         description: [this.data.role?.description ?? "", [Validators.maxLength(255)]],
+        level: [
+            this.data.role?.level ?? 55,
+            [Validators.required, Validators.min(1), Validators.max(100), Validators.pattern(/^\d+$/)],
+        ],
         isActive: [this.data.role?.isActive ?? true],
         permissions: [this.data.role?.permissions ?? []],
     });
@@ -57,6 +61,7 @@ export class RoleDialogComponent implements OnInit {
     ngOnInit(): void {
         if (this.isEdit && this.isSystemRole) {
             this.form.get("name")?.disable();
+            this.form.get("level")?.disable();
         }
     }
 
@@ -78,9 +83,10 @@ export class RoleDialogComponent implements OnInit {
         this.loading = true;
         this.dialogRef.disableClose = true;
 
-        const { name, description, isActive, permissions } = this.form.value as {
+        const { name, description, level, isActive, permissions } = this.form.value as {
             name: string;
             description: string;
+            level?: number;
             isActive: boolean;
             permissions: string[];
         };
@@ -89,12 +95,14 @@ export class RoleDialogComponent implements OnInit {
             ? this.roleService.updateRole(this.data.role!._id as string, {
                   name,
                   description,
+                  level,
                   isActive,
                   permissions,
               })
             : this.roleService.createRole({
                   name,
                   description,
+                  level,
                   permissions,
               });
 

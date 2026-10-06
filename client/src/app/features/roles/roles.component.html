@@ -57,6 +57,12 @@
                 <mat-cell *matCellDef="let role" data-label="Description">{{ role.description || "-" }}</mat-cell>
             </ng-container>
 
+            <!-- Level Column -->
+            <ng-container matColumnDef="level">
+                <mat-header-cell *matHeaderCellDef>Level</mat-header-cell>
+                <mat-cell *matCellDef="let role" data-label="Level">{{ role.level ?? "-" }}</mat-cell>
+            </ng-container>
+
             <!-- Permissions Column -->
             <ng-container matColumnDef="permissions">
                 <mat-header-cell *matHeaderCellDef>Permissions</mat-header-cell>

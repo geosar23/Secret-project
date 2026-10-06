@@ -7,6 +7,9 @@ import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface
 import { UserService } from "../services/user.service";
 import { findActiveDependents } from "../services/dependency.service";
 
+const isValidLevel = (level: unknown): level is number =>
+    typeof level === "number" && Number.isInteger(level) && level >= 1 && level <= 100;
+
 /**
  * Controller for role management
  */
@@ -88,14 +91,19 @@ export class RoleController {
     static async createRole(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const user = req.decoded as tokenPayload;
-            const { name, description, permissions } = req.body as {
+            const { name, description, level, permissions } = req.body as {
                 name?: string;
                 description?: string;
+                level?: number;
                 permissions?: string[];
             };
 
             if (!name || typeof name !== "string" || name.trim().length < 2) {
                 res.json(softError("Role name is required (min 2 characters)"));
+                return;
+            }
+            if (level !== undefined && !isValidLevel(level)) {
+                res.json(softError("Level must be a whole number between 1 and 100"));
                 return;
             }
 
@@ -109,7 +117,7 @@ export class RoleController {
                 role: name.toLowerCase().replace(/ /g, "_"),
                 name: name.trim(),
                 description: description?.trim() || "",
-                level: 55,
+                level: level ?? 55,
                 permissions: (permissions || [])
                     .filter((p: string) => typeof p === "string")
                     .map((p: string) => p.trim()),
@@ -153,6 +161,18 @@ export class RoleController {
                 updates.permissions = req.body.permissions
                     .filter((p: string) => typeof p === "string")
                     .map((p: string) => p.trim());
+            }
+            if (req.body.level !== undefined) {
+                if (!isValidLevel(req.body.level)) {
+                    res.json(softError("Level must be a whole number between 1 and 100"));
+                    return;
+                }
+                const existing = await RoleService.getById(id, user.companyId);
+                if (existing?.isSystemRole && existing.level !== req.body.level) {
+                    res.json(softError("Level cannot be changed for system roles"));
+                    return;
+                }
+                updates.level = req.body.level;
             }
             if (typeof req.body.isActive === "boolean") {
                 updates.isActive = req.body.isActive;
