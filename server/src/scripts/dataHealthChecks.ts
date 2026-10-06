@@ -26,6 +26,7 @@ import { LevelModel } from "../models/level.model";
 import { OfficeModel } from "../models/office.model";
 import { UserDocumentModel } from "../models/user-document.model";
 import { DefaultUserRoles } from "../enums/user-role.enum";
+import { validateUserProfilePayload } from "../utils/user-profile-validator.util";
 import { Gender, MaritalStatus, EmploymentType, DegreeLevel, DocumentType } from "../enums/profile.enum";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -169,6 +170,13 @@ async function checkUsers(companyIds: Set<string>, roleIds: Set<string>): Promis
                     report("Users", id, `education[${i}] invalid degreeLevel "${e.degreeLevel}"`);
                 }
             });
+        }
+
+        // Profile field rules (the same ones enforced on create/update). Salary is encrypted at rest, so skip it.
+        const { salary: _salary, password: _password, ...profile } = u as Record<string, unknown>;
+        const profileIssue = validateUserProfilePayload(profile);
+        if (profileIssue) {
+            report("Users", id, `legacy profile data: ${profileIssue}`);
         }
     }
     console.log(`   ${users.length} documents checked`);

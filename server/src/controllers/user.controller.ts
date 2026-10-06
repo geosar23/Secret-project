@@ -31,6 +31,7 @@ import { isValidPermissionKey } from "../utils/permission-checker";
 import { StorageService } from "../services/storage.service";
 import { getEffectivePermissions } from "../utils/permission-checker";
 import { encryptString } from "../utils/encryption.util";
+import { validateUserProfilePayload } from "../utils/user-profile-validator.util";
 
 type UserFieldMap = FieldMap<IUser>;
 
@@ -270,6 +271,12 @@ export class UserController {
                 delete createBody.salary;
             }
 
+            const createValidationError = validateUserProfilePayload(createBody);
+            if (createValidationError) {
+                res.json(softError(createValidationError));
+                return;
+            }
+
             setMappedFields(params, USER_CREATE_REQUIRED_FIELDS, createBody);
 
             const USER_OPTIONAL_FIELDS: UserFieldMap = {
@@ -501,6 +508,15 @@ export class UserController {
             const updateBody: Record<string, unknown> = { ...(req.body as Record<string, unknown>) };
             if (!canWriteUserProfileCompensation(actorUser, user)) {
                 delete updateBody.salary;
+            }
+
+            const updateValidationError = validateUserProfilePayload(
+                updateBody,
+                user as unknown as Record<string, unknown>,
+            );
+            if (updateValidationError) {
+                res.json(softError(updateValidationError));
+                return;
             }
 
             setMappedFields(sanitizedData, USER_UPDATE_FIELDS, updateBody);
