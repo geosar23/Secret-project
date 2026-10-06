@@ -1,0 +1,102 @@
+// Shared by the Permissions page and the Role editor permission matrix.
+
+.matrix-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-md-minus);
+    padding: var(--spacing-md) var(--spacing-lg-minus);
+    border-bottom: 1px solid var(--color-divider);
+
+    .search-field {
+        flex: 1;
+        min-width: 12rem;
+        max-width: 20rem;
+    }
+
+    .result-count {
+        margin-left: auto;
+        font-size: var(--font-size-sm-minus);
+    }
+}
+.matrix-table {
+    width: 100%;
+
+    mat-header-row,
+    mat-row {
+        padding: 0 var(--spacing-lg-minus);
+    }
+
+    mat-header-row mat-header-cell {
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-size: var(--font-size-xs-plus);
+        font-weight: var(--font-weight-bold);
+        color: var(--color-primary-700);
+    }
+
+    mat-header-cell,
+    mat-cell {
+        flex: 2;
+        padding-right: var(--spacing-md);
+
+        &:first-child {
+            flex: 1.1;
+            min-width: 10rem;
+        }
+    }
+
+    .group-row {
+        min-height: 0;
+        background: var(--color-bg-primary);
+    }
+
+    .group-cell {
+        flex: 1;
+        padding: var(--spacing-sm-plus) 0 var(--spacing-xs-plus);
+        font-size: var(--font-size-xxs);
+        font-weight: var(--font-weight-bold);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--color-text-secondary);
+    }
+}
+.area-name {
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-sm) 0;
+
+    strong {
+        font-size: var(--font-size-sm);
+    }
+
+    span {
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: var(--font-size-xs-plus);
+        color: var(--color-text-secondary);
+    }
+}
+@media (max-width: 768px) {
+    .matrix-table {
+        mat-header-row {
+            display: none;
+        }
+
+        mat-row {
+            flex-direction: column;
+            align-items: flex-start;
+            padding-top: var(--spacing-sm);
+            padding-bottom: var(--spacing-sm);
+        }
+
+        mat-cell[data-label]:not([data-label="Area"])::before {
+            content: attr(data-label);
+            min-width: 3rem;
+            margin-right: var(--spacing-sm);
+            font-size: var(--font-size-xxs);
+            font-weight: var(--font-weight-bold);
+            text-transform: uppercase;
+            color: var(--color-text-secondary);
+        }
+    }
+}

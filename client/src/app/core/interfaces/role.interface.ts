@@ -15,6 +15,7 @@ export interface ICreateRoleRequest {
     name: string;
     description: string;
     level?: number;
+    isActive?: boolean;
     permissions: string[];
 }
 

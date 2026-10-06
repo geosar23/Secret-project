@@ -1,16 +1,20 @@
 import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { Router, RouterModule } from "@angular/router";
 import { MatTableModule, MatTableDataSource } from "@angular/material/table";
 import { MatButtonModule } from "@angular/material/button";
+import { MatCardModule } from "@angular/material/card";
 import { MatIconModule } from "@angular/material/icon";
-import { MatChipsModule } from "@angular/material/chips";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { MatProgressBarModule } from "@angular/material/progress-bar";
 import { MatPaginatorModule, MatPaginator } from "@angular/material/paginator";
+import { MatSortModule, MatSort } from "@angular/material/sort";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
-import { MatSelectModule } from "@angular/material/select";
+import { MatButtonToggleModule } from "@angular/material/button-toggle";
+import { MatSlideToggleModule, MatSlideToggleChange } from "@angular/material/slide-toggle";
+import { MatMenuModule } from "@angular/material/menu";
 import { MatTooltipModule } from "@angular/material/tooltip";
-import { MatDialog } from "@angular/material/dialog";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
 import { Subject } from "rxjs";
 import { takeUntil, debounceTime, distinctUntilChanged } from "rxjs/operators";
@@ -18,25 +22,39 @@ import { RoleService } from "../../core/services/role.service";
 import { IRole } from "../../core/interfaces/role.interface";
 import { ToastService } from "../../core/services/toast.service";
 import { PermissionService } from "../../core/services/permission.service";
-import { RoleDialogComponent, RoleDialogData } from "./role-dialog/role-dialog.component";
-import { AuthService } from "../../core/services/auth.service";
-import { IUser } from "../../core/interfaces/user.interface";
+import { RoleUtils } from "../../core/utils/role.utils";
+import { LEAF_KEYS, countGrantedLeaf } from "../../core/utils/permission-matrix";
+
+type TypeFilter = "all" | "system" | "custom";
+type StatusFilter = "all" | "active" | "inactive";
+
+interface RoleStats {
+    total: number;
+    system: number;
+    custom: number;
+    inactive: number;
+}
 
 @Component({
     selector: "app-roles",
     standalone: true,
     imports: [
         CommonModule,
+        RouterModule,
         ReactiveFormsModule,
         MatTableModule,
         MatButtonModule,
+        MatCardModule,
         MatIconModule,
-        MatChipsModule,
         MatProgressSpinnerModule,
+        MatProgressBarModule,
         MatPaginatorModule,
+        MatSortModule,
         MatFormFieldModule,
         MatInputModule,
-        MatSelectModule,
+        MatButtonToggleModule,
+        MatSlideToggleModule,
+        MatMenuModule,
         MatTooltipModule,
     ],
     templateUrl: "./roles.component.html",
@@ -44,58 +62,58 @@ import { IUser } from "../../core/interfaces/user.interface";
 })
 export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
     @ViewChild("paginator") paginator!: MatPaginator;
+    @ViewChild(MatSort) sort!: MatSort;
 
     private destroy$ = new Subject<void>();
-    private authService = inject(AuthService);
     private roleService = inject(RoleService);
-    private dialog = inject(MatDialog);
+    private router = inject(Router);
     private toast = inject(ToastService);
     readonly canWrite = inject(PermissionService).canWriteArea("roles");
+    readonly totalPermissions = LEAF_KEYS.length;
 
-    localUser: IUser | null = null;
     loading = false;
-    searchControl = new FormControl("");
-    systemRoleFilterControl = new FormControl<"all" | "system" | "custom">("all", { nonNullable: true });
-    statusFilterControl = new FormControl<"all" | "active" | "inactive">("all", { nonNullable: true });
+    searchControl = new FormControl("", { nonNullable: true });
+    systemRoleFilterControl = new FormControl<TypeFilter>("all", { nonNullable: true });
+    statusFilterControl = new FormControl<StatusFilter>("all", { nonNullable: true });
     allRoles: IRole[] = [];
+    stats: RoleStats = { total: 0, system: 0, custom: 0, inactive: 0 };
     tableData = new MatTableDataSource<IRole>([]);
     displayedColumns: string[] = [
         "name",
-        "description",
         "level",
         "permissions",
         "type",
         "status",
-        "createdAt",
         ...(this.canWrite ? ["actions"] : []),
     ];
 
     ngOnInit(): void {
-        this.authService.localUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
-            this.localUser = user;
-        });
-
         this.tableData.filterPredicate = (data: IRole, filter: string) => {
-            const parsed = JSON.parse(filter) as {
-                search: string;
-                roleType: "all" | "system" | "custom";
-                status: "all" | "active" | "inactive";
-            };
-            const term = parsed.search;
+            const parsed = JSON.parse(filter) as { search: string; roleType: TypeFilter; status: StatusFilter };
             const isSystem = this.isSystemRole(data);
 
             const matchesType = parsed.roleType === "all" || (parsed.roleType === "system" ? isSystem : !isSystem);
-
             const matchesStatus =
                 parsed.status === "all" || (parsed.status === "active" ? !!data.isActive : !data.isActive);
-
             const matchesSearch =
-                data.name.toLowerCase().includes(term) ||
-                (data.description ?? "").toLowerCase().includes(term) ||
-                (data.role ?? "").toLowerCase().includes(term) ||
-                (data.permissions ?? []).join(" ").toLowerCase().includes(term);
+                data.name.toLowerCase().includes(parsed.search) ||
+                (data.description ?? "").toLowerCase().includes(parsed.search) ||
+                (data.role ?? "").toLowerCase().includes(parsed.search);
 
             return matchesType && matchesStatus && matchesSearch;
+        };
+
+        this.tableData.sortingDataAccessor = (role, column) => {
+            switch (column) {
+                case "name":
+                    return role.name.toLowerCase();
+                case "level":
+                    return role.level ?? 0;
+                case "permissions":
+                    return this.grantedCount(role);
+                default:
+                    return 0;
+            }
         };
 
         this.loadRoles();
@@ -110,6 +128,7 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
 
     ngAfterViewInit(): void {
         this.tableData.paginator = this.paginator;
+        this.tableData.sort = this.sort;
     }
 
     ngOnDestroy(): void {
@@ -126,9 +145,7 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.loading = false;
                     return;
                 }
-                this.allRoles = res.data;
-                this.tableData.data = res.data;
-                this.applyFilters();
+                this.setRoles(res.data);
                 this.loading = false;
             },
             error: err => {
@@ -138,59 +155,65 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
         });
     }
 
-    openCreateDialog(): void {
-        this.dialog
-            .open(RoleDialogComponent, {
-                width: "900px",
-                maxWidth: "95vw",
-                maxHeight: "90vh",
-                data: { mode: "create" } as RoleDialogData,
-            })
-            .afterClosed()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe((role?: IRole) => {
-                if (!role) {
-                    return;
-                }
-                this.allRoles = [role, ...this.allRoles];
-                this.tableData.data = this.allRoles;
-                this.applyFilters();
-                this.toast.success("Role created successfully");
-            });
+    openEditor(role: IRole): void {
+        if (this.canWrite) {
+            this.router.navigate(["/roles", role._id, "edit"]);
+        }
     }
 
-    openEditDialog(role: IRole): void {
-        this.dialog
-            .open(RoleDialogComponent, {
-                width: "900px",
-                maxWidth: "95vw",
-                maxHeight: "90vh",
-                data: { mode: "edit", role } as RoleDialogData,
-            })
-            .afterClosed()
-            .pipe(takeUntil(this.destroy$))
-            .subscribe((updated?: IRole) => {
-                if (!updated) {
+    duplicate(role: IRole): void {
+        this.router.navigate(["/roles/create"], { queryParams: { copyFrom: role._id } });
+    }
+
+    toggleActive(role: IRole, event: MatSlideToggleChange): void {
+        const isActive = event.checked;
+        this.roleService.updateRole(role._id, { isActive }).subscribe({
+            next: res => {
+                if (!res.success || !res.data?.role) {
+                    event.source.checked = !!role.isActive;
+                    this.toast.error(res.message || "Failed to update role");
                     return;
                 }
-                this.allRoles = this.allRoles.map(r => (r._id === updated._id ? updated : r));
-                this.tableData.data = this.allRoles;
-                this.applyFilters();
-                this.toast.success("Role updated successfully");
-            });
+                this.setRoles(this.allRoles.map(r => (r._id === role._id ? res.data!.role : r)));
+                this.toast.success(`${role.name} is now ${isActive ? "active" : "inactive"}`);
+            },
+            error: err => {
+                event.source.checked = !!role.isActive;
+                this.toast.error(err.error?.message || "Failed to update role");
+            },
+        });
     }
 
     isSystemRole(role: IRole): boolean {
         return Boolean(role.isSystemRole);
     }
 
+    grantedCount(role: IRole): number {
+        return countGrantedLeaf(role.permissions);
+    }
+
+    roleColor(role: IRole): string {
+        return RoleUtils.getRoleColor(role.role);
+    }
+
+    private setRoles(roles: IRole[]): void {
+        this.allRoles = roles;
+        this.tableData.data = roles;
+        this.stats = {
+            total: roles.length,
+            system: roles.filter(r => r.isSystemRole).length,
+            custom: roles.filter(r => !r.isSystemRole).length,
+            inactive: roles.filter(r => !r.isActive).length,
+        };
+        this.applyFilters();
+    }
+
     private applyFilters(): void {
-        const filter = {
-            search: (this.searchControl.value ?? "").trim().toLowerCase(),
+        this.tableData.filter = JSON.stringify({
+            search: this.searchControl.value.trim().toLowerCase(),
             roleType: this.systemRoleFilterControl.value,
             status: this.statusFilterControl.value,
-        };
-        this.tableData.filter = JSON.stringify(filter);
+        });
 
         if (this.paginator) {
             this.paginator.firstPage();

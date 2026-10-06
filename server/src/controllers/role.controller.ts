@@ -91,10 +91,11 @@ export class RoleController {
     static async createRole(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const user = req.decoded as tokenPayload;
-            const { name, description, level, permissions } = req.body as {
+            const { name, description, level, isActive, permissions } = req.body as {
                 name?: string;
                 description?: string;
                 level?: number;
+                isActive?: boolean;
                 permissions?: string[];
             };
 
@@ -123,7 +124,7 @@ export class RoleController {
                     .map((p: string) => p.trim()),
                 isSystemRole: false,
                 company: user.companyId as any,
-                isActive: true,
+                isActive: typeof isActive === "boolean" ? isActive : true,
                 createdAt: new Date(),
             };
 

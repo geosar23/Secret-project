@@ -19,16 +19,18 @@ import { AuthService } from "../../core/services/auth.service";
 import { RoleService } from "../../core/services/role.service";
 import { RoleUtils } from "../../core/utils/role.utils";
 import { hasPermission } from "../../core/utils/permission.utils";
+import { PermissionCategoriesStrings } from "../../core/enums/permissions.enum";
 import {
-    PermissionCategories,
-    PermissionCategoriesStrings,
-    PermissionKeys,
-    PermissionScopes,
-} from "../../core/enums/permissions.enum";
+    AREA_GROUPS,
+    LEAF_KEYS,
+    MatrixAction,
+    SCOPE_LABELS,
+    SCOPE_ORDER,
+    SUPPORTED_SCOPES,
+} from "../../core/utils/permission-matrix";
 import { IUser } from "../../core/interfaces/user.interface";
 import { IRole } from "../../core/interfaces/role.interface";
 
-type PermissionAction = "read" | "write";
 type ChipState = "granted" | "revoked" | "lost" | "gain";
 type AreaFilter = "all" | "granted" | "none" | "diff";
 
@@ -66,76 +68,6 @@ export interface OverrideItem {
     key: string;
     kind: "granted" | "revoked";
 }
-
-const SCOPE_ORDER: PermissionScopes[] = [
-    PermissionScopes.ALL,
-    PermissionScopes.DEPARTMENT_COUNTRY,
-    PermissionScopes.DEPARTMENT,
-    PermissionScopes.COUNTRY,
-    PermissionScopes.MANAGED,
-    PermissionScopes.SELF,
-];
-
-const SCOPE_LABELS: Record<PermissionScopes, string> = {
-    [PermissionScopes.ALL]: "All",
-    [PermissionScopes.DEPARTMENT_COUNTRY]: "Dept + Country",
-    [PermissionScopes.DEPARTMENT]: "Dept",
-    [PermissionScopes.COUNTRY]: "Country",
-    [PermissionScopes.MANAGED]: "Managed",
-    [PermissionScopes.SELF]: "Self",
-};
-
-const AREA_GROUPS: { label: string; categories: PermissionCategories[] }[] = [
-    {
-        label: "Users",
-        categories: [
-            PermissionCategories.USERS_MANAGEMENT,
-            PermissionCategories.USER_CREATE,
-            PermissionCategories.RESET_PASSWORD,
-        ],
-    },
-    {
-        label: "User profile",
-        categories: [
-            PermissionCategories.USER_PROFILE_IDENTITY,
-            PermissionCategories.USER_PROFILE_CONTACT,
-            PermissionCategories.USER_PROFILE_EMPLOYMENT,
-            PermissionCategories.USER_PROFILE_EDUCATION,
-            PermissionCategories.USER_PROFILE_COMPENSATION,
-        ],
-    },
-    {
-        label: "Organization",
-        categories: [
-            PermissionCategories.COUNTRIES_MANAGEMENT,
-            PermissionCategories.DEPARTMENTS_MANAGEMENT,
-            PermissionCategories.SUB_DEPARTMENTS_MANAGEMENT,
-            PermissionCategories.EMPLOYMENT_TITLES_MANAGEMENT,
-            PermissionCategories.LEVELS_MANAGEMENT,
-            PermissionCategories.OFFICES_MANAGEMENT,
-        ],
-    },
-    { label: "Access", categories: [PermissionCategories.ROLES_MANAGEMENT] },
-];
-
-/** category → action → scopes that exist for it, derived from the permission key map. */
-const SUPPORTED_SCOPES = new Map<string, Record<PermissionAction, PermissionScopes[]>>();
-Object.values(PermissionKeys).forEach(key => {
-    const [category, action, scope] = key.split(":");
-    if (action !== "read" && action !== "write") {
-        return;
-    }
-    const entry = SUPPORTED_SCOPES.get(category) ?? { read: [], write: [] };
-    entry[action].push(scope as PermissionScopes);
-    SUPPORTED_SCOPES.set(category, entry);
-});
-
-const LEAF_KEYS: string[] = AREA_GROUPS.flatMap(g => g.categories).flatMap(category => {
-    const supported = SUPPORTED_SCOPES.get(category);
-    return (["read", "write"] as const).flatMap(action =>
-        (supported?.[action] ?? []).map(scope => `${category}:${action}:${scope}`),
-    );
-});
 
 @Component({
     selector: "app-permissions",
@@ -263,7 +195,7 @@ export class PermissionsComponent implements OnInit {
         return hasPermission(this.minePermissions, key) && this.revokedPermissions.includes(key);
     }
 
-    private buildCell(category: string, action: PermissionAction): ScopeChip[] | null {
+    private buildCell(category: string, action: MatrixAction): ScopeChip[] | null {
         const supported = SUPPORTED_SCOPES.get(category)?.[action];
         if (!supported?.length) {
             return null;

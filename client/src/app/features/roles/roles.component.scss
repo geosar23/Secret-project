@@ -2,40 +2,102 @@
     padding: var(--spacing-lg);
     max-width: var(--layout-page-max-width);
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
 }
 
 .page-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-xl);
-}
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
 
-.filters-container {
-    margin-bottom: var(--spacing-lg);
-
-    h5 {
-        margin-bottom: var(--spacing-md);
-        color: var(--color-text-secondary);
-        font-weight: var(--font-weight-medium);
-        font-size: var(--font-size-sm);
-        text-transform: uppercase;
-        letter-spacing: var(--letter-spacing-tight);
+    h3 {
+        margin: 0;
     }
 
-    .filters-row {
+    p {
+        margin: var(--spacing-xs) 0 0;
+        font-size: var(--font-size-sm-minus);
+    }
+}
+
+// ── Stats ────────────────────────────────────────────────────────────────────
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-md-minus);
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md-minus);
+    padding: var(--spacing-md) var(--spacing-md-minus) !important;
+
+    .stat-icon {
+        width: 2.625rem;
+        height: 2.625rem;
+        border-radius: var(--radius-lg);
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        background: var(--color-primary-50);
+        color: var(--color-primary-700);
+    }
+
+    strong {
+        display: block;
+        font-size: var(--font-size-xl);
+        line-height: 1;
+    }
+
+    span {
+        font-size: var(--font-size-xs);
+        color: var(--color-text-secondary);
+    }
+}
+
+// ── Toolbar ──────────────────────────────────────────────────────────────────
+
+.table-card {
+    overflow: hidden;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-md-minus);
+    padding: var(--spacing-md) var(--spacing-md-minus);
+    border-bottom: 1px solid var(--color-divider);
+
+    .search-field {
+        flex: 1;
+        min-width: 14rem;
+        max-width: 24rem;
+    }
+
+    .toggle-group {
         display: flex;
-        gap: var(--spacing-md);
         align-items: center;
+        gap: var(--spacing-sm);
 
-        .search-field {
-            flex: 1;
-            max-width: 25rem;
+        > span {
+            font-size: var(--font-size-xs-plus);
+            font-weight: var(--font-weight-bold);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--color-text-secondary);
         }
+    }
 
-        .sort-select {
-            min-width: 12.5rem;
-        }
+    .result-count {
+        margin-left: auto;
+        font-size: var(--font-size-sm-minus);
     }
 }
 
@@ -53,54 +115,87 @@
     }
 }
 
-.table-container {
-    margin-top: var(--spacing-xl);
+// ── Table ────────────────────────────────────────────────────────────────────
+
+.role-name {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md-minus);
+    padding: var(--spacing-sm) 0;
+    min-width: 0;
+
+    .role-avatar {
+        width: 2.375rem;
+        height: 2.375rem;
+        border-radius: var(--radius-lg);
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        font-weight: var(--font-weight-bold);
+        color: var(--color-text-on-primary);
+    }
+
+    div:last-child {
+        min-width: 0;
+    }
+
+    strong,
+    span {
+        display: block;
+    }
+
+    strong {
+        font-size: var(--font-size-sm);
+    }
+
+    span {
+        max-width: 22rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: var(--font-size-xs);
+        color: var(--color-text-secondary);
+    }
+}
+
+.bar-cell {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm-plus);
+    width: 100%;
+    min-width: 8rem;
+    max-width: 12rem;
+
+    strong {
+        min-width: 1.75rem;
+        font-size: var(--font-size-sm-minus);
+    }
+
+    mat-progress-bar {
+        flex: 1;
+        border-radius: var(--radius-sm);
+    }
+}
+
+.clickable {
+    cursor: pointer;
 }
 
 .actions {
     display: flex;
     gap: var(--spacing-xs);
-
-    button {
-        width: calc(var(--spacing-xl) + var(--spacing-xs));
-        height: calc(var(--spacing-xl) + var(--spacing-xs));
-    }
-}
-
-.badge {
-    display: inline-flex;
-    align-items: center;
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-radius: var(--radius-full);
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
-    text-transform: uppercase;
-    letter-spacing: var(--letter-spacing-tight);
-}
-
-.badge-success {
-    background-color: var(--color-success-light);
-    color: var(--color-success);
-}
-
-.badge-error {
-    background-color: var(--color-error-light);
-    color: var(--color-error);
-}
-
-.badge-info {
-    background-color: var(--color-info-light);
-    color: var(--color-info);
-}
-
-.badge-neutral {
-    background-color: var(--color-gray-100);
-    color: var(--color-gray-700);
 }
 
 .empty-state {
     text-align: center;
     padding: var(--spacing-xl) var(--spacing-md);
+
+    mat-icon {
+        font-size: 2.5rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        color: var(--color-gray-400);
+    }
 
     h3 {
         margin: 0 0 var(--spacing-sm);
@@ -112,26 +207,33 @@
     }
 }
 
+@media (max-width: 1100px) {
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
-    .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--spacing-sm);
+    .roles-container {
+        padding: var(--spacing-md);
     }
 
-    .filters-container {
-        .filters-row {
-            flex-direction: column;
-            align-items: stretch;
-
-            .search-field {
-                max-width: 100%;
-            }
-
-            .sort-select {
-                min-width: 0;
-                width: 100%;
-            }
+    .toolbar {
+        .search-field {
+            max-width: none;
         }
+
+        .toggle-group {
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .result-count {
+            margin-left: 0;
+        }
+    }
+
+    .bar-cell {
+        max-width: none;
     }
 }

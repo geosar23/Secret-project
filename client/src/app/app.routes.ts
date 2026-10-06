@@ -1,6 +1,6 @@
 import { Routes } from "@angular/router";
 import { authGuard } from "./core/guards/auth.guard";
-import { areaGuard } from "./core/guards/area.guard";
+import { areaGuard, areaWriteGuard } from "./core/guards/area.guard";
 import { createUserGuard } from "./core/guards/create-user.guard";
 import { editUserGuard } from "./core/guards/edit-user.guard";
 import { profileRouteContextResolver } from "./features/profile/profile-route-context.resolver";
@@ -63,9 +63,32 @@ export const routes: Routes = [
             },
             {
                 path: "roles",
-                canActivate: [areaGuard("roles")],
                 data: { breadcrumb: "Roles" },
-                loadComponent: () => import("./features/roles/roles.component").then(m => m.RolesComponent),
+                children: [
+                    {
+                        path: "",
+                        canActivate: [areaGuard("roles")],
+                        loadComponent: () => import("./features/roles/roles.component").then(m => m.RolesComponent),
+                    },
+                    {
+                        path: "create",
+                        canActivate: [areaWriteGuard("roles")],
+                        data: { breadcrumb: "Create Role" },
+                        loadComponent: () =>
+                            import("./features/roles/role-editor/role-editor.component").then(
+                                m => m.RoleEditorPageComponent,
+                            ),
+                    },
+                    {
+                        path: ":id/edit",
+                        canActivate: [areaWriteGuard("roles")],
+                        data: { breadcrumb: "Edit Role" },
+                        loadComponent: () =>
+                            import("./features/roles/role-editor/role-editor.component").then(
+                                m => m.RoleEditorPageComponent,
+                            ),
+                    },
+                ],
             },
             {
                 path: "departments",

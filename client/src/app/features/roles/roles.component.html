@@ -1,155 +1,233 @@
 <div class="roles-container">
     <div class="page-header">
-        <h3>Role Management</h3>
-        <div class="header-actions p-lg">
-            @if (canWrite) {
-                <button class="btn btn-primary m-xs" (click)="openCreateDialog()" [disabled]="loading">
-                    <mat-icon>add</mat-icon>
-                    Create Role
-                </button>
-            }
+        <div>
+            <h3>Role Management</h3>
+            <p class="text-secondary">Define what each role can see and do. Higher levels outrank lower ones.</p>
         </div>
+        @if (canWrite) {
+            <button mat-flat-button routerLink="/roles/create" [disabled]="loading">
+                <mat-icon>add</mat-icon>
+                Create Role
+            </button>
+        }
     </div>
 
-    <div class="filters-container">
-        <h5>Filters & Sorting</h5>
-        <div class="filters-row">
-            <mat-form-field appearance="outline" class="search-field">
+    <div class="stats">
+        <mat-card>
+            <mat-card-content class="stat">
+                <div class="stat-icon"><mat-icon>admin_panel_settings</mat-icon></div>
+                <div>
+                    <strong>{{ stats.total }}</strong>
+                    <span>Total roles</span>
+                </div>
+            </mat-card-content>
+        </mat-card>
+        <mat-card>
+            <mat-card-content class="stat">
+                <div class="stat-icon"><mat-icon>verified</mat-icon></div>
+                <div>
+                    <strong>{{ stats.system }}</strong>
+                    <span>System roles</span>
+                </div>
+            </mat-card-content>
+        </mat-card>
+        <mat-card>
+            <mat-card-content class="stat">
+                <div class="stat-icon"><mat-icon>tune</mat-icon></div>
+                <div>
+                    <strong>{{ stats.custom }}</strong>
+                    <span>Custom roles</span>
+                </div>
+            </mat-card-content>
+        </mat-card>
+        <mat-card>
+            <mat-card-content class="stat">
+                <div class="stat-icon"><mat-icon>person_off</mat-icon></div>
+                <div>
+                    <strong>{{ stats.inactive }}</strong>
+                    <span>Inactive</span>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+    <mat-card class="table-card">
+        <div class="toolbar">
+            <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
                 <mat-label>Search</mat-label>
-                <input matInput [formControl]="searchControl" placeholder="Search by name, description or code..." />
                 <mat-icon matPrefix>search</mat-icon>
+                <input matInput [formControl]="searchControl" placeholder="Search roles by name or description" />
                 @if (searchControl.value) {
-                    <button matSuffix mat-icon-button aria-label="Clear" (click)="searchControl.setValue('')">
+                    <button matSuffix mat-icon-button aria-label="Clear search" (click)="searchControl.setValue('')">
                         <mat-icon>close</mat-icon>
                     </button>
                 }
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="sort-select">
-                <mat-label>Role Type</mat-label>
-                <mat-select [formControl]="systemRoleFilterControl">
-                    <mat-option value="all">All</mat-option>
-                    <mat-option value="system">System</mat-option>
-                    <mat-option value="custom">Custom</mat-option>
-                </mat-select>
-            </mat-form-field>
+            <div class="toggle-group">
+                <span>Type</span>
+                <mat-button-toggle-group aria-label="Role type" [formControl]="systemRoleFilterControl">
+                    <mat-button-toggle value="all">All</mat-button-toggle>
+                    <mat-button-toggle value="system">System</mat-button-toggle>
+                    <mat-button-toggle value="custom">Custom</mat-button-toggle>
+                </mat-button-toggle-group>
+            </div>
 
-            <mat-form-field appearance="outline" class="sort-select">
-                <mat-label>Status</mat-label>
-                <mat-select [formControl]="statusFilterControl">
-                    <mat-option value="all">All</mat-option>
-                    <mat-option value="active">Active</mat-option>
-                    <mat-option value="inactive">Inactive</mat-option>
-                </mat-select>
-            </mat-form-field>
+            <div class="toggle-group">
+                <span>Status</span>
+                <mat-button-toggle-group aria-label="Role status" [formControl]="statusFilterControl">
+                    <mat-button-toggle value="all">All</mat-button-toggle>
+                    <mat-button-toggle value="active">Active</mat-button-toggle>
+                    <mat-button-toggle value="inactive">Inactive</mat-button-toggle>
+                </mat-button-toggle-group>
+            </div>
+
+            <span class="result-count text-secondary">
+                <strong>{{ tableData.filteredData.length }}</strong>
+                role{{ tableData.filteredData.length === 1 ? "" : "s" }}
+            </span>
         </div>
-    </div>
 
-    @if (loading) {
-        <div class="loading-container">
-            <mat-spinner diameter="50"></mat-spinner>
-            <p>Loading roles...</p>
+        @if (loading) {
+            <div class="loading-container">
+                <mat-spinner diameter="50"></mat-spinner>
+                <p>Loading roles...</p>
+            </div>
+        }
+
+        <div class="table-container" [ngStyle]="{ visibility: !loading ? 'visible' : 'hidden' }">
+            <table mat-table matSort matSortActive="level" matSortDirection="desc" [dataSource]="tableData">
+                <!-- Role Column -->
+                <ng-container matColumnDef="name">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header>Role</mat-header-cell>
+                    <mat-cell *matCellDef="let role" data-label="Role">
+                        <div class="role-name">
+                            <div class="role-avatar" [style.background]="roleColor(role)" aria-hidden="true">
+                                {{ role.name.charAt(0).toUpperCase() }}
+                            </div>
+                            <div>
+                                <strong>{{ role.name }}</strong>
+                                <span>{{ role.description || "-" }}</span>
+                            </div>
+                        </div>
+                    </mat-cell>
+                </ng-container>
+
+                <!-- Level Column -->
+                <ng-container matColumnDef="level">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header>Level</mat-header-cell>
+                    <mat-cell *matCellDef="let role" data-label="Level">
+                        <div class="bar-cell">
+                            <strong>{{ role.level ?? "-" }}</strong>
+                            <mat-progress-bar mode="determinate" [value]="role.level ?? 0" />
+                        </div>
+                    </mat-cell>
+                </ng-container>
+
+                <!-- Permissions Column -->
+                <ng-container matColumnDef="permissions">
+                    <mat-header-cell *matHeaderCellDef mat-sort-header>Permissions</mat-header-cell>
+                    <mat-cell *matCellDef="let role" data-label="Permissions">
+                        <div
+                            class="bar-cell"
+                            [matTooltip]="grantedCount(role) + ' of ' + totalPermissions + ' granted'"
+                        >
+                            <strong>{{ grantedCount(role) }}</strong>
+                            <mat-progress-bar
+                                mode="determinate"
+                                [value]="(grantedCount(role) / totalPermissions) * 100"
+                            />
+                        </div>
+                    </mat-cell>
+                </ng-container>
+
+                <!-- Type Column -->
+                <ng-container matColumnDef="type">
+                    <mat-header-cell *matHeaderCellDef>Type</mat-header-cell>
+                    <mat-cell *matCellDef="let role" data-label="Type">
+                        <span
+                            class="badge"
+                            [class.badge-info]="isSystemRole(role)"
+                            [class.badge-gray]="!isSystemRole(role)"
+                        >
+                            {{ isSystemRole(role) ? "System" : "Custom" }}
+                        </span>
+                    </mat-cell>
+                </ng-container>
+
+                <!-- Status Column -->
+                <ng-container matColumnDef="status">
+                    <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
+                    <mat-cell *matCellDef="let role" data-label="Status">
+                        <mat-slide-toggle
+                            [checked]="!!role.isActive"
+                            [disabled]="isSystemRole(role) || !canWrite"
+                            [attr.aria-label]="'Toggle ' + role.name + ' active'"
+                            (change)="toggleActive(role, $event)"
+                            (click)="$event.stopPropagation()"
+                        >
+                            {{ role.isActive ? "Active" : "Inactive" }}
+                        </mat-slide-toggle>
+                    </mat-cell>
+                </ng-container>
+
+                <!-- Actions Column -->
+                <ng-container matColumnDef="actions">
+                    <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
+                    <mat-cell *matCellDef="let role" data-label="Actions" class="actions">
+                        <button
+                            mat-icon-button
+                            [routerLink]="['/roles', role._id, 'edit']"
+                            matTooltip="Edit role"
+                            aria-label="Edit role"
+                            (click)="$event.stopPropagation()"
+                        >
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                        <button
+                            mat-icon-button
+                            [matMenuTriggerFor]="rowMenu"
+                            aria-label="More actions"
+                            (click)="$event.stopPropagation()"
+                        >
+                            <mat-icon>more_vert</mat-icon>
+                        </button>
+                        <mat-menu #rowMenu="matMenu">
+                            <button mat-menu-item [routerLink]="['/roles', role._id, 'edit']">
+                                <mat-icon>edit</mat-icon>
+                                <span>Edit</span>
+                            </button>
+                            <button mat-menu-item (click)="duplicate(role)">
+                                <mat-icon>content_copy</mat-icon>
+                                <span>Duplicate</span>
+                            </button>
+                        </mat-menu>
+                    </mat-cell>
+                </ng-container>
+
+                <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+                <mat-row
+                    *matRowDef="let row; columns: displayedColumns"
+                    [class.clickable]="canWrite"
+                    (click)="openEditor(row)"
+                ></mat-row>
+            </table>
+
+            <mat-paginator
+                #paginator
+                [pageSizeOptions]="[10, 25, 50]"
+                [ngStyle]="{ visibility: !loading && tableData.data.length > 0 ? 'visible' : 'hidden' }"
+                showFirstLastButtons
+            >
+            </mat-paginator>
         </div>
-    }
 
-    <div class="table-container" [ngStyle]="{ visibility: !loading ? 'visible' : 'hidden' }">
-        <table mat-table [dataSource]="tableData" class="roles-table">
-            <!-- Name Column -->
-            <ng-container matColumnDef="name">
-                <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
-                <mat-cell *matCellDef="let role" data-label="Name">{{ role.name }}</mat-cell>
-            </ng-container>
-
-            <!-- Description Column -->
-            <ng-container matColumnDef="description">
-                <mat-header-cell *matHeaderCellDef>Description</mat-header-cell>
-                <mat-cell *matCellDef="let role" data-label="Description">{{ role.description || "-" }}</mat-cell>
-            </ng-container>
-
-            <!-- Level Column -->
-            <ng-container matColumnDef="level">
-                <mat-header-cell *matHeaderCellDef>Level</mat-header-cell>
-                <mat-cell *matCellDef="let role" data-label="Level">{{ role.level ?? "-" }}</mat-cell>
-            </ng-container>
-
-            <!-- Permissions Column -->
-            <ng-container matColumnDef="permissions">
-                <mat-header-cell *matHeaderCellDef>Permissions</mat-header-cell>
-                <mat-cell *matCellDef="let role" data-label="Permissions">
-                    <span
-                        class="badge badge-neutral"
-                        [matTooltip]="(role.permissions || []).join(', ') || 'No permissions'"
-                    >
-                        {{ (role.permissions || []).length }} assigned
-                    </span>
-                </mat-cell>
-            </ng-container>
-
-            <!-- Type Column -->
-            <ng-container matColumnDef="type">
-                <mat-header-cell *matHeaderCellDef>Type</mat-header-cell>
-                <mat-cell *matCellDef="let role" data-label="Type">
-                    <span
-                        class="badge"
-                        [class.badge-info]="isSystemRole(role)"
-                        [class.badge-neutral]="!isSystemRole(role)"
-                    >
-                        {{ isSystemRole(role) ? "System" : "Custom" }}
-                    </span>
-                </mat-cell>
-            </ng-container>
-
-            <!-- Status Column -->
-            <ng-container matColumnDef="status">
-                <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
-                <mat-cell *matCellDef="let role" data-label="Status">
-                    <span class="badge" [class.badge-success]="role.isActive" [class.badge-error]="!role.isActive">
-                        {{ role.isActive ? "Active" : "Inactive" }}
-                    </span>
-                </mat-cell>
-            </ng-container>
-
-            <!-- Created At Column -->
-            <ng-container matColumnDef="createdAt">
-                <mat-header-cell *matHeaderCellDef>Created</mat-header-cell>
-                <mat-cell *matCellDef="let role" data-label="Created">
-                    {{ role.createdAt ? (role.createdAt | date: "short") : "-" }}
-                </mat-cell>
-            </ng-container>
-
-            <!-- Actions Column -->
-            <ng-container matColumnDef="actions">
-                <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
-                <mat-cell *matCellDef="let role" data-label="Actions" class="actions">
-                    <button
-                        mat-icon-button
-                        (click)="openEditDialog(role)"
-                        matTooltip="Edit role"
-                        title="Edit"
-                        [disabled]="loading"
-                    >
-                        <mat-icon>edit</mat-icon>
-                    </button>
-                </mat-cell>
-            </ng-container>
-
-            <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-            <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
-        </table>
-
-        <mat-paginator
-            #paginator
-            [pageSizeOptions]="[10, 25, 50]"
-            [ngStyle]="{ visibility: !loading && tableData.data.length > 0 ? 'visible' : 'hidden' }"
-            showFirstLastButtons
-        >
-        </mat-paginator>
-    </div>
-
-    @if (!loading && tableData.data.length === 0) {
-        <div class="empty-state">
-            <h3>No roles found</h3>
-            <p>Try adjusting your filters</p>
-        </div>
-    }
+        @if (!loading && tableData.filteredData.length === 0) {
+            <div class="empty-state">
+                <mat-icon>search_off</mat-icon>
+                <h3>No roles found</h3>
+                <p>Try adjusting your filters</p>
+            </div>
+        }
+    </mat-card>
 </div>
