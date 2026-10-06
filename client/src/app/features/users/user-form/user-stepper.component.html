@@ -1,0 +1,32 @@
+<nav class="stepper" aria-label="Form steps">
+    @for (step of steps(); track step.key; let i = $index) {
+        <button
+            type="button"
+            class="step"
+            [class.active]="i === active()"
+            [class.done]="i < active()"
+            [attr.aria-current]="i === active() ? 'step' : null"
+            (click)="stepSelected.emit(i)"
+        >
+            <span class="dot">
+                @if (i < active()) {
+                    <mat-icon>check</mat-icon>
+                } @else {
+                    {{ i + 1 }}
+                }
+            </span>
+            <span class="title">{{ step.title }}</span>
+            @if (step.required) {
+                <span class="required-tag">Required</span>
+            }
+        </button>
+    }
+
+    <div class="mobile-step">
+        <div class="mobile-row">
+            <strong>{{ steps()[active()].title }}</strong>
+            <span>Step {{ active() + 1 }} of {{ steps().length }}</span>
+        </div>
+        <div class="bar"><span [style.width.%]="((active() + 1) / steps().length) * 100"></span></div>
+    </div>
+</nav>

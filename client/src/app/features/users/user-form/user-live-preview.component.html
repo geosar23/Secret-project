@@ -1,0 +1,63 @@
+<div class="preview">
+    <div class="preview-tag"><mat-icon>visibility</mat-icon>Live preview</div>
+    <div class="cover"></div>
+
+    @if (preview().imageUrl; as imageUrl) {
+        <img class="avatar" [src]="imageUrl" alt="Profile image preview" />
+    } @else {
+        <div class="avatar" [class.empty]="!initial()">
+            @if (initial()) {
+                {{ initial() }}
+            } @else {
+                <mat-icon>person</mat-icon>
+            }
+        </div>
+    }
+
+    <div class="body">
+        <h3 [class.placeholder]="!preview().name.trim()">{{ preview().name.trim() || "Display name" }}</h3>
+        <p>{{ preview().email || "work.email@company.com" }}</p>
+
+        <div class="chips">
+            <span class="chip" [class.chip-ok]="preview().isActive" [class.chip-off]="!preview().isActive">
+                {{ preview().isActive ? "Active" : "Inactive" }}
+            </span>
+            @if (preview().roleName) {
+                <span class="chip">{{ preview().roleName }}</span>
+            }
+        </div>
+
+        <dl class="facts">
+            <div>
+                <dt>Department</dt>
+                <dd>{{ preview().department || "—" }}</dd>
+            </div>
+            <div>
+                <dt>Title</dt>
+                <dd>{{ preview().title || "—" }}</dd>
+            </div>
+            <div>
+                <dt>Office</dt>
+                <dd>{{ preview().office || "—" }}</dd>
+            </div>
+            <div>
+                <dt>Starts</dt>
+                <dd>{{ preview().startDate ? (preview().startDate | date: "mediumDate") : "—" }}</dd>
+            </div>
+        </dl>
+    </div>
+</div>
+
+<div class="checklist">
+    <h4>
+        {{ requirementsTitle() }}
+        <span>{{ doneCount() }}/{{ requirements().length }}</span>
+    </h4>
+    <div class="bar"><span [style.width.%]="progress()"></span></div>
+    @for (item of requirements(); track item.label) {
+        <div class="item" [class.ok]="item.done">
+            <mat-icon>{{ item.done ? "check_circle" : "radio_button_unchecked" }}</mat-icon>
+            {{ item.label }}
+        </div>
+    }
+</div>

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, OnInit, signal } from "@angular/core";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
 import { CommonModule } from "@angular/common";
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray, FormControl } from "@angular/forms";
 import { MatFormFieldModule } from "@angular/material/form-field";
@@ -13,7 +13,7 @@ import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
 import { Router } from "@angular/router";
-import { first } from "rxjs";
+import { first, map, startWith } from "rxjs";
 import { UsersService } from "../../../core/services/users.service";
 import { PasswordInputComponent } from "../../../shared/components/password-input/password-input.component";
 import { CountryService } from "../../../core/services/country.service";
@@ -42,6 +42,9 @@ import {
 } from "../../../core/interfaces/user.interface";
 import { ProfileImageUploadComponent } from "../../../shared/components/profile-image-upload/profile-image-upload.component";
 import { LoadingButtonComponent } from "../../../shared/components/loading-button/loading-button.component";
+import { USER_FORM_STEPS, firstInvalidStepIndex } from "../user-form/user-form-steps";
+import { UserStepperComponent } from "../user-form/user-stepper.component";
+import { UserLivePreviewComponent, UserPreview, UserRequirement } from "../user-form/user-live-preview.component";
 import {
     GENDER_OPTIONS,
     MARITAL_STATUS_OPTIONS,
@@ -67,6 +70,8 @@ import {
         PasswordInputComponent,
         ProfileImageUploadComponent,
         LoadingButtonComponent,
+        UserStepperComponent,
+        UserLivePreviewComponent,
     ],
     templateUrl: "./create-user.component.html",
     styleUrls: ["./create-user.component.scss"],
@@ -197,6 +202,56 @@ export class CreateUserPageComponent implements OnInit {
         education: this.fb.array([]),
         // Compensation
         salary: [""],
+    });
+
+    // ── Wizard state ──────────────────────────────────────────────────────────
+    readonly steps = USER_FORM_STEPS;
+    step = signal(0);
+    readonly currentStep = computed(() => this.steps[this.step()]);
+    readonly isLastStep = computed(() => this.step() === this.steps.length - 1);
+
+    /** Re-emits on every form change so the computed values below follow the form. */
+    private formValue = toSignal(
+        this.userForm.valueChanges.pipe(
+            startWith(null),
+            map(() => this.userForm.getRawValue()),
+        ),
+        { requireSync: true },
+    );
+
+    private readonly requiredFields = [
+        ["name", "Display name"],
+        ["email", "Work email"],
+        ["password", "Password"],
+        ["role", "Role"],
+        ["countryId", "Country"],
+        ["employmentTitleId", "Employment title"],
+    ] as const;
+
+    readonly requirements = computed<UserRequirement[]>(() => {
+        this.formValue();
+        return this.requiredFields.map(([control, label]) => ({
+            label,
+            done: !!this.userForm.get(control)?.valid,
+        }));
+    });
+    readonly canSubmit = computed(() => this.requirements().every(r => r.done));
+
+    readonly preview = computed<UserPreview>(() => {
+        const v = this.formValue();
+        const nameOf = (items: { _id?: string; name: string }[], id: string) =>
+            items.find(item => item._id === id)?.name ?? "";
+        return {
+            name: v.name ?? "",
+            email: v.email ?? "",
+            roleName: nameOf(this.roles(), v.role),
+            isActive: true,
+            department: nameOf(this.departments(), v.departmentId),
+            title: nameOf(this.employmentTitles(), v.employmentTitleId),
+            office: nameOf(this.offices(), v.officeId),
+            startDate: v.employmentDate ?? null,
+            imageUrl: this.selectedProfileImagePreviewUrl(),
+        };
     });
 
     get nationalitiesArray(): FormArray<FormControl<string>> {
@@ -407,11 +462,35 @@ export class CreateUserPageComponent implements OnInit {
         this.educationArray.removeAt(index);
     }
 
+    goToStep(index: number): void {
+        this.step.set(Math.max(0, Math.min(index, this.steps.length - 1)));
+    }
+
+    nextStep(): void {
+        this.goToStep(this.step() + 1);
+    }
+
+    previousStep(): void {
+        this.goToStep(this.step() - 1);
+    }
+
+    /** Fields on other steps are not rendered, so jump to the step holding the first invalid one. */
+    private revealFirstInvalidField(): void {
+        const index = firstInvalidStepIndex(name => this.userForm.get(name));
+        if (index >= 0) {
+            this.step.set(index);
+        }
+        setTimeout(() =>
+            document
+                .querySelector(".ng-invalid[formControlName], .ng-invalid[formGroupName]")
+                ?.scrollIntoView({ behavior: "smooth", block: "center" }),
+        );
+    }
+
     onSubmit(): void {
         if (this.userForm.invalid) {
             this.userForm.markAllAsTouched();
-            const firstInvalid = document.querySelector(".ng-invalid[formControlName], .ng-invalid[formGroupName]");
-            firstInvalid?.scrollIntoView({ behavior: "smooth", block: "center" });
+            this.revealFirstInvalidField();
             return;
         }
 
