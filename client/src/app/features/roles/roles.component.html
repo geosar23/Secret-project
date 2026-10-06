@@ -33,6 +33,15 @@
                     <mat-option value="custom">Custom</mat-option>
                 </mat-select>
             </mat-form-field>
+
+            <mat-form-field appearance="outline" class="sort-select">
+                <mat-label>Status</mat-label>
+                <mat-select [formControl]="statusFilterControl">
+                    <mat-option value="all">All</mat-option>
+                    <mat-option value="active">Active</mat-option>
+                    <mat-option value="inactive">Inactive</mat-option>
+                </mat-select>
+            </mat-form-field>
         </div>
     </div>
 

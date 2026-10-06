@@ -56,6 +56,7 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
     loading = false;
     searchControl = new FormControl("");
     systemRoleFilterControl = new FormControl<"all" | "system" | "custom">("all", { nonNullable: true });
+    statusFilterControl = new FormControl<"all" | "active" | "inactive">("all", { nonNullable: true });
     allRoles: IRole[] = [];
     tableData = new MatTableDataSource<IRole>([]);
     displayedColumns: string[] = [
@@ -75,11 +76,18 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
         });
 
         this.tableData.filterPredicate = (data: IRole, filter: string) => {
-            const parsed = JSON.parse(filter) as { search: string; roleType: "all" | "system" | "custom" };
+            const parsed = JSON.parse(filter) as {
+                search: string;
+                roleType: "all" | "system" | "custom";
+                status: "all" | "active" | "inactive";
+            };
             const term = parsed.search;
             const isSystem = this.isSystemRole(data);
 
             const matchesType = parsed.roleType === "all" || (parsed.roleType === "system" ? isSystem : !isSystem);
+
+            const matchesStatus =
+                parsed.status === "all" || (parsed.status === "active" ? !!data.isActive : !data.isActive);
 
             const matchesSearch =
                 data.name.toLowerCase().includes(term) ||
@@ -87,7 +95,7 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
                 (data.role ?? "").toLowerCase().includes(term) ||
                 (data.permissions ?? []).join(" ").toLowerCase().includes(term);
 
-            return matchesType && matchesSearch;
+            return matchesType && matchesStatus && matchesSearch;
         };
 
         this.loadRoles();
@@ -97,6 +105,7 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
             .subscribe(() => this.applyFilters());
 
         this.systemRoleFilterControl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.applyFilters());
+        this.statusFilterControl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.applyFilters());
     }
 
     ngAfterViewInit(): void {
@@ -179,6 +188,7 @@ export class RolesComponent implements OnInit, AfterViewInit, OnDestroy {
         const filter = {
             search: (this.searchControl.value ?? "").trim().toLowerCase(),
             roleType: this.systemRoleFilterControl.value,
+            status: this.statusFilterControl.value,
         };
         this.tableData.filter = JSON.stringify(filter);
 

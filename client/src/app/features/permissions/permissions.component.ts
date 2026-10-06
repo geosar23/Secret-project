@@ -61,7 +61,7 @@ export class PermissionsComponent implements OnInit {
         });
         this.roleService.getRoles("active").subscribe(res => {
             if (res.success) {
-                this.roleData = res.data || [];
+                this.roleData = (res.data || []).sort((a, b) => (a.level ?? 0) - (b.level ?? 0));
             }
         });
     }
