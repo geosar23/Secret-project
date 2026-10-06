@@ -1,16 +1,4 @@
-.users-container {
-    padding: var(--spacing-lg);
-    max-width: var(--layout-page-max-width);
-    margin: 0 auto;
-}
-
-app-page-header {
-    display: block;
-    margin-bottom: var(--spacing-md);
-}
-
 .filters-card {
-    margin-bottom: var(--spacing-md);
     overflow: visible;
 }
 
@@ -52,10 +40,6 @@ app-page-header {
     .mdc-evolution-chip__text-label {
         color: var(--color-text-on-primary) !important;
     }
-}
-
-.table-container {
-    margin-top: var(--spacing-md);
 }
 
 .selection-banner {

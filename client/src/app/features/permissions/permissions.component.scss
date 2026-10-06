@@ -4,16 +4,6 @@
     display: block;
 }
 
-.permissions-container {
-    padding: var(--spacing-lg);
-    max-width: var(--layout-page-max-width);
-    margin: 0 auto;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-}
-
 mat-icon {
     flex-shrink: 0;
 }
@@ -418,12 +408,6 @@ mat-icon {
 @media (max-width: 1100px) {
     .tiles {
         grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-    .permissions-container {
-        padding: var(--spacing-md);
     }
 }
 

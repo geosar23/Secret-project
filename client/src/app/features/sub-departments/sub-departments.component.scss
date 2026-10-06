@@ -1,17 +1,4 @@
-.sub-departments-container {
-    padding: var(--spacing-lg);
-    max-width: var(--layout-page-max-width);
-    margin: 0 auto;
-}
-
-app-page-header {
-    display: block;
-    margin-bottom: var(--spacing-md);
-}
-
 .filters-container {
-    margin-bottom: var(--spacing-lg);
-
     .search-field {
         width: 100%;
         max-width: 25rem;
@@ -25,10 +12,6 @@ app-page-header {
     gap: var(--spacing-md);
     padding: var(--spacing-xl);
     color: var(--color-text-secondary);
-}
-
-.table-container {
-    margin-top: var(--spacing-lg);
 }
 
 .action-buttons {
