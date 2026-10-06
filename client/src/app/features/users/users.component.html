@@ -4,7 +4,7 @@
         subtitle="Manage, edit individual users or bulk update and export users efficiently."
     >
         <button
-            class="btn btn-secondary"
+            mat-stroked-button
             (click)="downloadUsersAsCSV()"
             [disabled]="loading || (selectedCount === 0 && tableData.data.length === 0)"
             [title]="selectedCount ? 'Download selected users as CSV' : 'Download this page as CSV'"
@@ -13,7 +13,7 @@
             {{ selectedCount ? "Download selected" : "Download" }}
         </button>
         @if (canCreate) {
-            <button class="btn btn-primary" (click)="navigateToCreate()" [disabled]="loading">
+            <button mat-flat-button (click)="navigateToCreate()" [disabled]="loading">
                 <mat-icon>add</mat-icon>
                 Create User
             </button>

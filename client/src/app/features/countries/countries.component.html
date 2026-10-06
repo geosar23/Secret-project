@@ -1,7 +1,7 @@
 <div class="page-container">
     <app-page-header title="Country Management">
         @if (canWrite) {
-            <button class="btn btn-primary" (click)="openCreateDialog()" [disabled]="loading">
+            <button mat-flat-button (click)="openCreateDialog()" [disabled]="loading">
                 <mat-icon>add</mat-icon>
                 Create Country
             </button>
