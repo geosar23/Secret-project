@@ -6,6 +6,13 @@ Significant changes to the application, most recent first.
 
 ## Current
 
+### Users management: selection and bulk edit
+
+- Redesigned the Users page: row selection (kept across pages, with "select all N matching"), a floating bulk-action bar, avatar + status badges, and a clear-filters button.
+- Added **bulk edit** (employment title, office, country, manager, HR representative, level, role) with a review step, plus bulk status change and downloading only the selected users. Both can be undone right after applying.
+- There is no bulk API endpoint: changes are sent as one `PUT /api/users/:id` per user, so each user is still authorised and validated individually and failures are reported per user.
+- Added the project skill `.claude/skills/ui-conventions` (Angular Material first, then existing classes/components, custom SCSS last).
+
 ### Org chart, new dashboard and admin sidebar
 
 - Added an **Org Chart** page (`/org-chart`) for all employees, with a line-manager view and a departments view, pan/zoom, search and collapsible branches. It is backed by `GET /api/users/org-chart`, which is open to any authenticated user and returns only non-sensitive fields.

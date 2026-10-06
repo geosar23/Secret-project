@@ -1,0 +1,169 @@
+<div class="dialog-header">
+    <mat-icon>edit_note</mat-icon>
+    <h2 mat-dialog-title>{{ step() === 1 ? "Bulk edit" : "Review changes" }}</h2>
+    <span class="selection-count">{{ data.users.length }} user{{ data.users.length === 1 ? "" : "s" }}</span>
+</div>
+
+@if (applying() || loading()) {
+    <mat-progress-bar mode="indeterminate" />
+}
+
+<mat-dialog-content class="dialog-content">
+    @if (step() === 1) {
+        <p class="hint">Tick the fields you want to change. Fields you leave unticked stay as they are.</p>
+
+        @for (field of fields; track field.key) {
+            <div class="field-row" [class.active]="enabled()[field.key]">
+                <mat-checkbox
+                    [checked]="!!enabled()[field.key]"
+                    (change)="toggle(field, $event.checked)"
+                    [attr.aria-label]="'Change ' + field.label"
+                />
+                <div class="field-name">
+                    <mat-icon>{{ field.icon }}</mat-icon>
+                    {{ field.label }}
+                    @if (field.sensitive) {
+                        <span class="badge badge-warning">Sensitive</span>
+                    }
+                </div>
+
+                <div class="field-controls">
+                    @if (field.key === "employmentTitle") {
+                        <div class="cascade">
+                            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                <mat-label>Department</mat-label>
+                                <mat-select
+                                    [value]="titleDepartment()"
+                                    (selectionChange)="setTitleDepartment($event.value)"
+                                    [disabled]="!enabled()[field.key]"
+                                >
+                                    @for (d of departmentOptions(); track d._id) {
+                                        <mat-option [value]="d._id">{{ d.name }}</mat-option>
+                                    }
+                                </mat-select>
+                            </mat-form-field>
+                            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                <mat-label>Sub-department</mat-label>
+                                <mat-select
+                                    [value]="titleSubDepartment()"
+                                    (selectionChange)="setTitleSubDepartment($event.value)"
+                                    [disabled]="!enabled()[field.key] || !titleDepartment()"
+                                >
+                                    @for (s of subDepartmentOptions(); track s._id) {
+                                        <mat-option [value]="s._id">{{ s.name }}</mat-option>
+                                    }
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+                    }
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>{{ field.key === "employmentTitle" ? "Title" : "New value" }}</mat-label>
+                        <mat-select
+                            [value]="values()[field.key] ?? null"
+                            (selectionChange)="setValue(field, $event.value)"
+                            [disabled]="valueDisabled(field)"
+                        >
+                            @if (field.clearable) {
+                                <mat-option value="">— Clear value —</mat-option>
+                            }
+                            @for (o of optionsFor(field.key); track o._id) {
+                                <mat-option [value]="o._id">{{ o.name }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                    @if (enabled()[field.key] && field.warning) {
+                        <span class="field-hint warn">{{ field.warning }}</span>
+                    }
+                </div>
+            </div>
+        }
+    } @else {
+        <p class="hint">Nothing is saved until you confirm.</p>
+
+        <div class="summary">
+            <div class="summary-box ok">
+                <strong>{{ plan().updates.length }}</strong>
+                <span>will be updated</span>
+            </div>
+            <div class="summary-box">
+                <strong>{{ plan().same.length }}</strong>
+                <span>already match, no change</span>
+            </div>
+        </div>
+
+        <div class="diff">
+            @for (row of plan().diff; track row.label) {
+                <div class="diff-row">
+                    <span class="diff-label">{{ row.label }}</span>
+                    <span class="diff-from">{{ row.from }}</span>
+                    <mat-icon>arrow_forward</mat-icon>
+                    <span class="diff-to">{{ row.to }}</span>
+                </div>
+            } @empty {
+                <div class="diff-row">No effective changes.</div>
+            }
+        </div>
+
+        @if (plan().countryMismatch) {
+            <div class="notice warn">
+                <mat-icon>warning</mat-icon>
+                <span>
+                    {{ plan().countryMismatch }} user{{ plan().countryMismatch === 1 ? " has" : "s have" }} an office in
+                    another country, so the server will reject {{ plan().countryMismatch === 1 ? "that" : "those" }}
+                    updates. Go back and change the office too.
+                </span>
+            </div>
+        }
+        @if (plan().selfManaged.length) {
+            <div class="notice warn">
+                <mat-icon>block</mat-icon>
+                <span>{{ plan().selfManaged.join(", ") }} can't be their own manager, so that change is skipped.</span>
+            </div>
+        }
+        @if (enabled()["role"] && values()["role"]) {
+            <div class="notice warn">
+                <mat-icon>admin_panel_settings</mat-icon>
+                <span>Role changes alter what these users can access immediately.</span>
+            </div>
+        }
+        <div class="notice info">
+            <mat-icon>history</mat-icon>
+            <span>You'll be able to undo this right after applying.</span>
+        </div>
+
+        <h4 class="group-label">Affected users</h4>
+        <div class="d-flex flex-wrap gap-sm">
+            @for (u of plan().changedUsers.slice(0, 12); track u._id) {
+                <span class="badge badge-info">{{ u.name }}</span>
+            }
+            @if (plan().changedUsers.length > 12) {
+                <span class="badge badge-gray">+{{ plan().changedUsers.length - 12 }} more</span>
+            }
+        </div>
+    }
+</mat-dialog-content>
+
+<mat-dialog-actions>
+    @if (step() === 1) {
+        <span class="footer-note">
+            {{ readyFields().length }} field{{ readyFields().length === 1 ? "" : "s" }} to change
+        </span>
+        <span class="spacer"></span>
+        <button mat-button mat-dialog-close>Cancel</button>
+        <button mat-flat-button color="primary" [disabled]="!readyFields().length" (click)="review()">
+            Review changes
+            <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+        </button>
+    } @else {
+        <button mat-button [disabled]="applying()" (click)="back()">
+            <mat-icon>arrow_back</mat-icon>
+            Back
+        </button>
+        <span class="spacer"></span>
+        <button mat-button mat-dialog-close [disabled]="applying()">Cancel</button>
+        <button mat-flat-button color="primary" [disabled]="!plan().updates.length || applying()" (click)="apply()">
+            <mat-icon>done_all</mat-icon>
+            Apply to {{ plan().updates.length }} user{{ plan().updates.length === 1 ? "" : "s" }}
+        </button>
+    }
+</mat-dialog-actions>

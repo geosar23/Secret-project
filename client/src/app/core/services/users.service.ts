@@ -1,5 +1,5 @@
 import { Injectable, inject } from "@angular/core";
-import { Observable } from "rxjs";
+import { Observable, catchError, from, map, mergeMap, of, toArray } from "rxjs";
 import { ApiService } from "./api.service";
 import { JsonResponse } from "../interfaces/generics.interface";
 import {
@@ -12,6 +12,16 @@ import {
     IProfileImageUrlResponse,
     IActorAccessOnSubject,
 } from "../interfaces/user.interface";
+
+export interface IBulkUserUpdate {
+    id: string;
+    data: IUpdateUserRequest;
+}
+
+export interface IBulkUpdateResult {
+    succeeded: string[];
+    failed: { id: string; message: string }[];
+}
 
 @Injectable({
     providedIn: "root",
@@ -43,6 +53,28 @@ export class UsersService {
 
     updateUser(userId: string, data: IUpdateUserRequest): Observable<JsonResponse<{ user: { _id: string } }>> {
         return this.apiService.put<JsonResponse<{ user: { _id: string } }>>(`users/${userId}`, data);
+    }
+
+    /**
+     * Applies one update per user (the server has no bulk endpoint, so each user is still
+     * authorised and validated individually). Never errors: failures are reported per user.
+     */
+    bulkUpdate(updates: readonly IBulkUserUpdate[], concurrency = 5): Observable<IBulkUpdateResult> {
+        return from(updates).pipe(
+            mergeMap(
+                ({ id, data }) =>
+                    this.updateUser(id, data).pipe(
+                        map(res => ({ id, error: res.success ? null : res.message || "Update rejected" })),
+                        catchError(err => of({ id, error: err?.error?.message || "Request failed" })),
+                    ),
+                concurrency,
+            ),
+            toArray(),
+            map(results => ({
+                succeeded: results.filter(r => !r.error).map(r => r.id),
+                failed: results.filter(r => r.error).map(r => ({ id: r.id, message: r.error as string })),
+            })),
+        );
     }
 
     changePassword(

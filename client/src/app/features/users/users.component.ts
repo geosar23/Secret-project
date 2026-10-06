@@ -10,12 +10,15 @@ import { MatSelectModule } from "@angular/material/select";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatBadgeModule } from "@angular/material/badge";
+import { MatCheckboxModule } from "@angular/material/checkbox";
+import { MatMenuModule } from "@angular/material/menu";
+import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatDialogModule, MatDialog } from "@angular/material/dialog";
 import { FormControl, ReactiveFormsModule } from "@angular/forms";
-import { Subject } from "rxjs";
+import { Subject, forkJoin } from "rxjs";
 import { takeUntil, debounceTime, distinctUntilChanged, finalize } from "rxjs/operators";
 import { Router } from "@angular/router";
-import { UsersService } from "../../core/services/users.service";
+import { IBulkUpdateResult, IBulkUserUpdate, UsersService } from "../../core/services/users.service";
 import { IUser, IUsersListResponse, IUsersQueryParams } from "../../core/interfaces/user.interface";
 
 import { RoleUtils } from "../../core/utils/role.utils";
@@ -29,6 +32,7 @@ import { IRole } from "../../core/interfaces/role.interface";
 import { ICountry } from "../../core/interfaces/country.interface";
 import { IDepartment } from "../../core/interfaces/department.interface";
 import { ColumnDef, ColumnSelectorDialogComponent } from "./column-selector-dialog/column-selector-dialog.component";
+import { BulkEditDialogComponent, BulkEditDialogResult } from "./bulk-edit-dialog/bulk-edit-dialog.component";
 
 interface IUserTableData extends IUser {
     roleColor?: string;
@@ -51,6 +55,8 @@ interface IUserTableData extends IUser {
         MatFormFieldModule,
         MatInputModule,
         MatBadgeModule,
+        MatCheckboxModule,
+        MatMenuModule,
         MatDialogModule,
     ],
     templateUrl: "./users.component.html",
@@ -69,13 +75,21 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     readonly canEdit = this.permissionService.canEditUser();
 
     public tableData: MatTableDataSource<IUserTableData> = new MatTableDataSource<IUserTableData>([]);
-    public displayedColumns: string[] = ["name", ...(this.canEdit ? ["actions"] : [])];
+    public displayedColumns: string[] = ["select", "name", ...(this.canEdit ? ["actions"] : [])];
     private toast = inject(ToastService);
+    private snackBar = inject(MatSnackBar);
 
     loading = false;
 
+    /** Total users matching the current filters (all pages). */
+    totalUsers = 0;
+
+    // Selection survives paging and filtering, so users picked on different pages can be edited together.
+    private readonly selection = new Map<string, IUserTableData>();
+    selectingAll = false;
+
     // Fixed base columns (always shown)
-    private readonly BASE_COLUMNS = ["name", "actions"];
+    private readonly BASE_COLUMNS = ["select", "name", "actions"];
     private readonly BASE_COLUMN_SET = new Set(this.BASE_COLUMNS);
     readonly MAX_EXTRA_COLUMNS = 10;
 
@@ -315,6 +329,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
                     }
 
                     const response = res.data;
+                    this.totalUsers = response.total;
 
                     this.tableData.data = response.users.map(user => ({
                         ...user,
@@ -347,6 +362,194 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
         this.loadUsers();
     }
 
+    get hasActiveFilters(): boolean {
+        return !!(
+            this.searchControl.value ||
+            this.roleControl.value ||
+            this.departmentControl.value ||
+            this.countryControl.value ||
+            this.isActiveControl.value
+        );
+    }
+
+    clearFilters() {
+        this.searchControl.setValue("", { emitEvent: false });
+        this.roleControl.setValue("", { emitEvent: false });
+        this.departmentControl.setValue("", { emitEvent: false });
+        this.countryControl.setValue("", { emitEvent: false });
+        this.isActiveControl.setValue("", { emitEvent: false });
+        Object.assign(this.queryParams, {
+            search: undefined,
+            roleId: undefined,
+            departmentId: undefined,
+            countryId: undefined,
+            isActive: undefined,
+            page: 1,
+        });
+        if (this.paginator) {
+            this.paginator.pageIndex = 0;
+        }
+        this.loadUsers();
+    }
+
+    // ---- Selection ----
+
+    get selectedCount(): number {
+        return this.selection.size;
+    }
+
+    isSelected(user: IUserTableData): boolean {
+        return !!user._id && this.selection.has(user._id);
+    }
+
+    get pageAllSelected(): boolean {
+        return this.tableData.data.length > 0 && this.tableData.data.every(u => this.isSelected(u));
+    }
+
+    get pageSomeSelected(): boolean {
+        return !this.pageAllSelected && this.tableData.data.some(u => this.isSelected(u));
+    }
+
+    /** Offered when the whole page is selected but more matching users exist on other pages. */
+    get showSelectAllBanner(): boolean {
+        return this.pageAllSelected && this.totalUsers > this.selection.size;
+    }
+
+    toggleRow(user: IUserTableData) {
+        if (!user._id) {
+            return;
+        }
+        if (this.selection.has(user._id)) {
+            this.selection.delete(user._id);
+        } else {
+            this.selection.set(user._id, user);
+        }
+    }
+
+    togglePage(checked: boolean) {
+        for (const user of this.tableData.data) {
+            if (!user._id) {
+                continue;
+            }
+            if (checked) {
+                this.selection.set(user._id, user);
+            } else {
+                this.selection.delete(user._id);
+            }
+        }
+    }
+
+    clearSelection() {
+        this.selection.clear();
+    }
+
+    /** The list is paginated server-side (max 100 per request), so fetch every matching page. */
+    selectAllMatching() {
+        const pageSize = 100;
+        const pages = Math.ceil(this.totalUsers / pageSize);
+        this.selectingAll = true;
+
+        forkJoin(
+            Array.from({ length: pages }, (_, i) =>
+                this.usersService.getUsers({ ...this.queryParams, page: i + 1, limit: pageSize }),
+            ),
+        )
+            .pipe(finalize(() => (this.selectingAll = false)))
+            .subscribe({
+                next: responses => {
+                    for (const res of responses) {
+                        for (const user of res.data?.users ?? []) {
+                            if (user._id) {
+                                this.selection.set(user._id, user);
+                            }
+                        }
+                    }
+                },
+                error: err => this.toast.error(err.error?.message || "Could not select all users"),
+            });
+    }
+
+    // ---- Bulk actions ----
+
+    openBulkEdit() {
+        const ref = this.dialog.open<BulkEditDialogComponent, { users: IUser[] }, BulkEditDialogResult>(
+            BulkEditDialogComponent,
+            { data: { users: [...this.selection.values()] }, width: "760px", maxWidth: "95vw" },
+        );
+
+        ref.afterClosed().subscribe(outcome => {
+            if (outcome) {
+                this.finishBulkUpdate(outcome.result, outcome.undo, "updated");
+            }
+        });
+    }
+
+    setStatusForSelected(isActive: boolean) {
+        const targets = [...this.selection.values()].filter(u => (u.isActive ?? true) !== isActive);
+        if (!targets.length) {
+            this.toast.info(`All selected users are already ${isActive ? "active" : "inactive"}`);
+            return;
+        }
+
+        const updates: IBulkUserUpdate[] = targets.map(u => ({ id: u._id as string, data: { isActive } }));
+        const undo: IBulkUserUpdate[] = targets.map(u => ({ id: u._id as string, data: { isActive: !isActive } }));
+        this.loading = true;
+        this.usersService.bulkUpdate(updates).subscribe(result => {
+            const done = new Set(result.succeeded);
+            this.finishBulkUpdate(
+                result,
+                undo.filter(u => done.has(u.id)),
+                `set to ${isActive ? "Active" : "Inactive"}`,
+            );
+        });
+    }
+
+    private finishBulkUpdate(result: IBulkUpdateResult, undo: IBulkUserUpdate[], verb: string) {
+        const ok = result.succeeded.length;
+        const failed = result.failed.length;
+
+        if (failed) {
+            const names = result.failed.map(f => this.selection.get(f.id)?.name ?? f.id).slice(0, 3);
+            this.toast.warning(
+                `${ok} updated, ${failed} failed (${names.join(", ")}${failed > 3 ? "…" : ""}): ${result.failed[0].message}`,
+                8000,
+            );
+        }
+
+        // Failed users stay selected so the action can be retried.
+        const failedIds = new Set(result.failed.map(f => f.id));
+        for (const id of [...this.selection.keys()]) {
+            if (!failedIds.has(id)) {
+                this.selection.delete(id);
+            }
+        }
+
+        if (ok) {
+            this.snackBar
+                .open(`${ok} user${ok === 1 ? "" : "s"} ${verb}`, "Undo", {
+                    duration: 8000,
+                    panelClass: ["toast-success"],
+                    horizontalPosition: "right",
+                    verticalPosition: "top",
+                })
+                .onAction()
+                .subscribe(() => this.undoBulkUpdate(undo));
+        }
+
+        this.loadUsers();
+    }
+
+    private undoBulkUpdate(undo: IBulkUserUpdate[]) {
+        this.usersService.bulkUpdate(undo).subscribe(result => {
+            if (result.failed.length) {
+                this.toast.warning(`Could not restore ${result.failed.length} user(s)`);
+            } else {
+                this.toast.success("Changes undone");
+            }
+            this.loadUsers();
+        });
+    }
+
     navigateToEdit(user: IUser) {
         this.router.navigate(["/users", user._id, "edit"]);
     }
@@ -368,7 +571,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             key => !this.BASE_COLUMN_SET.has(key) && this.SELECTABLE_COLUMN_SET.has(key),
         );
         this.selectedExtraColumnKeys = uniqueSelectedColumns;
-        this.displayedColumns = ["name", ...uniqueSelectedColumns, ...(this.canEdit ? ["actions"] : [])];
+        this.displayedColumns = ["select", "name", ...uniqueSelectedColumns, ...(this.canEdit ? ["actions"] : [])];
     }
 
     private persistColumnSelection() {
@@ -424,11 +627,13 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     downloadUsersAsCSV() {
-        if (this.tableData.data.length === 0) {
+        // Export the selection when there is one (even across pages), otherwise the visible page.
+        const users = this.selection.size ? [...this.selection.values()] : this.tableData.data;
+        if (users.length === 0) {
             return;
         }
 
-        const exportColumns = this.displayedColumns.filter(column => column !== "actions");
+        const exportColumns = this.displayedColumns.filter(column => column !== "actions" && column !== "select");
         const columnLabels: Record<string, string> = {
             name: "Name",
             email: "Email",
@@ -449,7 +654,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
             );
         });
 
-        const rows = this.tableData.data.map(user =>
+        const rows = users.map(user =>
             exportColumns.map(column => {
                 if (column === "name") {
                     return user.name;
