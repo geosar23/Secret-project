@@ -91,25 +91,3 @@ export async function findActiveDependents(
         ? `Cannot deactivate: ${found.join(" and ")} still depend on it. Reassign them first.`
         : null;
 }
-
-/**
- * Users store their department and sub-department directly, so moving a sub-department to another
- * department or a title to another sub-department would leave those users inconsistent.
- * Returns a message when any user (active or not) still references the entity, or null.
- */
-export async function findReparentBlocker(
-    entity: "subDepartment" | "employmentTitle",
-    id: string,
-    companyId: string,
-): Promise<string | null> {
-    const filter =
-        entity === "subDepartment"
-            ? { $or: [{ primarySubDepartment: id }, { secondarySubDepartments: id }] }
-            : { employmentTitle: id };
-    const count = await userRepository(companyId).count(filter as FilterQuery<IUser>);
-    if (count === 0) {
-        return null;
-    }
-    const parent = entity === "subDepartment" ? "department" : "sub-department";
-    return `Cannot move to another ${parent}: ${count} ${count === 1 ? "user is" : "users are"} assigned. Reassign them first.`;
-}

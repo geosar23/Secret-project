@@ -63,7 +63,12 @@
                 <mat-header-cell *matHeaderCellDef>Actions</mat-header-cell>
                 <mat-cell *matCellDef="let d" data-label="Actions">
                     <div class="action-buttons">
-                        <button mat-icon-button title="Edit" (click)="openEditDialog(d)">
+                        <button
+                            mat-icon-button
+                            title="Edit, move or merge"
+                            aria-label="Edit, move or merge employment title"
+                            (click)="openEditWizard(d)"
+                        >
                             <mat-icon>edit</mat-icon>
                         </button>
                         <button mat-icon-button title="Delete" color="warn" (click)="deleteEmploymentTitle(d)">

@@ -5,7 +5,7 @@ import { SubDepartmentService } from "../services/sub-department.service";
 import { hardError, softError, success } from "../utils/response.util";
 import { isValidObjectId } from "../utils/field-sanitizer.util";
 import { departmentRepository } from "../repositories/department.repository";
-import { findActiveDependents, findReparentBlocker } from "../services/dependency.service";
+import { findActiveDependents } from "../services/dependency.service";
 
 export class SubDepartmentController {
     static async getAll(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -82,7 +82,7 @@ export class SubDepartmentController {
     static async update(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            const sanitized: { name?: string; description?: string; isActive?: boolean; department?: string } = {};
+            const sanitized: { name?: string; description?: string; isActive?: boolean } = {};
 
             if (typeof req.body.name === "string" && req.body.name.trim().length > 0) {
                 sanitized.name = req.body.name.trim();
@@ -94,30 +94,11 @@ export class SubDepartmentController {
                 sanitized.isActive = req.body.isActive;
             }
             if (typeof req.body.departmentId === "string" && req.body.departmentId.trim().length > 0) {
-                const departmentId = req.body.departmentId.trim();
                 const current = await SubDepartmentService.getById(req.params.id, requestingUser.companyId);
                 const currentDepartmentId = current ? String((current.department as any)?._id) : undefined;
-                if (departmentId !== currentDepartmentId) {
-                    const department = isValidObjectId(departmentId)
-                        ? await departmentRepository(requestingUser.companyId)
-                              .findOne({ _id: departmentId, isActive: true })
-                              .select("_id")
-                              .lean()
-                        : null;
-                    if (!department) {
-                        res.json(softError("Invalid department"));
-                        return;
-                    }
-                    const moveBlocker = await findReparentBlocker(
-                        "subDepartment",
-                        req.params.id,
-                        requestingUser.companyId,
-                    );
-                    if (moveBlocker) {
-                        res.json(softError(moveBlocker));
-                        return;
-                    }
-                    sanitized.department = departmentId;
+                if (req.body.departmentId.trim() !== currentDepartmentId) {
+                    res.json(softError("The department cannot be changed here. Use Move / Merge to change it."));
+                    return;
                 }
             }
 

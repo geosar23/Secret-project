@@ -6,7 +6,6 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatSelectModule } from "@angular/material/select";
 import { ToastService } from "../../../core/services/toast.service";
 import { ISubDepartment } from "../../../core/interfaces/sub-department.interface";
@@ -15,7 +14,7 @@ import { DepartmentService } from "../../../core/services/department.service";
 import { IDepartment } from "../../../core/interfaces/department.interface";
 
 export interface SubDepartmentDialogData {
-    mode: "create" | "edit";
+    mode: "create";
     subDepartment?: ISubDepartment;
 }
 
@@ -30,7 +29,6 @@ export interface SubDepartmentDialogData {
         MatInputModule,
         MatButtonModule,
         MatProgressSpinnerModule,
-        MatSlideToggleModule,
         MatSelectModule,
     ],
     templateUrl: "./sub-department-dialog.component.html",
@@ -46,7 +44,6 @@ export class SubDepartmentDialogComponent implements OnInit {
 
     loading = false;
     departmentsLoading = false;
-    isEdit = this.data.mode === "edit";
     departments: IDepartment[] = [];
 
     private initialDepartmentId =
@@ -58,7 +55,6 @@ export class SubDepartmentDialogComponent implements OnInit {
         name: [this.data.subDepartment?.name ?? "", [Validators.required, Validators.minLength(2)]],
         description: [this.data.subDepartment?.description ?? ""],
         departmentId: [this.initialDepartmentId, Validators.required],
-        isActive: [this.data.subDepartment?.isActive ?? true],
     });
 
     ngOnInit(): void {
@@ -83,21 +79,13 @@ export class SubDepartmentDialogComponent implements OnInit {
         this.loading = true;
         this.dialogRef.disableClose = true;
 
-        const { name, description, departmentId, isActive } = this.form.value as {
+        const { name, description, departmentId } = this.form.value as {
             name: string;
             description: string;
             departmentId: string;
-            isActive: boolean;
         };
 
-        const request$ = this.isEdit
-            ? this.subDepartmentService.updateSubDepartment(this.data.subDepartment!._id as string, {
-                  name,
-                  description,
-                  departmentId,
-                  isActive,
-              })
-            : this.subDepartmentService.createSubDepartment({ name, description, departmentId });
+        const request$ = this.subDepartmentService.createSubDepartment({ name, description, departmentId });
 
         request$.subscribe({
             next: res => {

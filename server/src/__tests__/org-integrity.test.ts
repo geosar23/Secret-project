@@ -305,19 +305,27 @@ describe("User department assignments", () => {
         expect(sub.body.message).toMatch(/Cannot deactivate.*user/);
     });
 
-    it("blocks moving a sub-department or title that users are assigned to", async () => {
+    it("refuses to change a parent through a plain update, pointing to the wizard", async () => {
         const sub = await request(app)
             .put(`/api/sub-departments/${org.subA}`)
             .set(bearer())
             .send({ departmentId: org.deptB });
         expect(sub.body.success).toBe(false);
-        expect(sub.body.message).toMatch(/Cannot move/);
+        expect(sub.body.message).toMatch(/Move \/ Merge/);
 
         const title = await request(app)
             .put(`/api/employment-titles/${org.titleA}`)
             .set(bearer())
             .send({ subDepartmentId: org.subB });
         expect(title.body.success).toBe(false);
-        expect(title.body.message).toMatch(/Cannot move/);
+        expect(title.body.message).toMatch(/Move \/ Merge/);
+    });
+
+    it("still allows a plain update that keeps the same parent", async () => {
+        const res = await request(app)
+            .put(`/api/sub-departments/${org.subA}`)
+            .set(bearer())
+            .send({ name: "Sub A renamed", departmentId: org.deptA });
+        expect(res.body.success).toBe(true);
     });
 });

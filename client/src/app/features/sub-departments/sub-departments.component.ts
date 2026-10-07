@@ -17,6 +17,7 @@ import { ISubDepartment } from "../../core/interfaces/sub-department.interface";
 import { SubDepartmentService } from "../../core/services/sub-department.service";
 import { ToastService } from "../../core/services/toast.service";
 import { PermissionService } from "../../core/services/permission.service";
+import { OrgMoveWizardComponent, OrgMoveWizardData } from "../org-move-wizard/org-move-wizard.component";
 import {
     SubDepartmentDialogComponent,
     SubDepartmentDialogData,
@@ -125,23 +126,16 @@ export class SubDepartmentsComponent implements OnInit, AfterViewInit, OnDestroy
             });
     }
 
-    openEditDialog(subDepartment: ISubDepartment): void {
+    openEditWizard(subDepartment: ISubDepartment): void {
         this.dialog
-            .open(SubDepartmentDialogComponent, {
-                width: "500px",
+            .open(OrgMoveWizardComponent, {
+                width: "760px",
                 maxWidth: "95vw",
-                data: { mode: "edit", subDepartment } as SubDepartmentDialogData,
+                data: { kind: "subDepartment", subDepartment } as OrgMoveWizardData,
             })
             .afterClosed()
             .pipe(takeUntil(this.destroy$))
-            .subscribe((updated?: ISubDepartment) => {
-                if (!updated) {
-                    return;
-                }
-                this.allSubDepartments = this.allSubDepartments.map(d => (d._id === updated._id ? updated : d));
-                this.tableData.data = this.allSubDepartments;
-                this.toast.success("Sub-department updated successfully");
-            });
+            .subscribe(() => this.loadSubDepartments());
     }
 
     deleteSubDepartment(subDepartment: ISubDepartment): void {

@@ -1,0 +1,363 @@
+<div class="dialog-header">
+    <mat-icon>{{ mode() === "edit" ? "edit" : mode() === "move" ? "drive_file_move" : "merge_type" }}</mat-icon>
+    <h2 mat-dialog-title>
+        @switch (step()) {
+            @case (1) {
+                {{ mode() === "edit" ? "Edit" : mode() === "move" ? "Move" : "Merge" }} {{ entityLabel }}
+            }
+            @case (2) {
+                What happens to the affected users?
+            }
+            @case (3) {
+                Review changes
+            }
+            @case (4) {
+                {{ undone() ? "Change undone" : "Change applied" }}
+            }
+        }
+    </h2>
+    <span class="source-name">{{ sourceName }}</span>
+</div>
+
+@if (busy() || loading()) {
+    <mat-progress-bar mode="indeterminate" />
+}
+
+<mat-dialog-content class="dialog-content">
+    @switch (step()) {
+        @case (1) {
+            <mat-button-toggle-group
+                class="mode-toggle"
+                [value]="mode()"
+                (change)="setMode($event.value)"
+                aria-label="What to do"
+            >
+                <mat-button-toggle value="edit">Edit details</mat-button-toggle>
+                <mat-button-toggle value="move">Move</mat-button-toggle>
+                <mat-button-toggle value="merge">Merge into another</mat-button-toggle>
+            </mat-button-toggle-group>
+
+            @if (mode() === "edit") {
+                <form [formGroup]="detailsForm" class="details-form" (ngSubmit)="saveDetails()">
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>Name</mat-label>
+                        <input matInput formControlName="name" />
+                        @if (detailsForm.controls.name.hasError("required") && detailsForm.controls.name.touched) {
+                            <mat-error>Name is required</mat-error>
+                        }
+                        @if (detailsForm.controls.name.hasError("minlength")) {
+                            <mat-error>Name must be at least 2 characters</mat-error>
+                        }
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>Description</mat-label>
+                        <textarea matInput formControlName="description" rows="3" placeholder="Optional"></textarea>
+                    </mat-form-field>
+
+                    <mat-slide-toggle formControlName="isActive" color="primary">Active</mat-slide-toggle>
+
+                    <div class="notice info">
+                        <mat-icon>lock</mat-icon>
+                        <span>
+                            {{ parentLabel }}: <strong>{{ parentName || "—" }}</strong
+                            >. It can only be changed with Move or Merge, which also looks after the users assigned
+                            here.
+                        </span>
+                    </div>
+                </form>
+            } @else {
+                <p class="hint">
+                    Users store their department and title directly, so changing the structure also changes the people
+                    in it. You decide what happens to each of them in the next step; nothing is saved until you confirm.
+                </p>
+
+                <p class="hint">
+                    @if (mode() === "move") {
+                        {{
+                            isSubDepartment
+                                ? "Place this sub-department under a different department."
+                                : "Place this title under a different sub-department."
+                        }}
+                    } @else {
+                        The {{ entityLabel }} is retired and deactivated once its users have been moved to the one you
+                        pick.
+                        @if (isSubDepartment) {
+                            Its employment titles move to the target as well.
+                        }
+                    }
+                </p>
+
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="target-field">
+                    <mat-label>{{ targetLabel() }}</mat-label>
+                    <mat-select [value]="targetId()" (selectionChange)="setTarget($event.value)">
+                        @for (o of targetOptions(); track o.id) {
+                            <mat-option [value]="o.id">{{ o.label }}</mat-option>
+                        } @empty {
+                            <mat-option disabled>Nothing available</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+            }
+
+            @if (errorMessage()) {
+                <div class="notice warn">
+                    <mat-icon>warning</mat-icon>
+                    <span>{{ errorMessage() }}</span>
+                </div>
+            }
+        }
+
+        @case (2) {
+            <div class="summary">
+                <div class="summary-box">
+                    <strong>{{ users().length }}</strong>
+                    <span>user{{ users().length === 1 ? "" : "s" }} affected</span>
+                </div>
+                @if (isSubDepartment) {
+                    <div class="summary-box">
+                        <strong>{{ preview()?.childTitleCount }}</strong>
+                        <span>employment title{{ preview()?.childTitleCount === 1 ? "" : "s" }} in it</span>
+                    </div>
+                }
+            </div>
+
+            <div class="bulk-row">
+                <span class="hint">Apply one choice to everyone, then adjust individuals:</span>
+                <button mat-stroked-button type="button" (click)="setActionForAll('follow')">
+                    {{ followLabel() }}
+                </button>
+                <button mat-stroked-button type="button" (click)="setActionForAll('clear')">Clear for all</button>
+            </div>
+
+            @if (blocked().forbidden) {
+                <div class="notice warn">
+                    <mat-icon>block</mat-icon>
+                    <span>
+                        You are not allowed to change {{ blocked().forbidden }} of these users, so this change cannot be
+                        applied. Ask someone with wider access to do it.
+                    </span>
+                </div>
+            }
+
+            @for (user of users(); track user.id) {
+                <div class="user-row" [class.forbidden]="!user.canManage">
+                    <div class="user-info">
+                        <strong>{{ user.name }}</strong>
+                        <span class="user-meta">{{ user.email }}</span>
+                        <div class="d-flex flex-wrap gap-sm">
+                            <span class="badge badge-info">
+                                {{
+                                    user.relation === "secondary"
+                                        ? "Secondary"
+                                        : user.relation === "primary"
+                                          ? "Primary"
+                                          : "Title holder"
+                                }}
+                            </span>
+                            @if (user.titleName && isSubDepartment) {
+                                <span class="badge badge-gray">{{ user.titleName }}</span>
+                            }
+                            @if (!user.isActive) {
+                                <span class="badge badge-gray">Inactive</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="user-controls">
+                        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                            <mat-label>Action</mat-label>
+                            <mat-select
+                                [value]="choiceOf(user).action"
+                                (selectionChange)="setAction(user, $event.value)"
+                                [disabled]="!user.canManage"
+                            >
+                                <mat-option value="follow">{{ followLabel() }}</mat-option>
+                                <mat-option value="reassign">Reassign…</mat-option>
+                                <mat-option value="clear">
+                                    {{
+                                        isSubDepartment && user.relation === "primary"
+                                            ? "Clear sub-department"
+                                            : isSubDepartment
+                                              ? "Remove"
+                                              : "Clear title"
+                                    }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+
+                        @if (choiceOf(user).action === "reassign") {
+                            @if (needs(user).subDepartment) {
+                                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                    <mat-label>Sub-department</mat-label>
+                                    <mat-select
+                                        [value]="choiceOf(user).subDepartmentId"
+                                        (selectionChange)="setSubDepartment(user, $event.value)"
+                                    >
+                                        @for (o of subOptionsFor(); track o.id) {
+                                            <mat-option [value]="o.id">{{ o.label }}</mat-option>
+                                        }
+                                    </mat-select>
+                                </mat-form-field>
+                            }
+                            @if (needs(user).title) {
+                                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                    <mat-label>Employment title</mat-label>
+                                    <mat-select
+                                        [value]="choiceOf(user).titleId"
+                                        (selectionChange)="setTitle(user, $event.value)"
+                                        [disabled]="isSubDepartment && !choiceOf(user).subDepartmentId"
+                                    >
+                                        @for (o of titleOptionsFor(user); track o.id) {
+                                            <mat-option [value]="o.id">{{ o.label }}</mat-option>
+                                        } @empty {
+                                            <mat-option disabled>No titles available</mat-option>
+                                        }
+                                    </mat-select>
+                                </mat-form-field>
+                            }
+                            @if (problem(user)) {
+                                <span class="field-hint warn">{{ problem(user) }}</span>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        }
+
+        @case (3) {
+            <p class="hint">Nothing is saved until you confirm.</p>
+
+            <div class="diff">
+                <div class="diff-row">
+                    <span class="diff-label">{{ mode() === "move" ? "Move" : "Merge" }}</span>
+                    <span class="diff-from">{{ sourceName }}</span>
+                    <mat-icon>arrow_forward</mat-icon>
+                    <span class="diff-to">{{ targetName() }}</span>
+                </div>
+                @if (users().length) {
+                    <div class="diff-row">
+                        <span class="diff-label">Users</span>
+                        <span class="diff-from">{{ users().length }} affected</span>
+                        <mat-icon>arrow_forward</mat-icon>
+                        <span class="diff-to">
+                            {{ counts().follow }} follow, {{ counts().reassign }} reassigned,
+                            {{ counts().clear }} cleared
+                        </span>
+                    </div>
+                } @else {
+                    <div class="diff-row">
+                        <span class="diff-label">Users</span>
+                        <span class="diff-from">No users are affected</span>
+                    </div>
+                }
+            </div>
+
+            @if (mode() === "merge") {
+                <div class="notice warn">
+                    <mat-icon>warning</mat-icon>
+                    <span>
+                        {{ sourceName }} will be deactivated.
+                        @if (isSubDepartment && preview()?.childTitleCount) {
+                            Its {{ preview()?.childTitleCount }} employment title(s) move to {{ targetName() }}.
+                        }
+                    </span>
+                </div>
+            }
+            <div class="notice info">
+                <mat-icon>history</mat-icon>
+                <span>You can undo this right after applying, as long as nobody edits the affected records.</span>
+            </div>
+
+            @if (errorMessage()) {
+                <div class="notice warn">
+                    <mat-icon>error</mat-icon>
+                    <div>
+                        <span>{{ errorMessage() }}</span>
+                        <ul class="problem-list">
+                            @for (d of errorDetails(); track d) {
+                                <li>{{ d }}</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            }
+        }
+
+        @case (4) {
+            @if (undone()) {
+                <div class="notice info">
+                    <mat-icon>undo</mat-icon>
+                    <span>Everything was restored to how it was before.</span>
+                </div>
+            } @else {
+                <div class="notice ok">
+                    <mat-icon>check_circle</mat-icon>
+                    <span>
+                        {{ sourceName }} was {{ mode() === "move" ? "moved to" : "merged into" }} {{ targetName() }}.
+                        {{ updated() }} user{{ updated() === 1 ? "" : "s" }} updated.
+                    </span>
+                </div>
+            }
+        }
+    }
+</mat-dialog-content>
+
+<mat-dialog-actions>
+    @switch (step()) {
+        @case (1) {
+            <span class="spacer"></span>
+            <button mat-button mat-dialog-close>Cancel</button>
+            @if (mode() === "edit") {
+                <button
+                    mat-flat-button
+                    color="primary"
+                    [disabled]="detailsForm.invalid || busy()"
+                    (click)="saveDetails()"
+                >
+                    <mat-icon>save</mat-icon>
+                    Save changes
+                </button>
+            } @else {
+                <button mat-flat-button color="primary" [disabled]="!targetId() || busy()" (click)="loadPreview()">
+                    Show impact
+                    <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+                </button>
+            }
+        }
+        @case (2) {
+            <button mat-button (click)="back()">
+                <mat-icon>arrow_back</mat-icon>
+                Back
+            </button>
+            <span class="spacer"></span>
+            <button mat-button mat-dialog-close>Cancel</button>
+            <button mat-flat-button color="primary" [disabled]="!canContinueToReview()" (click)="step.set(3)">
+                Review
+                <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+            </button>
+        }
+        @case (3) {
+            <button mat-button [disabled]="busy()" (click)="back()">
+                <mat-icon>arrow_back</mat-icon>
+                Back
+            </button>
+            <span class="spacer"></span>
+            <button mat-button mat-dialog-close [disabled]="busy()">Cancel</button>
+            <button mat-flat-button color="primary" [disabled]="busy()" (click)="apply()">
+                <mat-icon>done_all</mat-icon>
+                Apply
+            </button>
+        }
+        @case (4) {
+            @if (!undone()) {
+                <button mat-button [disabled]="busy()" (click)="undo()">
+                    <mat-icon>undo</mat-icon>
+                    Undo
+                </button>
+            }
+            <span class="spacer"></span>
+            <button mat-flat-button color="primary" mat-dialog-close>Close</button>
+        }
+    }
+</mat-dialog-actions>

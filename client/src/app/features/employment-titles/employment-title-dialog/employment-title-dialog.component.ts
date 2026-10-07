@@ -6,7 +6,6 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatSelectModule } from "@angular/material/select";
 import { ToastService } from "../../../core/services/toast.service";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
@@ -15,7 +14,7 @@ import { SubDepartmentService } from "../../../core/services/sub-department.serv
 import { ISubDepartment } from "../../../core/interfaces/sub-department.interface";
 
 export interface EmploymentTitleDialogData {
-    mode: "create" | "edit";
+    mode: "create";
     employmentTitle?: IEmploymentTitle;
 }
 
@@ -30,7 +29,6 @@ export interface EmploymentTitleDialogData {
         MatInputModule,
         MatButtonModule,
         MatProgressSpinnerModule,
-        MatSlideToggleModule,
         MatSelectModule,
     ],
     templateUrl: "./employment-title-dialog.component.html",
@@ -46,7 +44,6 @@ export class EmploymentTitleDialogComponent implements OnInit {
 
     loading = false;
     subDepartmentsLoading = false;
-    isEdit = this.data.mode === "edit";
     subDepartments: ISubDepartment[] = [];
 
     private initialSubDepartmentId =
@@ -58,7 +55,6 @@ export class EmploymentTitleDialogComponent implements OnInit {
         name: [this.data.employmentTitle?.name ?? "", [Validators.required, Validators.minLength(2)]],
         description: [this.data.employmentTitle?.description ?? ""],
         subDepartmentId: [this.initialSubDepartmentId, Validators.required],
-        isActive: [this.data.employmentTitle?.isActive ?? true],
     });
 
     ngOnInit(): void {
@@ -87,21 +83,13 @@ export class EmploymentTitleDialogComponent implements OnInit {
         this.loading = true;
         this.dialogRef.disableClose = true;
 
-        const { name, description, subDepartmentId, isActive } = this.form.value as {
+        const { name, description, subDepartmentId } = this.form.value as {
             name: string;
             description: string;
             subDepartmentId: string;
-            isActive: boolean;
         };
 
-        const request$ = this.isEdit
-            ? this.employmentTitleService.updateEmploymentTitle(this.data.employmentTitle!._id as string, {
-                  name,
-                  description,
-                  subDepartmentId,
-                  isActive,
-              })
-            : this.employmentTitleService.createEmploymentTitle({ name, description, subDepartmentId });
+        const request$ = this.employmentTitleService.createEmploymentTitle({ name, description, subDepartmentId });
 
         request$.subscribe({
             next: res => {

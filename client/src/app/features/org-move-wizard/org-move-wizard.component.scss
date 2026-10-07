@@ -1,0 +1,212 @@
+.dialog-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-lg-minus) var(--spacing-lg) 0;
+
+    h2 {
+        margin: 0;
+        flex: 1;
+        font-size: var(--font-size-lg);
+    }
+
+    mat-icon {
+        color: var(--color-primary-500);
+    }
+}
+
+.source-name {
+    max-width: 14rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: var(--spacing-2xs) var(--spacing-sm-plus);
+    border-radius: var(--radius-full);
+    background: var(--color-gray-100);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+}
+
+.dialog-content {
+    min-width: min(42rem, 80vw);
+    max-height: 60vh;
+}
+
+.hint {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.mode-toggle {
+    margin-bottom: var(--spacing-sm);
+}
+
+.target-field {
+    width: 100%;
+}
+
+.summary {
+    display: flex;
+    gap: var(--spacing-md-minus);
+    margin-bottom: var(--spacing-md);
+
+    @media (max-width: 600px) {
+        flex-direction: column;
+    }
+}
+
+.summary-box {
+    flex: 1;
+    padding: var(--spacing-md-minus);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+
+    strong {
+        display: block;
+        font-size: var(--font-size-2xl);
+        line-height: 1;
+    }
+
+    span {
+        font-size: var(--font-size-xs);
+        color: var(--color-text-secondary);
+    }
+}
+
+.bulk-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm-plus);
+}
+
+.user-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: var(--spacing-md-minus);
+    margin-bottom: var(--spacing-sm-plus);
+    padding: var(--spacing-md-minus);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+
+    &.forbidden {
+        opacity: 0.6;
+    }
+
+    @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    min-width: 0;
+}
+
+.user-meta {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    min-width: 0;
+}
+
+.field-hint.warn {
+    font-size: var(--font-size-xs);
+    color: var(--color-warning);
+    font-weight: var(--font-weight-semibold);
+}
+
+.diff {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.diff-row {
+    display: grid;
+    grid-template-columns: 6rem minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: start;
+    gap: var(--spacing-sm-plus);
+    padding: var(--spacing-md-minus);
+    border-bottom: 1px solid var(--color-divider);
+    font-size: var(--font-size-sm);
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+
+        mat-icon {
+            display: none;
+        }
+    }
+}
+
+.diff-label {
+    font-weight: var(--font-weight-bold);
+}
+
+.diff-from {
+    color: var(--color-text-secondary);
+}
+
+.diff-to {
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-700);
+}
+
+.notice {
+    display: flex;
+    gap: var(--spacing-sm-plus);
+    margin-top: var(--spacing-sm-plus);
+    padding: var(--spacing-sm-plus) var(--spacing-md-minus);
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+
+    &.warn {
+        background: var(--color-warning-light);
+    }
+
+    &.info {
+        background: var(--color-primary-50);
+    }
+
+    &.ok {
+        background: var(--color-success-light);
+    }
+}
+
+.problem-list {
+    margin: var(--spacing-xs) 0 0;
+    padding-left: var(--spacing-lg);
+}
+
+mat-dialog-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-lg);
+
+    .spacer {
+        flex: 1;
+    }
+}
+
+.details-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md-minus);
+}

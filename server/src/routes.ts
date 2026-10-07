@@ -9,6 +9,7 @@ import subDepartmentsRouter from "./routes/sub-department.routes";
 import employmentTitlesRouter from "./routes/employment-title.routes";
 import levelsRouter from "./routes/level.routes";
 import officesRouter from "./routes/office.routes";
+import orgMoveRouter from "./routes/org-move.routes";
 import userDocumentsRouter from "./routes/user-document.routes";
 import { authMiddleware } from "./middleware/auth.middleware";
 
@@ -26,6 +27,7 @@ router.use("/countries", authMiddleware as RequestHandler, countriesRouter);
 router.use("/departments", authMiddleware as RequestHandler, departmentsRouter);
 router.use("/sub-departments", authMiddleware as RequestHandler, subDepartmentsRouter);
 router.use("/employment-titles", authMiddleware as RequestHandler, employmentTitlesRouter);
+router.use("/org-moves", authMiddleware as RequestHandler, orgMoveRouter);
 router.use("/levels", authMiddleware as RequestHandler, levelsRouter);
 router.use("/offices", authMiddleware as RequestHandler, officesRouter);
 router.use("/user-documents", authMiddleware as RequestHandler, userDocumentsRouter);

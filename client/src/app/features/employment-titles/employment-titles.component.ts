@@ -17,6 +17,7 @@ import { ToastService } from "../../core/services/toast.service";
 import { PermissionService } from "../../core/services/permission.service";
 import { IEmploymentTitle } from "../../core/interfaces/employment-title.interface";
 import { EmploymentTitleService } from "../../core/services/employment-title.service";
+import { OrgMoveWizardComponent, OrgMoveWizardData } from "../org-move-wizard/org-move-wizard.component";
 import {
     EmploymentTitleDialogComponent,
     EmploymentTitleDialogData,
@@ -141,23 +142,16 @@ export class EmploymentTitlesComponent implements OnInit, AfterViewInit, OnDestr
             });
     }
 
-    openEditDialog(employmentTitle: IEmploymentTitle): void {
+    openEditWizard(employmentTitle: IEmploymentTitle): void {
         this.dialog
-            .open(EmploymentTitleDialogComponent, {
-                width: "500px",
+            .open(OrgMoveWizardComponent, {
+                width: "760px",
                 maxWidth: "95vw",
-                data: { mode: "edit", employmentTitle } as EmploymentTitleDialogData,
+                data: { kind: "title", title: employmentTitle } as OrgMoveWizardData,
             })
             .afterClosed()
             .pipe(takeUntil(this.destroy$))
-            .subscribe((updated?: IEmploymentTitle) => {
-                if (!updated) {
-                    return;
-                }
-                this.allEmploymentTitles = this.allEmploymentTitles.map(d => (d._id === updated._id ? updated : d));
-                this.tableData.data = this.allEmploymentTitles;
-                this.toast.success("Employment title updated successfully");
-            });
+            .subscribe(() => this.loadEmploymentTitles());
     }
 
     deleteEmploymentTitle(employmentTitle: IEmploymentTitle): void {

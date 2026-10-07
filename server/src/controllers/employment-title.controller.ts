@@ -5,7 +5,7 @@ import { EmploymentTitleService } from "../services/employment-title.service";
 import { hardError, softError, success } from "../utils/response.util";
 import { isValidObjectId } from "../utils/field-sanitizer.util";
 import { subDepartmentRepository } from "../repositories/sub-department.repository";
-import { findActiveDependents, findReparentBlocker } from "../services/dependency.service";
+import { findActiveDependents } from "../services/dependency.service";
 
 export class EmploymentTitleController {
     static async getAll(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -82,7 +82,7 @@ export class EmploymentTitleController {
     static async update(req: AuthenticatedRequest, res: Response): Promise<void> {
         try {
             const requestingUser = req.decoded as tokenPayload;
-            const sanitized: { name?: string; description?: string; isActive?: boolean; subDepartment?: string } = {};
+            const sanitized: { name?: string; description?: string; isActive?: boolean } = {};
 
             if (typeof req.body.name === "string" && req.body.name.trim().length > 0) {
                 sanitized.name = req.body.name.trim();
@@ -94,30 +94,11 @@ export class EmploymentTitleController {
                 sanitized.isActive = req.body.isActive;
             }
             if (typeof req.body.subDepartmentId === "string" && req.body.subDepartmentId.trim().length > 0) {
-                const subDepartmentId = req.body.subDepartmentId.trim();
                 const current = await EmploymentTitleService.getById(req.params.id, requestingUser.companyId);
                 const currentSubDepartmentId = current ? String((current.subDepartment as any)?._id) : undefined;
-                if (subDepartmentId !== currentSubDepartmentId) {
-                    const subDepartment = isValidObjectId(subDepartmentId)
-                        ? await subDepartmentRepository(requestingUser.companyId)
-                              .findOne({ _id: subDepartmentId, isActive: true })
-                              .select("_id")
-                              .lean()
-                        : null;
-                    if (!subDepartment) {
-                        res.json(softError("Invalid sub-department"));
-                        return;
-                    }
-                    const moveBlocker = await findReparentBlocker(
-                        "employmentTitle",
-                        req.params.id,
-                        requestingUser.companyId,
-                    );
-                    if (moveBlocker) {
-                        res.json(softError(moveBlocker));
-                        return;
-                    }
-                    sanitized.subDepartment = subDepartmentId;
+                if (req.body.subDepartmentId.trim() !== currentSubDepartmentId) {
+                    res.json(softError("The sub-department cannot be changed here. Use Move / Merge to change it."));
+                    return;
                 }
             }
 
