@@ -14,6 +14,29 @@ Status legend:
 - [~] In progress
 - [x] Done
 
+## MVP Scope & Decisions (PM review, 2026-10-07)
+
+Target: **MVP within ~6 months** (no fixed launch date). **First customer: a single pilot** (not self-serve SaaS, so no public signup or billing for now).
+
+**In MVP:** employee directory + org chart + RBAC (done), email-based onboarding/auth, leaves, recruiting (port of an existing app), promotions, performance reviews, payroll (strong selling point, port + revamp of an existing implementation), company onboarding/seed, audit trail.
+
+**End game:** the configurable request flow builder (P0-11). Every request-like module (leaves, promotions, later others) must be built so it plugs into one engine. See P0-11 architecture notes.
+
+**Deferred / promised later:** SMS + OTP (P1-27), attendance (nothing designed yet).
+
+**Guiding principle: audit-ready.** Modules built from now on must emit audit entries (actor, action, timestamp, before/after) even before the audit module (P0-13) ships. Do not wait for P0-13 to design for it.
+
+**Dependencies:** P0-23 (email) -> P0-24 (invite/activate) and P0-25 (forgot password). Both are high priority but start after P0-23.
+
+**Handled elsewhere / already settled:**
+
+- Leaves (P0-08) design is being discussed with another agent.
+- P0-07 profile completion items (validation, safe migration, salary visibility) were fixed.
+- The legacy `department` field decision changed: users keep **department (primary + secondaries)** and **sub-department** fields at user level, instead of deriving department from title > sub-department.
+- Minor known issues (date format, `**` markers, company-filtered dropdowns, failed-login toast, P0-07C/E) are intentionally ignored for now.
+
+**Discussion queue:** P0-10 Requests page (next focus), P0-14 promotions, P0-12 payroll revamp.
+
 ## (Foundation + Risk Reduction)
 
 ### P0-01 CI Pipeline for Client + Server
@@ -132,7 +155,7 @@ Status legend:
         - [x] Add `server/src/__tests__/repository-contract.test.ts` to enforce company-scoped repository behavior consistency.
         - [x] Add `client/scripts/check-routes.ts` to assert critical routes exist (`/non-authorized`, `/levels`, `/offices`).
     - [ ] **Phase 1 — Critical server fixes.**
-        - [ ] Remove `department` field in user schema (derives from title>subdepartment>department) and verify department-scoped policy checks work.
+        - [x] ~~Remove `department` field in user schema~~ **Decision changed:** keep `department` (primary + secondaries) and `sub-department` at user level. Verify department-scoped policy checks work with multiple departments.
         - [x] Add permission middleware on write/delete routes for departments, sub-departments, employment-titles, levels, and offices.
     - [ ] **Phase 2 — Security coverage fixes.**
         - [ ] Add RBAC middleware for user CRUD routes.
@@ -288,14 +311,21 @@ we should always fetch only the active ones for selection
 
 -also when marking an hr entity is inactive , we should check dependendants entites and asking the user to first change the dependencies and then change it
 
-### P0-07C Client should render optiosn buttons menus based on permissions the user h
+### P0-07C Client should render options/buttons/menus based on permissions the user has
+
+- Priority: Medium (deferred, not MVP-blocking for the pilot)
+- Status: [ ]
 
 ### P0-07D Edit Roles should be a dedicated page for better UI, for searching and selecting permissions group them etc
 
 ### P0-07E HR employee has permission for self edit but (client?) guard blocks him
 
+- Priority: Low (minor, ignored for now)
+- Status: [ ]
+
 ### P0-08 Leaves Module (Single-Step Manager Approval)
 
+- Note: design is being discussed with another agent. Build it as the first request type on the P0-11 engine (see architecture notes there) and make it audit-ready.
 - Priority: P0
 - Owner: You
 - Estimate: 2-3 days
@@ -309,6 +339,7 @@ we should always fetch only the active ones for selection
 
 ### P0-09 Recruiting Module (MVP)
 
+- Note: **port the core logic and flow from the existing recruiting app** instead of designing from scratch. First step: inventory what is reusable (models, stages, flow) and map it onto this app's multi-tenant + RBAC model.
 - Priority: P0
 - Owner: You
 - Estimate: 3-4 days
@@ -322,6 +353,7 @@ we should always fetch only the active ones for selection
 
 ### P0-10 Requests Page (Unified Employee Requests)
 
+- Note: **next topic for discussion.** Design it on top of the unified request model from P0-11, not per module.
 - Priority: P0
 - Owner: You
 - Estimate: 1.5-2 days
@@ -335,6 +367,12 @@ we should always fetch only the active ones for selection
 
 ### P0-11 Configurable Request Flow Builder
 
+- Note: **the end game of the product.** The builder UI can come last, but the architecture must be right from the first request module. Proposed foundations (to validate in discussion):
+    - One generic `Request` entity (type, requester, status, current step, payload, company) shared by all request types.
+    - A request-type registry (leave, promotion, ...) that defines payload schema, side effects on approval, and default flow.
+    - A flow definition (ordered steps, each with an approver resolver such as manager, HR rep, role, or specific user) stored per company and per type, versioned so in-flight requests keep their original flow.
+    - A step engine that resolves the next approver and writes an audit entry on every transition.
+    - Single-step manager approval (P0-08) is just the default flow of the leave type.
 - Priority: P0
 - Owner: You
 - Estimate: 2-3 days
@@ -348,6 +386,7 @@ we should always fetch only the active ones for selection
 
 ### P0-12 Payroll Foundation (Essential HRMS Suggestion)
 
+- Note: **a strong selling point, in the MVP.** An implementation already exists; plan is to port and revamp it. Inventory the existing one first, then fit it to the period/snapshot design below. Needs a design discussion.
 - Priority: P0
 - Owner: You
 - Estimate: 2-3 days
@@ -361,7 +400,8 @@ we should always fetch only the active ones for selection
 
 ### P0-13 Attendance + Audit Trail Baseline (Essential HRMS Suggestion)
 
-- Priority: P0
+- Note: **attendance is deferred** (no design yet, not a priority). The audit trail part stays in the MVP, and other modules should be built audit-ready before this ships. Attendance criteria below are kept for later.
+- Priority: P0 (audit trail) / Deferred (attendance)
 - Owner: You
 - Estimate: 2 days
 - Status: [ ]
@@ -374,6 +414,7 @@ we should always fetch only the active ones for selection
 
 ### P0-14 Promotion Module
 
+- Note: **in the MVP.** A simple implementation already exists; to be discussed. Should be a request type on the P0-11 engine (approval applies title/department/level changes) and write to the employment history log.
 - Priority: P0
 - Owner: You
 - Estimate: 1.5-2 days
@@ -387,6 +428,7 @@ we should always fetch only the active ones for selection
 
 ### P0-15 Performance Review Module
 
+- Note: **in the MVP.** Two existing implementations to compare; pick the better flow and port it. Needs a short comparison before building.
 - Priority: P0
 - Owner: You
 - Estimate: 2-3 days
@@ -517,6 +559,114 @@ we should always fetch only the active ones for selection
         - `UserController.getUsers` is currently hard-disabled with `return unauthorizedError(res)` ("TEMPORARY"), which breaks `GET /api/users` and 3 RBAC/company-isolation tests; restore it once access control is ready.
         - `user.controller.ts` has unused imports (`IUsersQueryParams`, `softErrorRes`, `notFoundError`, `badRequestError`, `conflictError`, `buildUserSearchAccessQuery`) that fail lint.
         - Failing user-document tests (`rbac-coverage`, `repository-contract`): the routes have no permission middleware and the repository is not company-scoped (see P0-07A Phase 2 and 4).
+
+## MVP Additions (PM review, 2026-10-07)
+
+### P0-23 Email Integration (High)
+
+- Priority: P0 (high)
+- Status: [ ]
+- Goal: a tenant-aware transactional email service that other features build on.
+- Acceptance criteria:
+    - [ ] Choose a provider (e.g. Resend, SES, Postmark, SMTP) and add the env vars to `server/src/config/env.ts` + `.env.example` (fail fast when missing in production).
+    - [ ] Email service abstraction (`send(template, to, data)`) with a console/log transport for local dev and tests.
+    - [ ] Template system (HTML + text) with company branding hooks.
+    - [ ] Failures are logged (no sensitive data) and do not break the calling request; retry strategy defined.
+    - [ ] Basic tests with a mocked transport.
+- Unblocks: P0-24, P0-25, leave and request notifications.
+
+### P0-24 Invite + Account Activation (High, depends on P0-23)
+
+- Priority: P0 (high)
+- Status: [ ]
+- Goal: new employees get an invitation email and set their own password.
+- Acceptance criteria:
+    - [ ] Creating a user sends an invitation email with a single-use, expiring token (stored hashed).
+    - [ ] `POST /api/auth/activate-account` sets the password and activates the account (enable the commented-out route in `auth.routes.ts`).
+    - [ ] Expired/used token errors are clear; admins can resend the invitation.
+    - [ ] Password rules match the existing change-password policy; the endpoint is rate limited.
+    - [ ] Client activation page.
+    - [ ] Tests for token expiry, reuse, and tenant scoping.
+
+### P0-25 Forgot / Reset Password (High, depends on P0-23)
+
+- Priority: P0 (high)
+- Status: [ ]
+- Goal: users can recover access without an admin.
+- Acceptance criteria:
+    - [ ] `POST /api/auth/forgot-password` always returns the same response (no account enumeration) and sends a reset link.
+    - [ ] Single-use, short-lived, hashed reset token; sessions issued before the reset are invalidated if feasible.
+    - [ ] Client "forgot password" and "reset password" pages linked from login.
+    - [ ] Strict rate limiting on both endpoints.
+    - [ ] Tests for expiry, reuse, and unknown email.
+
+### P0-26 Company Onboarding + Seed + Data Import (Medium)
+
+- Priority: P1 (medium)
+- Status: [ ]
+- Goal: get the pilot company from zero to a working tenant without hand-entering data. Related to the existing seed command and the CSV/Excel import item in the Known Issues list below.
+- Note: single pilot customer, so a scripted/admin-driven flow is enough; no self-serve signup or billing.
+- Acceptance criteria:
+    - [ ] Define the company creation flow (admin script or super-admin UI) including first admin user via the invite flow (P0-24).
+    - [ ] Seed command covers the starting structure (see the seed item below) and is safe to re-run.
+    - [ ] CSV/Excel import for departments, sub-departments, titles, levels, offices, countries, and users, with a dry-run validation report.
+    - [ ] Imports respect company scoping and the same validation as the forms.
+
+### P1-27 SMS + OTP Integration (Low, promised for later)
+
+- Priority: P1 (low)
+- Status: [ ]
+- Goal: SMS notifications and OTP-based auth. Marketed as upcoming, not in the MVP.
+- Acceptance criteria:
+    - [ ] Provider chosen; SMS service abstraction mirroring the email service (P0-23).
+    - [ ] OTP generation/verification with expiry and attempt limits.
+    - [ ] Optional second factor at login, configurable per company.
+
+### P1-28 Dashboard Insights (Low)
+
+- Priority: P1 (low)
+- Status: [ ]
+- Goal: useful HR numbers on the dashboard. Not required for core functionality.
+- Acceptance criteria:
+    - [ ] Headcount by department/country, new joiners, upcoming document expiries.
+    - [ ] Who is out today and pending approvals (after leaves and requests exist).
+    - [ ] All widgets respect the viewer's permission scope.
+
+### P1-29 Audit Trail Design (Medium, design now, build with P0-13)
+
+- Priority: P1 (medium)
+- Status: [ ]
+- Goal: agree on the audit entry shape now so new modules can emit entries from day one.
+- Acceptance criteria:
+    - [ ] Define the `AuditLog` model and a small `audit.record(...)` helper (actor, company, entity, action, timestamp, before/after summary, request id).
+    - [ ] Salary and other sensitive values are redacted or masked in audit payloads.
+    - [ ] New modules (leaves, promotions, payroll, reviews) call the helper from their first version.
+    - [ ] Retention policy noted (see Come Back To).
+
+### Production Readiness Notes (Low priority)
+
+Collected from the review; none block the pilot MVP but all are needed before real customers.
+
+- [ ] Request IDs and structured logging, see P1-16 and P1-22.
+- [ ] Auth-endpoint rate limiting and input validation on every write endpoint, see P1-17.
+- [ ] Review CORS and helmet settings for production.
+- [ ] Consistent loading/empty/error states across management tables, see P1-18.
+- [ ] Deployment runbook, rollback procedure, smoke test checklist, see P1-19.
+- [ ] Uptime and health monitoring with alert thresholds, see P2-20.
+- [ ] Frontend test coverage for the approval flows (leaves/requests) as they are built.
+
+### Deferred / Intentionally Ignored For Now
+
+- Attendance module (no design yet), see P0-13.
+- Minor UX bugs listed under Known Issues (date format, double `**` markers, company-filtered dropdowns, failed-login toast).
+- P0-07C (permission-aware menus/buttons) and P0-07E (HR self-edit guard).
+
+### Come Back To
+
+Topics to revisit before the pilot goes live. Not scheduled yet.
+
+- **Salary encryption key management.** There is no rotation plan, and losing `SALARY_ENCRYPTION_KEY` means losing all salary data. Decide on: key backup, key versioning (store a key id with each ciphertext), rotation/re-encryption script, and where the key lives in production (secrets manager).
+- **GDPR / data protection.** The pilot likely holds EU (Greek) employee data. Decide on: data processing agreement basics, employee data export, erasure/anonymisation vs. legal retention, retention periods (documents, audit logs, payroll), access logging of sensitive fields, and data location for MongoDB Atlas and Supabase.
 
 ## Optional Stretch
 
