@@ -6,6 +6,11 @@ Significant changes to the application, most recent first.
 
 ## Current
 
+### Transactional email service (P0-23)
+
+- Added `EmailService.send(template, to, data, { company, requestId })` with console and Resend transports, HTML + text templates (test, invitation, password reset) and company branding. See `docs/features/email.md`.
+- Production now fails fast at boot if email config is missing or invalid.
+
 ### Users management: selection and bulk edit
 
 - Redesigned the Users page: row selection (kept across pages, with "select all N matching"), a floating bulk-action bar, avatar + status badges, and a clear-filters button.

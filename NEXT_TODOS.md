@@ -565,14 +565,14 @@ we should always fetch only the active ones for selection
 ### P0-23 Email Integration (High)
 
 - Priority: P0 (high)
-- Status: [ ]
+- Status: [~] (code done; provider account + domain setup pending)
 - Goal: a tenant-aware transactional email service that other features build on.
 - Acceptance criteria:
-    - [ ] Choose a provider (e.g. Resend, SES, Postmark, SMTP) and add the env vars to `server/src/config/env.ts` + `.env.example` (fail fast when missing in production).
-    - [ ] Email service abstraction (`send(template, to, data)`) with a console/log transport for local dev and tests.
-    - [ ] Template system (HTML + text) with company branding hooks.
-    - [ ] Failures are logged (no sensitive data) and do not break the calling request; retry strategy defined.
-    - [ ] Basic tests with a mocked transport.
+    - [x] Choose a provider (e.g. Resend, SES, Postmark, SMTP) and add the env vars to `server/src/config/env.ts` + `.env.example` (fail fast when missing in production).
+    - [x] Email service abstraction (`send(template, to, data)`) with a console/log transport for local dev and tests.
+    - [x] Template system (HTML + text) with company branding hooks.
+    - [x] Failures are logged (no sensitive data) and do not break the calling request; retry strategy defined.
+    - [x] Basic tests with a mocked transport.
 - Unblocks: P0-24, P0-25, leave and request notifications.
 
 ### P0-24 Invite + Account Activation (High, depends on P0-23)
