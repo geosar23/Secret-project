@@ -1,3 +1,4 @@
+import { AppDatePipe } from "../../shared/pipes/app-date.pipe";
 import { Component, OnInit, OnDestroy, inject, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatFormFieldModule } from "@angular/material/form-field";
@@ -32,6 +33,7 @@ export type ProfileTabId = "overview" | "personal" | "contact" | "employment" | 
     selector: "app-profile",
     standalone: true,
     imports: [
+        AppDatePipe,
         CommonModule,
         MatFormFieldModule,
         MatInputModule,

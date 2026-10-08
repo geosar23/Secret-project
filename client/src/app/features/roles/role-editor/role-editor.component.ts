@@ -1,3 +1,4 @@
+import { AppDatePipe } from "../../../shared/pipes/app-date.pipe";
 import { Component, DestroyRef, OnInit, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { ActivatedRoute, Router, RouterModule } from "@angular/router";
@@ -62,6 +63,7 @@ interface RankItem {
     selector: "app-role-editor-page",
     standalone: true,
     imports: [
+        AppDatePipe,
         CommonModule,
         RouterModule,
         ReactiveFormsModule,

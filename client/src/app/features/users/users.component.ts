@@ -1,3 +1,4 @@
+import { formatAppDate } from "../../core/utils/date-format";
 import { PageHeaderComponent } from "../../shared/components/page-header/page-header.component";
 import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
@@ -140,7 +141,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
         email: u => u.email || "—",
         role: u => u.roleName || u.role?.role || "—",
         status: u => (u.isActive ? "Active" : "Inactive"),
-        createdAt: u => (u.createdAt ? new Date(u.createdAt).toLocaleString() : "—"),
+        createdAt: u => (u.createdAt ? formatAppDate(u.createdAt, "datetime") : "—"),
         country: u => u.country?.name || "—",
         department: u =>
             [u.primaryDepartment, ...(u.secondaryDepartments ?? [])]
@@ -156,7 +157,7 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
         firstName: u => u.firstName || "—",
         lastName: u => u.lastName || "—",
         gender: u => u.gender || "—",
-        birthday: u => (u.birthday ? new Date(u.birthday).toLocaleDateString() : "—"),
+        birthday: u => (u.birthday ? formatAppDate(u.birthday) : "—"),
         maritalStatus: u => u.maritalStatus || "—",
         nationalities: u => u.nationalities?.join(", ") || "—",
         religion: u => u.religion || "—",
@@ -164,12 +165,12 @@ export class UsersComponent implements OnInit, AfterViewInit, OnDestroy {
         workPhone: u => u.workPhone || "—",
         personalPhone: u => u.personalPhone || "—",
         homeCountryPhone: u => u.homeCountryPhone || "—",
-        employmentDate: u => (u.employmentDate ? new Date(u.employmentDate).toLocaleDateString() : "—"),
+        employmentDate: u => (u.employmentDate ? formatAppDate(u.employmentDate) : "—"),
         employmentType: u => u.employmentType || "—",
         payrollId: u => u.payrollId || "—",
         isOutsourced: u => (u.isOutsourced != null ? (u.isOutsourced ? "Yes" : "No") : "—"),
         salary: u => u.salary || "—",
-        updatedAt: u => (u.updatedAt ? new Date(u.updatedAt).toLocaleDateString() : "—"),
+        updatedAt: u => (u.updatedAt ? formatAppDate(u.updatedAt) : "—"),
     };
 
     // Currently selected extra column keys (persisted across sessions would need localStorage)

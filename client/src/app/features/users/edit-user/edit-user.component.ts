@@ -19,7 +19,6 @@ import { MatSelectModule } from "@angular/material/select";
 import { MatButtonModule } from "@angular/material/button";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatDatepickerModule } from "@angular/material/datepicker";
-import { provideNativeDateAdapter } from "@angular/material/core";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
@@ -88,7 +87,6 @@ import {
     templateUrl: "./edit-user.component.html",
     styleUrls: ["./edit-user.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [provideNativeDateAdapter()],
 })
 export class EditUserPageComponent implements OnInit, OnDestroy {
     // ── Services ──────────────────────────────────────────────────────────────
