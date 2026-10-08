@@ -2,7 +2,7 @@
 
 > **Status: design (not implemented).** This document is the agreed architecture for the Leaves module. It tracks roadmap item _Leaves Module_ and `NEXT_TODOS.md` P0-08. Update it as decisions change.
 >
-> **Approvals are not owned by this module.** Leave runs on the shared approval engine described in [docs/plans/approval-flows.md](../plans/approval-flows.md): workflow status, steps and approvers live in the shared `Requests` envelope and `ApprovalTasks`. This document owns the leave _domain_: duration, policies, pay, balances and the ledger. Where the two meet (sections 9 and 12) the engine plan is authoritative for workflow, and this document is authoritative for leave rules. Reconciled on 07/10/2026.
+> **Approvals are not owned by this module.** Leave runs on the shared approval engine described in [docs/plans/approval-flows.md](../plans/approval-flows.md): workflow status, steps and approvers live in the shared `Requests` envelope (current approvers in `pendingApprovers`, timeline in `actionsHistory`). This document owns the leave _domain_: duration, policies, pay, balances and the ledger. Where the two meet (sections 9 and 12) the engine plan is authoritative for workflow, and this document is authoritative for leave rules. Reconciled on 07/10/2026.
 
 ---
 
@@ -20,7 +20,7 @@
 ### Non-goals (for now)
 
 - Attachments (e.g. sick certificates). The model leaves room for them.
-- Building approval machinery inside Leaves (queues, task assignment, delegation, flow builder). These belong to the shared engine. Leave ships on the engine's default one-step line-manager flow; multi-step flows and country/department/leave-type flow scoping arrive with the engine's later phases, with no change to the leave model.
+- Building approval machinery inside Leaves (queues, approver assignment, delegation, flow builder). These belong to the shared engine. Leave ships on the engine's default one-step line-manager flow; multi-step flows and country/department/leave-type flow scoping arrive with the engine's later phases, with no change to the leave model.
 - Editing or returning a submitted request. A rejection is final and the employee raises a new request (see section 12).
 - The payroll module itself. Leaves exposes a payroll contract (section 11).
 
@@ -29,8 +29,8 @@
 ## 2. Design principles
 
 1. **Workflow and accounting are frozen when they happen; authority and visibility are checked now.**
-    - "Who was asked to approve?" is **frozen on `ApprovalTasks`** when a step activates (shared engine). Org changes are handled by explicit, audited reassignment effects; completed steps are never touched.
-    - "May this person decide right now?" is **rechecked at decision time**. A task is necessary but not sufficient: if the assignee lost the authority, the decision is blocked.
+    - "Who was asked to approve?" is **frozen on the `Request` (`pendingApprovers`)** when a step activates (shared engine). Org changes are handled by explicit, audited reassignment effects; completed steps are never touched.
+    - "May this person decide right now?" is **rechecked at decision time**. Being a pending approver is necessary but not sufficient: if the approver lost the authority, the decision is blocked.
     - "Who may see this leave?" is evaluated **live** from the current org through the permission scopes.
     - "What happened, how much, at what pay, under which rule?" is **frozen** when it happens (lines, pay, policy version, ledger entries).
 2. **Append, never mutate, for quantities.** Balances come from an append-only ledger. Corrections are new entries.
@@ -53,7 +53,7 @@
 | **Leave period**       | The leave year a date falls into: calendar, fiscal, or anniversary-based.                                                    |
 | **Leave request**      | The leave _domain record_ for a date range, with frozen per-day lines. Its workflow status lives on the linked `Request`.    |
 | **Request**            | The shared approval envelope (status, flow, steps). One per leave request, referenced by `LeaveRequests.request`.            |
-| **Approval task**      | One stored work item per approver per step, created when the step activates (shared engine).                                 |
+| **Pending approver**   | A user listed in the request's `pendingApprovers`, stored when the step activates (shared engine).                           |
 | **Line**               | One calendar day of a request with its quantity and pay percentage.                                                          |
 | **Ledger entry**       | One signed, immutable change to a user's balance for a leave type.                                                           |
 | **Balance**            | Derived: the sum of ledger entries up to a date, minus pending reservations.                                                 |
@@ -232,7 +232,7 @@ interface ILeaveRequest {
 }
 
 // There is deliberately no `status`, `approvalStep`, `decidedBy`, `decidedAt`, `decisionNote` or `history` here.
-// Workflow state has one home, the Request envelope; ApprovalTasks hold who was asked and who decided.
+// Workflow state has one home, the Request envelope, which also holds who is asked (`pendingApprovers`) and the decision timeline (`actionsHistory`).
 
 interface ILeaveLine {
     date: string; // one calendar day
@@ -249,8 +249,8 @@ interface ILeaveLine {
 
 Notes:
 
-- There is **no approver or status on the leave record**. Both live on the `Request` and its `ApprovalTasks`. See section 9.
-- There is **no copy of the requester's department, country or manager**. Visibility is evaluated live; the approver identity is frozen on the task, not on the leave. See section 9.
+- There is **no approver or status on the leave record**. Both live on the `Request`. See section 9.
+- There is **no copy of the requester's department, country or manager**. Visibility is evaluated live; the approver identity is frozen on the request, not on the leave. See section 9.
 - Queries that need a leave's workflow status (overlap detection, pending quantity, coverage counts) select leave records by their own indexed dates first, then filter by `Request.status` for those `request` ids. `Requests` is indexed on `{ company, type, subject, status }` for the per-user case.
 - `lines` is stored because duration depends on mutable external inputs (calendar, schedule, policy). Deriving it on read would silently change approved history when a holiday is added.
 - `adjustments` is an append-only list: `{ at, by, kind: "payRecalculation" | "holidayCorrection" | "sicknessConversion", reason, linesBefore, linesAfter, deltaPaidQuantity }`. The effective result of a leave is `lines` with adjustments applied; payroll receives adjustments as correction items.
@@ -422,7 +422,7 @@ Pending leaves are those whose `Request.status` is `pending` (a small, indexed s
 | Leaver payout           | `payout` entry, only when HR confirms (zeroes the balance and records what was paid out)            |
 | Comp time earned        | `grant` with `source` (needs Attendance for automatic grants; manual until then)                    |
 
-Order of operations for approval: the engine conditionally flips the `Request` status, then calls the leave type's `onApproved`, which posts the ledger entries. `onApproved` must be idempotent, and the unique `{request, kind, leavePeriodStart}` index guarantees it, so a retry after a crash is safe. A reconciliation script scans for approved leave `Requests` lacking usage entries (the same approach the engine plan prescribes for task/request drift). This avoids requiring multi-document transactions, while remaining compatible with them if the deployment has a replica set.
+Order of operations for approval: the engine conditionally flips the `Request` status, then calls the leave type's `onApproved`, which posts the ledger entries. `onApproved` must be idempotent, and the unique `{request, kind, leavePeriodStart}` index guarantees it, so a retry after a crash is safe. A reconciliation script scans for approved leave `Requests` lacking usage entries (the same approach the engine plan prescribes for effects skipped after a crash). This avoids requiring multi-document transactions, while remaining compatible with them if the deployment has a replica set.
 
 Requests are **never hard-deleted**. Cancelled and rejected requests are kept for audit.
 
@@ -483,9 +483,9 @@ Needed for this:
 
 Leave does not implement approval. It registers a **request type** with the engine in [docs/plans/approval-flows.md](../plans/approval-flows.md) and supplies the leave-specific hooks. Decisions taken for the pilot (07/10/2026):
 
-- The approver is **resolved when a step activates** and stored as an `ApprovalTask`, one per approver.
-- Org changes (manager change, deactivation, role loss) trigger an automatic, audited **reassign open tasks** effect. Completed steps are never touched.
-- A task is **necessary but not sufficient**: authority is rechecked at decision time and the decision is blocked if the assignee lost it.
+- The approver is **resolved when a step activates** and stored on the `Request` as `pendingApprovers`.
+- Org changes (manager change, deactivation, role loss) trigger an automatic, audited **replace pending approvers** effect. Completed steps are never touched.
+- Being a pending approver is **necessary but not sufficient**: authority is rechecked at decision time and the decision is blocked if the approver lost it.
 - A **rejection is final**. There is no edit or return-to-requester.
 - Flows are scoped by request type plus optional country, department and **leave type**; the most specific active flow wins. The pilot spans several countries.
 
@@ -494,7 +494,7 @@ Leave does not implement approval. It registers a **request type** with the engi
 | Fact                                         | Home                                                  |
 | -------------------------------------------- | ----------------------------------------------------- |
 | Status, current step, flow version used      | `Requests` (envelope)                                 |
-| Who was asked, who decided, on whose behalf  | `ApprovalTasks`                                       |
+| Who is asked, who decided, on whose behalf   | `Requests` (`pendingApprovers`, `actionsHistory`)     |
 | Delegations                                  | `ApprovalDelegations` (shared)                        |
 | Dates, per-day lines, pay, policy, overrides | `LeaveRequests` (leave domain record, `request` link) |
 | Quantities                                   | `LeaveLedger`                                         |
@@ -518,28 +518,28 @@ leaveRequestType: RequestTypeDefinition<LeavePayload> = {
 ```
 
 - **Default flow:** one step, line manager, fallback HR representative. Companies can configure richer flows per country, department and leave type (for example a long sick leave adding an HR step) without changing the leave model.
-- **`canApprove` (authority recheck):** the actor must hold `leaves:approve:{scope}` whose scope covers the subject, must not be the subject, and must clear the coverage-limit re-check (9.5). A task whose assignee fails this is blocked, and the engine's reassignment effect handles the task.
-- **Flow validation:** the flow builder should warn when a resolver (for example `role`) can yield people who do not hold `leaves:approve` over the subject, because those tasks would always be blocked.
+- **`canApprove` (authority recheck):** the actor must hold `leaves:approve:{scope}` whose scope covers the subject, must not be the subject, and must clear the coverage-limit re-check (9.5). A decision by an approver who fails this is blocked, and the engine's reassignment effect handles the pending slot.
+- **Flow validation:** the flow builder should warn when a resolver (for example `role`) can yield people who do not hold `leaves:approve` over the subject, because those decisions would always be blocked.
 - **Self-approval:** impossible through the engine (`allowSelfApproval: false`, and `skipIfRequesterIsApprover` or fallback applies).
 
 ### 9.3 Visibility and queues
 
-- **Needs my action** is the shared inbox: `ApprovalTasks` for the current user. There is no leave-specific queue and no `user: { $in: scopedIds }` approval query.
-- **Who may read a leave** stays a live scope evaluation: the subject, the requester, anyone holding a task on it, and scoped viewers with `leaves:read:{scope}`. `resolveScopedUserIds(actor, scope)` remains and serves visibility lists, coverage-limit headcounts and reports. It must resolve department scope through the title chain.
-- **Org changes** are handled by the engine's effects (plan section 7), which must be called from the **service layer** on every path that changes the org, including the Users bulk edit and imports. The repository's `updateOne` bypasses Mongoose hooks, so model hooks cannot be relied on. A reconciliation job catches stale open tasks.
-- **Why still no copy of department, country or manager on the leave:** visibility follows the current org and the approver is frozen on tasks, so nothing about the requester needs copying. If reporting needs "department at the time", it comes from the effective-dated Employment History Log.
+- **Needs my action** is the shared inbox: requests where the current user is in `pendingApprovers`. There is no leave-specific queue and no `user: { $in: scopedIds }` approval query.
+- **Who may read a leave** stays a live scope evaluation: the subject, the requester, anyone pending or who acted on it, and scoped viewers with `leaves:read:{scope}`. `resolveScopedUserIds(actor, scope)` remains and serves visibility lists, coverage-limit headcounts and reports. It must resolve department scope through the title chain.
+- **Org changes** are handled by the engine's effects (plan section 7), which must be called from the **service layer** on every path that changes the org, including the Users bulk edit and imports. The repository's `updateOne` bypasses Mongoose hooks, so model hooks cannot be relied on. A reconciliation job catches stale pending approvers.
+- **Why still no copy of department, country or manager on the leave:** visibility follows the current org and the approver is frozen on the request, so nothing about the requester needs copying. If reporting needs "department at the time", it comes from the effective-dated Employment History Log.
 
 > The existing `buildUserSearchAccessQuery` filters on a `department` field, but the user model I inspected only has `employmentTitle` (department is reached via title → sub-department → department). I have not traced how the Users list resolves this. Verify before reusing that pattern.
 
 ### 9.4 Delegation and approver availability
 
-Delegation is the shared `ApprovalDelegations` collection (`{ delegator, delegate, from, to, requestTypes?, isActive }`), applied **when tasks are created**: if the resolved approver has an active delegation, the task is created for the delegate with `originalAssignee` and `onBehalfOf` recorded.
+Delegation is the shared `ApprovalDelegations` collection (`{ delegator, delegate, from, to, requestTypes?, isActive }`), applied **when a step activates**: if the resolved approver has an active delegation, the delegate is placed in `pendingApprovers` and the history entry records `originalAssignee` and `onBehalfOf`.
 
 Leave-specific rules on top:
 
 - A delegate gains no permissions. `canApprove` is evaluated for the delegate's own authority, so delegating to someone with a narrower scope than the subject blocks the decision.
 - A delegate cannot decide a leave they themselves requested or are the subject of.
-- **Approver on approved leave, no delegation:** leave is the module that knows an approver is away, so it supplies an _availability signal_ to the resolver. At task creation, an approver whose approved leave covers today is treated like "resolver returned nobody" and the step `fallback` applies. If the approver goes on leave _after_ the task was created, the leave module triggers the engine's reassign effect for that approver's open tasks (proposed addition to plan section 7).
+- **Approver on approved leave, no delegation:** leave is the module that knows an approver is away, so it supplies an _availability signal_ to the resolver. When a step activates, an approver whose approved leave covers today is treated like "resolver returned nobody" and the step `fallback` applies. If the approver goes on leave _after_ the step activated, the leave module triggers the engine's reassign effect for the requests where that approver is pending (proposed addition to plan section 7).
 
 ### 9.5 Team coverage limits
 
@@ -616,10 +616,11 @@ pending ──approve──▶ approved ──cancel──▶ canceled
 Rules:
 
 - **A rejection is final.** The employee raises a new request. Nothing was reserved or posted before approval, so a rejection has no ledger effect.
-- **A pending request is never edited.** To change it, cancel it (the engine closes its open tasks) and submit a new one.
-- The requester can cancel `pending`. Cancelling `approved` is allowed before the start date; after the start date it requires `leaves:write` beyond `self` (HR), and the days not yet taken are reversed by `onCanceled`.
+- **A pending request is never edited.** To change it, cancel it (the engine clears its pending approvers) and submit a new one.
+- The requester can cancel `pending`. Cancelling `approved` is allowed before the start date, and the days not yet taken are reversed by `onCanceled`.
+- **Who may cancel** is the leave type's `canCancel` hook (plan D5); the engine enforces only the state rules. Leave's rule: the requester for their own pending leave and for approved leave before the start date, and `leaves:write` beyond `self` (HR) after the start date and for a leaver's future leaves (section 8.6).
 - Approve, reject and cancel are idempotent through the engine's conditional updates; the leave hooks are idempotent through the ledger's unique keys.
-- Transitions are audited by the engine (tasks and request timeline), not by a `history` array on the leave.
+- Transitions are audited by the engine (the request's `actionsHistory`), not by a `history` array on the leave.
 
 ### 12.1 Changing an approved leave is a new, linked request
 
@@ -638,7 +639,7 @@ Cancel + new request would leave a gap in which the employee has no approved lea
 - `leaves:write:{scope}` beyond `self` lets the creator submit for any user in scope. The `Request` records `requester` (the creator) and `subject` (the employee); `LeaveRequests.user` is the subject.
 - Retroactive entry (past dates) is allowed when the policy has `allowBackdated` **or** the creator holds `leaves:write:*`.
 - Any validation bypassed (notice, backdating, balance, blackout, coverage) is stored in `overrides` with a mandatory reason, and shown to the approver.
-- An authorized creator can submit with `autoApprove`. This needs an engine capability (see section 18): the request is created with its tasks decided immediately by the creator (`decidedBy = creator`, audited), not "skipped", so the timeline stays honest and `onApproved` posts the usual ledger entries. A creator can never auto-approve their own leave.
+- An authorized creator can submit with `autoApprove`. This needs an engine capability (see section 18): the request is created with its pending approvers' decisions recorded immediately by the creator (`decidedBy = creator`, audited), not "skipped", so the timeline stays honest and `onApproved` posts the usual ledger entries. A creator can never auto-approve their own leave.
 
 ### 12.3 Sickness during approved leave
 
@@ -667,7 +668,7 @@ Notes:
 - `approve` is a new `PermissionActions` value, so `permission-factory.test.ts`, `rbac-coverage.test.ts` and the Permissions-page matrix (`MATRIX_ACTIONS` in `permission-matrix.ts`) need updating.
 - Default roles (`seed.service.ts`): Employee `leaves:read:self`, `leaves:write:self`, `leaveBalances:read:self`; Manager adds `leaves:read:managed`, `leaves:approve:managed`, `leaveBalances:read:managed`; HR gets `leaves` and `leaveBalances` at `*` and `leaveSettingsManagement`.
 - Granting is still limited by `canGrantPermissions`.
-- `leaves:approve:{scope}` is the **authority** checked in `canApprove` at decision time; it is not what puts a request in someone's inbox (that is the flow and its tasks). Both are needed.
+- `leaves:approve:{scope}` is the **authority** checked in `canApprove` at decision time; it is not what puts a request in someone's inbox (that is the flow and its pending approvers). Both are needed.
 - The shared engine adds its own categories (`requests:read`, `approvalFlows:read|write`, and an admin-override permission; see the plan, section 9). The flow builder UI, the Requests page and approval delegations are gated there, not here.
 
 ---
@@ -691,7 +692,7 @@ Notes:
 | GET    | `/api/leaves/payroll`                                                                                   | Payroll export                                                                                                                   | `leaveSettingsManagement:read:*` (revisit when payroll permissions exist) |
 | CRUD   | `/api/leave-types`, `/api/leave-policies`, `/api/holiday-calendars` (+ holidays), `/api/work-schedules` | Configuration                                                                                                                    | `leaveSettingsManagement`                                                 |
 
-**Not in this module:** the approval inbox, approve/reject/cancel of a request, the "my requests" and team lists, and delegations. These are the shared engine's endpoints (`ApprovalTasks` inbox, `Requests`, `ApprovalDelegations`; see the plan). Leave lists on the Requests page are the engine's `Requests` filtered by `type = "leave"`.
+**Not in this module:** the approval inbox, approve/reject/cancel of a request, the "my requests" and team lists, and delegations. These are the shared engine's endpoints (the `Requests` inbox via `pendingApprovers`, `ApprovalDelegations`; see the plan). Leave lists on the Requests page are the engine's `Requests` filtered by `type = "leave"`.
 
 `/api/leaves/preview` is what the request dialog calls on every date change, so the user sees exact days, pay, resulting balance (including which bucket is consumed) and any `blocks` and `warnings` before submitting. `POST /api/leaves` accepts an optional `onBehalfOf` user id, `autoApprove` and `overrides` for authorized creators (section 12.2).
 
@@ -706,7 +707,7 @@ Policies are append-only: `POST` creates a new version; there is no `PUT` that c
 ```
 models/        leave-type | leave-policy | holiday-calendar | holiday | work-schedule | leave-request | leave-ledger
                | leave-coverage-rule
-               (Request, ApprovalTask, ApprovalFlow, ApprovalDelegation belong to the shared engine)
+               (Request, ApprovalFlow, ApprovalDelegation belong to the shared engine)
 repositories/  one per model (companyModel wrapper)
 interfaces/    leave*.interface.ts
 services/
@@ -752,10 +753,10 @@ Sidebar: a "Time Off" section. Follow the _ui-conventions_ skill (Material first
 - Accrual catch-up after a missed run; no double posting.
 - Anniversary period after an `employmentDate` change.
 - Policy version change mid-period; past requests unchanged.
-- Org change while pending: manager changed, manager deactivated, manager loses `leaves:approve`: open tasks are reassigned and audited, completed steps untouched, unresolved tasks flagged "needs routing". Must hold for single edit, bulk edit and import.
-- Task is necessary but not sufficient: an assignee who lost authority cannot decide.
+- Org change while pending: manager changed, manager deactivated, manager loses `leaves:approve`: pending approvers are replaced and recorded in the request history, completed steps untouched, unresolved requests flagged "needs routing". Must hold for single edit, bulk edit and import.
+- Being pending is necessary but not sufficient: an approver who lost authority cannot decide.
 - Flow scoping: country + department + leave type; most specific active flow wins; a request keeps its frozen flow after the flow is edited.
-- Delegation applied at task creation (`originalAssignee`, `onBehalfOf`); delegate with narrower scope is blocked by `canApprove`.
+- Delegation applied at step activation (`originalAssignee`, `onBehalfOf`); delegate with narrower scope is blocked by `canApprove`.
 - Self-approval blocked; approver on approved leave falls back (at creation and after, via reassign).
 - Rejected leave is final: no ledger entries ever existed, new request needed; rejected change request leaves the original untouched.
 - Status joins: overlap detection and coverage counts ignore leaves whose `Request` is rejected or canceled.
@@ -798,9 +799,9 @@ Sidebar: a "Time Off" section. Follow the _ui-conventions_ skill (Material first
 - **Holidays falling inside sick leave** (counted or excluded) varies by country; it is expressed through `counting.countPublicHolidays` per policy, but each country's default needs product input.
 - **Attachments**: deferred. When added, they reuse the Supabase storage used by user documents and attach to the request.
 - **Engine capabilities leave needs that the plan does not yet state** (to confirm with the approval-flows plan):
-    1. **Cancel after approval**: a `approved → canceled` transition, with the type's `onCanceled` reversing side effects. Plan section 5.1 only describes the requester cancelling open requests.
+    1. **Cancel after approval**: a `approved → canceled` transition, with the type's `onCanceled` reversing side effects. Built (08/10/2026); who may cancel is the type's `canCancel` hook (plan D5).
     2. **Engine-initiated cancel by another type's effect**: a change request's `onApproved` cancels the original leave's `Request` (reason "superseded").
-    3. **Immediate approval by an authorized creator** (HR entry with `autoApprove`), recorded as decided tasks, not skipped steps. Plan section 5.3 allows auto-approval only when a flow explicitly permits it.
+    3. **Immediate approval by an authorized creator** (HR entry with `autoApprove`), recorded as decisions in the request timeline, not skipped steps. Plan section 5.3 allows auto-approval only when a flow explicitly permits it.
     4. **Approver availability signal**: a registry hook so a type can say "this approver is unavailable" to the resolver, plus a reassign trigger when an approver goes on approved leave (plan section 7).
     5. **Type-specific detail in the Requests drawer**: `summarize` is not enough for lines, pay, balance impact and warnings; the drawer needs a per-type detail renderer or endpoint.
     6. **Flow-scope precedence** when both `country` and `department` match different flows (plan open question 6). Leave type is a third dimension.
