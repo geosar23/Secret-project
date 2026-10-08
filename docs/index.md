@@ -16,12 +16,13 @@ Welcome to the HR SaaS project documentation. This index is your starting point 
 
 ## Other References
 
-| Document                          | Description                                      |
-| --------------------------------- | ------------------------------------------------ |
-| [Testing](./testing.md)           | Test strategy, how to run tests, what is covered |
-| [Contributing](./contributing.md) | Coding standards, commit format, PR process      |
-| [Changelog](./changelog.md)       | History of significant changes                   |
-| [Roadmap](./roadmap.md)           | Planned features and upcoming work               |
+| Document                                         | Description                                              |
+| ------------------------------------------------ | -------------------------------------------------------- |
+| [Testing](./testing.md)                          | Test strategy, how to run tests, what is covered         |
+| [Contributing](./contributing.md)                | Coding standards, commit format, PR process              |
+| [Changelog](./changelog.md)                      | History of significant changes                           |
+| [Roadmap](./roadmap.md)                          | Planned features and upcoming work                       |
+| [Approval Flows plan](./plans/approval-flows.md) | Design for requests, approval tasks and the flow builder |
 
 ## Quick Links
 

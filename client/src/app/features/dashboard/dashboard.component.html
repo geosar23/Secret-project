@@ -14,7 +14,7 @@
                 }
             </div>
             <div class="hero-right">
-                <span class="hero-date">{{ today | date: "EEEE, d MMMM" }}</span>
+                <span class="hero-date">{{ today | appDate: "weekdayDate" }}</span>
                 <span class="role-pill">{{ user.role.name }}</span>
             </div>
         </section>
@@ -26,7 +26,7 @@
                 <p>
                     {{ user.email }}
                     @if (user.employmentDate) {
-                        · Hired {{ user.employmentDate | date: "MMM y" }}
+                        · Hired {{ user.employmentDate | appDate: "monthYear" }}
                     }
                 </p>
             </div>

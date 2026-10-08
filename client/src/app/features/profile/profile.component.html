@@ -75,7 +75,7 @@
                         <span class="fact-label">With us since</span>
                         <span class="fact-value">
                             @if (profile.employmentDate) {
-                                {{ profile.employmentDate | date: "MMM yyyy" }}
+                                {{ profile.employmentDate | appDate: "monthYear" }}
                             } @else {
                                 —
                             }
@@ -131,7 +131,7 @@
                             @if (profile.birthday) {
                                 <div class="field">
                                     <span class="label">Birthday</span>
-                                    <span class="value">{{ profile.birthday | date: "mediumDate" }}</span>
+                                    <span class="value">{{ profile.birthday | appDate }}</span>
                                 </div>
                             }
                             @if (profile.nationalities && profile.nationalities.length > 0) {
@@ -206,12 +206,12 @@
                         <div class="fields single">
                             <div class="field">
                                 <span class="label">Member Since</span>
-                                <span class="value">{{ profile.createdAt | date: "medium" }}</span>
+                                <span class="value">{{ profile.createdAt | appDate: "datetime" }}</span>
                             </div>
                             @if (profile.updatedAt) {
                                 <div class="field">
                                     <span class="label">Last Updated</span>
-                                    <span class="value">{{ profile.updatedAt | date: "medium" }}</span>
+                                    <span class="value">{{ profile.updatedAt | appDate: "datetime" }}</span>
                                 </div>
                             }
                         </div>
@@ -249,7 +249,7 @@
                         @if (profile.birthday) {
                             <div class="field">
                                 <span class="label">Birthday</span>
-                                <span class="value">{{ profile.birthday | date: "mediumDate" }}</span>
+                                <span class="value">{{ profile.birthday | appDate }}</span>
                             </div>
                         }
                         @if (profile.maritalStatus) {
@@ -392,7 +392,7 @@
                         @if (profile.employmentDate) {
                             <div class="field">
                                 <span class="label">Start Date</span>
-                                <span class="value">{{ profile.employmentDate | date: "mediumDate" }}</span>
+                                <span class="value">{{ profile.employmentDate | appDate }}</span>
                             </div>
                         }
                         @if (profile.office) {

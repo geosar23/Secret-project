@@ -8,7 +8,6 @@ import { MatSelectModule } from "@angular/material/select";
 import { MatButtonModule } from "@angular/material/button";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { MatDatepickerModule } from "@angular/material/datepicker";
-import { provideNativeDateAdapter } from "@angular/material/core";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
@@ -85,7 +84,6 @@ import {
     templateUrl: "./create-user.component.html",
     styleUrls: ["./create-user.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
-    providers: [provideNativeDateAdapter()],
 })
 export class CreateUserPageComponent implements OnInit {
     private fb = inject(FormBuilder);

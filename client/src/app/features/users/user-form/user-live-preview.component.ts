@@ -1,4 +1,4 @@
-import { DatePipe } from "@angular/common";
+import { AppDatePipe } from "../../../shared/pipes/app-date.pipe";
 import { ChangeDetectionStrategy, Component, computed, input } from "@angular/core";
 import { MatIconModule } from "@angular/material/icon";
 
@@ -22,7 +22,7 @@ export interface UserRequirement {
 @Component({
     selector: "app-user-live-preview",
     standalone: true,
-    imports: [DatePipe, MatIconModule],
+    imports: [AppDatePipe, MatIconModule],
     templateUrl: "./user-live-preview.component.html",
     styleUrls: ["./user-live-preview.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,

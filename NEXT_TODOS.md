@@ -384,6 +384,117 @@ we should always fetch only the active ones for selection
     - [ ] Requests page reflects current step, pending approver, and final status.
     - [ ] Invalid/incomplete flow configurations are blocked with clear validation.
 
+#### Approval Engine Tickets (P0-10 / P0-11 breakdown)
+
+Source of truth: [docs/plans/approval-flows.md](docs/plans/approval-flows.md) (phase numbers below match its section 12). Leaves (P0-08) runs on this engine; see [docs/features/leaves.md](docs/features/leaves.md).
+
+Open before phase 4: confirm the flow-scope precedence rule (most matching dimensions wins; ties: leaveType > department > country; identical scopes rejected at save).
+
+##### P0-11A Plan Sign-off and Leaves Alignment (Phase 0)
+
+- Priority: P0
+- Status: [~]
+- Acceptance criteria:
+    - [x] Plan drafted and decisions recorded (resolve at step activation, effects, block on lost authority, final rejection, cancel on requester deactivation, never collapse steps, immediate approval recorded as decided).
+    - [x] `leaves.md` reconciled with the plan.
+    - [ ] Flow-scope precedence rule confirmed.
+
+##### P0-11B Engine Core (Phase 1)
+
+- Priority: P0
+- Depends on: P0-11A
+- Estimate: 4-5 days
+- Status: [~]
+- Goal: a tested engine that runs single-step flows on a multi-step-ready schema.
+- Acceptance criteria:
+    - [x] Models and repositories (company-scoped): `Requests` (live approvers in `pendingApprovers`, timeline in `actionsHistory`), `ApprovalFlows` (versioned), with a partial inbox index on pending requests. The separate `ApprovalTasks` collection was dropped (decided 08/10/2026). Indexes are created by `server/src/scripts/syncApprovalIndexes.ts` (models use `autoIndex: false`).
+    - [x] Request type registry (payload schema, default flow, `canCreate`, `canApprove`, `onApproved`, `onRejected`, `onCanceled`, `summarize`, `detail`).
+    - [x] Resolver service for the first resolver kinds (line manager, role, user) with fallback and "needs routing" handling.
+    - [x] Engine operations: create, decide, cancel (type-level `canCancel`, default requester only; plan D5), cancel-after-approval (opt-in per type), system-initiated `engine.cancel` for effects.
+    - [x] Immediate approval by an authorized creator: decisions recorded in the timeline, with reason and override flag.
+    - [x] Self-approval blocked; authority rechecked at decision time (blocked if lost).
+    - [x] Conditional updates for idempotency (double click, retry after crash); type effects idempotent by request id.
+    - [x] Audit: requests keep their own append-only `actionsHistory`; `AuditLogs` is opt-in per entity via `server/src/config/audited-entities.ts` (field diff, redaction). Retention remains open in P1-29.
+    - [x] Integration tests: approve, reject (final), cancel, double-decide, missing manager, inactive manager, self-approval, company isolation.
+
+##### P0-11C Leave on the Engine + Inbox API (Phase 2)
+
+- Priority: P0
+- Depends on: P0-11B, P0-08
+- Status: [ ]
+- Acceptance criteria:
+    - [ ] Leave registers as a request type with a default one-step line-manager flow and ledger effects.
+    - [ ] Inbox endpoint (pending requests for the current user via `pendingApprovers`, filter by type, paginated; `listPendingFor` exists).
+    - [ ] One summary endpoint for login/home: `{ pendingForMe, myPending, unreadNotifications }`.
+    - [ ] Tests cover the leave approve/reject/cancel path end to end through the engine.
+
+##### P0-11D Requests Page (Phase 3, = P0-10)
+
+- Priority: P0
+- Depends on: P0-11C
+- Status: [ ]
+- Acceptance criteria:
+    - [ ] Tabs: Needs my action, My requests, Team/Company (scope-dependent).
+    - [ ] Filters by type, status, date range, requester, current step; consistent pagination and sorting.
+    - [ ] Detail drawer: per-type renderer, step timeline (assigned, decided, reassigned, on behalf of), actions driven by what the user may do.
+    - [ ] Pending badge in the header using the summary endpoint.
+    - [ ] Follows the `ui-conventions` skill.
+
+##### P0-11E Multi-Step Flows and Flow Builder (Phase 4)
+
+- Priority: P0
+- Depends on: P0-11D, precedence rule confirmed
+- Status: [ ]
+- Acceptance criteria:
+    - [ ] Multiple steps, `any`/`all` modes, all resolver kinds (manager chain, department head, HR representative).
+    - [ ] Flow versioning; in-flight requests keep their frozen flow.
+    - [ ] Scoped flows (request type plus optional country, department, leave type) with the agreed precedence; duplicate scopes rejected.
+    - [ ] Validation blocks empty flows, unresolvable steps, duplicate keys, and inactive roles or users.
+    - [ ] Builder UI as an ordered list of steps.
+    - [ ] Same approver in consecutive steps is asked separately (never collapsed).
+
+##### P0-11F Effects and Delegation (Phase 5)
+
+- Priority: P0
+- Depends on: P0-11E
+- Status: [ ]
+- Acceptance criteria:
+    - [ ] Manager change replaces pending approvers automatically (recorded in the request history); completed steps untouched.
+    - [ ] Approver deactivated or loses authority: reassign through rule and fallback, or flag "needs routing".
+    - [ ] Requester deactivated: pending requests canceled by the system, pending approvers cleared, `onCanceled` runs.
+    - [ ] Approver on approved leave (`isUnavailable` hook): reassign to delegate or fallback, also when the leave starts.
+    - [ ] `ApprovalDelegations` applied at step activation (delegate placed in `pendingApprovers`; `originalAssignee`, `onBehalfOf` recorded in the history).
+    - [ ] Manual admin reassign with a mandatory reason.
+    - [ ] Effects called from the service layer (never model hooks), covering single edit, bulk edit and import.
+    - [ ] Reconciliation job for stale pending approvers and stuck requests.
+
+##### P0-11G Notifications with Configurable Email (Phase 6a)
+
+- Priority: P0
+- Depends on: P0-23 (email), P0-11C
+- Status: [ ]
+- Acceptance criteria:
+    - [ ] `Notifications` collection and in-app list/unread count.
+    - [ ] `NotificationRules`: per request type, optional scope and step, event, recipients, email on/off.
+    - [ ] Sensible defaults per type, overridable by rules; admin UI for rules.
+    - [ ] Emails sent asynchronously; failures never affect the request; recipients stored at event time.
+
+##### P0-11H Promotion on the Engine (Phase 6b, = P0-14)
+
+- Priority: P0
+- Depends on: P0-11E
+- Status: [ ]
+- Acceptance criteria:
+    - [ ] Promotion registered as a request type with a configurable flow, no engine changes needed.
+    - [ ] `onApproved` applies title, level and department changes and writes an employment-history entry.
+    - [ ] Shown on the employee profile.
+
+##### P0-11I Later (Phase 7)
+
+- Priority: P2
+- Status: [ ]
+- Scope: conditional steps, escalation timers, parallel steps. Scoped separately.
+
 ### P0-12 Payroll Foundation (Essential HRMS Suggestion)
 
 - Note: **a strong selling point, in the MVP.** An implementation already exists; plan is to port and revamp it. Inventory the existing one first, then fit it to the period/snapshot design below. Needs a design discussion.
@@ -707,6 +818,7 @@ Topics to revisit before the pilot goes live. Not scheduled yet.
 -(high)Create and edit user dialog , when something is required dont add double \*_ only one _
 -(high)Create and edit user dialog , when creating a user as god and you can select the company/tenat then manager, dep, employment titles and etc fields should be available only from the selected company , a user from company A cannot have a manager from company B and so on for all other company specific entities
 -(low) Client generic ui, date format an all visible fields , selectors etc should day month year, and not month day year or antyhing else.
+-(low) Configurable date format: let a company (default) or user (override) choose DD/MM/YYYY, MM/DD/YYYY or YYYY-MM-DD. The client is already centralized: `core/utils/date-format.ts` (`DATE_FORMATS`), `shared/pipes/app-date.pipe.ts` and `core/utils/app-date-adapter.ts` (Material datepicker). Remaining work: a `dateFormat` field on company/user (server + interface), a settings screen, and have those three files read the value from a service instead of the hardcoded `dd/MM/yyyy`. Keep server exports (CSV/PDF) on the same formatter.
 -(low priority) Create a sign in workflow that accept the initial data loading via csv/excel files for all the required entities
 -Departments, users, levels, offices, countries, etc all entities necesasary for a functiona app
 -Alternatively add a feature that adds the necessary starting mock data, 1 country eg greece, basic departments (eng , hr, marketing, finance, sales), 1 empl title for each dep , 1 sub department, etc

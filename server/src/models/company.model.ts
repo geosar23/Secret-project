@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 import { ICompany } from "../interfaces/company.interface";
-import { Model, FilterQuery } from "mongoose";
+import { Model, FilterQuery, UpdateQuery, QueryOptions } from "mongoose";
 
 const LogoSchema = new Schema(
     {
@@ -64,6 +64,15 @@ export function companyModel<T>(Model: Model<T>, companyId: string) {
 
         updateOne(filter: FilterQuery<T>, update: Partial<T>) {
             return Model.updateOne(withCompany(filter), update);
+        },
+
+        // Atomic conditional update: resolves to null when the filter (for example a status guard) no longer matches.
+        findOneAndUpdate(filter: FilterQuery<T>, update: UpdateQuery<T>, options: QueryOptions<T> = {}) {
+            return Model.findOneAndUpdate(withCompany(filter), update, { new: true, ...options });
+        },
+
+        updateMany(filter: FilterQuery<T>, update: UpdateQuery<T>) {
+            return Model.updateMany(withCompany(filter), update);
         },
 
         deleteOne(filter: FilterQuery<T>) {

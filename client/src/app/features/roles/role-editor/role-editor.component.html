@@ -116,7 +116,7 @@
                             @if (role?.createdAt) {
                                 <div class="kv">
                                     <span>Created</span>
-                                    <strong>{{ role?.createdAt | date: "mediumDate" }}</strong>
+                                    <strong>{{ role?.createdAt | appDate }}</strong>
                                 </div>
                             }
                             @if (extraPermissions.length) {

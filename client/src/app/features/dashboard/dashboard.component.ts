@@ -1,5 +1,5 @@
+import { AppDatePipe } from "../../shared/pipes/app-date.pipe";
 import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
-import { DatePipe } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
@@ -38,7 +38,7 @@ interface PlaceholderEvent {
 @Component({
     selector: "app-dashboard",
     standalone: true,
-    imports: [DatePipe, RouterLink, MatButtonModule, MatIconModule],
+    imports: [AppDatePipe, RouterLink, MatButtonModule, MatIconModule],
     templateUrl: "./dashboard.component.html",
     styleUrls: ["./dashboard.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,3 +1,4 @@
+import { AppDatePipe } from "../../shared/pipes/app-date.pipe";
 import { PageHeaderComponent } from "../../shared/components/page-header/page-header.component";
 import { Component, OnInit, ViewChild, AfterViewInit, OnDestroy, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
@@ -22,6 +23,7 @@ import { LevelDialogComponent, LevelDialogData } from "./level-dialog/level-dial
     selector: "app-levels",
     standalone: true,
     imports: [
+        AppDatePipe,
         PageHeaderComponent,
         CommonModule,
         ReactiveFormsModule,

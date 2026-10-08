@@ -113,6 +113,9 @@ export async function seedUserInCompany(opts: {
     name: string;
     permissions: string[];
     roleKey: string;
+    manager?: mongoose.Types.ObjectId;
+    hrRepresentative?: mongoose.Types.ObjectId;
+    isActive?: boolean;
 }): Promise<SeededUser> {
     const role = await RoleModel.create({
         role: opts.roleKey,
@@ -131,7 +134,9 @@ export async function seedUserInCompany(opts: {
         password: plainPassword,
         role: role._id,
         company: opts.companyId,
-        isActive: true,
+        manager: opts.manager,
+        hrRepresentative: opts.hrRepresentative,
+        isActive: opts.isActive ?? true,
     });
 
     return {
