@@ -404,18 +404,18 @@ Open before phase 4: confirm the flow-scope precedence rule (most matching dimen
 - Priority: P0
 - Depends on: P0-11A
 - Estimate: 4-5 days
-- Status: [ ]
+- Status: [~]
 - Goal: a tested engine that runs single-step flows on a multi-step-ready schema.
 - Acceptance criteria:
-    - [ ] Models and repositories (company-scoped): `Requests`, `ApprovalTasks`, `ApprovalFlows` (versioned), with the indexes from plan section 8.1.
-    - [ ] Request type registry (payload schema, default flow, `canCreate`, `canApprove`, `onApproved`, `onRejected`, `onCanceled`, `summarize`, `detail`).
-    - [ ] Resolver service for the first resolver kinds (line manager, role, user) with fallback and "needs routing" handling.
-    - [ ] Engine operations: create, decide, cancel, cancel-after-approval (opt-in per type), `engine.cancel` callable from handlers.
-    - [ ] Immediate approval by an authorized creator: tasks recorded as decided, with reason and override flag.
-    - [ ] Self-approval blocked; authority rechecked at decision time (blocked if lost).
-    - [ ] Conditional updates for idempotency (double click, retry after crash); type effects idempotent by request id.
-    - [ ] Audit entries written through the shared helper (see P1-29).
-    - [ ] Integration tests: approve, reject (final), cancel, double-decide, missing manager, inactive manager, self-approval, company isolation.
+    - [x] Models and repositories (company-scoped): `Requests` (live approvers in `pendingApprovers`, timeline in `actionsHistory`), `ApprovalFlows` (versioned), with a partial inbox index on pending requests. The separate `ApprovalTasks` collection was dropped (decided 08/10/2026). Indexes are created by `server/src/scripts/syncApprovalIndexes.ts` (models use `autoIndex: false`).
+    - [x] Request type registry (payload schema, default flow, `canCreate`, `canApprove`, `onApproved`, `onRejected`, `onCanceled`, `summarize`, `detail`).
+    - [x] Resolver service for the first resolver kinds (line manager, role, user) with fallback and "needs routing" handling.
+    - [x] Engine operations: create, decide, cancel (type-level `canCancel`, default requester only; plan D5), cancel-after-approval (opt-in per type), system-initiated `engine.cancel` for effects.
+    - [x] Immediate approval by an authorized creator: decisions recorded in the timeline, with reason and override flag.
+    - [x] Self-approval blocked; authority rechecked at decision time (blocked if lost).
+    - [x] Conditional updates for idempotency (double click, retry after crash); type effects idempotent by request id.
+    - [x] Audit: requests keep their own append-only `actionsHistory`; `AuditLogs` is opt-in per entity via `server/src/config/audited-entities.ts` (field diff, redaction). Retention remains open in P1-29.
+    - [x] Integration tests: approve, reject (final), cancel, double-decide, missing manager, inactive manager, self-approval, company isolation.
 
 ##### P0-11C Leave on the Engine + Inbox API (Phase 2)
 
@@ -424,9 +424,9 @@ Open before phase 4: confirm the flow-scope precedence rule (most matching dimen
 - Status: [ ]
 - Acceptance criteria:
     - [ ] Leave registers as a request type with a default one-step line-manager flow and ledger effects.
-    - [ ] Inbox endpoint (open tasks for the current user, filter by type, paginated).
-    - [ ] One summary endpoint for login/home: `{ openTasks, myPending, unreadNotifications }`.
-    - [ ] Tests cover the leave approve/reject/cancel path end to end through tasks.
+    - [ ] Inbox endpoint (pending requests for the current user via `pendingApprovers`, filter by type, paginated; `listPendingFor` exists).
+    - [ ] One summary endpoint for login/home: `{ pendingForMe, myPending, unreadNotifications }`.
+    - [ ] Tests cover the leave approve/reject/cancel path end to end through the engine.
 
 ##### P0-11D Requests Page (Phase 3, = P0-10)
 
@@ -459,14 +459,14 @@ Open before phase 4: confirm the flow-scope precedence rule (most matching dimen
 - Depends on: P0-11E
 - Status: [ ]
 - Acceptance criteria:
-    - [ ] Manager change reassigns open tasks automatically (audited); completed steps untouched.
+    - [ ] Manager change replaces pending approvers automatically (recorded in the request history); completed steps untouched.
     - [ ] Approver deactivated or loses authority: reassign through rule and fallback, or flag "needs routing".
-    - [ ] Requester deactivated: pending requests canceled, open tasks closed, `onCanceled` runs.
+    - [ ] Requester deactivated: pending requests canceled by the system, pending approvers cleared, `onCanceled` runs.
     - [ ] Approver on approved leave (`isUnavailable` hook): reassign to delegate or fallback, also when the leave starts.
-    - [ ] `ApprovalDelegations` applied at task creation (`originalAssignee`, `onBehalfOf`).
+    - [ ] `ApprovalDelegations` applied at step activation (delegate placed in `pendingApprovers`; `originalAssignee`, `onBehalfOf` recorded in the history).
     - [ ] Manual admin reassign with a mandatory reason.
     - [ ] Effects called from the service layer (never model hooks), covering single edit, bulk edit and import.
-    - [ ] Reconciliation job for stale tasks.
+    - [ ] Reconciliation job for stale pending approvers and stuck requests.
 
 ##### P0-11G Notifications with Configurable Email (Phase 6a)
 

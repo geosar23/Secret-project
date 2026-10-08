@@ -1,6 +1,8 @@
 # Plan: Configurable Approval Flows
 
-Status: **Draft for discussion** (07/10/2026). Covers roadmap items P0-10 (Requests page) and P0-11 (Request Flow Builder), and the foundation that leaves (P0-08), promotions (P0-14) and every later approval-based module build on.
+Status: **Phase 1 built** (08/10/2026). Covers roadmap items P0-10 (Requests page) and P0-11 (Request Flow Builder), and the foundation that leaves (P0-08), promotions (P0-14) and every later approval-based module build on.
+
+> **Revision 08/10/2026.** The first draft stored one `ApprovalTask` document per approver. We replaced that with **approvers and timeline stored on the request itself** (`pendingApprovers` and `actionsHistory`). The reasoning, the alternatives and the conditions under which we would reverse the decision are in section 2.1. Who may cancel is a type-level decision (D5).
 
 ---
 
@@ -19,7 +21,7 @@ Status: **Draft for discussion** (07/10/2026). Covers roadmap items P0-10 (Reque
 - A visual drag-and-drop flow designer. The first builder is a simple ordered list of steps.
 - Conditional branching (for example "over 10 days adds an HR step"). The schema leaves room for it.
 - Editing a submitted request or returning it to the requester. A rejection is final; the user raises a new request.
-- Timed escalation and auto-approval. Reassignment and delegation are included; timers come later.
+- Timed escalation and auto-approval. Reassignment and delegation are included; timers come later (a scheduled job, see 2.1).
 - Parallel branches. A step can have several approvers ("any of" or "all of"), but steps run in sequence.
 
 ---
@@ -30,24 +32,112 @@ Status: **Draft for discussion** (07/10/2026). Covers roadmap items P0-10 (Reque
 
 The earlier idea (resolve live, at fetch time) is replaced by **resolve at step activation**.
 
-- When a request enters a step, the engine resolves the step's rule (for example "line manager") into concrete users and creates one **approval task** per approver.
+- When a request enters a step, the engine resolves the step's rule (for example "line manager") into concrete users and stores them on the request as `pendingApprovers`.
 - From then on, "who must act" is stored data, not a computation.
 - Steps that have not started yet resolve later, when they activate. Completed steps are frozen.
 
 ### D2. Org changes are handled by explicit effects, not by recomputing
 
-When something changes who should approve (manager change, termination, leave of absence, role removal), a **reassignment effect** reacts to that event and updates the open tasks, writing an audit entry. Details in section 7.
+When something changes who should approve (manager change, termination, leave of absence, role removal), a **reassignment effect** reacts to that event and updates `pendingApprovers` of the affected pending requests, appending a history entry.
 
-### D3. Actionable work is a separate collection from notifications
+### D3. Actionable work lives on the request; notifications are a separate collection
 
-- **`ApprovalTasks`** = things a person must act on. Source of truth for the inbox and pending counts.
+- **`Requests.pendingApprovers`** = who must act now. Source of truth for the inbox and pending counts.
+- **`Requests.actionsHistory`** = what happened, append-only.
 - **`Notifications`** = informational messages (read/unread). Created from events, never used to decide who can approve.
 
-Mixing the two is the most common reason inboxes become unreliable.
+Mixing actionable work with notifications is the most common reason inboxes become unreliable.
 
 ### D4. Engine and request types are decoupled by a registry
 
-The `Request` envelope is fixed. Each type registers its payload schema, default flow and effects (section 6). See the earlier discussion on when a type deserves its own domain collection; the same rule applies here.
+The `Request` envelope is fixed. Each type registers its payload schema, default flow and effects (section 6).
+
+### D5. The engine owns the cancel state rules; the request type owns who may cancel (08/10/2026)
+
+- **State rules (engine):** a pending request can be canceled; an approved request only if its type opts in (`allowCancelAfterApproval`); rejected and canceled requests are final.
+- **Authorization (type):** the registry hook `canCancel(actor, request)` decides who. It sees the request in its current status, so a type can allow the requester while it is pending and HR (or a scoped permission) after approval. Without the hook the safe default is **the requester only**.
+- **Reject and cancel are different things.** Rejection is how an approver says "no" to a pending request and is final. Cancel withdraws or reverses a request, which is why it can also apply to an approved one.
+- **System-initiated cancels** are engine-internal effects with actor `"system"`, never reachable from user input: a change request that supersedes the original, and cancelling the pending requests of a deactivated requester. They are recorded in the timeline like everything else.
+- **History of the decision:** a hard-coded "requester only" rule was tried on 08/10/2026 and reverted the same day, because it could not express HR cancelling an approved leave. The engine therefore asks the type.
+
+### D6. A request keeps a frozen copy of its flow, not a pointer
+
+The request stores `flow: { flowId, version, steps }`, a copy of the steps it started with. See 2.2 for why a pointer to the flow version alone is not enough.
+
+---
+
+## 2.1 Decision record: where does "who must act" live?
+
+This was the main design dilemma of the engine. Both options satisfy every requirement; they trade consistency and simplicity against flexibility at scale.
+
+### The two options
+
+**A. Separate `ApprovalTasks` collection** (the first draft, and the usual shape in workflow products). One document per (request, step, approver). The inbox queries tasks.
+
+**B. Embedded on the request** (chosen). The request holds `pendingApprovers: ObjectId[]` (who must act on the current step) and `actionsHistory[]` (an append-only timeline). The inbox queries requests.
+
+### What the data looks like
+
+Anna requests leave. Step 1: her line manager Bob. Step 2: the HR role (mode `any`), resolving to Hana, Hugo, Hilda.
+
+| After                     | A: tasks collection                                                               | B: embedded (chosen)                                                                                          |
+| ------------------------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Anna submits              | `Requests` row + task (Bob, open)                                                 | `Requests` row: `pendingApprovers: [Bob]`                                                                     |
+| Bob approves              | update task, update request, insert 3 HR tasks (three writes, can be interrupted) | one write: `pendingApprovers: [Hana, Hugo, Hilda]`, history gets `approved`, `stepCompleted`, `stepActivated` |
+| Hugo approves (`any`)     | update Hugo's task, mark two `superseded`, update request                         | one write: `pendingApprovers: []`, status `approved`, history records `superseded: [Hana, Hilda]`             |
+| "What is waiting for me?" | `ApprovalTasks.find({ assignee: me, status: "open" })`                            | `Requests.find({ status: "pending", pendingApprovers: me })`                                                  |
+
+### Comparison
+
+| Concern                                               | A: tasks collection                                              | B: embedded                                                                                  |
+| ----------------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Consistency between request and approvers             | Two collections can drift; needs guards and a reconciliation job | One document, one atomic write; drift cannot happen                                          |
+| Double click / concurrent decisions                   | Conditional update on the task                                   | Conditional update on `pendingApprovers: me`                                                 |
+| Inbox and badge count                                 | Indexed, simple                                                  | Indexed (partial multikey), equally simple                                                   |
+| Index size                                            | Grows with all tasks                                             | Only **pending** requests are indexed (partial index), so it does not grow with history      |
+| `all` mode (everyone must approve)                    | Check all sibling tasks                                          | Step done when `pendingApprovers` is empty and an approval is recorded                       |
+| Crash recovery                                        | Reconcile task state against request state                       | A stuck request is visible in one document (step active, nobody pending, approvals recorded) |
+| Code surface                                          | Extra model, repository, service                                 | Less code                                                                                    |
+| Approver groups of tens                               | Fine                                                             | Fine, and cheaper to write (one array write instead of N inserts)                            |
+| Approver groups of hundreds or more                   | Fine                                                             | Array and index entries get heavy                                                            |
+| Per-approver timers, due dates, seen state            | Natural (a row each)                                             | Awkward as embedded data; handled at step level by a scheduled job instead                   |
+| "Everything user X ever decided", approver statistics | One index                                                        | Needs an index on `actionsHistory.user` or a rebuildable projection                          |
+
+### Why we chose B
+
+1. **The largest risk of A was inconsistency.** The first draft listed "task and request drift" as a risk and prescribed conditional updates, idempotent keys and a reconciliation job to contain it. B removes the risk instead of mitigating it.
+2. **Our expected load fits B.** Role-based steps will match tens of people, not hundreds. At that size the multikey index is small and one array write is cheaper than N task inserts.
+3. **The pilot is small.** Fewer collections and less code means a faster, easier-to-test first version.
+4. **Reminders do not need per-person rows.** A scheduled job finds pending requests whose current step has been active longer than N days and reminds everyone still in `pendingApprovers`, which is exactly the people who have not acted. A `lastReminderAt` on the step prevents repeats. Only a _different due date per approver_ is lost, which we do not need.
+5. **The usual industry argument for work items is convention, not necessity** (section 3). It matters most for very large assignee pools and heavy per-assignee reporting.
+
+### Index sketch
+
+```
+{ company: 1, pendingApprovers: 1, createdAt: -1 }   partialFilterExpression: { status: "pending" }
+```
+
+Because the index is partial, approved, rejected and canceled requests contribute no entries. Approved people are never kept in `pendingApprovers`; their decisions live in `actionsHistory`.
+
+### When to revisit (tripwires)
+
+Reintroduce a task collection, or a rebuildable projection of one, if any of these becomes true:
+
+- Role-based steps regularly match **hundreds or thousands** of people (document and index size).
+- We need **per-approver timers or due dates** (escalation to a specific person on their own clock).
+- **Cross-request approver analytics** become a product feature (response time per approver, workload reports) and an index on `actionsHistory.user` is not enough.
+
+The move is additive: the request still exposes "who must act now", so a tasks projection can be added for reporting or timers without changing the engine's behaviour.
+
+---
+
+## 2.2 Decision record: frozen flow copy or a pointer?
+
+A request could point at its flow version (`flowId`, `version`) instead of copying the steps.
+
+- **Why not adapt pending requests automatically when a flow changes?** If a step were removed or reordered, `currentStepIndex` and the stored step states would point at the wrong step, an already-approved request could be asked again, and nobody could later answer "which rules was this approved under?". Moving in-flight requests to a newer version is an explicit, audited admin action (section 7), never a side effect of editing.
+- **Why copy rather than point at the version?** Flow versions are immutable, so a pointer would give the same guarantee for _configured_ flows. The copy is needed because a company with no custom flow uses the type's **default flow, which lives in code** (stored as version 0, not persisted). A deploy that changes the code would silently change in-flight requests. The copy also saves a lookup on every step.
+- **Alternative if the duplication bothers us later:** persist default flows as version rows and keep only the pointer.
 
 ---
 
@@ -66,8 +156,8 @@ How the common platforms handle "who approves, and how do users find their pendi
 
 Takeaways for us:
 
-1. **Yes**, a materialised task per pending approver is the standard, and it is what makes the inbox cheap.
-2. **Resolve at activation** matches the standard and gives a real audit answer to "who was supposed to approve this?".
+1. **Resolve at activation** matches the standard and gives a real audit answer to "who was supposed to approve this?". We follow it.
+2. A **stored, directly queryable assignee list** is also the standard, and we follow the principle. We deliberately deviate on _where_ it lives: on the request instead of in a separate work-item collection (section 2.1), because it removes a consistency risk and fits our approver-group sizes.
 3. Mid-flight org changes are an **explicit, audited operation**. That is exactly the "effects" idea in D2.
 
 ---
@@ -114,8 +204,9 @@ Rules:
 
 - Editing a flow creates a **new version**. A request stores the version it started with, so edits never change in-flight requests.
 - Validation blocks: empty flows, a step whose resolver and fallback can both return nobody for the whole company, duplicate step keys, references to inactive roles or users.
+- Built in phase 1: `lineManager`, `hrRepresentative`, `role`, `user`. `managerChain` and `departmentHead` are rejected as unsupported until their phase.
 
-### 4.2 `Requests` (the envelope)
+### 4.2 `Requests` (the envelope: workflow state, approvers and timeline)
 
 ```ts
 interface IRequest {
@@ -125,11 +216,16 @@ interface IRequest {
     requester: ObjectId;
     subject: ObjectId; // who it is about; equals requester for self-service
     status: "pending" | "approved" | "rejected" | "canceled";
-    flow: { flowId: ObjectId; version: number; steps: IFlowStep[] }; // frozen copy
+    flow: { flowId?: ObjectId; version: number; steps: IFlowStep[] }; // frozen copy (2.2); flowId absent for the code default (version 0)
     currentStepIndex: number | null; // null once finished
     steps: IRequestStepState[];
+    pendingApprovers: ObjectId[]; // who must act on the current step; emptied when the step or request finishes
+    actionsHistory: IRequestAction[]; // append-only timeline
+    needsRouting: boolean; // nobody could be resolved; surfaced to admins
     payload: unknown; // validated by the registry entry for `type`
     ref?: { collection: string; id: ObjectId }; // domain record, if the type has one
+    cancelReason?: string;
+    canceledBy?: ObjectId;
     decidedAt?: Date;
     createdAt: Date;
     updatedAt: Date;
@@ -146,38 +242,42 @@ interface IRequestStepState {
 
 The request holds the **workflow state**. Status lives only here; a domain record never stores a second copy of it.
 
-### 4.3 `ApprovalTasks` (the inbox)
-
-One document per (request, step, assignee).
+### 4.3 `actionsHistory` (the timeline, embedded in the request)
 
 ```ts
-interface IApprovalTask {
-    company: ObjectId;
-    request: ObjectId;
-    requestType: string; // denormalised for filtering without a join
-    stepKey: string;
-    assignee: ObjectId; // who must act now
-    originalAssignee: ObjectId; // who the rule resolved to (differs after reassign/delegation)
-    status: "open" | "approved" | "rejected" | "superseded" | "canceled" | "reassigned";
-    dueAt?: Date; // reserved for escalation
-    decidedBy?: ObjectId; // may differ from assignee (admin acting)
-    onBehalfOf?: ObjectId; // set when a delegate decided
-    decidedAt?: Date;
-    comment?: string;
-    createdAt: Date;
+interface IRequestAction {
+    action:
+        | "submitted"
+        | "stepActivated"
+        | "stepSkipped"
+        | "stepCompleted"
+        | "approved" // one approver's decision
+        | "rejected" // one approver's decision
+        | "requestApproved"
+        | "requestRejected"
+        | "needsRouting"
+        | "canceled";
+    status: RequestStatus; // request status right after the action
+    user: ObjectId | "system"; // who acted
+    date: Date;
+    data?: Record<string, unknown>; // typed per action: stepKey, comment, reason, isOverride, onBehalfOf, superseded, assignees, flowVersion
 }
 ```
 
-- `superseded`: a sibling task finished an `any` step first.
-- `reassigned`: the task was moved; a new `open` task is created for the new assignee and the old one is kept for history.
+- Append-only. Entries are never edited or removed.
+- **State is the truth, history is the record.** `pendingApprovers` and `steps` say what is true now; `actionsHistory` says what happened. Decisions pull the user from `pendingApprovers` and push a history entry in the same atomic write.
+- `any` mode: other approvers are dropped from `pendingApprovers` when one approves, and the dropped users are recorded in `data.superseded`.
+- A decision by an authorized creator on someone's behalf is an `approved` entry with `data: { isOverride: true, reason, onBehalfOf }`.
+- Reassignment and delegation (later phases) add `reassigned` entries carrying the original and new approver, the trigger and the reason.
+- The list is bounded by flow length plus reassignments, so the document stays small for short flows.
 
 ### 4.4 `ApprovalDelegations`
 
-Time-boxed record `{ company, delegator, delegate, from, to, requestTypes?, isActive }`. At task creation, if the resolved approver has an active delegation, the task is created for the delegate with `originalAssignee` and `onBehalfOf` set. Dates are `YYYY-MM-DD` strings, as in the leaves design.
+Time-boxed record `{ company, delegator, delegate, from, to, requestTypes?, isActive }`. When a step activates, if a resolved approver has an active delegation, the **delegate is placed in `pendingApprovers`** and the activation history entry records `originalAssignee` and `onBehalfOf`. Dates are `YYYY-MM-DD` strings, as in the leaves design. Not built in phase 1.
 
 ### 4.5 `Notifications`
 
-Separate, simple collection: `{ company, user, kind, request?, title, readAt?, createdAt }`. Created by event handlers (task created, request decided, request canceled). Not part of authorization.
+Separate, simple collection: `{ company, user, kind, request?, title, readAt?, createdAt }`. Created by event handlers (approver assigned, request decided, request canceled). Not part of authorization.
 
 ### 4.6 `NotificationRules` (configurable email)
 
@@ -191,12 +291,12 @@ interface INotificationRule {
     stepKey?: string; // only for step events; omitted = any step
     event:
         | "submitted" // request created
-        | "taskAssigned" // an approver now has a task
+        | "approverAssigned" // an approver is now pending on a step
         | "stepApproved"
         | "requestApproved"
         | "requestRejected"
         | "requestCanceled"
-        | "taskReassigned"
+        | "approverReassigned"
         | "needsRouting";
     recipients: NotificationRecipient[];
     channels: { inApp: true; email: boolean }; // inApp is always on
@@ -207,7 +307,7 @@ interface INotificationRule {
 type NotificationRecipient =
     | { kind: "requester" }
     | { kind: "subject" }
-    | { kind: "taskAssignees" } // the approvers of the step in question
+    | { kind: "pendingApprovers" } // the approvers of the step in question
     | { kind: "nextApprovers" }
     | { kind: "lineManager" }
     | { kind: "hrRepresentative" }
@@ -215,7 +315,7 @@ type NotificationRecipient =
     | { kind: "user"; userId: ObjectId };
 ```
 
-- A company with no rules gets sensible defaults per type (for example: email the approvers on `taskAssigned`, the requester on `requestApproved`/`requestRejected`). Defaults ship with the registry entry; admins override them with rules.
+- A company with no rules gets sensible defaults per type (for example: email the approvers on `approverAssigned`, the requester on `requestApproved`/`requestRejected`). Defaults ship with the registry entry; admins override them with rules.
 - Emails are sent through the P0-23 email service, asynchronously. A failed email never affects the request.
 - Rules are evaluated when the event happens and the resulting recipients are stored on the notification, so later org changes do not rewrite history.
 
@@ -227,40 +327,41 @@ type NotificationRecipient =
 
 ```
 create → resolve flow (most specific, active, latest version) → freeze flow on request
-       → activate step 0 → resolve approvers → create tasks (apply delegation)
-       → each decision updates task → step complete? → activate next step / finish
+       → activate step 0 → resolve approvers → store pendingApprovers (apply delegation)
+       → each decision pulls the approver and appends history → step complete? → activate next step / finish
 finish approved → run type's onApproved effect → status = approved
 finish rejected → run type's onRejected effect → status = rejected
-requester cancels → close open tasks (canceled) → run onCanceled → status = canceled
-cancel after approval (permitted per type) → status approved → canceled → run onCanceled (type reverses its effects, e.g. ledger reversal)
-approval of request B may cancel request A (reason "superseded"), via engine.cancel(A, reason) called from B's onApproved
+an allowed actor (default: the requester) cancels → clear pendingApprovers → run onCanceled → status = canceled
+cancel after approval (only if the type allows it, and only for actors the type's canCancel accepts) → status approved → canceled → run onCanceled (type reverses its effects, e.g. ledger reversal)
+system cancel (D5): approval of request B may cancel request A (reason "superseded"), via engine.cancel(A, { actor: "system" }) called from B's onApproved
 ```
 
-Cancel-after-approval is an explicit, audited transition and only for types whose registry entry allows it (`allowCancelAfterApproval`, who may do it is a type-level permission). The type's `onCanceled` must be idempotent and must reverse everything `onApproved` did.
+Cancel after approval is an explicit, audited transition and only for types whose registry entry allows it (`allowCancelAfterApproval`). The type's `onCanceled` must be idempotent and must reverse everything `onApproved` did. Who may trigger it is the type's `canCancel` (D5), for example HR for an approved leave.
 
 ### 5.2 Step completion
 
-- `any`: first approval completes the step; remaining open tasks become `superseded`.
-- `all`: step completes when every task is `approved`; any rejection rejects the request and cancels remaining open tasks.
+- `any`: first approval completes the step; the remaining approvers are dropped from `pendingApprovers` and recorded as superseded.
+- `all`: each approval removes that approver from `pendingApprovers`; the step completes when the list is empty and at least one approval is recorded. Any rejection rejects the request.
 - A rejection in either mode rejects the request in v1.
+- Completion is recomputed from stored state alone (`reevaluate`), so a retry after a crash picks up where it stopped.
 
 ### 5.3 Resolution edge cases (must be defined, not left to chance)
 
-| Case                                                                     | Behaviour                                                                                                                                                                                                                                                                                                      |
-| ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Resolver returns nobody (no manager, inactive manager)                   | Use the step's `fallback`. If still nobody, **do not silently approve**: the request is flagged "needs routing" and surfaced to admins.                                                                                                                                                                        |
-| Requester is the resolved approver                                       | If `skipIfRequesterIsApprover`, mark the step `skipped` and move on. Otherwise use the fallback. Never self-approve.                                                                                                                                                                                           |
-| All steps skipped                                                        | Allowed only if the flow explicitly permits auto-approval; otherwise flag "needs routing".                                                                                                                                                                                                                     |
-| Authorized creator enters it on someone's behalf (e.g. HR records leave) | **Decided (08/10/2026):** immediate approval is not a skip. The engine creates the tasks and records them as decided by the creator, with `decidedBy`, a mandatory reason and an override flag, so the timeline stays complete and the audit trail honest. Needs a permission per type (`canApproveOnCreate`). |
-| Resolved approver is unavailable (e.g. on approved leave)                | The type's `isUnavailable(user, date)` hook is consulted by the resolver; an unavailable approver is replaced by their delegate if one exists, otherwise the step's `fallback`.                                                                                                                                |
-| Same user appears in two steps                                           | **Decided (08/10/2026): never collapse.** Each step asks them separately.                                                                                                                                                                                                                                      |
-| Approver loses approval authority before acting                          | Authorization is rechecked at decision time (the task is necessary but not sufficient). Task is flagged and reassigned by the effect in section 7.                                                                                                                                                             |
+| Case                                                                     | Behaviour                                                                                                                                                                                                                                                                                                                             |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Resolver returns nobody (no manager, inactive manager)                   | Use the step's `fallback`. If still nobody, **do not silently approve**: the request is flagged "needs routing" (`needsRouting: true`, empty `pendingApprovers`) and surfaced to admins.                                                                                                                                              |
+| Requester is the resolved approver                                       | If `skipIfRequesterIsApprover`, mark the step `skipped` and move on. Otherwise use the fallback. Never self-approve.                                                                                                                                                                                                                  |
+| All steps skipped                                                        | Allowed only if the flow explicitly permits auto-approval; otherwise flag "needs routing".                                                                                                                                                                                                                                            |
+| Authorized creator enters it on someone's behalf (e.g. HR records leave) | **Decided (08/10/2026):** immediate approval is not a skip. The engine activates the steps and records an `approved` history entry per pending approver, made by the creator with a mandatory reason and `isOverride`, so the timeline stays complete and the audit trail honest. Needs a permission per type (`canApproveOnCreate`). |
+| Resolved approver is unavailable (e.g. on approved leave)                | The type's `isUnavailable(user, date)` hook is consulted by the resolver; an unavailable approver is replaced by their delegate if one exists, otherwise the step's `fallback`.                                                                                                                                                       |
+| Same user appears in two steps                                           | **Decided (08/10/2026): never collapse.** Each step asks them separately.                                                                                                                                                                                                                                                             |
+| Approver loses approval authority before acting                          | Authorization is rechecked at decision time (being pending is necessary but not sufficient). The decision is blocked, and the reassignment effect in section 7 handles the pending slot.                                                                                                                                              |
 
 ### 5.4 Concurrency and idempotency
 
-- Deciding a task is a conditional update: `findOneAndUpdate({ _id, status: "open" }, ...)`. Two clicks or two tabs cannot both succeed.
-- Step advancement and finishing use a conditional update on the request (`currentStepIndex` matches) so a retry after a crash is safe. The same pattern the leaves design uses for approval.
-- Side effects of a type (for example posting a ledger entry) must be idempotent, keyed by request id.
+- Deciding is one conditional update: `findOneAndUpdate({ _id, status: "pending", currentStepIndex, pendingApprovers: me }, { $pull: { pendingApprovers: me }, $push: { actionsHistory: entry } })`. Two clicks or two tabs cannot both succeed; the loser gets a conflict.
+- Step advancement and finishing use a conditional update on the request (`currentStepIndex` matches) so a retry after a crash is safe.
+- Side effects of a type (for example posting a ledger entry) must be idempotent, keyed by request id. Known gap: if the process dies after the request is marked approved but before `onApproved` runs, a retry does not re-run it; the reconciliation job (phase 5) closes this.
 
 ---
 
@@ -270,28 +371,29 @@ Cancel-after-approval is an explicit, audited transition and only for types whos
 interface RequestTypeDefinition<TPayload> {
     type: string;
     version: number;
-    payloadSchema: Schema<TPayload>; // validated on create and on any edit
+    validatePayload(payload: unknown): TPayload; // validated on create; throws BadRequestError
     defaultFlow: IFlowStep[]; // used when a company has no custom flow
-    canCreate(actor, subject, payload): Promise<void>; // permission and business-rule checks
+    canCreate(companyId, actor, subjectId, payload): Promise<void>; // permission and business-rule checks
     onSubmitted?(request): Promise<void>;
     onApproved(request): Promise<void>; // idempotent
     onRejected?(request): Promise<void>;
     onCanceled?(request): Promise<void>;
     summarize(request): { title: string; subtitle?: string }; // for lists and notifications
-    canApprove(actor, request): Promise<boolean>; // rechecked at decision time (D2, blocks if false)
-    canApproveOnCreate?(actor, request): Promise<boolean>; // immediate approval by an authorized creator
+    canApprove(companyId, actor, request): Promise<boolean>; // rechecked at decision time (D2, blocks if false)
+    canApproveOnCreate?(companyId, actor, request): Promise<boolean>; // immediate approval by an authorized creator
     allowCancelAfterApproval?: boolean; // approved -> canceled permitted, with onCanceled reversing effects
-    isUnavailable?(userId, date): Promise<boolean>; // resolver hook, e.g. approver on approved leave
+    canCancel?(companyId, actor, request): Promise<boolean>; // who may cancel, given the request's current status; default: requester only
+    isUnavailable?(companyId, userId, date): Promise<boolean>; // resolver hook, e.g. approver on approved leave
     detail(request): Promise<unknown>; // type-specific data for the detail drawer (lines, pay, balance impact, warnings)
 }
 
 // Engine API available to registry handlers
-engine.cancel(requestId, { reason, actor }); // e.g. a change request's onApproved cancels the original
+engine.cancel(requestId, { reason, actor: "system" }); // e.g. a change request's onApproved cancels the original
 ```
 
 The detail drawer renders a per-type component keyed by `type`, fed by `detail(request)` (or a type-specific endpoint). `summarize()` is only for lists and notifications.
 
-- Leave registers `payloadSchema`, a default flow of one line-manager step, and `onApproved` posting ledger entries. The leave design's per-day lines and ledger stay in leave-owned collections; `Request.ref` points to them.
+- Leave registers a payload validator, a default flow of one line-manager step, and `onApproved` posting ledger entries. The leave design's per-day lines and ledger stay in leave-owned collections; `Request.ref` points to them.
 - Promotion registers a payload (new title, level, department, effective date, reason), a default flow, and `onApproved` that applies the changes and writes an employment-history entry.
 - A type that outgrows payload-only storage moves its data to its own collection; only its handlers change.
 
@@ -299,22 +401,22 @@ The detail drawer renders a per-type component keyed by `type`, fed by `detail(r
 
 ## 7. Effects: org changes and other events
 
-An **effect** is an event handler that keeps stored workflow state correct when the world changes. Each effect writes an audit entry (actor "system" or the admin who triggered it).
+An **effect** is an event handler that keeps stored workflow state correct when the world changes. Each effect appends a history entry (actor "system" or the admin who triggered it).
 
-| Event                                                                          | Effect                                                                                                                         |
-| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| User's line manager changes                                                    | For the user's **pending requests**, re-resolve **open** tasks whose rule was `lineManager`/`managerChain` and reassign.       |
-| A manager is deactivated or leaves                                             | Their open tasks are re-resolved through each step's rule and fallback; unresolved ones are flagged "needs routing".           |
-| A user loses the role or permission a task needed                              | Reassign through the rule and fallback, or flag.                                                                               |
-| An approver goes on approved leave later (type's `isUnavailable` becomes true) | Reassign their open tasks to their delegate, else the fallback; also runs when the leave starts, not only when it is approved. |
-| Delegation created, changed or ended                                           | Optional: move currently open tasks for that delegator; new tasks follow delegation automatically.                             |
-| Requester deactivated                                                          | Their pending requests are canceled: open tasks closed as `canceled`, type's `onCanceled` runs, audit entry written.           |
-| Admin reassigns a task manually                                                | Same reassign operation, with a mandatory reason.                                                                              |
-| Flow edited                                                                    | No effect on in-flight requests (they use their frozen flow). Optional admin action "re-route in-flight to latest version".    |
+| Event                                                                          | Effect                                                                                                                                                              |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| User's line manager changes                                                    | For the user's **pending requests**, re-resolve the current step's `pendingApprovers` when its rule was `lineManager`/`managerChain` and replace the stale entries. |
+| A manager is deactivated or leaves                                             | Requests where they are pending are re-resolved through each step's rule and fallback; unresolved ones are flagged "needs routing".                                 |
+| A user loses the role or permission a pending slot needed                      | Reassign through the rule and fallback, or flag.                                                                                                                    |
+| An approver goes on approved leave later (type's `isUnavailable` becomes true) | Replace them in `pendingApprovers` with their delegate, else the fallback; also runs when the leave starts, not only when it is approved.                           |
+| Delegation created, changed or ended                                           | Optional: move currently pending slots for that delegator; new steps follow delegation automatically.                                                               |
+| Requester deactivated                                                          | Their pending requests are canceled by the system (D5): `pendingApprovers` cleared, type's `onCanceled` runs, history entry written.                                |
+| Admin reassigns a pending approver manually                                    | Same reassign operation, with a mandatory reason.                                                                                                                   |
+| Flow edited                                                                    | No effect on in-flight requests (they use their frozen flow). Optional admin action "re-route in-flight to latest version".                                         |
 
-Important detail: effects must run on **every code path that changes the org**, including the Users page bulk edit and imports. The existing repository `updateOne` bypasses Mongoose document hooks, so effects must be called from the **service layer** (or from an explicit domain event published by it), not from model hooks. A periodic reconciliation job (find open tasks whose assignee is inactive or no longer matches the rule) is the safety net.
+Important detail: effects must run on **every code path that changes the org**, including the Users page bulk edit and imports. The existing repository `updateOne` bypasses Mongoose document hooks, so effects must be called from the **service layer** (or from an explicit domain event published by it), not from model hooks. A periodic reconciliation job (find pending requests whose approvers are inactive or no longer match the rule, or stuck requests) is the safety net.
 
-Completed steps are never touched. Only `open` tasks of `pending` requests are eligible.
+Completed steps are never touched. Only the current step of `pending` requests is eligible.
 
 ---
 
@@ -322,27 +424,27 @@ Completed steps are never touched. Only `open` tasks of `pending` requests are e
 
 ### 8.1 Queries
 
-| Need                                     | Query                                                          | Index                                       |
-| ---------------------------------------- | -------------------------------------------------------------- | ------------------------------------------- |
-| Pending count for badge / home page      | `count({ company, assignee: me, status: "open" })`             | `{ company, assignee, status, createdAt }`  |
-| My approval inbox                        | same filter, sorted and paginated, optionally by `requestType` | same                                        |
-| My requests (as requester)               | `{ company, requester: me, status }` on `Requests`             | `{ company, requester, status, createdAt }` |
-| Requests for a person (HR, manager view) | `{ company, subject: { $in: scopedIds } }`                     | `{ company, subject, createdAt }`           |
-| Admin overview, "needs routing"          | `{ company, status: "pending", needsRouting: true }`           | `{ company, status, needsRouting }`         |
+| Need                                     | Query                                                         | Index                                                                      |
+| ---------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Pending count for badge / home page      | `count({ company, status: "pending", pendingApprovers: me })` | `{ company, pendingApprovers, createdAt }`, partial on `status: "pending"` |
+| My approval inbox                        | same filter, sorted and paginated, optionally by `type`       | same                                                                       |
+| My requests (as requester)               | `{ company, requester: me, status }` on `Requests`            | `{ company, requester, status, createdAt }`                                |
+| Requests for a person (HR, manager view) | `{ company, subject: { $in: scopedIds } }`                    | `{ company, subject, createdAt }`                                          |
+| Admin overview, "needs routing"          | `{ company, status: "pending", needsRouting: true }`          | `{ company, status, needsRouting }`                                        |
 
-Home page and login should call **one** summary endpoint returning `{ openTasks, myPending, unreadNotifications }`, each a small indexed count.
+Home page and login should call **one** summary endpoint returning `{ pendingForMe, myPending, unreadNotifications }`, each a small indexed count.
 
 ### 8.2 Visibility is separate from approval
 
-- **Approval authority:** you hold an open task for the request (or a valid override such as admin).
-- **Visibility** (who may read a request): requester, subject, anyone with a task on it, and scoped viewers through the existing permission scopes (`managed`, `department`, `country`, `*`).
+- **Approval authority:** you are in `pendingApprovers` (or hold a valid override such as admin).
+- **Visibility** (who may read a request): requester, subject, anyone currently pending or who acted on it (from `actionsHistory`), and scoped viewers through the existing permission scopes (`managed`, `department`, `country`, `*`).
 - Both go through the existing permission and scope helpers; no new authorization model.
 
 ### 8.3 Requests page (P0-10)
 
 - Tabs: **Needs my action**, **My requests**, **Team/Company** (permission and scope dependent).
 - Filters: type, status, date range, requester, current step. Consistent server-side pagination and sorting.
-- Detail drawer: payload summary via `summarize()`, the step timeline (assigned, decided, reassigned, on behalf of), comments, and Approve/Reject/Cancel buttons driven by what the current user may do.
+- Detail drawer: payload summary via `summarize()`, the step timeline rendered from `actionsHistory` (assigned, decided, reassigned, on behalf of), comments, and Approve/Reject buttons driven by whether the current user is pending, plus Cancel for the requester.
 
 ---
 
@@ -350,23 +452,30 @@ Home page and login should call **one** summary endpoint returning `{ openTasks,
 
 - `requests:read` with scopes for the Team/Company tab.
 - `approvalFlows:read` and `approvalFlows:write` for the flow builder (admin).
-- Deciding a task requires holding the task (and the type's `canApprove` check, rechecked at decision time). Creating a request is type-specific (`canCreate`).
-- Admin override (decide or reassign on someone's behalf) is a distinct permission, always audited with a reason.
+- Deciding requires being in `pendingApprovers` (and the type's `canApprove` check, rechecked at decision time). Creating a request is type-specific (`canCreate`).
+- **Cancel** is authorized by the request type's `canCancel` (D5), which typically combines the requester and a scoped permission such as `leaves:write`. Without the hook only the requester may cancel. `"system"` is reserved for engine effects.
+- Admin override (decide or reassign on someone's behalf) is a distinct permission, always recorded with a reason.
 
 ---
 
 ## 10. Audit
 
-Every transition writes an audit entry via the shared helper from P1-29: request created, step activated, tasks created, decision, reassignment (with reason and trigger), cancellation, flow version used. Because tasks are never deleted, the request timeline can be rebuilt from `ApprovalTasks` alone.
+Two mechanisms, deliberately different:
+
+- **Requests carry their own timeline.** Every transition (request created, step activated, approvers assigned, decision, reassignment with reason and trigger, cancellation, flow version used) is an `actionsHistory` entry written atomically with the state change. Requests are not mutated records in the audit sense, so they are **not** in the shared audit log.
+- **`AuditLogs` is a generic, opt-in change log for mutable records** (a user whose fields get overwritten). Which entities are tracked is chosen in `server/src/config/audited-entities.ts`; each entry lists fields to **redact** (record that it changed, never the value) and fields to **ignore**. Services call `AuditService.record({ actor, entity, entityId, action, before, after })`, which stores a field-level diff and writes nothing when an update changed nothing. The entity type is checked at compile time against the registry. Repository updates bypass Mongoose hooks, so the call is explicit in the service layer. Retention is still open (P1-29).
 
 ---
 
-## 11. Code layout (proposed)
+## 11. Code layout
 
 Server (`server/src/`):
 
-- `models/`: `approval-flow.model.ts`, `request.model.ts`, `approval-task.model.ts`, `approval-delegation.model.ts`, `notification.model.ts`
-- `services/approvals/`: `flow.service.ts`, `request.service.ts` (engine), `task.service.ts`, `resolver.service.ts`, `effects.service.ts`
+- `models/`: `approval-flow.model.ts`, `request.model.ts`, `audit-log.model.ts` (later: `approval-delegation.model.ts`, `notification.model.ts`)
+- `repositories/`: one company-scoped repository per model
+- `services/approvals/`: `flow.service.ts`, `request.service.ts` (engine), `resolver.service.ts`, `request-type.registry.ts` (later: `effects.service.ts`)
+- `services/audit.service.ts`, `config/audited-entities.ts`
+- `scripts/syncApprovalIndexes.ts`: models use `autoIndex: false`, so indexes (including the partial inbox index) exist only after this script runs
 - `requests/types/`: one file per request type registering its `RequestTypeDefinition`
 - `routes/`: `request.routes.ts`, `approval-flow.routes.ts`, `notification.routes.ts`
 
@@ -376,16 +485,16 @@ Client (`client/src/app/`): `features/requests/` (page, detail drawer), `feature
 
 ## 12. Delivery phases
 
-| Phase | Deliverable                                                                                                                            | Done when                                                                                               |
-| ----- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| 0     | Agree this plan; reconcile with `docs/features/leaves.md` section 9 (see section 14).                                                  | Both documents describe the same approval model.                                                        |
-| 1     | Engine core: models, resolver service, create/decide/cancel, registry, tasks, idempotency, audit helper calls. Single-step flows only. | Integration tests cover create, approve, reject, cancel, double-decide, self-approval, missing manager. |
-| 2     | Leave as the first type on the engine (default one-step flow). Inbox endpoint and pending summary endpoint.                            | Leave approval works end to end through tasks.                                                          |
-| 3     | Requests page (P0-10): needs-my-action, my requests, team tab, detail timeline.                                                        | Users and managers can find and act on everything from one page.                                        |
-| 4     | Multi-step flows, `any`/`all` modes, resolver kinds, flow versioning, flow builder UI (list of steps).                                 | An admin builds a 2-step flow; in-flight requests keep their frozen flow.                               |
-| 5     | Effects: manager change, deactivation, manual reassign, delegation, reconciliation job.                                                | Org change tests show open tasks reassigned and audited; completed steps untouched.                     |
-| 6     | Promotion as the second type; notifications UI.                                                                                        | Promotion runs on a configurable flow with no engine changes.                                           |
-| 7     | Later: conditions, escalation timers, return-to-requester, parallel steps.                                                             | Scoped separately.                                                                                      |
+| Phase | Deliverable                                                                                                                                                                                                                         | Done when                                                                                               |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| 0     | Agree this plan; reconcile with `docs/features/leaves.md` section 9 (see section 14).                                                                                                                                               | Both documents describe the same approval model.                                                        |
+| 1     | **Built (08/10/2026).** Engine core: models, resolver service, create/decide/cancel, registry, embedded approvers and timeline, idempotency, opt-in audit. Single-step flows run; multi-step and `any`/`all` already work in tests. | Integration tests cover create, approve, reject, cancel, double-decide, self-approval, missing manager. |
+| 2     | Leave as the first type on the engine (default one-step flow). Inbox endpoint and pending summary endpoint.                                                                                                                         | Leave approval works end to end through `pendingApprovers`.                                             |
+| 3     | Requests page (P0-10): needs-my-action, my requests, team tab, detail timeline.                                                                                                                                                     | Users and managers can find and act on everything from one page.                                        |
+| 4     | Multi-step flows in the builder, resolver kinds (`managerChain`, `departmentHead`), flow versioning UI, flow builder UI (list of steps).                                                                                            | An admin builds a 2-step flow; in-flight requests keep their frozen flow.                               |
+| 5     | Effects: manager change, deactivation, manual reassign, delegation, reconciliation job, reminder job.                                                                                                                               | Org change tests show pending approvers replaced and recorded; completed steps untouched.               |
+| 6     | Promotion as the second type; notifications UI.                                                                                                                                                                                     | Promotion runs on a configurable flow with no engine changes.                                           |
+| 7     | Later: conditions, escalation to a specific person, return-to-requester, parallel steps.                                                                                                                                            | Scoped separately.                                                                                      |
 
 Phase 1 intentionally ships single-step flows first, but the schema is already multi-step, so phase 4 is additive.
 
@@ -393,11 +502,12 @@ Phase 1 intentionally ships single-step flows first, but the schema is already m
 
 ## 13. Risks
 
-- **Effects coverage.** If one org-changing path forgets to call the effect, tasks go stale. Mitigation: services-only mutation paths, the reconciliation job, and tests per path (bulk edit, import, single edit).
-- **Task and request drift.** Two collections must agree. Mitigation: conditional updates, idempotent keys, and a reconciliation script (same approach as the leave ledger).
+- **Effects coverage.** If one org-changing path forgets to call the effect, `pendingApprovers` goes stale. Mitigation: services-only mutation paths, the reconciliation job, and tests per path (bulk edit, import, single edit).
+- **Growth of the embedded model.** Very large approver groups or per-approver timers would strain the embedded design. Mitigation: the tripwires in section 2.1; the move to a tasks projection is additive.
+- **Effect not re-run after a crash.** `onApproved` can be skipped if the process dies between marking approved and running the effect. Mitigation: idempotent effects, plus a reconciliation script (same approach as the leave ledger).
 - **Over-building the flow builder.** Conditions and escalation are tempting. Keep v1 to ordered steps and resolver kinds.
-- **Reconciling with the leaves design.** The leaves document currently chooses the opposite approval model (section 14), so one of the two must change before leave work continues.
-- **Mongo transactions.** The design avoids requiring them. If Atlas replica sets are available, a transaction around decide + advance is a possible simplification, not a prerequisite.
+- **Reconciling with the leaves design.** Resolved, see section 14.
+- **Mongo transactions.** The design avoids requiring them; with one document per transition it needs them even less.
 
 ---
 
@@ -405,32 +515,30 @@ Phase 1 intentionally ships single-step flows first, but the schema is already m
 
 Status: the leaves doc has been rewritten to follow this plan; see section 15 for what it asked of the engine in return.
 
-`docs/features/leaves.md` currently specifies **live resolution** (principle 2.1, section 9): no approver stored, approval authority checked at decision time, queues built from `user: { $in: scopedIds }`, delegation resolved live, and `LeaveRequests` carrying its own status and `approvalStep` rule.
+`docs/features/leaves.md` originally specified **live resolution** (principle 2.1, section 9): no approver stored, approval authority checked at decision time, queues built from `user: { $in: scopedIds }`, delegation resolved live, and `LeaveRequests` carrying its own status and `approvalStep` rule.
 
-This plan chooses **resolution at step activation with stored tasks**. If this plan is accepted, the leaves design needs these changes:
+This plan chose **resolution at step activation with stored approvers**. The leaves design changed as follows:
 
-1. Section 2, principle 1 and section 9 are rewritten: approver identity is frozen on tasks; accounting and authorization at activation time.
-2. `LeaveRequests.status` and `approvalStep` move to the `Request` envelope (single source of truth). The leave record keeps dates, per-day lines, pay, overrides, and a `request` reference.
-3. Section 9.1 (delegation) becomes the `ApprovalDelegations` collection with task creation applying it.
+1. Section 2, principle 1 and section 9 rewritten: approver identity is frozen on the request when the step activates; accounting and authorization at activation time.
+2. `LeaveRequests.status` and `approvalStep` moved to the `Request` envelope (single source of truth). The leave record keeps dates, per-day lines, pay, overrides, and a `request` reference.
+3. Section 9.1 (delegation) became the `ApprovalDelegations` collection with the delegate placed in `pendingApprovers`.
 4. Section 9.2 (team coverage limits) is unaffected; it is a validation rule.
 5. The leave queue and API use the shared inbox and Requests page instead of leave-specific queue endpoints.
-
-Because another agent owns the leaves document, I have **not** edited it.
 
 ---
 
 ## 15. Requirements raised by the leaves design (07/10/2026)
 
-`docs/features/leaves.md` is now reconciled with this plan (approver frozen on tasks, `canApprove` rechecked, delegation shared, change-after-approval is a new request linked by `replaces`). It raised six engine requirements, all folded into this plan:
+`docs/features/leaves.md` is reconciled with this plan (approver stored on the request, `canApprove` rechecked, delegation shared, change-after-approval is a new request linked by `replaces`). It raised six engine requirements, all folded into this plan:
 
-| #   | Requirement                                                             | Where it landed                                  | Status            |
-| --- | ----------------------------------------------------------------------- | ------------------------------------------------ | ----------------- |
-| 1   | Cancel after approval, `onCanceled` reverses effects                    | Section 5.1, registry `allowCancelAfterApproval` | Added             |
-| 2   | `onApproved` can cancel another request ("superseded")                  | Section 5.1, `engine.cancel(...)`                | Added             |
-| 3   | Immediate approval by an authorized creator, recorded as decisions      | Section 5.3, registry `canApproveOnCreate`       | Decided           |
-| 4   | Approver availability hook, and reassign when an approver goes on leave | Section 5.3, section 7, registry `isUnavailable` | Added             |
-| 5   | Per-type detail renderer for the drawer                                 | Registry `detail()`, section 6                   | Added             |
-| 6   | Flow-scope precedence across three dimensions                           | Open question 6                                  | Proposed, confirm |
+| #   | Requirement                                                             | Where it landed                                         | Status                                               |
+| --- | ----------------------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------- |
+| 1   | Cancel after approval, `onCanceled` reverses effects                    | Section 5.1, registry `allowCancelAfterApproval`        | Built; who may cancel is the type's `canCancel` (D5) |
+| 2   | `onApproved` can cancel another request ("superseded")                  | Section 5.1, `engine.cancel(...)` with actor `"system"` | Built                                                |
+| 3   | Immediate approval by an authorized creator, recorded as decisions      | Section 5.3, registry `canApproveOnCreate`              | Built                                                |
+| 4   | Approver availability hook, and reassign when an approver goes on leave | Section 5.3, section 7, registry `isUnavailable`        | Hook built; reassign effect is phase 5               |
+| 5   | Per-type detail renderer for the drawer                                 | Registry `detail()`, section 6                          | Interface only                                       |
+| 6   | Flow-scope precedence across three dimensions                           | Open question 6                                         | Proposed, confirm                                    |
 
 One cost to keep in mind: leave records no longer carry a status, so overlap and coverage checks join leave dates to `Requests`. If that proves slow, add a rebuildable projection rather than a second status field (the leaves doc takes the same position).
 
@@ -438,10 +546,12 @@ One cost to keep in mind: leave records no longer carry a status, so overlap and
 
 ## 16. Open questions
 
-1. ~~**Approver authority at decision time**~~ **Decided (07/10/2026): block.** A task is necessary but not sufficient; the decision is rejected if the assignee no longer holds the authority, and the reassignment effect handles the task.
-2. ~~**Org change reassign**~~ **Decided (07/10/2026): automatic** on manager change, audited. Unresolvable tasks are flagged "needs routing".
-3. ~~**Requester deactivated**~~ **Decided (07/10/2026): cancel.** Deactivation is an effect: the user's pending requests are canceled, their open tasks closed as `canceled`, the type's `onCanceled` runs, and an audit entry is written.
+1. ~~**Approver authority at decision time**~~ **Decided (07/10/2026): block.** Being pending is necessary but not sufficient; the decision is rejected if the approver no longer holds the authority, and the reassignment effect handles the slot.
+2. ~~**Org change reassign**~~ **Decided (07/10/2026): automatic** on manager change, audited. Unresolvable steps are flagged "needs routing".
+3. ~~**Requester deactivated**~~ **Decided (07/10/2026): cancel.** Deactivation is an effect: the user's pending requests are canceled by the system, `pendingApprovers` cleared, the type's `onCanceled` runs, and a history entry is written.
 4. ~~**Reject semantics**~~ **Decided (07/10/2026): a rejection is final** for requests and leaves. The requester can raise a new request; there are no edits or step-backs for short flows. Long-running processes (recruiting, performance reviews) are their own modules, not `Request` types, and may support returning or reopening a stage. "Return to requester" is therefore removed from the engine's scope, not just deferred.
 5. ~~**Same person in consecutive steps**~~ **Decided (08/10/2026): never collapse.**
-6. ~~**Flow scope:** per company and request type only?~~ **Decided (07/10/2026): no.** The pilot spans several countries, so flows are scoped by request type plus optional `country`, `department` and `leaveType`, and the most specific active flow wins (section 4.1). There are now **three** scope dimensions (`country`, `department`, `leaveType`), so precedence must be defined for combinations. Proposed: a flow matches only if every dimension it specifies matches; among matches, the one specifying the **most dimensions** wins; ties are broken by a fixed dimension priority (`leaveType` > `department` > `country`), and two flows with identical scope for the same type are rejected at save time. Needs your confirmation.
+6. ~~**Flow scope:** per company and request type only?~~ **Decided (07/10/2026): no.** The pilot spans several countries, so flows are scoped by request type plus optional `country`, `department` and `leaveType`, and the most specific active flow wins (section 4.1). There are now **three** scope dimensions (`country`, `department`, `leaveType`), so precedence must be defined for combinations. Proposed: a flow matches only if every dimension it specifies matches; among matches, the one specifying the **most dimensions** wins; ties are broken by a fixed dimension priority (`leaveType` > `department` > `country`), and two flows with identical scope for the same type are rejected at save time. Implemented that way in phase 1 (one small function, easy to change); still needs your confirmation.
 7. ~~**Notifications**~~ **Decided (08/10/2026):** in-app always, email optional and configurable per request type, step, event and recipient (section 4.6).
+8. ~~**Where does "who must act" live?**~~ **Decided (08/10/2026): embedded on the request** (`pendingApprovers` plus `actionsHistory`), no separate tasks collection. Alternatives, reasons and the conditions for reversing are in section 2.1.
+9. ~~**Cancelling an approved request on someone else's behalf**~~ **Decided (08/10/2026): the request type decides** through the `canCancel` hook (D5). The engine enforces the state rules and the default is requester only. Leave defines its own rule: the requester for their own pending leave and for approved leave before the start date, and `leaves:write` beyond `self` (HR) after the start date and for a leaver's future leaves.
