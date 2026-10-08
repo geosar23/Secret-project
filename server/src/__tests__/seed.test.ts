@@ -3,6 +3,7 @@ import app from "../app";
 import { connectTestDB, disconnectTestDB, clearCollections } from "./helpers/db";
 import { seedDemoCompany } from "../services/seed.service";
 import { RoleModel } from "../models/role.model";
+import { ApprovalFlowModel } from "../models/approval-flow.model";
 
 const options = {
     companyName: "Acme",
@@ -64,6 +65,44 @@ describe("seedDemoCompany", () => {
 
         const createRole = await request(app).post("/api/roles").set(hrHeader).send({ role: "x", name: "X" });
         expect(createRole.status).toBe(403);
+    });
+
+    it("seeds the leave request type with a stored default flow, starter leave types and this year's grants", async () => {
+        const header = { Authorization: `Bearer ${token}` };
+        const types = await request(app).get("/api/request-types").set(header);
+        expect(types.body.data.map((t: { key: string }) => t.key)).toEqual(["leave"]);
+
+        const flows = await ApprovalFlowModel.find({ requestType: "leave" }).lean();
+        expect(flows).toHaveLength(1);
+        expect(flows[0]).toMatchObject({ version: 1, isActive: true });
+        expect(flows[0].steps.map(step => step.resolver.kind)).toEqual(["lineManager"]);
+
+        const leaveTypes = await request(app).get("/api/leave-types").set(header);
+        expect(leaveTypes.body.data.map((t: { code: string }) => t.code).sort()).toEqual(["ANNUAL", "SICK", "UNPAID"]);
+
+        // The HR user created through the API got this year's grants on creation
+        const login = await request(app).post("/api/auth/login").send({ email: "hr@acme.com", password: "Hr@Pass123" });
+        const balances = await request(app)
+            .get("/api/leaves/balances/me")
+            .set({ Authorization: `Bearer ${login.body.data.token}` });
+        const granted = Object.fromEntries(
+            balances.body.data.items.map((b: { leaveType: { code: string }; granted: number }) => [
+                b.leaveType.code,
+                b.granted,
+            ]),
+        );
+        expect(granted.ANNUAL).toBeGreaterThan(0);
+        expect(granted.UNPAID).toBeGreaterThan(0);
+        expect(granted.SICK).toBe(0);
+    });
+
+    it("gives the default roles their leave permissions", async () => {
+        const employee = await RoleModel.findOne({ role: "employee" }).lean();
+        const manager = await RoleModel.findOne({ role: "manager" }).lean();
+        expect(employee!.permissions).toEqual(expect.arrayContaining(["leaves:write:self", "leaveBalances:read:self"]));
+        expect(manager!.permissions).toEqual(
+            expect.arrayContaining(["leaves:approve:managed", "requests:read:managed"]),
+        );
     });
 });
 

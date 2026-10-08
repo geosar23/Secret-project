@@ -18,6 +18,10 @@ export enum PermissionCategories {
     USER_PROFILE_COMPENSATION = "userProfile.compensation",
     ROLES_MANAGEMENT = "rolesManagement",
     RESET_PASSWORD = "resetPassword",
+    REQUESTS = "requests",
+    LEAVES = "leaves",
+    LEAVE_BALANCES = "leaveBalances",
+    LEAVE_SETTINGS_MANAGEMENT = "leaveSettingsManagement",
 }
 
 export const PermissionCategoriesStrings: Record<PermissionCategories, string> = {
@@ -38,6 +42,10 @@ export const PermissionCategoriesStrings: Record<PermissionCategories, string> =
     [PermissionCategories.USER_PROFILE_COMPENSATION]: "User Profile – Compensation",
     [PermissionCategories.ROLES_MANAGEMENT]: "Roles Management",
     [PermissionCategories.RESET_PASSWORD]: "Reset Password",
+    [PermissionCategories.REQUESTS]: "Requests",
+    [PermissionCategories.LEAVES]: "Leaves",
+    [PermissionCategories.LEAVE_BALANCES]: "Leave Balances",
+    [PermissionCategories.LEAVE_SETTINGS_MANAGEMENT]: "Leave Settings Management",
 };
 
 export enum PermissionScopes {
@@ -52,6 +60,7 @@ export enum PermissionScopes {
 export enum PermissionActions {
     READ = "read",
     WRITE = "write",
+    APPROVE = "approve",
 }
 
 // ─── Permission factory ───────────────────────────────────────────────────────
@@ -325,6 +334,59 @@ export const RESET_PASSWORD_PERMISSIONS = definePermissions(PermissionCategories
     ],
 });
 
+const ALL_SCOPES = [
+    PermissionScopes.ALL,
+    PermissionScopes.DEPARTMENT,
+    PermissionScopes.COUNTRY,
+    PermissionScopes.DEPARTMENT_COUNTRY,
+    PermissionScopes.MANAGED,
+    PermissionScopes.SELF,
+] as const;
+
+const SCOPES_BEYOND_SELF = [
+    PermissionScopes.ALL,
+    PermissionScopes.DEPARTMENT,
+    PermissionScopes.COUNTRY,
+    PermissionScopes.DEPARTMENT_COUNTRY,
+    PermissionScopes.MANAGED,
+] as const;
+
+/** All `requests` permission keys — viewing other people's requests (own requests need no permission). */
+export const REQUESTS_PERMISSIONS = definePermissions(PermissionCategories.REQUESTS, {
+    actions: [PermissionActions.READ],
+    scopes: SCOPES_BEYOND_SELF,
+});
+
+/** All `leaves` read/write keys — visibility and submission (write beyond self = on behalf of others). */
+export const LEAVES_PERMISSIONS = definePermissions(PermissionCategories.LEAVES, {
+    actions: [PermissionActions.READ, PermissionActions.WRITE],
+    scopes: ALL_SCOPES,
+});
+
+/** All `leaves` approve keys — approval authority, rechecked at decision time. */
+export const LEAVES_APPROVE_PERMISSIONS = definePermissions(PermissionCategories.LEAVES, {
+    actions: [PermissionActions.APPROVE],
+    scopes: SCOPES_BEYOND_SELF,
+});
+
+/** All `leaveBalances` read keys. */
+export const LEAVE_BALANCES_READ_PERMISSIONS = definePermissions(PermissionCategories.LEAVE_BALANCES, {
+    actions: [PermissionActions.READ],
+    scopes: ALL_SCOPES,
+});
+
+/** All `leaveBalances` write keys — manual ledger adjustments and entitlement runs. */
+export const LEAVE_BALANCES_WRITE_PERMISSIONS = definePermissions(PermissionCategories.LEAVE_BALANCES, {
+    actions: [PermissionActions.WRITE],
+    scopes: [PermissionScopes.ALL],
+});
+
+/** All `leaveSettingsManagement` keys — leave types, policies and work schedules. */
+export const LEAVE_SETTINGS_MANAGEMENT_PERMISSIONS = definePermissions(PermissionCategories.LEAVE_SETTINGS_MANAGEMENT, {
+    actions: [PermissionActions.READ, PermissionActions.WRITE],
+    scopes: [PermissionScopes.ALL],
+});
+
 // ─── Flat permission-key map (PermissionCategory:PermissionAction:PermissionScope) ──
 
 //PermissionCategory:PermissionAction:PermissionScope
@@ -346,4 +408,10 @@ export const PermissionKeys = {
     ...prefixedKeys("USER_PROFILE_COMPENSATION", USER_PROFILE_COMPENSATION_PERMISSIONS),
     ...prefixedKeys("ROLES_MANAGEMENT", ROLES_MANAGEMENT_PERMISSIONS),
     ...prefixedKeys("RESET_PASSWORD", RESET_PASSWORD_PERMISSIONS),
+    ...prefixedKeys("REQUESTS", REQUESTS_PERMISSIONS),
+    ...prefixedKeys("LEAVES", LEAVES_PERMISSIONS),
+    ...prefixedKeys("LEAVES", LEAVES_APPROVE_PERMISSIONS),
+    ...prefixedKeys("LEAVE_BALANCES", LEAVE_BALANCES_READ_PERMISSIONS),
+    ...prefixedKeys("LEAVE_BALANCES", LEAVE_BALANCES_WRITE_PERMISSIONS),
+    ...prefixedKeys("LEAVE_SETTINGS_MANAGEMENT", LEAVE_SETTINGS_MANAGEMENT_PERMISSIONS),
 } as const;

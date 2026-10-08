@@ -15,6 +15,10 @@ export function getRequestType(type: string): RequestTypeDefinition<unknown> {
     return definition;
 }
 
+export function listRequestTypes(): RequestTypeDefinition<unknown>[] {
+    return [...registry.values()];
+}
+
 /** Test helper: removes every registered type. */
 export function clearRequestTypes(): void {
     registry.clear();

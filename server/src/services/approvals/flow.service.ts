@@ -57,17 +57,34 @@ export function validateSteps(steps: IFlowStep[]): void {
 }
 
 export const FlowService = {
-    /** Most specific active flow (latest version) for the scope, else the type's default flow (version 0, not stored). */
+    /**
+     * Most specific active flow (latest version) for the scope. Every company has a stored company-wide flow per
+     * request type (seeded from the type's template), so no match means a configuration error: creation is refused.
+     */
     resolve: async (companyId: string, type: string, scope: IFlowScope = {}): Promise<ResolvedFlow> => {
         const candidates = await approvalFlowRepository(companyId).find({ requestType: type, isActive: true }).lean();
         const matching = candidates.filter(flow => flowMatches(flow, scope));
 
         const best = matching.sort((a, b) => compareSpecificity(b, a) || b.version - a.version)[0];
 
-        if (best) {
-            return { flowId: best._id, version: best.version, steps: best.steps };
+        if (!best) {
+            throw new BadRequestError(`No approval flow configured for "${type}"`);
         }
-        return { version: 0, steps: getRequestType(type).defaultFlow };
+        return { flowId: best._id, version: best.version, steps: best.steps };
+    },
+
+    /** Seeds the company-wide flow (version 1) from the type's template, unless the type already has any flow. */
+    ensureDefault: async (companyId: string, type: string, createdBy: string): Promise<boolean> => {
+        const repo = approvalFlowRepository(companyId);
+        if (await repo.count({ requestType: type })) {
+            return false;
+        }
+        await FlowService.createVersion(companyId, {
+            requestType: type,
+            steps: getRequestType(type).flowTemplate,
+            createdBy,
+        });
+        return true;
     },
 
     /** Saves a new version for the exact scope and deactivates the previous ones. In-flight requests keep their frozen copy. */

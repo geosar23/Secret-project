@@ -5,6 +5,7 @@ import { IProfileImageMetadata, IUser, IUserPopulated, IUsersQueryParams } from 
 import { FilterQuery } from "mongoose";
 import bcrypt from "bcryptjs";
 import { decryptString } from "../utils/encryption.util";
+import { LeaveLedgerService } from "./leaves/leave-ledger.service";
 
 export const UserService = {
     getUsers: async (params: IUsersQueryParams = {}, companyId: string, permissionsFilter?: FilterQuery<IUser>) => {
@@ -184,13 +185,18 @@ export const UserService = {
     },
     getByEmail: (email: string) =>
         userIdentityRepository().findByEmail(email).populate("role", "role name").populate("company").lean(),
-    create: (data: Omit<IUser, "_id">, companyId: string) => {
+    create: async (data: Omit<IUser, "_id">, companyId: string) => {
         if (!companyId) {
             throw new Error("Company ID is required for creating user");
         }
 
         const repo = userRepository(String(companyId));
-        return repo.create(data as Partial<IUser>);
+        const created = await repo.create(data as Partial<IUser>);
+        // This year's leave grants (pro-rated by hire date); idempotent, so a later yearly run does not double them
+        await LeaveLedgerService.ensureEntitlements(String(companyId), String(new Date().getUTCFullYear()), {
+            userIds: [String(created._id)],
+        });
+        return created;
     },
 
     delete: (id: string, companyId: string) => {

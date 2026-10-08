@@ -1,4 +1,5 @@
 ﻿/* eslint-disable no-unused-vars */
+import { PermissionCategories } from "../enums/permissions.enum";
 import { IFlowStep } from "./approval-flow.interface";
 import { IRequest } from "./request.interface";
 
@@ -9,10 +10,15 @@ export interface EngineActor {
 
 export interface RequestTypeDefinition<TPayload = unknown> {
     type: string;
+    /** Display name used when the type is first seeded into a company's RequestTypes. */
+    name: string;
     version: number;
+    /** Permission category whose scoped `read` also lets someone view this type's requests (e.g. "leaves"). */
+    readCategory?: PermissionCategories;
     /** Validates and normalises the payload; throws BadRequestError when invalid. */
     validatePayload(payload: unknown): TPayload;
-    defaultFlow: IFlowStep[];
+    /** Steps of the flow seeded for a company the first time the type is enabled. Never used at request time. */
+    flowTemplate: IFlowStep[];
     canCreate(companyId: string, actor: EngineActor, subjectId: string, payload: TPayload): Promise<void>;
     onSubmitted?(request: IRequest): Promise<void>;
     /** Idempotent, keyed by request id. */

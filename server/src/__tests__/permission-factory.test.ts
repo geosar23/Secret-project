@@ -140,3 +140,29 @@ describe("PermissionKeys (flat map)", () => {
         expect(PermissionKeys.USERS_MANAGEMENT_READ_DEPARTMENT_COUNTRY).toBe("usersManagement:read:department-country");
     });
 });
+
+// ─── Leaves and requests ──────────────────────────────────────────────────────
+
+describe("leave and request permission keys", () => {
+    it("adds the approve action with scopes beyond self only", () => {
+        expect(PermissionKeys.LEAVES_APPROVE_MANAGED).toBe("leaves:approve:managed");
+        expect(PermissionKeys.LEAVES_APPROVE_ALL).toBe("leaves:approve:*");
+        expect(Object.values(PermissionKeys)).not.toContain("leaves:approve:self");
+    });
+
+    it("gives leaves read/write all six scopes, balances write only *", () => {
+        const leaveKeys = Object.values(PermissionKeys).filter(key => key.startsWith("leaves:"));
+        expect(leaveKeys.filter(key => key.startsWith("leaves:read:"))).toHaveLength(6);
+        expect(leaveKeys.filter(key => key.startsWith("leaves:write:"))).toHaveLength(6);
+        expect(leaveKeys.filter(key => key.startsWith("leaves:approve:"))).toHaveLength(5);
+        expect(Object.values(PermissionKeys).filter(key => key.startsWith("leaveBalances:write:"))).toEqual([
+            "leaveBalances:write:*",
+        ]);
+    });
+
+    it("has requests:read without a self scope (own requests need no permission)", () => {
+        expect(PermissionKeys.REQUESTS_READ_ALL).toBe("requests:read:*");
+        expect(Object.values(PermissionKeys)).not.toContain("requests:read:self");
+        expect(PermissionKeys.LEAVE_SETTINGS_MANAGEMENT_WRITE_ALL).toBe("leaveSettingsManagement:write:*");
+    });
+});

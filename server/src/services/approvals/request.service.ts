@@ -7,6 +7,7 @@ import { userRepository } from "../../repositories/user.repository";
 import { BadRequestError, ConflictError, ForbiddenError, NotFoundError } from "../../utils/app-error.util";
 import { FlowService } from "./flow.service";
 import { getRequestType } from "./request-type.registry";
+import { RequestTypeConfigService } from "./request-type-config.service";
 import { resolveApprovers } from "./resolver.service";
 
 export interface CreateRequestInput {
@@ -263,6 +264,7 @@ async function recordDecision(
 
 export const ApprovalEngine = {
     create: async (companyId: string, actor: EngineActor, input: CreateRequestInput): Promise<IRequest> => {
+        await RequestTypeConfigService.assertUsable(companyId, input.type);
         const type = getRequestType(input.type);
         const subjectId = input.subjectId ?? actor.id;
 
@@ -437,19 +439,56 @@ export const ApprovalEngine = {
     countPendingFor: (companyId: string, userId: string) =>
         requestRepository(companyId).count({ status: "pending", pendingApprovers: userId }),
 
-    /** Inbox list, newest first. Pagination and filters arrive with the inbox endpoint (P0-11C). */
+    /** Inbox list, newest first, optionally filtered by type. */
     listPendingFor: async (
         companyId: string,
         userId: string,
         options: { type?: string; limit?: number; skip?: number } = {},
     ) =>
         (await requestRepository(companyId)
-            .find({ status: "pending", pendingApprovers: userId, ...(options.type ? { type: options.type } : {}) })
+            .find(pendingForFilter(userId, options.type))
             .sort({ createdAt: -1 })
             .skip(options.skip ?? 0)
             .limit(options.limit ?? 50)
             .lean()) as unknown as IRequest[],
+
+    /** Total for the inbox pagination (same filter as listPendingFor). */
+    countPendingForType: (companyId: string, userId: string, type?: string) =>
+        requestRepository(companyId).count(pendingForFilter(userId, type)),
+
+    /** "My requests": requests I raised or that are about me, newest first. */
+    listMine: async (companyId: string, userId: string, options: MineOptions = {}) =>
+        (await requestRepository(companyId)
+            .find(mineFilter(userId, options))
+            .sort({ createdAt: -1 })
+            .skip(options.skip ?? 0)
+            .limit(options.limit ?? 50)
+            .lean()) as unknown as IRequest[],
+
+    countMine: (companyId: string, userId: string, options: MineOptions = {}) =>
+        requestRepository(companyId).count(mineFilter(userId, options)),
+
+    get: load,
 };
+
+interface MineOptions {
+    type?: string;
+    status?: RequestStatus;
+    limit?: number;
+    skip?: number;
+}
+
+const pendingForFilter = (userId: string, type?: string) => ({
+    status: "pending",
+    pendingApprovers: userId,
+    ...(type ? { type } : {}),
+});
+
+const mineFilter = (userId: string, options: MineOptions) => ({
+    $or: [{ requester: userId }, { subject: userId }],
+    ...(options.type ? { type: options.type } : {}),
+    ...(options.status ? { status: options.status } : {}),
+});
 
 /** Records the pending approvers as approved by the creator (override), step by step, through the normal completion path. */
 async function recordImmediateApproval(

@@ -17,6 +17,7 @@ import { IRequest } from "../../interfaces/request.interface";
 import { RequestTypeDefinition } from "../../interfaces/request-type.interface";
 import { ApprovalFlowModel } from "../../models/approval-flow.model";
 import { RequestModel } from "../../models/request.model";
+import { RequestTypeModel } from "../../models/request-type.model";
 import { UserModel } from "../../models/user.model";
 import { requestRepository } from "../../repositories/request.repository";
 import { ConflictError, ForbiddenError, NotFoundError, BadRequestError } from "../../utils/app-error.util";
@@ -38,7 +39,6 @@ const lineManagerStep = () =>
 
 // Mutable knobs and spies for the test-only request type
 const control = {
-    defaultFlow: [] as IFlowStep[],
     canApprove: true,
     canApproveOnCreate: false,
     allowCancelAfterApproval: false,
@@ -54,15 +54,14 @@ const onSubmitted = jest.fn();
 const testType: RequestTypeDefinition<{ note?: string }> = {
     type: "test",
     version: 1,
+    name: "Test",
     validatePayload: payload => {
         if (typeof payload !== "object" || payload === null) {
             throw new BadRequestError("payload must be an object");
         }
         return payload as { note?: string };
     },
-    get defaultFlow() {
-        return control.defaultFlow;
-    },
+    flowTemplate: [],
     canCreate: async () => undefined,
     onSubmitted: async request => void onSubmitted(request),
     onApproved: async request => {
@@ -106,6 +105,9 @@ const user = (label: string, over: Partial<Parameters<typeof seedUserInCompany>[
     });
 
 const actorOf = (u: SeededUser) => ({ id: u._id.toString() });
+/** Flows live in the DB: each call stores a new company-wide version, which new requests then use. */
+const useFlow = (steps: IFlowStep[]) =>
+    FlowService.createVersion(A, { requestType: "test", steps, createdBy: id(manager) });
 const id = (u: SeededUser) => u._id.toString();
 const submit = (over: Record<string, unknown> = {}) =>
     ApprovalEngine.create(A, actorOf(requester), { type: "test", payload: {}, ...over });
@@ -121,8 +123,8 @@ const actionsOf = async (requestId: unknown) => (await historyOf(requestId)).map
 
 beforeAll(async () => {
     await connectTestDB();
-    // Models use autoIndex:false, so build the indexes the engine relies on (see scripts/syncApprovalIndexes.ts)
-    await Promise.all([ApprovalFlowModel.syncIndexes(), RequestModel.syncIndexes()]);
+    // Models use autoIndex:false, so build the indexes the engine relies on (see scripts/syncIndexes.ts)
+    await Promise.all([ApprovalFlowModel.syncIndexes(), RequestModel.syncIndexes(), RequestTypeModel.syncIndexes()]);
 });
 
 afterAll(async () => {
@@ -136,7 +138,6 @@ beforeEach(async () => {
     clearRequestTypes();
     registerRequestType(testType);
     Object.assign(control, {
-        defaultFlow: [lineManagerStep()],
         canApprove: true,
         canApproveOnCreate: false,
         allowCancelAfterApproval: false,
@@ -155,6 +156,8 @@ beforeEach(async () => {
         permissions: [],
         roleKey: `outsider-${counter}`,
     });
+    await RequestTypeModel.create({ company: COMPANY_A_ID, key: "test", name: "Test", kind: "system", isActive: true });
+    await useFlow([lineManagerStep()]);
 });
 
 describe("approve", () => {
@@ -162,7 +165,8 @@ describe("approve", () => {
         const created = await submit();
         expect(created.status).toBe("pending");
         expect(created.currentStepIndex).toBe(0);
-        expect(created.flow.version).toBe(0);
+        expect(created.flow.version).toBe(1);
+        expect(created.flow.flowId).toBeDefined();
         expect(created.pendingApprovers.map(String)).toEqual([id(manager)]);
         expect(created.steps[0].resolvedFrom).toEqual({ kind: "lineManager" });
         expect(onSubmitted).toHaveBeenCalledTimes(1);
@@ -419,14 +423,14 @@ describe("approver resolution", () => {
         expect(skipped.pendingApprovers).toHaveLength(0);
 
         // without the skip flag the fallback is used
-        control.defaultFlow = [
+        await useFlow([
             step({
                 key: "lineManager",
                 resolver: { kind: "lineManager" },
                 fallback: { kind: "hrRepresentative" },
                 skipIfRequesterIsApprover: false,
             }),
-        ];
+        ]);
         const viaFallback = await submit();
         expect(viaFallback.pendingApprovers.map(String)).toEqual([id(hr)]);
     });
@@ -496,10 +500,10 @@ describe("immediate approval by an authorized creator", () => {
 
 describe("multi-step readiness", () => {
     it("runs steps in order and never collapses the same approver", async () => {
-        control.defaultFlow = [
+        await useFlow([
             step({ key: "first", resolver: { kind: "user", userId: hr._id } }),
             step({ key: "second", resolver: { kind: "user", userId: hr._id } }),
-        ];
+        ]);
         const created = await submit();
         expect(created.pendingApprovers.map(String)).toEqual([id(hr)]);
 
@@ -529,7 +533,7 @@ describe("multi-step readiness", () => {
         await UserModel.updateOne({ _id: second._id }, { role: managerDoc!.role });
         const roleResolver = { kind: "role", roleId: managerDoc!.role } as const;
 
-        control.defaultFlow = [step({ key: "committee", resolver: roleResolver, mode: "all" })];
+        await useFlow([step({ key: "committee", resolver: roleResolver, mode: "all" })]);
         const allRequest = await submit();
         expect((await pendingOf(allRequest._id)).sort()).toEqual([id(manager), id(second)].sort());
 
@@ -539,7 +543,7 @@ describe("multi-step readiness", () => {
         const done = await approve(second, allRequest._id);
         expect(done.status).toBe("approved");
 
-        control.defaultFlow = [step({ key: "committee", resolver: roleResolver, mode: "any" })];
+        await useFlow([step({ key: "committee", resolver: roleResolver, mode: "any" })]);
         const anyRequest = await submit();
         const winner = (await pendingOf(anyRequest._id)).includes(id(manager)) ? manager : second;
         const loser = winner === manager ? second : manager;
@@ -553,10 +557,10 @@ describe("multi-step readiness", () => {
     });
 
     it("a rejection in any step rejects the request", async () => {
-        control.defaultFlow = [
+        await useFlow([
             step({ key: "first", resolver: { kind: "user", userId: hr._id } }),
             step({ key: "second", resolver: { kind: "user", userId: manager._id } }),
-        ];
+        ]);
         const created = await submit();
         const done = await reject(hr, created._id);
 
@@ -593,10 +597,26 @@ describe("flow resolution", () => {
     const department = new mongoose.Types.ObjectId();
     const oneStep = [step({ key: "hr", resolver: { kind: "hrRepresentative" } })];
 
-    it("falls back to the type default when no flow is configured", async () => {
-        const flow = await FlowService.resolve(A, "test", { country });
-        expect(flow.version).toBe(0);
-        expect(flow.flowId).toBeUndefined();
+    it("refuses to create a request when no flow is configured (there is no code fallback)", async () => {
+        await ApprovalFlowModel.deleteMany({});
+        await expect(FlowService.resolve(A, "test", { country })).rejects.toBeInstanceOf(BadRequestError);
+        await expect(submit()).rejects.toBeInstanceOf(BadRequestError);
+        expect(await RequestModel.countDocuments({})).toBe(0);
+    });
+
+    it("seeds the default flow from the type template once, and never overwrites it", async () => {
+        await ApprovalFlowModel.deleteMany({});
+        Object.assign(testType, { flowTemplate: [lineManagerStep()] });
+        try {
+            expect(await FlowService.ensureDefault(A, "test", id(manager))).toBe(true);
+            expect(await FlowService.ensureDefault(A, "test", id(manager))).toBe(false);
+        } finally {
+            Object.assign(testType, { flowTemplate: [] });
+        }
+        const flows = await ApprovalFlowModel.find({ company: COMPANY_A_ID, requestType: "test" }).lean();
+        expect(flows).toHaveLength(1);
+        expect(flows[0].version).toBe(1);
+        expect((await submit()).pendingApprovers.map(String)).toEqual([id(manager)]);
     });
 
     it("picks the most specific active flow and ignores non-matching scopes", async () => {
@@ -608,7 +628,7 @@ describe("flow resolution", () => {
 
         expect(String((await FlowService.resolve(A, "test", { country })).flowId)).toBe(String(byCountry._id));
         expect(String((await FlowService.resolve(A, "test", { country, department })).flowId)).toBe(String(byBoth._id));
-        expect((await FlowService.resolve(A, "test", {})).version).toBe(0);
+        expect((await FlowService.resolve(A, "test", {})).version).toBe(1); // the seeded company-wide flow
     });
 
     it("ranks ties by leaveType > department > country", () => {
@@ -620,6 +640,7 @@ describe("flow resolution", () => {
     });
 
     it("versions flows and never changes in-flight requests", async () => {
+        await ApprovalFlowModel.deleteMany({});
         const v1 = await FlowService.createVersion(A, { requestType: "test", steps: oneStep, createdBy: id(manager) });
         expect(v1.version).toBe(1);
         const created = await submit();
@@ -645,6 +666,29 @@ describe("flow resolution", () => {
         await expect(FlowService.createVersion(A, { ...base, steps: [...oneStep, ...oneStep] })).rejects.toBeInstanceOf(
             BadRequestError,
         );
+    });
+});
+
+describe("request type configuration", () => {
+    it("refuses types the company has not enabled or has deactivated", async () => {
+        await RequestTypeModel.updateOne({ company: COMPANY_A_ID, key: "test" }, { isActive: false });
+        await expect(submit()).rejects.toBeInstanceOf(BadRequestError);
+        await RequestTypeModel.deleteMany({});
+        await expect(submit()).rejects.toBeInstanceOf(BadRequestError);
+        expect(await RequestModel.countDocuments({})).toBe(0);
+    });
+
+    it("refuses an enabled type whose behaviour is not registered", async () => {
+        await RequestTypeModel.create({
+            company: COMPANY_A_ID,
+            key: "ghost",
+            name: "Ghost",
+            kind: "system",
+            isActive: true,
+        });
+        await expect(
+            ApprovalEngine.create(A, actorOf(requester), { type: "ghost", payload: {} }),
+        ).rejects.toBeInstanceOf(BadRequestError);
     });
 });
 

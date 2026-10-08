@@ -9,6 +9,10 @@ import { levelRepository } from "../repositories/level.repository";
 import { officeRepository } from "../repositories/office.repository";
 import { DefaultUserRoles } from "../enums/user-role.enum";
 import { PermissionCategories as C } from "../enums/permissions.enum";
+import "./approvals/register-request-types";
+import { RequestTypeConfigService } from "./approvals/request-type-config.service";
+import { LeaveSettingsService } from "./leaves/leave-settings.service";
+import { LeaveLedgerService } from "./leaves/leave-ledger.service";
 
 export interface SeedDemoCompanyOptions {
     companyName: string;
@@ -33,6 +37,29 @@ const ORG_ENTITIES = [
 ];
 
 const fullAccess = (categories: string[]) => categories.map(c => `${c}:*:*`);
+
+/**
+ * Leave and request permissions of the default roles. Also used by scripts/addLeavePermissionsToSystemRoles.ts to
+ * bring existing companies' system roles up to date.
+ */
+export const LEAVE_ROLE_PERMISSIONS: Record<DefaultUserRoles, string[]> = {
+    [DefaultUserRoles.SUPER_ADMIN]: [],
+    [DefaultUserRoles.ADMIN]: [...fullAccess([C.LEAVE_SETTINGS_MANAGEMENT]), `${C.REQUESTS}:read:*`],
+    [DefaultUserRoles.HR]: [
+        ...fullAccess([C.LEAVES, C.LEAVE_BALANCES, C.LEAVE_SETTINGS_MANAGEMENT]),
+        `${C.REQUESTS}:read:*`,
+    ],
+    [DefaultUserRoles.MANAGER]: [
+        `${C.LEAVES}:read:self`,
+        `${C.LEAVES}:write:self`,
+        `${C.LEAVE_BALANCES}:read:self`,
+        `${C.LEAVES}:read:managed`,
+        `${C.LEAVES}:approve:managed`,
+        `${C.LEAVE_BALANCES}:read:managed`,
+        `${C.REQUESTS}:read:managed`,
+    ],
+    [DefaultUserRoles.EMPLOYEE]: [`${C.LEAVES}:read:self`, `${C.LEAVES}:write:self`, `${C.LEAVE_BALANCES}:read:self`],
+};
 const readAll = (categories: string[]) => categories.map(c => `${c}:read:*`);
 
 const ROLE_DEFINITIONS: {
@@ -58,6 +85,7 @@ const ROLE_DEFINITIONS: {
             ...fullAccess([C.USERS_MANAGEMENT, C.USER_PROFILE, C.ROLES_MANAGEMENT, ...ORG_ENTITIES]),
             `${C.USER_CREATE}:write:*`,
             `${C.RESET_PASSWORD}:write:*`,
+            ...LEAVE_ROLE_PERMISSIONS[DefaultUserRoles.ADMIN],
         ],
     },
     {
@@ -70,6 +98,7 @@ const ROLE_DEFINITIONS: {
             `${C.USER_CREATE}:write:*`,
             `${C.RESET_PASSWORD}:write:*`,
             ...readAll(ORG_ENTITIES),
+            ...LEAVE_ROLE_PERMISSIONS[DefaultUserRoles.HR],
         ],
     },
     {
@@ -81,6 +110,7 @@ const ROLE_DEFINITIONS: {
             `${C.USERS_MANAGEMENT}:read:managed`,
             `${C.USER_PROFILE}:read:managed`,
             `${C.USER_PROFILE}:read:self`,
+            ...LEAVE_ROLE_PERMISSIONS[DefaultUserRoles.MANAGER],
         ],
     },
     {
@@ -88,7 +118,11 @@ const ROLE_DEFINITIONS: {
         name: "Employee",
         description: "Regular employee with access to own data",
         level: 5,
-        permissions: [`${C.USERS_MANAGEMENT}:read:self`, `${C.USER_PROFILE}:read:self`],
+        permissions: [
+            `${C.USERS_MANAGEMENT}:read:self`,
+            `${C.USER_PROFILE}:read:self`,
+            ...LEAVE_ROLE_PERMISSIONS[DefaultUserRoles.EMPLOYEE],
+        ],
     },
 ];
 
@@ -147,7 +181,7 @@ export async function seedDemoCompany(options: SeedDemoCompanyOptions): Promise<
         address: { city: "Athens", country: "Greece" },
     });
 
-    await userRepository(companyId).create({
+    const admin = await userRepository(companyId).create({
         name: "Super Admin",
         email: adminEmail,
         password: adminPassword,
@@ -155,6 +189,13 @@ export async function seedDemoCompany(options: SeedDemoCompanyOptions): Promise<
         country: greece._id,
         isActive: true,
     });
+
+    // Request types with their default approval flows, then the starter leave configuration and this year's grants
+    const adminId = String(admin._id);
+    const year = String(new Date().getUTCFullYear());
+    const requestTypes = await RequestTypeConfigService.ensureSystemTypes(companyId, adminId);
+    await LeaveSettingsService.seedDefaults(companyId, adminId, year);
+    await LeaveLedgerService.ensureEntitlements(companyId, year);
 
     return {
         companyId,
@@ -168,6 +209,7 @@ export async function seedDemoCompany(options: SeedDemoCompanyOptions): Promise<
             levels: LEVELS.length,
             offices: 1,
             users: 1,
+            requestTypes: requestTypes.length,
         },
     };
 }
