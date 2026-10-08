@@ -10,6 +10,44 @@ const REQUIRED_VARS = [
     "SALARY_ENCRYPTION_KEY",
 ] as const;
 
+type EnvLike = Record<string, string | undefined>;
+
+const EMAIL_TRANSPORTS = ["console", "resend"] as const;
+export type EmailTransportName = (typeof EMAIL_TRANSPORTS)[number];
+
+/** Transport in use: explicit EMAIL_TRANSPORT, else "console" (production must set it explicitly). */
+export function resolveEmailTransport(env: EnvLike = process.env): string {
+    return (env.EMAIL_TRANSPORT ?? "console").trim().toLowerCase();
+}
+
+/**
+ * Pure email config check (exported for tests). Strict in production only:
+ * development and test fall back to the console transport.
+ */
+export function getEmailConfigErrors(env: EnvLike = process.env): string[] {
+    const errors: string[] = [];
+    const isProduction = env.NODE_ENV === "production";
+    const transport = resolveEmailTransport(env);
+    const from = (env.EMAIL_FROM ?? "").trim();
+
+    if (!(EMAIL_TRANSPORTS as readonly string[]).includes(transport)) {
+        errors.push(`EMAIL_TRANSPORT must be one of: ${EMAIL_TRANSPORTS.join(", ")}, got: "${transport}"`);
+    }
+    if (isProduction && transport === "console") {
+        errors.push(`EMAIL_TRANSPORT=console is not allowed in production (emails would never be delivered)`);
+    }
+    if (isProduction || from) {
+        // "Name <a@b.com>" or "a@b.com"
+        if (!/^(?:[^<>\r\n]+<)?[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+>?$/.test(from)) {
+            errors.push(`EMAIL_FROM must be a valid sender address (e.g. "HRMS <no-reply@your-domain.com>")`);
+        }
+    }
+    if (transport === "resend" && !(env.RESEND_API_KEY ?? "").trim()) {
+        errors.push(`RESEND_API_KEY is required when EMAIL_TRANSPORT=resend`);
+    }
+    return errors;
+}
+
 export function validateEnv(): void {
     const missing: string[] = [];
     const invalid: string[] = [];
@@ -40,6 +78,8 @@ export function validateEnv(): void {
         invalid.push(`PORT must be a positive number, got: "${port}"`);
     }
 
+    invalid.push(...getEmailConfigErrors());
+
     const errors = [...missing.map(k => `  - ${k} is required but not set`), ...invalid.map(msg => `  - ${msg}`)];
 
     if (errors.length > 0) {
@@ -63,4 +103,8 @@ export const config = {
     SALARY_ENCRYPTION_KEY: process.env.SALARY_ENCRYPTION_KEY as string,
     CLIENT_URL: (process.env.CLIENT_URL ?? "http://localhost:4200").split(",").map(u => u.trim()),
     NODE_ENV: process.env.NODE_ENV ?? "development",
+    EMAIL_TRANSPORT: resolveEmailTransport(),
+    EMAIL_FROM: (process.env.EMAIL_FROM ?? "HRMS <no-reply@localhost>").trim(),
+    EMAIL_REPLY_TO: process.env.EMAIL_REPLY_TO?.trim() || undefined,
+    RESEND_API_KEY: process.env.RESEND_API_KEY?.trim() || undefined,
 };
