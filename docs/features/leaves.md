@@ -1,6 +1,8 @@
 # Leaves
 
 > **Status: design (not implemented).** This document is the agreed architecture for the Leaves module. It tracks roadmap item _Leaves Module_ and `NEXT_TODOS.md` P0-08. Update it as decisions change.
+>
+> **Approvals are not owned by this module.** Leave runs on the shared approval engine described in [docs/plans/approval-flows.md](../plans/approval-flows.md): workflow status, steps and approvers live in the shared `Requests` envelope and `ApprovalTasks`. This document owns the leave _domain_: duration, policies, pay, balances and the ledger. Where the two meet (sections 9 and 12) the engine plan is authoritative for workflow, and this document is authoritative for leave rules. Reconciled on 07/10/2026.
 
 ---
 
@@ -18,21 +20,25 @@
 ### Non-goals (for now)
 
 - Attachments (e.g. sick certificates). The model leaves room for them.
-- Multi-step approval chains. The first version is single-step; the approval step is stored as a _rule_ so the roadmap's Request Flow Builder can replace it.
+- Building approval machinery inside Leaves (queues, task assignment, delegation, flow builder). These belong to the shared engine. Leave ships on the engine's default one-step line-manager flow; multi-step flows and country/department/leave-type flow scoping arrive with the engine's later phases, with no change to the leave model.
+- Editing or returning a submitted request. A rejection is final and the employee raises a new request (see section 12).
 - The payroll module itself. Leaves exposes a payroll contract (section 11).
 
 ---
 
 ## 2. Design principles
 
-1. **Authorization is evaluated now; accounting is evaluated then.**
-    - Anything answering "who may see or approve this today?" is resolved **live** from the current org structure.
-    - Anything answering "what happened, how much, at what pay, under which rule?" is **frozen** when it happens.
+1. **Workflow and accounting are frozen when they happen; authority and visibility are checked now.**
+    - "Who was asked to approve?" is **frozen on `ApprovalTasks`** when a step activates (shared engine). Org changes are handled by explicit, audited reassignment effects; completed steps are never touched.
+    - "May this person decide right now?" is **rechecked at decision time**. A task is necessary but not sufficient: if the assignee lost the authority, the decision is blocked.
+    - "Who may see this leave?" is evaluated **live** from the current org through the permission scopes.
+    - "What happened, how much, at what pay, under which rule?" is **frozen** when it happens (lines, pay, policy version, ledger entries).
 2. **Append, never mutate, for quantities.** Balances come from an append-only ledger. Corrections are new entries.
 3. **Policies are versioned and effective-dated.** A change never rewrites past decisions.
 4. **One calculation function.** All duration and pay maths lives in a pure, heavily tested function. The server always calls it; the client's numbers are never trusted.
 5. **No hidden sync.** There are no hooks or cron jobs whose job is to keep two copies of the same fact equal. Cron exists only to _generate_ time-driven facts (accruals), and it is idempotent.
 6. **Dates are calendar dates.** Store `YYYY-MM-DD` strings, never UTC instants, so a leave never shifts by a day across time zones.
+7. **Foundations versus rules.** Three things are non-negotiable and expensive to retrofit: the **ledger**, the **frozen per-day breakdown** and the **calendars/schedules**. Everything else (notice periods, blackout windows, overlap limits, eligibility, probation) is a _rule_ evaluated on top of them and can be added or changed without touching stored facts.
 
 ---
 
@@ -45,7 +51,9 @@
 | **Holiday calendar**   | Public holidays for a country (optionally narrowed to an office or region).                                                  |
 | **Work schedule**      | Which weekdays and how many hours a user works. Defines weekends (these differ by country, e.g. Fri–Sat) and part-time work. |
 | **Leave period**       | The leave year a date falls into: calendar, fiscal, or anniversary-based.                                                    |
-| **Leave request**      | A user's request for a date range, with frozen per-day lines.                                                                |
+| **Leave request**      | The leave _domain record_ for a date range, with frozen per-day lines. Its workflow status lives on the linked `Request`.    |
+| **Request**            | The shared approval envelope (status, flow, steps). One per leave request, referenced by `LeaveRequests.request`.            |
+| **Approval task**      | One stored work item per approver per step, created when the step activates (shared engine).                                 |
 | **Line**               | One calendar day of a request with its quantity and pay percentage.                                                          |
 | **Ledger entry**       | One signed, immutable change to a user's balance for a leave type.                                                           |
 | **Balance**            | Derived: the sum of ledger entries up to a date, minus pending reservations.                                                 |
@@ -66,24 +74,40 @@ interface ILeaveType {
     name: string; // "Annual leave"
     code: string; // "ANNUAL" — unique per company
     color?: string;
-    category: "annual" | "sick" | "parental" | "unpaid" | "other"; // drives defaults and reporting only
+    category: "annual" | "sick" | "maternity" | "paternity" | "bereavement" | "study" | "compTime" | "unpaid" | "other"; // drives defaults and reporting only
+    countsAgainstEntitlement: boolean; // false for unpaid leave, bereavement, etc.: reduces no balance
+    requiresAttachment: boolean; // e.g. medical certificate; stored now, enforced when attachments ship
+    overridesOtherLeave: boolean; // true for sick leave: overlapping days of other leave are converted (section 12.3)
+    eligibility?: {
+        genders?: string[]; // e.g. maternity; matches user.gender
+        employmentTypes?: string[]; // matches user.employmentType
+        minTenureMonths?: number; // from user.employmentDate
+    };
     isActive: boolean;
 }
 ```
 
-A leave type has no rules. Rules live in policies, because they differ per country.
+A leave type carries identity and eligibility only. Rules live in policies, because they differ per country. Eligibility is checked when creating a request (and by `/preview`), so ineligible users never see a type offered.
 
 ### 4.2 `LeavePolicies` (versioned, effective-dated)
 
-Never edited in place. A change creates a new document with a later `effectiveFrom`. A policy applies to a `(leaveType, country)` pair; `country: null` is the company-wide fallback.
+Never edited in place. A change creates a new document with a later `effectiveFrom`. A policy applies to a `leaveType` for a set of users described by `appliesTo`.
+
+**Assignment and specificity.** Policies can target a country, office, employment type, level or one individual. For a given user, leave type and date, the resolver collects every policy version effective on that date whose `appliesTo` matches, then picks the **most specific**: `user` > `level` / `employmentType` > `office` > `country` > company-wide (empty `appliesTo`). Two matching policies at the same specificity level are a configuration error, rejected when the policy is saved (it must not be a runtime surprise). The individual override is how a single employee gets a negotiated entitlement without a new policy per person.
 
 ```ts
 interface ILeavePolicy {
     company: ObjectId;
     leaveType: ObjectId;
-    country?: ObjectId; // null = fallback for countries without a specific policy
+    appliesTo: {
+        country?: ObjectId;
+        office?: ObjectId;
+        employmentType?: string;
+        level?: ObjectId;
+        user?: ObjectId; // individual override
+    }; // all fields empty = company-wide fallback
     effectiveFrom: string; // YYYY-MM-DD, inclusive
-    version: number; // monotonically increasing per (leaveType, country)
+    version: number; // monotonically increasing per (leaveType, appliesTo)
 
     unit: "days" | "hours"; // unit the balance is kept and displayed in
     granularity: number; // smallest bookable amount: 1 (full day), 0.5, 0.25, or hours 1, 0.5 …
@@ -106,6 +130,14 @@ interface ILeavePolicy {
         maxConsecutiveDays?: number;
         allowBackdated: boolean;
         allowHalfDay: boolean; // if false, granularity is forced to a full day
+        blockedDuringProbation?: boolean; // needs a probation end date on the user (see section 18)
+        requiresCoverPerson?: boolean;
+        blackoutPeriods?: {
+            from: string;
+            to: string;
+            scope?: { department?: ObjectId; office?: ObjectId };
+            reason: string;
+        }[];
     };
 }
 
@@ -116,9 +148,11 @@ type LeaveYearRule =
 
 type EntitlementRule =
     | { type: "none" } // e.g. unpaid leave, balance not tracked
-    | { type: "fixed"; amount: number; proRataFirstYear: boolean }
+    | { type: "fixed"; amount: number; proRataFirstYear: boolean } // granted upfront at period start
     | { type: "accrual"; amountPerPeriod: number; frequency: "monthly" | "quarterly" | "perPayPeriod" | "daily" }
-    | { type: "tenure"; tiers: { fromYears: number; amount: number }[]; proRataFirstYear: boolean };
+    | { type: "perHoursWorked"; hoursWorkedPerUnit: number; amount: number } // needs the Attendance module
+    | { type: "tenure"; tiers: { fromYears: number; amount: number }[]; proRataFirstYear: boolean }
+    | { type: "earned" }; // comp time: balance is only ever `grant`ed (e.g. from overtime), never accrued
 
 interface CarryOverRule {
     maxAmount?: number; // undefined = unlimited
@@ -167,7 +201,8 @@ Resolution: user-specific schedule (`user.workSchedule`, new optional field) →
 ```ts
 interface ILeaveRequest {
     company: ObjectId;
-    user: ObjectId; // requester
+    request: ObjectId; // the shared Request envelope: single source of truth for status, flow and approvers
+    user: ObjectId; // the subject: whose leave this is (Request.requester is whoever submitted it)
     leaveType: ObjectId;
 
     // What the user asked for (inputs)
@@ -176,6 +211,13 @@ interface ILeaveRequest {
     startPart: "full" | "firstHalf" | "secondHalf" | { hours: number }; // partial first day
     endPart: "full" | "firstHalf" | "secondHalf" | { hours: number }; // partial last day
     reason?: string;
+    coverPerson?: ObjectId; // colleague covering the absence
+    overrides?: { rule: string; reason: string }[]; // validations bypassed by a privileged creator (backdating, notice, balance …)
+
+    // Links to other leave records (domain relations, not workflow state)
+    replaces?: ObjectId; // this is a change request for an approved leave (section 12.1)
+    supersededBy?: ObjectId; // set on the original once the change is approved
+    convertedFrom?: ObjectId; // created by converting overlapping leave to sick leave (section 12.3)
 
     // What it was calculated to be (frozen result)
     lines: ILeaveLine[];
@@ -183,19 +225,14 @@ interface ILeaveRequest {
     policy: { policyId: ObjectId; version: number }; // the policy version applied
     calculatedAt: Date;
 
-    // Lifecycle
-    status: "pending" | "approved" | "rejected" | "canceled";
-    approvalStep: { rule: "directManager" | "role"; fallbackRule?: "role"; roleId?: ObjectId };
-    decidedBy?: ObjectId; // immutable once set
-    decidedAt?: Date;
-    decisionNote?: string;
-    canceledBy?: ObjectId;
-    canceledAt?: Date;
+    adjustments?: ILeaveAdjustment[]; // pay and conversion corrections (sections 7 and 12.3); lines themselves are never edited
 
-    history: { at: Date; by: ObjectId; from: string; to: string; note?: string }[]; // audit
     createdAt: Date;
     updatedAt: Date;
 }
+
+// There is deliberately no `status`, `approvalStep`, `decidedBy`, `decidedAt`, `decisionNote` or `history` here.
+// Workflow state has one home, the Request envelope; ApprovalTasks hold who was asked and who decided.
 
 interface ILeaveLine {
     date: string; // one calendar day
@@ -212,9 +249,11 @@ interface ILeaveLine {
 
 Notes:
 
-- There is **no `approver` field**. See section 9.
-- There is **no copy of the requester's department, country or manager**. See section 9.
+- There is **no approver or status on the leave record**. Both live on the `Request` and its `ApprovalTasks`. See section 9.
+- There is **no copy of the requester's department, country or manager**. Visibility is evaluated live; the approver identity is frozen on the task, not on the leave. See section 9.
+- Queries that need a leave's workflow status (overlap detection, pending quantity, coverage counts) select leave records by their own indexed dates first, then filter by `Request.status` for those `request` ids. `Requests` is indexed on `{ company, type, subject, status }` for the per-user case.
 - `lines` is stored because duration depends on mutable external inputs (calendar, schedule, policy). Deriving it on read would silently change approved history when a holiday is added.
+- `adjustments` is an append-only list: `{ at, by, kind: "payRecalculation" | "holidayCorrection" | "sicknessConversion", reason, linesBefore, linesAfter, deltaPaidQuantity }`. The effective result of a leave is `lines` with adjustments applied; payroll receives adjustments as correction items.
 
 ### 4.6 `LeaveLedger` (append-only)
 
@@ -224,11 +263,23 @@ interface ILeaveLedgerEntry {
     user: ObjectId;
     leaveType: ObjectId;
     leavePeriodStart: string; // the leave period this entry belongs to
-    kind: "accrual" | "grant" | "adjustment" | "carryOver" | "carryOverExpiry" | "usage" | "usageReversal" | "payout";
+    kind:
+        | "accrual"
+        | "grant" // upfront entitlement, comp time earned, one-off awards
+        | "adjustment"
+        | "carryOver"
+        | "carryOverExpiry"
+        | "usage"
+        | "usageReversal"
+        | "encashment" // balance cashed out during employment
+        | "payout"; // balance paid out at termination
     amount: number; // signed, in the policy unit; usage is negative
     effectiveDate: string; // when it takes effect for balance-as-of queries
+    expiresOn?: string; // on credit entries: when the unused remainder expires (carry-over buckets)
+    bucket?: ObjectId; // on usage / usageReversal / carryOverExpiry: the credit entry it draws from (section 8.3)
+    source?: string; // free-form origin of a grant, e.g. "overtime:2026-09-12"
     unit: "days" | "hours";
-    request?: ObjectId; // for usage / usageReversal
+    request?: ObjectId; // the shared Request id (not the LeaveRequests id), so idempotency keys match the engine's; for usage / usageReversal
     policy?: { policyId: ObjectId; version: number };
     reason?: string; // required for adjustment / payout
     createdBy: ObjectId | "system";
@@ -274,7 +325,9 @@ Pipeline, per calendar day in the range:
 7. Assign `leavePeriodStart` using the leave year rule (section 6). A request that crosses a leave-year boundary produces lines in two periods.
 8. Assign `payPercent` (section 7).
 
-Validation (also server-side): no overlap with the user's pending/approved requests, minimum notice, maximum consecutive days, backdating, `allowHalfDay`, total quantity is positive, and the balance check (section 8).
+Validation (also server-side): eligibility, no overlap with the user's pending/approved requests, minimum notice, maximum consecutive days, backdating, `allowHalfDay`, probation, blackout periods, cover person, total quantity is positive, the balance check (section 8) and team coverage limits (section 9.5).
+
+Each check returns either a **block** (request cannot be created) or a **warning** (shown in `/preview` and to the approver). A creator holding enough permission may bypass specific blocks; every bypass is stored in `overrides` with a mandatory reason (section 12.2).
 
 ---
 
@@ -331,7 +384,7 @@ Tiers depend on earlier usage, so cancelling or reversing an earlier approved le
 
 1. On cancel/reversal of an approved request, the service finds later approved requests of the same type in the same tier window.
 2. It recalculates their lines against the new prior usage.
-3. For each request whose pay changed, it **does not edit the frozen lines**. It writes a `payAdjustment` record on the request (`{ at, reason, linesBefore → linesAfter, deltaPaidQuantity }`) and the request's effective pay becomes `lines` with adjustments applied.
+3. For each request whose pay changed, it **does not edit the frozen lines**. It appends a `payRecalculation` entry to the leave record's `adjustments` (`{ at, reason, linesBefore → linesAfter, deltaPaidQuantity }`) and the leave's effective pay becomes `lines` with adjustments applied.
 4. Payroll receives adjustments as separate correction items (section 11), so a payroll period that was already closed is corrected in the next one instead of being rewritten.
 
 The same adjustment mechanism covers HR-triggered recalculation after a holiday-calendar correction.
@@ -352,33 +405,44 @@ projected(user, type, period, date) = balance(period, date) − pending/approved
 - `available` is what a new request is checked against.
 - `projected` is a UI aid: it shows what the balance will be at the leave date once planned accruals land.
 
-Pending requests are computed live (a small, indexed set per user) rather than written, so reject/cancel of a pending request needs no ledger write.
+Pending leaves are those whose `Request.status` is `pending` (a small, indexed set per user), computed on read rather than written, so reject/cancel of a pending request needs no ledger write.
 
 ### 8.2 Transitions
 
-| Event                   | Ledger effect                                                                            |
-| ----------------------- | ---------------------------------------------------------------------------------------- |
-| Request created         | None. Pending quantity is read live.                                                     |
-| Request approved        | One `usage` entry per leave period touched (negative), keyed to the request              |
-| Pending reject / cancel | None                                                                                     |
-| Approved cancel         | `usageReversal` entries mirroring the usage entries (positive)                           |
-| Accrual run             | `accrual` entries                                                                        |
-| Period rollover         | `carryOver` and `carryOverExpiry`                                                        |
-| HR correction           | `adjustment` with mandatory `reason`                                                     |
-| Leaver payout           | `payout` entry, only when HR confirms (zeroes the balance and records what was paid out) |
+| Event                   | Ledger effect                                                                                       |
+| ----------------------- | --------------------------------------------------------------------------------------------------- |
+| Request created         | None. Pending quantity is read live.                                                                |
+| Request approved        | Engine `onApproved`: one `usage` entry per leave period and bucket (negative), keyed to the Request |
+| Pending reject / cancel | None                                                                                                |
+| Approved cancel         | Engine `onCanceled`: `usageReversal` entries mirroring the usage entries (positive)                 |
+| Accrual run             | `accrual` entries                                                                                   |
+| Period rollover         | `carryOver` and `carryOverExpiry`                                                                   |
+| HR correction           | `adjustment` with mandatory `reason`                                                                |
+| Encashment              | `encashment` entry, approved by HR; negative amount, mirrors what payroll pays out                  |
+| Leaver payout           | `payout` entry, only when HR confirms (zeroes the balance and records what was paid out)            |
+| Comp time earned        | `grant` with `source` (needs Attendance for automatic grants; manual until then)                    |
 
-Order of operations for approval: conditionally flip status (`findOneAndUpdate({ _id, status: "pending" })`), then post the ledger entries. The unique `{request, kind, leavePeriodStart}` index makes a retry after a crash safe. A reconciliation script can scan for approved requests lacking usage entries. This avoids requiring multi-document transactions, while remaining compatible with them if the deployment has a replica set.
+Order of operations for approval: the engine conditionally flips the `Request` status, then calls the leave type's `onApproved`, which posts the ledger entries. `onApproved` must be idempotent, and the unique `{request, kind, leavePeriodStart}` index guarantees it, so a retry after a crash is safe. A reconciliation script scans for approved leave `Requests` lacking usage entries (the same approach the engine plan prescribes for task/request drift). This avoids requiring multi-document transactions, while remaining compatible with them if the deployment has a replica set.
 
 Requests are **never hard-deleted**. Cancelled and rejected requests are kept for audit.
 
-### 8.3 Accrual
+### 8.3 Consuming balance: oldest bucket first
+
+Carry-over with an expiry means a balance is not one number but several **buckets**: each credit entry (`grant`, `accrual`, `carryOver`) is a bucket, with an optional `expiresOn`. Usage must draw from the bucket that expires first (then the oldest), otherwise expiry would destroy days the employee never had a chance to use.
+
+- When approving, the service allocates the request's quantity across buckets, oldest/soonest-expiring first, and writes one `usage` entry per bucket (with `bucket` set). A request that crosses a leave-year boundary or a carry-over expiry therefore deducts from the right buckets automatically.
+- Expiry is a ledger fact: the accrual job posts `carryOverExpiry` for the **unused remainder** of each bucket after its `expiresOn`.
+- Reversal returns days to the **same bucket**. If that bucket has already expired, the restored amount is posted as an `adjustment` into the current period (with a reason) instead, so an expired balance never silently revives.
+- Which bucket a usage line draws from is decided by its **date**: leave taken before a bucket's `expiresOn` may use it, even if approved after.
+
+### 8.4 Accrual
 
 - Accrual entries are facts, posted by an **idempotent** job: `accrueUpTo(date)`. Each accrual entry has an `accrualKey` (e.g. `2026-10`) with a unique index, so re-running or running late never double-posts.
 - The job runs on a schedule **and** lazily: reading balances or creating a request first calls `accrueUpTo(today)` for that user. A missed cron run therefore cannot cause wrong balances.
 - Pro-rata for a user's first period uses `employmentDate`.
 - A policy version change mid-period: accruals before `effectiveFrom` stay as posted; accruals after use the new rule. If HR wants the new entitlement applied to the current period retroactively, they trigger an explicit **policy-change adjustment** that posts the delta as `adjustment` entries.
 
-### 8.4 Negative balances
+### 8.5 Negative balances
 
 A policy may allow overdrawing (`negativeBalance: { allowed, maxAmount }`), for example when a user books approved leave before the accrual has caught up.
 
@@ -388,7 +452,7 @@ A policy may allow overdrawing (`negativeBalance: { allowed, maxAmount }`), for 
     - `GET /leaves/balances/overdrawn` lists users with a negative balance (scoped by `leaves.balances:read`).
     - The balance view marks an overdrawn leave type and shows how much accrual is still expected before the end of the period (`projected`).
 
-### 8.5 Leavers and settlement
+### 8.6 Leavers and settlement
 
 When a user leaves the company, payroll needs to know what they are owed (unused paid leave) or owe (negative balance). Leaves exposes a **settlement summary**, computed (not stored) from the ledger:
 
@@ -415,29 +479,92 @@ Needed for this:
 
 ---
 
-## 9. Approval and visibility (live resolution)
+## 9. Approval and visibility (shared engine)
 
-### Why nothing about the requester is copied onto the request
+Leave does not implement approval. It registers a **request type** with the engine in [docs/plans/approval-flows.md](../plans/approval-flows.md) and supplies the leave-specific hooks. Decisions taken for the pilot (07/10/2026):
 
-Storing the requester's manager, department and country on the request makes list queries a single filter, but it creates facts that must be kept in sync with the org:
+- The approver is **resolved when a step activates** and stored as an `ApprovalTask`, one per approver.
+- Org changes (manager change, deactivation, role loss) trigger an automatic, audited **reassign open tasks** effect. Completed steps are never touched.
+- A task is **necessary but not sufficient**: authority is rechecked at decision time and the decision is blocked if the assignee lost it.
+- A **rejection is final**. There is no edit or return-to-requester.
+- Flows are scoped by request type plus optional country, department and **leave type**; the most specific active flow wins. The pilot spans several countries.
 
-- The repository's `updateOne` uses `Model.updateOne`, which bypasses document hooks, and the Users page has a bulk-edit dialog. Hooks would silently miss those paths, and a cron would be needed to repair drift.
-- A user who changes manager, department or country would leave stale pending requests with the wrong approver or visibility.
-- A departed manager leaves orphaned requests that need explicit re-routing.
+### 9.1 Where each fact lives
 
-Access should follow the **current** org. The history that matters, who decided and when, is stored as `decidedBy` and `decidedAt`. If reporting later needs "department at the time", it should come from the effective-dated Employment History Log, not from copies on every leave.
+| Fact                                         | Home                                                  |
+| -------------------------------------------- | ----------------------------------------------------- |
+| Status, current step, flow version used      | `Requests` (envelope)                                 |
+| Who was asked, who decided, on whose behalf  | `ApprovalTasks`                                       |
+| Delegations                                  | `ApprovalDelegations` (shared)                        |
+| Dates, per-day lines, pay, policy, overrides | `LeaveRequests` (leave domain record, `request` link) |
+| Quantities                                   | `LeaveLedger`                                         |
 
-### How it works
+A domain record never stores a second copy of workflow status.
 
-- **Approval step is a rule**, not a user: `{ rule: "directManager", fallbackRule: "role", roleId }`. This also maps onto the roadmap's Request Flow Builder, where a step is "an approver rule" resolved at decision time.
-- **Queue and visibility** for an actor and scope:
-    1. `resolveScopedUserIds(actor, scope)` returns the user ids the actor may see (`managed` = users whose `manager` is the actor; `department`/`country`/`department-country` = users matching the actor's; `*` = no id filter; `self` = the actor).
-    2. Requests are filtered with `user: { $in: ids }`, plus status/date filters.
-- **Approval authorization is checked at decision time** against the live org, so the _current_ manager can approve even if the manager changed after submission.
-- **Fallback:** if the requester has no manager, or the manager is inactive, anyone holding `leaves:approve:*` may approve.
-- **Self-approval is forbidden**, regardless of permission.
+### 9.2 What the leave type registers
 
-Cost: two cheap indexed queries. Direct-report sets are tens of ids; department/country sets are at most a few thousand ObjectIds in an indexed `$in`.
+```ts
+leaveRequestType: RequestTypeDefinition<LeavePayload> = {
+    type: "leave",
+    payloadSchema,                 // dates, parts, leave type, reason, cover person, overrides
+    defaultFlow: [{ key: "lineManager", resolver: { kind: "lineManager" }, fallback: { kind: "hrRepresentative" }, ... }],
+    canCreate,                     // eligibility, overlap, notice, blackout, balance, probation (section 5 validation)
+    canApprove,                    // authority recheck at decision time (below)
+    onApproved,                    // idempotent: allocate buckets, post usage entries
+    onCanceled,                    // idempotent: post usage reversals if usage had been posted
+    onRejected,                    // nothing to undo: usage is only posted on approval
+    summarize,                     // "Annual leave, 12–16 Jan (4 days)" for lists and notifications
+};
+```
+
+- **Default flow:** one step, line manager, fallback HR representative. Companies can configure richer flows per country, department and leave type (for example a long sick leave adding an HR step) without changing the leave model.
+- **`canApprove` (authority recheck):** the actor must hold `leaves:approve:{scope}` whose scope covers the subject, must not be the subject, and must clear the coverage-limit re-check (9.5). A task whose assignee fails this is blocked, and the engine's reassignment effect handles the task.
+- **Flow validation:** the flow builder should warn when a resolver (for example `role`) can yield people who do not hold `leaves:approve` over the subject, because those tasks would always be blocked.
+- **Self-approval:** impossible through the engine (`allowSelfApproval: false`, and `skipIfRequesterIsApprover` or fallback applies).
+
+### 9.3 Visibility and queues
+
+- **Needs my action** is the shared inbox: `ApprovalTasks` for the current user. There is no leave-specific queue and no `user: { $in: scopedIds }` approval query.
+- **Who may read a leave** stays a live scope evaluation: the subject, the requester, anyone holding a task on it, and scoped viewers with `leaves:read:{scope}`. `resolveScopedUserIds(actor, scope)` remains and serves visibility lists, coverage-limit headcounts and reports. It must resolve department scope through the title chain.
+- **Org changes** are handled by the engine's effects (plan section 7), which must be called from the **service layer** on every path that changes the org, including the Users bulk edit and imports. The repository's `updateOne` bypasses Mongoose hooks, so model hooks cannot be relied on. A reconciliation job catches stale open tasks.
+- **Why still no copy of department, country or manager on the leave:** visibility follows the current org and the approver is frozen on tasks, so nothing about the requester needs copying. If reporting needs "department at the time", it comes from the effective-dated Employment History Log.
+
+> The existing `buildUserSearchAccessQuery` filters on a `department` field, but the user model I inspected only has `employmentTitle` (department is reached via title → sub-department → department). I have not traced how the Users list resolves this. Verify before reusing that pattern.
+
+### 9.4 Delegation and approver availability
+
+Delegation is the shared `ApprovalDelegations` collection (`{ delegator, delegate, from, to, requestTypes?, isActive }`), applied **when tasks are created**: if the resolved approver has an active delegation, the task is created for the delegate with `originalAssignee` and `onBehalfOf` recorded.
+
+Leave-specific rules on top:
+
+- A delegate gains no permissions. `canApprove` is evaluated for the delegate's own authority, so delegating to someone with a narrower scope than the subject blocks the decision.
+- A delegate cannot decide a leave they themselves requested or are the subject of.
+- **Approver on approved leave, no delegation:** leave is the module that knows an approver is away, so it supplies an _availability signal_ to the resolver. At task creation, an approver whose approved leave covers today is treated like "resolver returned nobody" and the step `fallback` applies. If the approver goes on leave _after_ the task was created, the leave module triggers the engine's reassign effect for that approver's open tasks (proposed addition to plan section 7).
+
+### 9.5 Team coverage limits
+
+Rules such as "at most 2 people of Engineering out at once" or "at most 30% of a team":
+
+```ts
+interface ILeaveCoverageRule {
+    company: ObjectId;
+    name: string;
+    group: {
+        type: "department" | "subDepartment" | "office" | "country" | "manager" | "employmentTitle";
+        id: ObjectId;
+    };
+    leaveTypes?: ObjectId[]; // empty = all types
+    maxConcurrent?: number;
+    maxPercent?: number; // of active headcount in the group
+    mode: "warn" | "block";
+    isActive: boolean;
+}
+```
+
+- Evaluated **live** against leaves whose `Request.status` is approved (and, for `warn`, pending) for each day of the new request, using the group's current members (same resolver as section 9.3). No counters are stored, so org changes can't desync them.
+- At create: `block` rules reject, `warn` rules appear in `/preview` and in the Requests page detail for the approver.
+- **Re-checked at approval** inside `canApprove`, because the picture can change between submission and decision. A `block` rule that now fails stops the approval unless the approver holds an override permission, recorded in `overrides`.
+- This is a validation rule, so it is independent of the approval model.
 
 > The existing `buildUserSearchAccessQuery` filters on a `department` field, but the user model I inspected only has `employmentTitle` (department is reached via title → sub-department → department). I have not traced how the Users list resolves this. Verify before reusing that pattern; `resolveScopedUserIds` must resolve department scope through the title chain.
 
@@ -478,18 +605,50 @@ Lines are per calendar day, so a request that crosses a payroll period boundary 
 
 ## 12. Request lifecycle
 
+Workflow status is the engine's (`pending`, `approved`, `rejected`, `canceled`) and lives on the `Request`:
+
 ```
 pending ──approve──▶ approved ──cancel──▶ canceled
-   │  └──reject──▶ rejected
-   └──cancel (owner)──▶ canceled
+   │  └──reject──▶ rejected   (final)
+   └──cancel (requester)──▶ canceled
 ```
 
 Rules:
 
-- Owner can cancel `pending`. Cancelling `approved` is allowed before the start date; after the start date it requires `leaves:write` beyond `self` (HR), and the days not yet taken are reversed.
-- Approve and reject are idempotent through the conditional status update.
-- Editing a request is modelled as cancel + new request, so the audit trail stays simple.
-- Every transition appends to `history`.
+- **A rejection is final.** The employee raises a new request. Nothing was reserved or posted before approval, so a rejection has no ledger effect.
+- **A pending request is never edited.** To change it, cancel it (the engine closes its open tasks) and submit a new one.
+- The requester can cancel `pending`. Cancelling `approved` is allowed before the start date; after the start date it requires `leaves:write` beyond `self` (HR), and the days not yet taken are reversed by `onCanceled`.
+- Approve, reject and cancel are idempotent through the engine's conditional updates; the leave hooks are idempotent through the ledger's unique keys.
+- Transitions are audited by the engine (tasks and request timeline), not by a `history` array on the leave.
+
+### 12.1 Changing an approved leave is a new, linked request
+
+Changing an approved leave (different dates, shorter, split) is **not** an edit of a submitted request, so it does not conflict with "rejection is final". It is a **new request** linked with `replaces: <original>`, going through the same flow as any leave.
+
+Cancel + new request would leave a gap in which the employee has no approved leave and could lose their slot or have the balance re-checked against a state that no longer includes the original. The link avoids that:
+
+- The original stays `approved` and keeps its ledger usage while the change is `pending`.
+- The balance check, tier calculation and coverage rules are evaluated on the **net effect** (the change minus what the original already consumed).
+- On approval, the change's `onApproved` does, idempotently: post the new usage, reverse the original's usage, set `supersededBy` on the original and **cancel the original `Request` through the engine** (reason "superseded"), so there is still one workflow status per leave and "approved and not canceled" always means "in effect".
+- If the change is **rejected, nothing changes**: the original is untouched. To try again, the user raises another change request.
+- Only one open change request per original.
+
+### 12.2 HR or a manager entering leave on someone's behalf
+
+- `leaves:write:{scope}` beyond `self` lets the creator submit for any user in scope. The `Request` records `requester` (the creator) and `subject` (the employee); `LeaveRequests.user` is the subject.
+- Retroactive entry (past dates) is allowed when the policy has `allowBackdated` **or** the creator holds `leaves:write:*`.
+- Any validation bypassed (notice, backdating, balance, blackout, coverage) is stored in `overrides` with a mandatory reason, and shown to the approver.
+- An authorized creator can submit with `autoApprove`. This needs an engine capability (see section 18): the request is created with its tasks decided immediately by the creator (`decidedBy = creator`, audited), not "skipped", so the timeline stays honest and `onApproved` posts the usual ledger entries. A creator can never auto-approve their own leave.
+
+### 12.3 Sickness during approved leave
+
+When a person falls sick during approved annual leave, the overlapping days should be sick leave, not annual leave (for leave types with `overridesOtherLeave`, normally sick):
+
+1. The user or HR creates a sick request with `convertedFrom: <annual request>` for the overlapping range.
+2. On approval, in one operation: the sick request's usage is posted; the overlapping lines of the annual request are **reversed** in the ledger (a `usageReversal` per affected line, to the original bucket); the annual request keeps its frozen `lines` but records an `adjustments` entry marking those dates converted, so exports and the balance both agree.
+3. Annual days not overlapping are unaffected. If the whole annual leave is overlapped, its `Request` is canceled through the engine (reason "converted to sick leave") and `supersededBy` is set.
+
+Pay moves with the lines: payroll sees the converted days under the sick leave's pay tiers (section 7).
 
 ---
 
@@ -497,41 +656,44 @@ Rules:
 
 New categories, added to both `server/src/enums/permissions.enum.ts` and `client/src/app/core/enums/permissions.enum.ts`:
 
-| Category                  | Actions                    | Scopes                                                                                                             | Gates                                       |
-| ------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
-| `leaves`                  | `read`, `write`, `approve` | `read`: all scopes; `write`: `*`, `self`; `approve`: `*`, `department`, `country`, `department-country`, `managed` | Requests and queue                          |
-| `leaveBalances`           | `read`, `write`            | `read`: all scopes; `write`: `*`                                                                                   | Viewing balances; manual ledger adjustments |
-| `leaveSettingsManagement` | `read`, `write`            | `*`                                                                                                                | Leave types, policies, calendars, schedules |
+| Category                  | Actions                    | Scopes                                                                                                             | Gates                                            |
+| ------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
+| `leaves`                  | `read`, `write`, `approve` | `read`: all scopes; `write`: `*`, `self`; `approve`: `*`, `department`, `country`, `department-country`, `managed` | Leave visibility, submission, approval authority |
+| `leaveBalances`           | `read`, `write`            | `read`: all scopes; `write`: `*`                                                                                   | Viewing balances; manual ledger adjustments      |
+| `leaveSettingsManagement` | `read`, `write`            | `*`                                                                                                                | Leave types, policies, calendars, schedules      |
 
 Notes:
 
 - `approve` is a new `PermissionActions` value, so `permission-factory.test.ts`, `rbac-coverage.test.ts` and the Permissions-page matrix (`MATRIX_ACTIONS` in `permission-matrix.ts`) need updating.
 - Default roles (`seed.service.ts`): Employee `leaves:read:self`, `leaves:write:self`, `leaveBalances:read:self`; Manager adds `leaves:read:managed`, `leaves:approve:managed`, `leaveBalances:read:managed`; HR gets `leaves` and `leaveBalances` at `*` and `leaveSettingsManagement`.
 - Granting is still limited by `canGrantPermissions`.
+- `leaves:approve:{scope}` is the **authority** checked in `canApprove` at decision time; it is not what puts a request in someone's inbox (that is the flow and its tasks). Both are needed.
+- The shared engine adds its own categories (`requests:read`, `approvalFlows:read|write`, and an admin-override permission; see the plan, section 9). The flow builder UI, the Requests page and approval delegations are gated there, not here.
 
 ---
 
 ## 14. API
 
-| Method | Path                                                                                                    | Purpose                                                              | Permission                                                                |
-| ------ | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| GET    | `/api/leaves`                                                                                           | Scoped list (filters: status, user, type, date range; paginated)     | `leaves:read:{scope}`                                                     |
-| GET    | `/api/leaves/mine`                                                                                      | Own requests                                                         | `leaves:read:self`                                                        |
-| POST   | `/api/leaves/preview`                                                                                   | Calculate lines/totals/balance impact without saving                 | `leaves:write:self`                                                       |
-| POST   | `/api/leaves`                                                                                           | Create (server recalculates lines)                                   | `leaves:write:self`                                                       |
-| POST   | `/api/leaves/:id/cancel`                                                                                | Cancel                                                               | owner or `leaves:write:{scope}`                                           |
-| POST   | `/api/leaves/:id/approve`                                                                               | Approve                                                              | `leaves:approve:{scope}`                                                  |
-| POST   | `/api/leaves/:id/reject`                                                                                | Reject (note required)                                               | `leaves:approve:{scope}`                                                  |
-| GET    | `/api/leaves/balances/me`                                                                               | Own balances per type and period, incl. `available` and `projected`  | `leaveBalances:read:self`                                                 |
-| GET    | `/api/leaves/balances/:userId`                                                                          | A user's balances, ledger entries on request                         | `leaveBalances:read:{scope}`                                              |
-| GET    | `/api/leaves/balances/overdrawn`                                                                        | Negative balances                                                    | `leaveBalances:read:{scope}`                                              |
-| POST   | `/api/leaves/balances/:userId/adjust`                                                                   | Manual ledger adjustment (reason required)                           | `leaveBalances:write:*`                                                   |
-| GET    | `/api/leaves/settlement/:userId`                                                                        | Leaver settlement summary                                            | `leaveBalances:read:{scope}`                                              |
-| GET    | `/api/leaves/review`                                                                                    | Approved requests whose frozen lines differ from a fresh calculation | `leaveSettingsManagement:read:*`                                          |
-| GET    | `/api/leaves/payroll`                                                                                   | Payroll export                                                       | `leaveSettingsManagement:read:*` (revisit when payroll permissions exist) |
-| CRUD   | `/api/leave-types`, `/api/leave-policies`, `/api/holiday-calendars` (+ holidays), `/api/work-schedules` | Configuration                                                        | `leaveSettingsManagement`                                                 |
+| Method | Path                                                                                                    | Purpose                                                                                                                          | Permission                                                                |
+| ------ | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| GET    | `/api/leaves/:id`                                                                                       | Leave domain detail (lines, pay, policy, overrides, adjustments, balance impact, coverage warnings) for the Requests page drawer | visibility per section 9.3                                                |
+| POST   | `/api/leaves/preview`                                                                                   | Calculate lines/totals/balance impact without saving                                                                             | `leaves:write:self`                                                       |
+| POST   | `/api/leaves`                                                                                           | Create the leave record **and** its `Request` through the engine (server recalculates lines)                                     | `leaves:write:self`                                                       |
+| POST   | `/api/leaves/:id/change`                                                                                | Create a change request for an approved leave (section 12.1)                                                                     | owner or `leaves:write:{scope}`                                           |
+| POST   | `/api/leaves/:id/convert`                                                                               | Convert overlapping days to sick leave (section 12.3)                                                                            | owner or `leaves:write:{scope}`                                           |
+| CRUD   | `/api/leave-coverage-rules`                                                                             | Team coverage limits                                                                                                             | `leaveSettingsManagement`                                                 |
+| GET    | `/api/leaves/balances/me`                                                                               | Own balances per type and period, incl. `available` and `projected`                                                              | `leaveBalances:read:self`                                                 |
+| GET    | `/api/leaves/balances/:userId`                                                                          | A user's balances, ledger entries on request                                                                                     | `leaveBalances:read:{scope}`                                              |
+| GET    | `/api/leaves/balances/overdrawn`                                                                        | Negative balances                                                                                                                | `leaveBalances:read:{scope}`                                              |
+| POST   | `/api/leaves/balances/:userId/adjust`                                                                   | Manual ledger adjustment (reason required)                                                                                       | `leaveBalances:write:*`                                                   |
+| GET    | `/api/leaves/settlement/:userId`                                                                        | Leaver settlement summary                                                                                                        | `leaveBalances:read:{scope}`                                              |
+| GET    | `/api/leaves/review`                                                                                    | Approved requests whose frozen lines differ from a fresh calculation                                                             | `leaveSettingsManagement:read:*`                                          |
+| GET    | `/api/leaves/payroll`                                                                                   | Payroll export                                                                                                                   | `leaveSettingsManagement:read:*` (revisit when payroll permissions exist) |
+| CRUD   | `/api/leave-types`, `/api/leave-policies`, `/api/holiday-calendars` (+ holidays), `/api/work-schedules` | Configuration                                                                                                                    | `leaveSettingsManagement`                                                 |
 
-`/api/leaves/preview` is what the request dialog calls on every date change, so the user sees exact days, pay and resulting balance before submitting.
+**Not in this module:** the approval inbox, approve/reject/cancel of a request, the "my requests" and team lists, and delegations. These are the shared engine's endpoints (`ApprovalTasks` inbox, `Requests`, `ApprovalDelegations`; see the plan). Leave lists on the Requests page are the engine's `Requests` filtered by `type = "leave"`.
+
+`/api/leaves/preview` is what the request dialog calls on every date change, so the user sees exact days, pay, resulting balance (including which bucket is consumed) and any `blocks` and `warnings` before submitting. `POST /api/leaves` accepts an optional `onBehalfOf` user id, `autoApprove` and `overrides` for authorized creators (section 12.2).
 
 Policies are append-only: `POST` creates a new version; there is no `PUT` that changes an effective version. Deactivating a leave type is blocked while it has pending requests (extend `dependency.service.ts`).
 
@@ -543,15 +705,18 @@ Policies are append-only: `POST` creates a new version; there is no `PUT` that c
 
 ```
 models/        leave-type | leave-policy | holiday-calendar | holiday | work-schedule | leave-request | leave-ledger
+               | leave-coverage-rule
+               (Request, ApprovalTask, ApprovalFlow, ApprovalDelegation belong to the shared engine)
 repositories/  one per model (companyModel wrapper)
 interfaces/    leave*.interface.ts
 services/
   leave-calculator.ts          pure: calculateLeaveLines, getLeavePeriod (no DB imports)
   leave-policy-resolver.service.ts   policy / calendar / schedule resolution for (user, date)
   leave-ledger.service.ts      post entries, balance queries, accrueUpTo, rollover
-  leave.service.ts             lifecycle, validation, approval, tier recalculation
+  leave.service.ts             validation, creating the leave + Request, tier recalculation, change/convert
   leave-settlement.service.ts
-policies/leave.policy.ts       resolveScopedUserIds, canApproveLeave
+requests/types/leave.ts        registers the "leave" RequestTypeDefinition (canCreate, canApprove, onApproved, onCanceled, summarize)
+policies/leave.policy.ts       resolveScopedUserIds (visibility), canApproveLeave (authority recheck)
 controllers/ routes/           leave, leave-type, leave-policy, holiday-calendar, work-schedule
 scripts/accrueLeaves.ts        scheduled entry point for accrueUpTo
 __tests__/                     leave-calculator.test.ts (pure), leaves.test.ts, leaves-isolation.test.ts, leave-ledger.test.ts
@@ -561,7 +726,8 @@ __tests__/                     leave-calculator.test.ts (pure), leaves.test.ts, 
 
 ```
 core/{enums,interfaces,services}/   leave types, policies, requests, balances
-features/leaves/                    My leaves, Team requests, request dialog (with live preview), decision dialog, balance view
+features/leaves/                    request dialog (with live preview), balance view, leave detail panel rendered inside the shared Requests drawer
+                                    (inbox, "my requests", team tab and decision buttons are the shared features/requests/ page)
 features/leave-settings/            types, policies (version history), holiday calendars, work schedules
 features/dashboard/                 replace the sample "Leave Tracker" with real balances
 ```
@@ -586,9 +752,25 @@ Sidebar: a "Time Off" section. Follow the _ui-conventions_ skill (Material first
 - Accrual catch-up after a missed run; no double posting.
 - Anniversary period after an `employmentDate` change.
 - Policy version change mid-period; past requests unchanged.
-- Manager changed while a request is pending; manager removed; self-approval blocked.
+- Org change while pending: manager changed, manager deactivated, manager loses `leaves:approve`: open tasks are reassigned and audited, completed steps untouched, unresolved tasks flagged "needs routing". Must hold for single edit, bulk edit and import.
+- Task is necessary but not sufficient: an assignee who lost authority cannot decide.
+- Flow scoping: country + department + leave type; most specific active flow wins; a request keeps its frozen flow after the flow is edited.
+- Delegation applied at task creation (`originalAssignee`, `onBehalfOf`); delegate with narrower scope is blocked by `canApprove`.
+- Self-approval blocked; approver on approved leave falls back (at creation and after, via reassign).
+- Rejected leave is final: no ledger entries ever existed, new request needed; rejected change request leaves the original untouched.
+- Status joins: overlap detection and coverage counts ignore leaves whose `Request` is rejected or canceled.
 - Cross-company isolation on every new collection.
 - Leaver with future approved leave and a negative balance.
+- Carry-over bucket consumed before the current year's balance; expiry of only the unused remainder; reversal into an already expired bucket.
+- Leave spanning a carry-over expiry date: days before it draw from the expiring bucket, days after from the current one.
+- Policy specificity: individual > level/employment type > office > country > company; conflicting same-level policies rejected on save.
+- Eligibility (gender, employment type, tenure), probation, blackout windows, required cover person.
+- Coverage limits: warn vs block, re-check at approval after another request was approved in between.
+- Delegation: active window, expired delegation, delegate cannot approve a request they raised, `onBehalfOf` audit.
+- Change request: net-effect balance check, approval swaps usage idempotently and cancels the original `Request`, rejection leaves the original untouched, one open change per original.
+- HR entry on behalf, retroactive, with overrides and auto-approve; creator cannot auto-approve their own leave.
+- Sickness during annual leave: partial and full overlap; pay and balance both move.
+- Encashment reduces balance and appears in payroll export.
 
 ---
 
@@ -597,8 +779,9 @@ Sidebar: a "Time Off" section. Follow the _ui-conventions_ skill (Material first
 1. **Permissions plumbing**: `approve` action, new categories, seed roles, matrix, enum parity on client and server, tests.
 2. **Calculation core**: work schedules, holiday calendars, leave types, versioned policies, the pure `calculateLeaveLines` and `getLeavePeriod`, with exhaustive unit tests (the riskiest and most valuable piece).
 3. **Ledger and accrual**: ledger model and service, balance queries, `accrueUpTo`, rollover, lazy catch-up.
-4. **Requests**: preview, create, cancel, approve, reject, live scope resolution, tier recalculation and `payAdjustment`.
-5. **Client**: settings screens, request dialog with live preview, team queue, balances, dashboard.
+4. **Requests on the engine** (depends on approval-flows plan phases 1 and 2: engine core, then leave as the first type): preview, create the leave plus its `Request`, register the leave type's hooks (`canCreate`, `canApprove`, `onApproved`, `onCanceled`), bucket allocation, tier recalculation and `payRecalculation` adjustments. Then the request variants: change requests, HR entry on behalf with overrides, sickness conversion.
+   4b. **Rules layer** (after 4, independently shippable): team coverage limits, blackout periods, eligibility, probation (once the date exists), approver-availability signal. Multi-step and scoped flows, delegation and org-change effects arrive with plan phases 4 and 5, with no leave changes.
+5. **Client**: settings screens, request dialog with live preview, balances, leave detail panel in the shared Requests drawer, dashboard. The inbox and Requests page are the engine's (plan phase 3).
 6. **Leaver and payroll support**: end-of-employment date, settlement summary, overdrawn report, review report, payroll export.
 7. **Docs**: move this document from "design" to "reference", update the roadmap, changelog and API reference.
 
@@ -606,9 +789,19 @@ Sidebar: a "Time Off" section. Follow the _ui-conventions_ skill (Material first
 
 ## 18. Open items
 
-- **End-of-employment date** does not exist on the user model; decide whether it lives on the user or the Employment History Log (section 8.5).
+- **End-of-employment date** does not exist on the user model; decide whether it lives on the user or the Employment History Log (section 8.6).
+- **Probation end date** does not exist on the user model either, so `blockedDuringProbation` cannot be enforced until it does. Eligibility by `gender`, `employmentType` and `employmentDate` can use the existing user fields.
+- **Attendance dependency**: `perHoursWorked` entitlement and automatic comp-time grants need the Attendance module. Until then comp time is granted manually via `grant` entries.
+- **Attachments and `requiresAttachment`**: the flag is stored on the leave type now; enforcement ships with attachments.
 - **Payroll permissions**: the payroll export is gated provisionally; revisit when the payroll module defines its own.
 - **Time zones**: leave dates are calendar dates, but "today" for notice and backdating checks needs a defined reference (user's country time zone is the proposal).
 - **Holidays falling inside sick leave** (counted or excluded) varies by country; it is expressed through `counting.countPublicHolidays` per policy, but each country's default needs product input.
 - **Attachments**: deferred. When added, they reuse the Supabase storage used by user documents and attach to the request.
-- **Multi-step approvals**: deferred to the Request Flow Builder. `approvalStep` is deliberately a rule, so it can become a list of steps.
+- **Engine capabilities leave needs that the plan does not yet state** (to confirm with the approval-flows plan):
+    1. **Cancel after approval**: a `approved → canceled` transition, with the type's `onCanceled` reversing side effects. Plan section 5.1 only describes the requester cancelling open requests.
+    2. **Engine-initiated cancel by another type's effect**: a change request's `onApproved` cancels the original leave's `Request` (reason "superseded").
+    3. **Immediate approval by an authorized creator** (HR entry with `autoApprove`), recorded as decided tasks, not skipped steps. Plan section 5.3 allows auto-approval only when a flow explicitly permits it.
+    4. **Approver availability signal**: a registry hook so a type can say "this approver is unavailable" to the resolver, plus a reassign trigger when an approver goes on approved leave (plan section 7).
+    5. **Type-specific detail in the Requests drawer**: `summarize` is not enough for lines, pay, balance impact and warnings; the drawer needs a per-type detail renderer or endpoint.
+    6. **Flow-scope precedence** when both `country` and `department` match different flows (plan open question 6). Leave type is a third dimension.
+- **Status joins**: because leave records carry no status, overlap and coverage queries join to `Requests`. If measurement shows this is too slow for company-wide coverage counts, add a rebuildable read projection rather than a second status field.
