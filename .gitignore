@@ -38,3 +38,4 @@ server/exports/
 
 # Design system publish bundle
 design-system/.dist/
+designs/
