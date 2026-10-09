@@ -120,8 +120,9 @@ const state = readJson(statePath, {});
 const mode = process.argv[2];
 
 if (mode === '--check') {
-    const committed = fs.existsSync(generatedPath) ? fs.readFileSync(generatedPath, 'utf8') : '';
-    const tokenDrift = committed !== tokensText;
+    // Compare parsed JSON so Prettier reformatting of the committed file is not drift.
+    const committed = readJson(generatedPath, null);
+    const tokenDrift = JSON.stringify(committed) !== JSON.stringify(tokens);
     const styleDrift = state.stylesHash !== stylesHash;
     if (tokenDrift) console.log('Tokens differ from design-system/generated/tokens.json. Run: npm run ds:build');
     if (styleDrift) console.log('styles.scss component rules changed since the last sync. Review design-system/src/components, rebuild, republish.');
