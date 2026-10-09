@@ -29,6 +29,16 @@ export class RequestController {
         res.json(success(await RequestViewService.mine(companyId, id, query(req))));
     }
 
+    static async team(req: AuthenticatedRequest, res: Response): Promise<void> {
+        const { id, companyId } = token(req);
+        res.json(success(await RequestViewService.team(companyId, id, query(req))));
+    }
+
+    static async about(req: AuthenticatedRequest, res: Response): Promise<void> {
+        const { id, companyId } = token(req);
+        res.json(success(await RequestViewService.about(companyId, id, req.params.userId, query(req))));
+    }
+
     static async summary(req: AuthenticatedRequest, res: Response): Promise<void> {
         const { id, companyId } = token(req);
         res.json(success(await RequestViewService.summary(companyId, id)));

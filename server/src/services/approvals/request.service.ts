@@ -439,22 +439,44 @@ export const ApprovalEngine = {
     countPendingFor: (companyId: string, userId: string) =>
         requestRepository(companyId).count({ status: "pending", pendingApprovers: userId }),
 
-    /** Inbox list, newest first, optionally filtered by type. */
-    listPendingFor: async (
-        companyId: string,
-        userId: string,
-        options: { type?: string; limit?: number; skip?: number } = {},
-    ) =>
+    /** Oldest request waiting for this user, for the "oldest from" hint. */
+    oldestPendingFor: async (companyId: string, userId: string): Promise<Date | null> => {
+        const oldest = (await requestRepository(companyId)
+            .find(pendingForFilter(userId))
+            .sort({ createdAt: 1 })
+            .limit(1)
+            .select("createdAt")
+            .lean()) as unknown as Pick<IRequest, "createdAt">[];
+        return oldest[0]?.createdAt ?? null;
+    },
+
+    /** Inbox list, newest first, optionally filtered by type, needs-routing and submitted dates. */
+    listPendingFor: async (companyId: string, userId: string, options: MineOptions = {}) =>
         (await requestRepository(companyId)
-            .find(pendingForFilter(userId, options.type))
+            .find(pendingForFilter(userId, options))
             .sort({ createdAt: -1 })
             .skip(options.skip ?? 0)
             .limit(options.limit ?? 50)
             .lean()) as unknown as IRequest[],
 
     /** Total for the inbox pagination (same filter as listPendingFor). */
-    countPendingForType: (companyId: string, userId: string, type?: string) =>
-        requestRepository(companyId).count(pendingForFilter(userId, type)),
+    countPendingForType: (companyId: string, userId: string, options: MineOptions = {}) =>
+        requestRepository(companyId).count(pendingForFilter(userId, options)),
+
+    /** Requests that cannot move because no approver was found (HR has to route them). */
+    countNeedingRouting: (companyId: string, access: Record<string, unknown>[]) =>
+        requestRepository(companyId).count({ $or: access, status: "pending", needsRouting: true }),
+
+    /** Requests about people the viewer may read, newest first. `access` is built by the view service. */
+    listTeam: async (companyId: string, options: TeamOptions) =>
+        (await requestRepository(companyId)
+            .find(teamFilter(options))
+            .sort({ createdAt: -1 })
+            .skip(options.skip ?? 0)
+            .limit(options.limit ?? 50)
+            .lean()) as unknown as IRequest[],
+
+    countTeam: (companyId: string, options: TeamOptions) => requestRepository(companyId).count(teamFilter(options)),
 
     /** "My requests": requests I raised or that are about me, newest first. */
     listMine: async (companyId: string, userId: string, options: MineOptions = {}) =>
@@ -468,26 +490,95 @@ export const ApprovalEngine = {
     countMine: (companyId: string, userId: string, options: MineOptions = {}) =>
         requestRepository(companyId).count(mineFilter(userId, options)),
 
+    /** Requests about one person (their profile tab), newest first. `types` limits it to the types the viewer may read. */
+    listAbout: async (companyId: string, subjectId: string, options: AboutOptions = {}) =>
+        (await requestRepository(companyId)
+            .find(aboutFilter(subjectId, options))
+            .sort({ createdAt: -1 })
+            .skip(options.skip ?? 0)
+            .limit(options.limit ?? 50)
+            .lean()) as unknown as IRequest[],
+
+    countAbout: (companyId: string, subjectId: string, options: AboutOptions = {}) =>
+        requestRepository(companyId).count(aboutFilter(subjectId, options)),
+
     get: load,
 };
+
+interface AboutOptions extends MineOptions {
+    /** Allowed request types. Omitted means every type. */
+    types?: string[];
+    createdFrom?: Date;
+    createdTo?: Date;
+}
+
+const aboutTypeFilter = (options: AboutOptions) => {
+    const allowed = options.types && options.type ? options.types.filter(t => t === options.type) : options.types;
+    if (allowed) {
+        return { type: { $in: allowed } };
+    }
+    return options.type ? { type: options.type } : {};
+};
+
+const aboutFilter = (subjectId: string, options: AboutOptions) => ({
+    subject: subjectId,
+    ...aboutTypeFilter(options),
+    ...(options.status ? { status: options.status } : {}),
+    ...(options.createdFrom || options.createdTo
+        ? {
+              createdAt: {
+                  ...(options.createdFrom ? { $gte: options.createdFrom } : {}),
+                  ...(options.createdTo ? { $lte: options.createdTo } : {}),
+              },
+          }
+        : {}),
+});
 
 interface MineOptions {
     type?: string;
     status?: RequestStatus;
+    /** Only requests nobody could be found to approve (they are still `pending`). */
+    needsRouting?: boolean;
+    createdFrom?: Date;
+    createdTo?: Date;
     limit?: number;
     skip?: number;
 }
 
-const pendingForFilter = (userId: string, type?: string) => ({
+/** type, status, needs-routing and submitted-date conditions shared by every list. */
+const commonFilter = (options: MineOptions) => ({
+    ...(options.type ? { type: options.type } : {}),
+    ...(options.status ? { status: options.status } : {}),
+    ...(options.needsRouting ? { needsRouting: true } : {}),
+    ...(options.createdFrom || options.createdTo
+        ? {
+              createdAt: {
+                  ...(options.createdFrom ? { $gte: options.createdFrom } : {}),
+                  ...(options.createdTo ? { $lte: options.createdTo } : {}),
+              },
+          }
+        : {}),
+});
+
+const pendingForFilter = (userId: string, options: MineOptions = {}) => ({
+    ...commonFilter({ ...options, status: undefined }),
     status: "pending",
     pendingApprovers: userId,
-    ...(type ? { type } : {}),
 });
 
 const mineFilter = (userId: string, options: MineOptions) => ({
     $or: [{ requester: userId }, { subject: userId }],
-    ...(options.type ? { type: options.type } : {}),
-    ...(options.status ? { status: options.status } : {}),
+    ...commonFilter(options),
+});
+
+interface TeamOptions extends MineOptions {
+    /** Access clauses (an `$or` of type/subject pairs) built from what the viewer may read. */
+    access: Record<string, unknown>[];
+}
+
+const teamFilter = (options: TeamOptions) => ({
+    $or: options.access,
+    ...commonFilter(options),
 });
 
 /** Records the pending approvers as approved by the creator (override), step by step, through the normal completion path. */

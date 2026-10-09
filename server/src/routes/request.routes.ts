@@ -9,6 +9,8 @@ const RequestController = wrapController(RequestControllerRaw);
 // request type's rules itself (get, decide, cancel). Approval authority is never a route permission.
 router.get("/inbox", RequestController.inbox);
 router.get("/mine", RequestController.mine);
+router.get("/team", RequestController.team);
+router.get("/user/:userId", RequestController.about);
 router.get("/summary", RequestController.summary);
 router.get("/:id", RequestController.get);
 router.post("/:id/decision", RequestController.decide);
