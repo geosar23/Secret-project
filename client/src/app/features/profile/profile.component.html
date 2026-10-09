@@ -109,8 +109,8 @@
             }
         </div>
 
-        <!-- ── OVERVIEW ── -->
-        @if (activeTab() === "overview") {
+        <!-- ── DETAILS ── -->
+        @if (activeTab() === "details") {
             <div class="tab-panel overview-grid">
                 <div class="stack">
                     <section class="card">
@@ -128,14 +128,37 @@
                                     <span class="value">{{ profile.legalName }}</span>
                                 </div>
                             }
+                            @if (profile.gender) {
+                                <div class="field">
+                                    <span class="label">Gender</span>
+                                    <span class="value">{{
+                                        genderLabels[profile.gender] || (profile.gender | titlecase)
+                                    }}</span>
+                                </div>
+                            }
                             @if (profile.birthday) {
                                 <div class="field">
                                     <span class="label">Birthday</span>
                                     <span class="value">{{ profile.birthday | appDate }}</span>
                                 </div>
                             }
-                            @if (profile.nationalities && profile.nationalities.length > 0) {
+                            @if (profile.maritalStatus) {
                                 <div class="field">
+                                    <span class="label">Marital Status</span>
+                                    <span class="value">{{
+                                        maritalStatusLabels[profile.maritalStatus] ||
+                                            (profile.maritalStatus | titlecase)
+                                    }}</span>
+                                </div>
+                            }
+                            @if (profile.religion) {
+                                <div class="field">
+                                    <span class="label">Religion</span>
+                                    <span class="value">{{ profile.religion }}</span>
+                                </div>
+                            }
+                            @if (profile.nationalities && profile.nationalities.length > 0) {
+                                <div class="field wide">
                                     <span class="label">Nationalities</span>
                                     <div class="tag-list">
                                         @for (n of profile.nationalities; track $index) {
@@ -145,7 +168,7 @@
                                 </div>
                             }
                         </div>
-                        @if (!hasIdentityInfo) {
+                        @if (!hasIdentityInfo && !profile.gender && !profile.maritalStatus && !profile.religion) {
                             <p class="empty-note">No identity information available.</p>
                         }
                     </section>
@@ -159,15 +182,150 @@
                                     <span class="value">{{ profile.workPhone }}</span>
                                 </div>
                             }
+                            @if (profile.personalPhone) {
+                                <div class="field">
+                                    <span class="label">Personal Phone</span>
+                                    <span class="value">{{ profile.personalPhone }}</span>
+                                </div>
+                            }
+                            @if (profile.homeCountryPhone) {
+                                <div class="field">
+                                    <span class="label">Home Country Phone</span>
+                                    <span class="value">{{ profile.homeCountryPhone }}</span>
+                                </div>
+                            }
                             @if (profile.personalEmail) {
                                 <div class="field">
                                     <span class="label">Personal Email</span>
                                     <span class="value">{{ profile.personalEmail }}</span>
                                 </div>
                             }
+                            @if (profile.additionalPhones && profile.additionalPhones.length > 0) {
+                                <div class="field wide">
+                                    <span class="label">Additional Numbers</span>
+                                    <div class="tag-list">
+                                        @for (p of profile.additionalPhones; track $index) {
+                                            <span class="tag">{{ p }}</span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            @if (profile.currentAddress) {
+                                <div class="field wide">
+                                    <span class="label">Current Address</span>
+                                    <span class="value address-value">{{
+                                        profile.currentAddress | profileAddress
+                                    }}</span>
+                                </div>
+                            }
+                            @if (profile.homeCountryAddress) {
+                                <div class="field wide">
+                                    <span class="label">Home Country Address</span>
+                                    <span class="value address-value">{{
+                                        profile.homeCountryAddress | profileAddress
+                                    }}</span>
+                                </div>
+                            }
+                            @if (
+                                profile.emergencyContact &&
+                                (profile.emergencyContact.name || profile.emergencyContact.phone)
+                            ) {
+                                <div class="field wide">
+                                    <span class="label">Emergency Contact</span>
+                                    <span class="value">
+                                        {{ profile.emergencyContact.name }}
+                                        @if (profile.emergencyContact.relationship) {
+                                            <span class="subtext">({{ profile.emergencyContact.relationship }})</span>
+                                        }
+                                        @if (profile.emergencyContact.phone) {
+                                            &nbsp;·&nbsp;{{ profile.emergencyContact.phone }}
+                                        }
+                                    </span>
+                                </div>
+                            }
                         </div>
-                        @if (!profile.workPhone && !profile.personalEmail) {
+                        @if (!hasContactInfo) {
                             <p class="empty-note">No contact information available.</p>
+                        }
+                    </section>
+
+                    <section class="card">
+                        <h3 class="card-title"><mat-icon>work</mat-icon>Employment</h3>
+                        <div class="fields">
+                            @if (profile.employmentTitle) {
+                                <div class="field">
+                                    <span class="label">Title</span>
+                                    <span class="value">{{ profile.employmentTitle.name }}</span>
+                                </div>
+                            }
+                            @if (profile.level) {
+                                <div class="field">
+                                    <span class="label">Level</span>
+                                    <span class="value">{{ profile.level.name }}</span>
+                                </div>
+                            }
+                            @if (profile.employmentType) {
+                                <div class="field">
+                                    <span class="label">Employment Type</span>
+                                    <span class="value">{{
+                                        employmentTypeLabels[profile.employmentType] ||
+                                            (profile.employmentType | titlecase)
+                                    }}</span>
+                                </div>
+                            }
+                            @if (profile.employmentDate) {
+                                <div class="field">
+                                    <span class="label">Start Date</span>
+                                    <span class="value">{{ profile.employmentDate | appDate }}</span>
+                                </div>
+                            }
+                            @if (profile.office) {
+                                <div class="field">
+                                    <span class="label">Office</span>
+                                    <span class="value">{{ profile.office.name }}</span>
+                                </div>
+                            }
+                            @if (departmentName) {
+                                <div class="field">
+                                    <span class="label">Department</span>
+                                    <span class="value">{{ departmentName }}</span>
+                                </div>
+                            }
+                            @if (profile.isOutsourced !== undefined) {
+                                <div class="field">
+                                    <span class="label">Outsourced</span>
+                                    <span class="value">{{ profile.isOutsourced ? "Yes" : "No" }}</span>
+                                </div>
+                            }
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <h3 class="card-title"><mat-icon>school</mat-icon>Education</h3>
+                        @if (profile.education && profile.education.length > 0) {
+                            <div class="education-list">
+                                @for (entry of profile.education; track $index) {
+                                    <div class="education-entry">
+                                        <div class="edu-title">{{ entry.institution }}</div>
+                                        <div class="edu-sub">
+                                            @if (entry.degreeLevel) {
+                                                <span>{{
+                                                    degreeLevelLabels[entry.degreeLevel] ||
+                                                        (entry.degreeLevel | titlecase)
+                                                }}</span>
+                                            }
+                                            @if (entry.degreeTitle) {
+                                                <span>{{ entry.degreeTitle }}</span>
+                                            }
+                                            @if (entry.yearAchieved) {
+                                                <span>{{ entry.yearAchieved }}</span>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        } @else {
+                            <p class="empty-note">No education information available.</p>
                         }
                     </section>
                 </div>
@@ -216,257 +374,26 @@
                             }
                         </div>
                     </section>
+
+                    @if (canViewCompensation && profile.salary) {
+                        <section class="card">
+                            <h3 class="card-title"><mat-icon>payments</mat-icon>Compensation</h3>
+                            <div class="fields">
+                                <div class="field">
+                                    <span class="label">Salary</span>
+                                    <span class="value">{{ profile.salary }}</span>
+                                </div>
+                            </div>
+                        </section>
+                    }
                 </div>
             </div>
         }
 
-        <!-- ── PERSONAL ── -->
-        @if (activeTab() === "personal") {
+        <!-- ── REQUESTS ── -->
+        @if (activeTab() === "requests" && profile._id) {
             <div class="tab-panel">
-                <section class="card">
-                    <h3 class="card-title"><mat-icon>badge</mat-icon>Identity</h3>
-                    <div class="fields">
-                        @if (profile.firstName || profile.lastName) {
-                            <div class="field">
-                                <span class="label">Display Name</span>
-                                <span class="value">{{ profile.firstName }} {{ profile.lastName }}</span>
-                            </div>
-                        }
-                        @if (profile.legalName) {
-                            <div class="field">
-                                <span class="label">Legal Name</span>
-                                <span class="value">{{ profile.legalName }}</span>
-                            </div>
-                        }
-                        @if (profile.gender) {
-                            <div class="field">
-                                <span class="label">Gender</span>
-                                <span class="value">{{
-                                    genderLabels[profile.gender] || (profile.gender | titlecase)
-                                }}</span>
-                            </div>
-                        }
-                        @if (profile.birthday) {
-                            <div class="field">
-                                <span class="label">Birthday</span>
-                                <span class="value">{{ profile.birthday | appDate }}</span>
-                            </div>
-                        }
-                        @if (profile.maritalStatus) {
-                            <div class="field">
-                                <span class="label">Marital Status</span>
-                                <span class="value">{{
-                                    maritalStatusLabels[profile.maritalStatus] || (profile.maritalStatus | titlecase)
-                                }}</span>
-                            </div>
-                        }
-                        @if (profile.religion) {
-                            <div class="field">
-                                <span class="label">Religion</span>
-                                <span class="value">{{ profile.religion }}</span>
-                            </div>
-                        }
-                        @if (profile.nationalities && profile.nationalities.length > 0) {
-                            <div class="field wide">
-                                <span class="label">Nationalities</span>
-                                <div class="tag-list">
-                                    @for (n of profile.nationalities; track $index) {
-                                        <span class="tag">{{ n }}</span>
-                                    }
-                                </div>
-                            </div>
-                        }
-                    </div>
-                    @if (!hasIdentityInfo && !profile.gender && !profile.maritalStatus && !profile.religion) {
-                        <p class="empty-note">No identity information available.</p>
-                    }
-                </section>
-            </div>
-        }
-
-        <!-- ── CONTACT ── -->
-        @if (activeTab() === "contact") {
-            <div class="tab-panel">
-                <section class="card">
-                    <h3 class="card-title"><mat-icon>contacts</mat-icon>Contact</h3>
-                    <div class="fields">
-                        @if (profile.workPhone) {
-                            <div class="field">
-                                <span class="label">Work Phone</span>
-                                <span class="value">{{ profile.workPhone }}</span>
-                            </div>
-                        }
-                        @if (profile.personalPhone) {
-                            <div class="field">
-                                <span class="label">Personal Phone</span>
-                                <span class="value">{{ profile.personalPhone }}</span>
-                            </div>
-                        }
-                        @if (profile.homeCountryPhone) {
-                            <div class="field">
-                                <span class="label">Home Country Phone</span>
-                                <span class="value">{{ profile.homeCountryPhone }}</span>
-                            </div>
-                        }
-                        @if (profile.personalEmail) {
-                            <div class="field">
-                                <span class="label">Personal Email</span>
-                                <span class="value">{{ profile.personalEmail }}</span>
-                            </div>
-                        }
-                        @if (profile.additionalPhones && profile.additionalPhones.length > 0) {
-                            <div class="field wide">
-                                <span class="label">Additional Numbers</span>
-                                <div class="tag-list">
-                                    @for (p of profile.additionalPhones; track $index) {
-                                        <span class="tag">{{ p }}</span>
-                                    }
-                                </div>
-                            </div>
-                        }
-                        @if (profile.currentAddress) {
-                            <div class="field wide">
-                                <span class="label">Current Address</span>
-                                <span class="value address-value">{{ profile.currentAddress | profileAddress }}</span>
-                            </div>
-                        }
-                        @if (profile.homeCountryAddress) {
-                            <div class="field wide">
-                                <span class="label">Home Country Address</span>
-                                <span class="value address-value">{{
-                                    profile.homeCountryAddress | profileAddress
-                                }}</span>
-                            </div>
-                        }
-                        @if (
-                            profile.emergencyContact &&
-                            (profile.emergencyContact.name || profile.emergencyContact.phone)
-                        ) {
-                            <div class="field wide">
-                                <span class="label">Emergency Contact</span>
-                                <span class="value">
-                                    {{ profile.emergencyContact.name }}
-                                    @if (profile.emergencyContact.relationship) {
-                                        <span class="subtext">({{ profile.emergencyContact.relationship }})</span>
-                                    }
-                                    @if (profile.emergencyContact.phone) {
-                                        &nbsp;·&nbsp;{{ profile.emergencyContact.phone }}
-                                    }
-                                </span>
-                            </div>
-                        }
-                    </div>
-                    @if (!hasContactInfo) {
-                        <p class="empty-note">No contact information available.</p>
-                    }
-                </section>
-            </div>
-        }
-
-        <!-- ── EMPLOYMENT ── -->
-        @if (activeTab() === "employment") {
-            <div class="tab-panel stack">
-                <section class="card">
-                    <h3 class="card-title"><mat-icon>work</mat-icon>Employment</h3>
-                    <div class="fields">
-                        @if (profile.employmentTitle) {
-                            <div class="field">
-                                <span class="label">Title</span>
-                                <span class="value">{{ profile.employmentTitle.name }}</span>
-                            </div>
-                        }
-                        @if (profile.level) {
-                            <div class="field">
-                                <span class="label">Level</span>
-                                <span class="value">{{ profile.level.name }}</span>
-                            </div>
-                        }
-                        @if (profile.employmentType) {
-                            <div class="field">
-                                <span class="label">Employment Type</span>
-                                <span class="value">{{
-                                    employmentTypeLabels[profile.employmentType] || (profile.employmentType | titlecase)
-                                }}</span>
-                            </div>
-                        }
-                        @if (profile.employmentDate) {
-                            <div class="field">
-                                <span class="label">Start Date</span>
-                                <span class="value">{{ profile.employmentDate | appDate }}</span>
-                            </div>
-                        }
-                        @if (profile.office) {
-                            <div class="field">
-                                <span class="label">Office</span>
-                                <span class="value">{{ profile.office.name }}</span>
-                            </div>
-                        }
-                        @if (departmentName) {
-                            <div class="field">
-                                <span class="label">Department</span>
-                                <span class="value">{{ departmentName }}</span>
-                            </div>
-                        }
-                        @if (profile.manager) {
-                            <div class="field">
-                                <span class="label">Manager</span>
-                                <span class="value">{{ profile.manager.name }}</span>
-                            </div>
-                        }
-                        @if (profile.hrRepresentative) {
-                            <div class="field">
-                                <span class="label">HR Representative</span>
-                                <span class="value">{{ profile.hrRepresentative.name }}</span>
-                            </div>
-                        }
-                        @if (profile.isOutsourced !== undefined) {
-                            <div class="field">
-                                <span class="label">Outsourced</span>
-                                <span class="value">{{ profile.isOutsourced ? "Yes" : "No" }}</span>
-                            </div>
-                        }
-                    </div>
-                </section>
-
-                <section class="card">
-                    <h3 class="card-title"><mat-icon>school</mat-icon>Education</h3>
-                    @if (profile.education && profile.education.length > 0) {
-                        <div class="education-list">
-                            @for (entry of profile.education; track $index) {
-                                <div class="education-entry">
-                                    <div class="edu-title">{{ entry.institution }}</div>
-                                    <div class="edu-sub">
-                                        @if (entry.degreeLevel) {
-                                            <span>{{
-                                                degreeLevelLabels[entry.degreeLevel] || (entry.degreeLevel | titlecase)
-                                            }}</span>
-                                        }
-                                        @if (entry.degreeTitle) {
-                                            <span>{{ entry.degreeTitle }}</span>
-                                        }
-                                        @if (entry.yearAchieved) {
-                                            <span>{{ entry.yearAchieved }}</span>
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    } @else {
-                        <p class="empty-note">No education information available.</p>
-                    }
-                </section>
-
-                @if (canViewCompensation && profile.salary) {
-                    <section class="card">
-                        <h3 class="card-title"><mat-icon>payments</mat-icon>Compensation</h3>
-                        <div class="fields">
-                            <div class="field">
-                                <span class="label">Salary</span>
-                                <span class="value">{{ profile.salary }}</span>
-                            </div>
-                        </div>
-                    </section>
-                }
+                <app-profile-requests [userId]="profile._id" />
             </div>
         }
 

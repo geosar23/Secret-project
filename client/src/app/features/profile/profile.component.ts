@@ -21,13 +21,14 @@ import { BreadcrumbService } from "../../core/services/breadcrumb.service";
 import { PermissionService } from "../../core/services/permission.service";
 
 import { ProfileAddressPipe } from "./profile-address.pipe";
+import { ProfileRequestsComponent } from "./profile-requests/profile-requests.component";
 import {
     GENDER_LABELS,
     MARITAL_STATUS_LABELS,
     EMPLOYMENT_TYPE_LABELS,
     DEGREE_LEVEL_LABELS,
 } from "../../core/enums/profile.enum";
-export type ProfileTabId = "overview" | "personal" | "contact" | "employment" | "security";
+export type ProfileTabId = "details" | "requests" | "security";
 
 @Component({
     selector: "app-profile",
@@ -41,6 +42,7 @@ export type ProfileTabId = "overview" | "personal" | "contact" | "employment" | 
         MatProgressSpinnerModule,
         MatIconModule,
         ProfileAddressPipe,
+        ProfileRequestsComponent,
     ],
     templateUrl: "./profile.component.html",
     styleUrls: ["./profile.component.scss"],
@@ -70,13 +72,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
     pageTitle = "My Profile";
 
     readonly tabs: { id: ProfileTabId; label: string; icon: string }[] = [
-        { id: "overview", label: "Overview", icon: "dashboard" },
-        { id: "personal", label: "Personal", icon: "badge" },
-        { id: "contact", label: "Contact", icon: "contacts" },
-        { id: "employment", label: "Employment", icon: "work" },
+        { id: "details", label: "Details", icon: "badge" },
+        { id: "requests", label: "Requests", icon: "assignment" },
         { id: "security", label: "Security", icon: "shield" },
     ];
-    activeTab = signal<ProfileTabId>("overview");
+    activeTab = signal<ProfileTabId>("details");
 
     ngOnInit(): void {
         this.route.data.pipe(takeUntil(this.destroy$)).subscribe(data => {

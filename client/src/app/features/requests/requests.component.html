@@ -1,0 +1,413 @@
+<div class="page-container requests-page" [class.has-detail]="selectedId()">
+    <app-page-header title="Requests" subtitle="Review and manage requests">
+        @if (creatableTypes().length > 0) {
+            <button mat-flat-button color="primary" type="button" [matMenuTriggerFor]="newRequestMenu">
+                <mat-icon>add</mat-icon>
+                New request
+                <mat-icon iconPositionEnd>arrow_drop_down</mat-icon>
+            </button>
+        }
+    </app-page-header>
+
+    <mat-menu #newRequestMenu="matMenu">
+        @for (type of creatableTypes(); track type.key) {
+            <button mat-menu-item type="button" (click)="startRequest(type)">
+                <mat-icon>{{ iconOf(type) }}</mat-icon>
+                <span>{{ type.name }}</span>
+            </button>
+        }
+    </mat-menu>
+
+    <div class="stats">
+        <button
+            type="button"
+            class="stat"
+            [class.active]="tab() === 'mine' && status() === 'pending'"
+            [attr.aria-pressed]="tab() === 'mine' && status() === 'pending'"
+            (click)="openCard('mine', 'pending')"
+        >
+            <span class="stat-value">{{ summary()?.myPending ?? 0 }}</span>
+            <span class="stat-label">My pending requests</span>
+            <span class="stat-meta">Waiting for a decision</span>
+        </button>
+        @if (showInboxTab()) {
+            <button
+                type="button"
+                class="stat"
+                [class.active]="tab() === 'inbox'"
+                [attr.aria-pressed]="tab() === 'inbox'"
+                (click)="openCard('inbox')"
+            >
+                <span class="stat-value">{{ summary()?.pendingForMe ?? 0 }}</span>
+                <span class="stat-label">Needs my action</span>
+                <span class="stat-meta">
+                    @if (summary()?.oldestPendingForMe; as oldest) {
+                        Oldest from {{ oldest | appDate }}
+                    } @else {
+                        Nothing waiting
+                    }
+                </span>
+            </button>
+        }
+        @if (showTeamTab()) {
+            <button
+                type="button"
+                class="stat"
+                [class.active]="tab() === 'team' && status() === 'needsRouting'"
+                [attr.aria-pressed]="tab() === 'team' && status() === 'needsRouting'"
+                (click)="openCard('team', 'needsRouting')"
+            >
+                <span class="stat-value">{{ summary()?.needsRouting ?? 0 }}</span>
+                <span class="stat-label">Needs routing</span>
+                <span class="stat-meta">No approver assigned yet</span>
+            </button>
+        }
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Request lists">
+        @if (showInboxTab()) {
+            <button
+                type="button"
+                role="tab"
+                class="tab"
+                [class.active]="tab() === 'inbox'"
+                [attr.aria-selected]="tab() === 'inbox'"
+                (click)="selectTab('inbox')"
+            >
+                Needs my action
+                @if ((summary()?.pendingForMe ?? 0) > 0) {
+                    <span class="tab-count">{{ summary()?.pendingForMe }}</span>
+                }
+            </button>
+        }
+        <button
+            type="button"
+            role="tab"
+            class="tab"
+            [class.active]="tab() === 'mine'"
+            [attr.aria-selected]="tab() === 'mine'"
+            (click)="selectTab('mine')"
+        >
+            My requests
+        </button>
+        @if (showTeamTab()) {
+            <button
+                type="button"
+                role="tab"
+                class="tab"
+                [class.active]="tab() === 'team'"
+                [attr.aria-selected]="tab() === 'team'"
+                (click)="selectTab('team')"
+            >
+                Team
+            </button>
+        }
+    </div>
+
+    <div class="filters">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>Request type</mat-label>
+            <mat-select [ngModel]="type()" (ngModelChange)="onTypeChange($event)">
+                <mat-option value="">All types</mat-option>
+                @for (option of types(); track option.key) {
+                    <mat-option [value]="option.key">{{ option.name }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+
+        @if (showStatusFilter()) {
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Status</mat-label>
+                <mat-select [ngModel]="status()" (ngModelChange)="onStatusChange($event)">
+                    <mat-option value="">All statuses</mat-option>
+                    @for (option of statusOptions; track option) {
+                        <mat-option [value]="option">{{ statusLabels[option] }}</mat-option>
+                    }
+                    <mat-option value="needsRouting">{{ needsRoutingLabel }}</mat-option>
+                </mat-select>
+            </mat-form-field>
+        }
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="dates">
+            <mat-label>Submitted between</mat-label>
+            <mat-date-range-input [rangePicker]="rangePicker">
+                <input
+                    matStartDate
+                    placeholder="DD/MM/YYYY"
+                    [ngModel]="from()"
+                    (ngModelChange)="onDates($event, to())"
+                />
+                <input matEndDate placeholder="DD/MM/YYYY" [ngModel]="to()" (ngModelChange)="onDates(from(), $event)" />
+            </mat-date-range-input>
+            <mat-datepicker-toggle matIconSuffix [for]="rangePicker"></mat-datepicker-toggle>
+            <mat-date-range-picker #rangePicker></mat-date-range-picker>
+        </mat-form-field>
+
+        @if (hasFilters()) {
+            <button mat-button color="primary" type="button" (click)="clearFilters()">Clear filters</button>
+        }
+    </div>
+
+    <div class="split">
+        <section class="list card" aria-label="Requests">
+            @if (loading()) {
+                <div class="loading-container">
+                    <mat-spinner diameter="36"></mat-spinner>
+                    <p>Loading requests…</p>
+                </div>
+            } @else if (loadFailed()) {
+                <div class="empty-state">
+                    <mat-icon>error_outline</mat-icon>
+                    <h3>Requests did not load</h3>
+                    <p>Check your connection and try again.</p>
+                    <button class="btn btn-primary" type="button" (click)="reload()">Try again</button>
+                </div>
+            } @else if (items().length === 0) {
+                <div class="empty-state">
+                    <mat-icon>inbox</mat-icon>
+                    @if (hasFilters()) {
+                        <h3>No requests match these filters</h3>
+                        <p>Try different filters or clear them.</p>
+                        <button class="btn btn-secondary" type="button" (click)="clearFilters()">Clear filters</button>
+                    } @else if (tab() === "inbox") {
+                        <h3>Nothing is waiting for you</h3>
+                        <p>Requests that need your decision will show up here.</p>
+                    } @else if (tab() === "team") {
+                        <h3>No team requests yet</h3>
+                        <p>Requests from the people you oversee will show up here.</p>
+                    } @else {
+                        <h3>No requests yet</h3>
+                        <p>Requests you submit, and requests about you, will show up here.</p>
+                        @if (creatableTypes().length > 0) {
+                            <button class="btn btn-primary" type="button" [matMenuTriggerFor]="newRequestMenu">
+                                New request
+                            </button>
+                        }
+                    }
+                </div>
+            } @else {
+                <div role="list">
+                    @for (item of items(); track item.id) {
+                        <button
+                            type="button"
+                            role="listitem"
+                            class="row"
+                            [class.selected]="item.id === selectedId()"
+                            (click)="select(item)"
+                        >
+                            <span class="avatar" aria-hidden="true">{{ initials(item.subject.name) }}</span>
+                            <span class="row-main">
+                                <span class="row-name">{{ item.subject.name || "Unknown" }}</span>
+                                <span class="row-title">{{ item.summary.title }}</span>
+                                <span class="row-meta">
+                                    Submitted {{ item.createdAt | appDate }}
+                                    @if (item.status === "pending" && item.currentStep) {
+                                        · Waiting for {{ item.currentStep.name }}
+                                    }
+                                </span>
+                            </span>
+                            <span class="row-end">
+                                <app-request-status-badge [status]="item.status" />
+                                @if (item.needsRouting) {
+                                    <span class="badge badge-info">Needs routing</span>
+                                }
+                            </span>
+                        </button>
+                    }
+                </div>
+                <mat-paginator
+                    [length]="total()"
+                    [pageIndex]="page()"
+                    [pageSize]="pageSize()"
+                    [pageSizeOptions]="pageSizeOptions"
+                    (page)="onPage($event)"
+                    aria-label="Select page of requests"
+                ></mat-paginator>
+            }
+        </section>
+
+        <aside class="detail card" aria-label="Request detail">
+            @if (!selectedId()) {
+                <div class="empty-state">
+                    <mat-icon>touch_app</mat-icon>
+                    <h3>Select a request</h3>
+                    <p>Choose a request from the list to see its details and history.</p>
+                </div>
+            } @else if (detailLoading() && !detail()) {
+                <div class="loading-container">
+                    <mat-spinner diameter="36"></mat-spinner>
+                    <p>Loading request…</p>
+                </div>
+            } @else if (detailFailed() || !detail()) {
+                <div class="empty-state">
+                    <mat-icon>error_outline</mat-icon>
+                    <h3>This request could not be opened</h3>
+                    <p>It may not exist, or you may not have access to it.</p>
+                    <button class="btn btn-secondary" type="button" (click)="closeDetail()">Back to the list</button>
+                </div>
+            } @else {
+                @let d = detail()!;
+                <div class="detail-scroll">
+                    <button type="button" class="back" (click)="closeDetail()">
+                        <mat-icon>arrow_back</mat-icon>
+                        All requests
+                    </button>
+
+                    <header class="detail-head">
+                        <span class="avatar avatar-lg" aria-hidden="true">{{ initials(d.subject.name) }}</span>
+                        <div class="detail-who">
+                            <h3>{{ d.subject.name }}</h3>
+                            <span class="muted">{{ d.summary.title }}</span>
+                        </div>
+                        <app-request-status-badge [status]="d.status" />
+                    </header>
+
+                    <dl class="facts">
+                        <div>
+                            <dt>Submitted</dt>
+                            <dd>{{ d.createdAt | appDate }}</dd>
+                        </div>
+                        @if (d.requester.id !== d.subject.id) {
+                            <div>
+                                <dt>Submitted by</dt>
+                                <dd>{{ d.requester.name }}</dd>
+                            </div>
+                        }
+                        @if (d.status === "pending" && d.currentStep) {
+                            <div>
+                                <dt>Current step</dt>
+                                <dd>{{ d.currentStep.name }}</dd>
+                            </div>
+                        }
+                        @if (d.decidedAt) {
+                            <div>
+                                <dt>Decided</dt>
+                                <dd>{{ d.decidedAt | appDate }}</dd>
+                            </div>
+                        }
+                    </dl>
+
+                    @if (d.needsRouting) {
+                        <div class="notice notice-info" role="status">
+                            <mat-icon>alt_route</mat-icon>
+                            <span>No approver is assigned yet. HR will route this request.</span>
+                        </div>
+                    }
+
+                    @if (d.detail; as leave) {
+                        <h4 class="section-label">Leave details</h4>
+                        <dl class="facts">
+                            <div>
+                                <dt>Type</dt>
+                                <dd>{{ leave.leaveType?.name }}</dd>
+                            </div>
+                            <div>
+                                <dt>Dates</dt>
+                                <dd>
+                                    {{ leave.startDate | appDate }}
+                                    @if (leave.endDate !== leave.startDate) {
+                                        – {{ leave.endDate | appDate }}
+                                    }
+                                </dd>
+                            </div>
+                            <div>
+                                <dt>Days</dt>
+                                <dd>{{ leave.totals.quantity }}</dd>
+                            </div>
+                            @if (leave.balance && leave.balance.tracked) {
+                                <div>
+                                    <dt>Available now</dt>
+                                    <dd>{{ leave.balance.available }} days</dd>
+                                </div>
+                            }
+                            @if (leave.policy) {
+                                <div>
+                                    <dt>Policy</dt>
+                                    <dd>{{ leave.policy.name }} v{{ leave.policy.version }}</dd>
+                                </div>
+                            }
+                            @if (leave.reason) {
+                                <div>
+                                    <dt>Reason</dt>
+                                    <dd>{{ leave.reason }}</dd>
+                                </div>
+                            }
+                        </dl>
+                    }
+
+                    <h4 class="section-label">History</h4>
+                    <ol class="timeline">
+                        @for (entry of timeline(); track entry.key) {
+                            <li [class]="'tl-' + entry.tone">
+                                <mat-icon class="tl-icon" aria-hidden="true">{{ entry.icon }}</mat-icon>
+                                <div>
+                                    <div class="tl-text">{{ entry.text }}</div>
+                                    @if (entry.note) {
+                                        <div class="tl-note">“{{ entry.note }}”</div>
+                                    }
+                                    <div class="tl-date">{{ entry.date | appDate: "datetime" }}</div>
+                                </div>
+                            </li>
+                        }
+                    </ol>
+                </div>
+
+                @if (d.can.decide || d.can.cancel) {
+                    <footer class="actions">
+                        @if (pendingAction(); as kind) {
+                            <label class="action-label" for="action-text">
+                                {{ kind === "reject" ? "Comment (optional)" : "Reason for canceling (required)" }}
+                            </label>
+                            <textarea
+                                id="action-text"
+                                class="form-control"
+                                rows="2"
+                                [ngModel]="actionText()"
+                                (ngModelChange)="actionText.set($event)"
+                            ></textarea>
+                            <div class="action-buttons">
+                                <button
+                                    type="button"
+                                    class="btn btn-ghost"
+                                    (click)="resetAction()"
+                                    [disabled]="acting()"
+                                >
+                                    Back
+                                </button>
+                                <app-loading-button
+                                    [label]="pendingAction() === 'reject' ? 'Reject request' : 'Cancel request'"
+                                    [loadingLabel]="pendingAction() === 'reject' ? 'Rejecting...' : 'Canceling...'"
+                                    color="warn"
+                                    [loading]="acting()"
+                                    [disabled]="!canConfirmAction()"
+                                    [minWidth]="'140px'"
+                                    (buttonClick)="confirmAction()"
+                                ></app-loading-button>
+                            </div>
+                        } @else {
+                            <div class="action-buttons">
+                                @if (d.can.cancel) {
+                                    <button type="button" class="btn btn-secondary" (click)="startAction('cancel')">
+                                        Cancel request
+                                    </button>
+                                }
+                                @if (d.can.decide) {
+                                    <button type="button" class="btn btn-danger" (click)="startAction('reject')">
+                                        Reject
+                                    </button>
+                                    <app-loading-button
+                                        label="Approve"
+                                        loadingLabel="Approving..."
+                                        [loading]="acting()"
+                                        [minWidth]="'120px'"
+                                        (buttonClick)="approve()"
+                                    ></app-loading-button>
+                                }
+                            </div>
+                        }
+                    </footer>
+                }
+            }
+        </aside>
+    </div>
+</div>

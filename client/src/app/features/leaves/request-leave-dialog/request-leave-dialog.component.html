@@ -1,0 +1,102 @@
+<h2 mat-dialog-title>Request leave</h2>
+
+<mat-dialog-content>
+    <form [formGroup]="form" (ngSubmit)="submit()" class="leave-form">
+        @if (typesError()) {
+            <div class="notice notice-error" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                <span>Your leave types could not be loaded. Close this window and try again.</span>
+            </div>
+        }
+
+        <mat-form-field appearance="outline">
+            <mat-label>Leave type</mat-label>
+            <mat-select formControlName="leaveType" [disabled]="typesLoading() || typesError()">
+                @for (item of balances(); track item.leaveType.id) {
+                    <mat-option [value]="item.leaveType.id">
+                        {{ item.leaveType.name }}
+                        <span class="option-hint">
+                            @if (item.tracked) {
+                                {{ item.available }} days available
+                            } @else {
+                                not tracked
+                            }
+                        </span>
+                    </mat-option>
+                }
+            </mat-select>
+            @if (typesLoading()) {
+                <mat-hint>Loading your leave types…</mat-hint>
+            }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Dates</mat-label>
+            <mat-date-range-input [rangePicker]="rangePicker">
+                <input matStartDate formControlName="start" placeholder="DD/MM/YYYY" />
+                <input matEndDate formControlName="end" placeholder="DD/MM/YYYY" />
+            </mat-date-range-input>
+            <mat-datepicker-toggle matIconSuffix [for]="rangePicker"></mat-datepicker-toggle>
+            <mat-date-range-picker #rangePicker></mat-date-range-picker>
+            <mat-hint>Pick the first and last day. Select the same day twice for a single day.</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Reason (optional)</mat-label>
+            <textarea matInput formControlName="reason" rows="2"></textarea>
+        </mat-form-field>
+
+        <section class="preview" aria-live="polite">
+            @switch (preview().kind) {
+                @case ("loading") {
+                    <div class="preview-row muted">
+                        <mat-spinner diameter="18"></mat-spinner>
+                        <span>Checking these dates…</span>
+                    </div>
+                }
+                @case ("ok") {
+                    <div class="preview-row">
+                        <mat-icon class="ok">event_available</mat-icon>
+                        <div>
+                            <div class="preview-days">{{ daysLine() }}</div>
+                            @if (balanceLine(); as line) {
+                                <div class="preview-balance">{{ line }}</div>
+                            }
+                        </div>
+                    </div>
+                }
+                @case ("error") {
+                    <div class="preview-row error" role="alert">
+                        <mat-icon>error_outline</mat-icon>
+                        <span>{{ errorMessage() }}</span>
+                    </div>
+                }
+                @default {
+                    <div class="preview-row muted">
+                        <mat-icon>info_outline</mat-icon>
+                        <span>Choose a leave type and dates to see the days and your balance.</span>
+                    </div>
+                }
+            }
+        </section>
+
+        @if (submitError(); as message) {
+            <div class="notice notice-error" role="alert">
+                <mat-icon>error_outline</mat-icon>
+                <span>{{ message }}</span>
+            </div>
+        }
+    </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="cancel()" [disabled]="submitting()">Cancel</button>
+    <app-loading-button
+        label="Submit request"
+        loadingLabel="Submitting..."
+        [loading]="submitting()"
+        [disabled]="!canSubmit()"
+        [minWidth]="'150px'"
+        (buttonClick)="submit()"
+    ></app-loading-button>
+</mat-dialog-actions>

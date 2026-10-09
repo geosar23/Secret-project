@@ -28,9 +28,9 @@ import {
     countDescendants,
     findNode,
     flattenNodes,
-    initialsOf,
     layoutTree,
 } from "./org-chart.layout";
+import { initialsOf } from "../../core/utils/name.utils";
 
 const MIN_SCALE = 0.2;
 const MAX_SCALE = 2.5;
