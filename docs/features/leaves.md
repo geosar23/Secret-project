@@ -8,7 +8,7 @@
 
 ## 0. Built so far (first slice, 09/10/2026)
 
-An employee (or HR / a manager on their behalf) requests leave; the line manager (HR representative as fallback) approves or rejects through the shared engine; the requester or HR can cancel; balances per leave type are reflected through the ledger. Server only; the UI comes with the Requests page (P0-11D).
+An employee (or HR / a manager on their behalf) requests leave; the line manager (HR representative as fallback) approves or rejects through the shared engine; the requester or HR can cancel; balances per leave type are reflected through the ledger. The first UI slice is built (10/10/2026): dashboard balances, the Request leave modal and the Requests page. Settings screens and the HR on-behalf fields are not built yet.
 
 ### Decisions taken while building (09/10/2026)
 

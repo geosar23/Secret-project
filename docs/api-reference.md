@@ -158,15 +158,16 @@ All endpoints are prefixed with `/api`. All protected endpoints require a `Autho
 
 Shared by every request type (leave is the first). All routes require a token; nothing beyond authentication is needed to call them, because each handler checks the caller against the request itself. See [Approval Flows plan](./plans/approval-flows.md#84-http-api-built-09102026).
 
-| Method | Path                         | Auth | Description                                                                                                                                  |
-| ------ | ---------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| GET    | `/api/requests/inbox`        | Yes  | Pending requests waiting for me. Query: `type`, `page`, `limit` (max 100)                                                                    |
-| GET    | `/api/requests/mine`         | Yes  | Requests I raised or that are about me. Query: `type`, `status`, `page`, `limit`                                                             |
-| GET    | `/api/requests/summary`      | Yes  | `{ pendingForMe, myPending, unreadNotifications }` for login and the home page                                                               |
-| GET    | `/api/requests/:id`          | Yes  | Request, timeline, type detail and `can: { decide, cancel }`. Requester, subject, approvers, scoped viewers (`requests:read`, `leaves:read`) |
-| POST   | `/api/requests/:id/decision` | Yes  | `{ decision: "approve" \| "reject", comment? }`. Only a current approver with authority                                                      |
-| POST   | `/api/requests/:id/cancel`   | Yes  | `{ reason }`. Who may cancel is decided by the request type                                                                                  |
-| GET    | `/api/request-types`         | Yes  | Request types the company has enabled                                                                                                        |
+| Method | Path                         | Auth | Description                                                                                                                                                                                 |
+| ------ | ---------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET    | `/api/requests/inbox`        | Yes  | Pending requests waiting for me. Query: `type`, `from`, `to` (YYYY-MM-DD, submitted between), `status=needsRouting`, `page`, `limit` (max 100)                                              |
+| GET    | `/api/requests/mine`         | Yes  | Requests I raised or that are about me. Query: `type`, `status` (a status or `needsRouting`), `from`, `to`, `page`, `limit`                                                                 |
+| GET    | `/api/requests/team`         | Yes  | Requests about other people I may read (`requests:read` or the type's read permission, within scope; never my own). Same query as `/mine`. Empty when I have no such permission             |
+| GET    | `/api/requests/summary`      | Yes  | `{ pendingForMe, myPending, oldestPendingForMe, needsRouting, hasTeam, unreadNotifications }` for login, the home page and the Requests cards                                               |
+| GET    | `/api/requests/:id`          | Yes  | Request, timeline, `people` (names for everyone in the timeline), type detail and `can: { decide, cancel }`. Requester, subject, approvers, scoped viewers (`requests:read`, `leaves:read`) |
+| POST   | `/api/requests/:id/decision` | Yes  | `{ decision: "approve" \| "reject", comment? }`. Only a current approver with authority                                                                                                     |
+| POST   | `/api/requests/:id/cancel`   | Yes  | `{ reason }`. Who may cancel is decided by the request type                                                                                                                                 |
+| GET    | `/api/request-types`         | Yes  | Request types the company has enabled                                                                                                                                                       |
 
 Lists return `{ items, total, page, limit, totalPages }`.
 

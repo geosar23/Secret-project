@@ -16,7 +16,7 @@ Status legend: `[ ]` Not started · `[~]` In progress · `[x]` Done
 
 ### Leaves Module (Single-Step Manager Approval)
 
-- `[~]` Employees can create, view, and cancel leave requests (API built 09/10/2026; UI with the Requests page)
+- `[~]` Employees can create, view, and cancel leave requests (API built 09/10/2026; dashboard, Request leave modal and Requests page built 10/10/2026)
 - `[x]` Managers can approve/reject in one step (shared approval engine)
 - `[x]` Leave status lifecycle: pending → approved / rejected / canceled
 - `[x]` Basic leave balance tracking (per leave type, stored yearly grants)

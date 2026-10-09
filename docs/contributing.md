@@ -56,7 +56,7 @@ Common types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `style`, `perf
 
 ### Frontend checklist
 
-1. Create a feature folder under `client/src/app/features/<feature-name>/`.
+1. Create a feature folder under `client/src/app/features/<feature-name>/`. Services go in `client/src/app/core/services/`, server shapes in `core/interfaces/`, pure helpers in `core/utils/`, and UI shared by several features in `shared/components/` (see `.claude/skills/client-structure/SKILL.md`).
 2. Register routes in `client/src/app/app.routes.ts` (lazy-load the feature module).
 3. Add navigation links where appropriate.
 4. Mirror any new permission keys in the client enums.

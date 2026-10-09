@@ -466,6 +466,8 @@ Home page and login should call **one** summary endpoint returning `{ pendingFor
 
 ### 8.3 Requests page (P0-10)
 
+Design proposals (desktop, mobile and the empty, loading, error and "Needs my action" states) are in [`designs/requests-page.html`](../../designs/requests-page.html): option A is a table in the existing page layout, option B a list with a detail panel inside the app shell. Both are type-agnostic; leave is only the first request type.
+
 - Tabs: **Needs my action**, **My requests**, **Team/Company** (permission and scope dependent).
 - Filters: type, status, date range, requester, current step. Consistent server-side pagination and sorting.
 - Detail drawer: payload summary via `summarize()`, the step timeline rendered from `actionsHistory` (assigned, decided, reassigned, on behalf of), comments, and Approve/Reject buttons driven by whether the current user is pending, plus Cancel for the requester.
@@ -483,6 +485,8 @@ Shared by every request type. All routes require a token; `companyId` comes from
 | POST   | `/api/requests/:id/decision` | `{ decision: "approve"                                                                        | "reject", comment? }`. 403 if not pending or authority lost, 409 if already decided |
 | POST   | `/api/requests/:id/cancel`   | `{ reason }` (required). 403 if `canCancel` refuses, 409 if the state does not allow it       |
 | GET    | `/api/request-types`         | Request types the company has enabled                                                         |
+
+`GET /api/requests/:id` also returns `people` (user id to `{ id, name, email }` for the requester, subject, pending approvers and everyone in `actionsHistory`, including step assignees), so a client can label the timeline without extra calls.
 
 Lists return `{ items, total, page, limit, totalPages }`; each item carries `summary` (from `summarize()`), requester and subject names, the current step and `needsRouting`. A business rule the user can act on (for example overlapping leave) is answered as a soft error: HTTP 200, `success: false`, a readable `message` and `error.rule`.
 
