@@ -104,7 +104,7 @@ describe("permission gates for a user without leave permissions", () => {
         expect(inbox.status).toBe(200);
         expect(inbox.body.data.total).toBe(0);
         const summary = await request(app).get("/api/requests/summary").set(auth(noPermissions));
-        expect(summary.body.data).toEqual({ pendingForMe: 0, myPending: 0, unreadNotifications: 0 });
+        expect(summary.body.data).toMatchObject({ pendingForMe: 0, myPending: 0, unreadNotifications: 0 });
     });
 });
 

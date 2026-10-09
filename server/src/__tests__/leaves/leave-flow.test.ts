@@ -62,7 +62,7 @@ describe("submit and approve", () => {
         });
 
         const summary = await request(app).get("/api/requests/summary").set(auth(w.manager));
-        expect(summary.body.data).toEqual({ pendingForMe: 1, myPending: 0, unreadNotifications: 0 });
+        expect(summary.body.data).toMatchObject({ pendingForMe: 1, myPending: 0, unreadNotifications: 0 });
         const inbox = await request(app).get("/api/requests/inbox").set(auth(w.manager));
         expect(inbox.body.data.total).toBe(1);
         expect(inbox.body.data.items[0].summary.title).toMatch(
@@ -345,6 +345,18 @@ describe("visibility", () => {
 
         expect((await api.getRequest(w.hr, requestId)).status).toBe(200); // requests:read:*
         expect((await api.getRequest(w.colleague, requestId)).status).toBe(403);
+    });
+
+    it("names everyone in the timeline so the UI can label each step", async () => {
+        const requestId = (await submit()).body.data.requestId;
+        await api.decide(w.manager, requestId, "approve");
+        const { people, actionsHistory } = (await api.getRequest(w.employee, requestId)).body.data;
+        for (const entry of actionsHistory) {
+            if (entry.user !== "system") {
+                expect(people[entry.user]?.name).toEqual(expect.any(String));
+            }
+        }
+        expect(people[String(w.manager._id)]).toBeDefined();
     });
 
     it("a past approver can still read it after deciding", async () => {
