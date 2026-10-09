@@ -1,0 +1,86 @@
+{
+    "groups": [
+        {
+            "name": "Headings",
+            "family": "sans",
+            "styles": [
+                {
+                    "name": "h1",
+                    "fontSize": "36px",
+                    "lineHeight": "1.25",
+                    "fontWeight": 700,
+                    "usage": "Rare; page titles use h3."
+                },
+                {
+                    "name": "h2",
+                    "fontSize": "30px",
+                    "lineHeight": "1.25",
+                    "fontWeight": 600,
+                    "usage": "Major sections."
+                },
+                {
+                    "name": "h3",
+                    "fontSize": "24px",
+                    "lineHeight": "1.25",
+                    "fontWeight": 600,
+                    "usage": "Page titles (page header) and dialog titles."
+                },
+                {
+                    "name": "h4",
+                    "fontSize": "20px",
+                    "lineHeight": "1.25",
+                    "fontWeight": 600,
+                    "usage": "Subsections, empty-state titles."
+                },
+                {
+                    "name": "h5",
+                    "fontSize": "18px",
+                    "lineHeight": "1.25",
+                    "fontWeight": 600,
+                    "usage": "Card header titles."
+                },
+                {
+                    "name": "h6",
+                    "fontSize": "16px",
+                    "lineHeight": "1.25",
+                    "fontWeight": 600,
+                    "usage": "Small headings."
+                }
+            ]
+        },
+        {
+            "name": "Text",
+            "family": "sans",
+            "styles": [
+                {
+                    "name": "text-base",
+                    "fontSize": "16px",
+                    "lineHeight": "1.5",
+                    "fontWeight": 400,
+                    "usage": "Long-form text."
+                },
+                {
+                    "name": "text-sm",
+                    "fontSize": "14px",
+                    "lineHeight": "1.5",
+                    "fontWeight": 400,
+                    "usage": "Default UI text, buttons, table cells, form labels (500)."
+                },
+                {
+                    "name": "text-xs",
+                    "fontSize": "12px",
+                    "lineHeight": "1.5",
+                    "fontWeight": 400,
+                    "usage": "Badges, hints, meta."
+                },
+                {
+                    "name": "section-label",
+                    "fontSize": "10px",
+                    "lineHeight": "1.5",
+                    "fontWeight": 700,
+                    "usage": "Uppercase sidebar section labels, 0.075rem tracking."
+                }
+            ]
+        }
+    ]
+}

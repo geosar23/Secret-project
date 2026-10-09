@@ -11,7 +11,9 @@
         "format": "prettier --write \"**/*.{ts,js,json,css,scss,md,html}\" && eslint --fix \"server/src/**/*.{ts,js}\" \"client/src/**/*.{ts,html}\"",
         "lint": "eslint \"server/src/**/*.ts\" \"client/src/**/*.ts\" --fix",
         "lint:ci": "eslint \"server/src/**/*.ts\" \"client/src/**/*.ts\"",
-        "prepare": "husky"
+        "prepare": "husky",
+        "ds:build": "node design-system/build.mjs",
+        "ds:check": "node design-system/build.mjs --check"
     },
     "doc": {
         "how_to_run": "pray to god "

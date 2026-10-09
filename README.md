@@ -53,6 +53,7 @@ All detailed documentation lives in [`docs/`](./docs/index.md).
 | Understand file upload / storage      | [File Storage](./docs/features/file-storage.md)             |
 | Browse all REST endpoints             | [API Reference](./docs/api-reference.md)                    |
 | Run or write tests                    | [Testing](./docs/testing.md)                                |
+| Build UI with the design system       | [Design System](./design-system/README.md)                  |
 | Contribute code                       | [Contributing](./docs/contributing.md)                      |
 | See what changed                      | [Changelog](./docs/changelog.md)                            |
 | See what's planned                    | [Roadmap](./docs/roadmap.md)                                |

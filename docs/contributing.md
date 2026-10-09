@@ -61,6 +61,7 @@ Common types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `style`, `perf
 3. Add navigation links where appropriate.
 4. Mirror any new permission keys in the client enums.
 5. Add unit tests for components with non-trivial logic.
+6. Build UI from the [design system](../design-system/README.md): Material components first, then the global classes and tokens in `client/src/styles.scss`. If you change `styles.scss` tokens or component rules, run `npm run ds:check` and follow the [design system README](../design-system/README.md#changing-the-design-system).
 
 ### Skill file (required)
 

@@ -35,3 +35,6 @@ coverage/
 
 #local exports
 server/exports/
+
+# Design system publish bundle
+design-system/.dist/
