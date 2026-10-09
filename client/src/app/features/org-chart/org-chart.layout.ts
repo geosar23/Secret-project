@@ -184,6 +184,11 @@ export function countDescendants(node: OrgNode): number {
     return node.children.reduce((sum, child) => sum + 1 + countDescendants(child), 0);
 }
 
+/** Number of management levels below a node (0 for someone with no reports). */
+export function treeDepth(node: OrgNode): number {
+    return node.children.length ? 1 + Math.max(...node.children.map(treeDepth)) : 0;
+}
+
 export function findNode(root: OrgNode | null, id: string): OrgNode | null {
     if (!root) {
         return null;

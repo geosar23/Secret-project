@@ -11,6 +11,7 @@ import {
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { ActivatedRoute } from "@angular/router";
 import { take } from "rxjs";
 import { AuthService } from "../../core/services/auth.service";
 import { CompanyService } from "../../core/services/company.service";
@@ -54,6 +55,7 @@ export class OrgChartComponent implements OnInit {
     private companyService = inject(CompanyService);
     private authService = inject(AuthService);
     private currentUser = inject(CurrentUserService);
+    private route = inject(ActivatedRoute);
 
     private canvasWrap = viewChild<ElementRef<HTMLElement>>("canvasWrap");
 
@@ -140,7 +142,13 @@ export class OrgChartComponent implements OnInit {
                     this.data.set(res.data);
                 }
                 this.loading.set(false);
-                this.fitSoon();
+                const focusId = this.route.snapshot.queryParamMap.get("focus");
+                if (focusId && findNode(this.root(), focusId)) {
+                    this.selectedId.set(focusId);
+                    this.focusSoon(focusId);
+                } else {
+                    this.fitSoon();
+                }
             },
             error: err => {
                 this.error.set(err.error?.message || "Failed to load the org chart");
@@ -249,6 +257,26 @@ export class OrgChartComponent implements OnInit {
         this.panX.set(rect.width / 2 - ((minX + maxX) / 2) * scale);
         this.panY.set(rect.height / 2 - ((minY + maxY) / 2) * scale);
         setTimeout(() => this.animating.set(false), 420);
+    }
+
+    /** Centre the canvas on one node at a readable zoom. */
+    private focusOn(id: string): void {
+        const wrap = this.canvasWrap()?.nativeElement;
+        const item = this.layout()?.nodes.find(n => n.node.id === id);
+        if (!wrap || !item) {
+            return;
+        }
+        const rect = wrap.getBoundingClientRect();
+        const scale = Math.min(Math.max(this.scale(), 0.8), 1);
+        this.animating.set(true);
+        this.scale.set(scale);
+        this.panX.set(rect.width / 2 - item.x * scale);
+        this.panY.set(rect.height / 2 - item.y * scale);
+        setTimeout(() => this.animating.set(false), 420);
+    }
+
+    private focusSoon(id: string): void {
+        setTimeout(() => this.focusOn(id), 50);
     }
 
     /** Fit once the new layout has been rendered. */

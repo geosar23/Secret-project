@@ -360,6 +360,36 @@
                     </section>
 
                     <section class="card">
+                        <h3 class="card-title"><mat-icon>groups</mat-icon>Team</h3>
+                        @if (teamStats(); as team) {
+                            @if (team.direct > 0) {
+                                <div class="team-stats">
+                                    <div class="team-stat">
+                                        <b>{{ team.direct }}</b>
+                                        <span>Direct {{ team.direct === 1 ? "report" : "reports" }}</span>
+                                    </div>
+                                    <div class="team-stat">
+                                        <b>{{ team.total }}</b>
+                                        <span>In total</span>
+                                    </div>
+                                    <div class="team-stat">
+                                        <b>{{ team.depth }}</b>
+                                        <span>{{ team.depth === 1 ? "Level" : "Levels" }} deep</span>
+                                    </div>
+                                </div>
+                            } @else {
+                                <p class="empty-note">No direct reports.</p>
+                            }
+                            <button type="button" mat-stroked-button class="team-link" (click)="viewInOrgChart()">
+                                <mat-icon>account_tree</mat-icon>
+                                View in org chart
+                            </button>
+                        } @else {
+                            <p class="empty-note">Team information unavailable.</p>
+                        }
+                    </section>
+
+                    <section class="card">
                         <h3 class="card-title"><mat-icon>schedule</mat-icon>Timeline</h3>
                         <div class="fields single">
                             <div class="field">
