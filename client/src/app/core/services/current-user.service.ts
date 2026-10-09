@@ -3,6 +3,7 @@ import { toSignal } from "@angular/core/rxjs-interop";
 import { catchError, distinctUntilChanged, map, of, switchMap } from "rxjs";
 import { AuthService } from "./auth.service";
 import { UsersService } from "./users.service";
+import { initialsOf } from "../utils/name.utils";
 
 /** Signals derived from the logged-in user, shared by the header and dashboard. */
 @Injectable({ providedIn: "root" })
@@ -27,11 +28,5 @@ export class CurrentUserService {
         { initialValue: null },
     );
 
-    readonly initials = computed(() => {
-        const parts = (this.user()?.name ?? "").trim().split(/\s+/).filter(Boolean);
-        return parts
-            .slice(0, 2)
-            .map(p => p[0].toUpperCase())
-            .join("");
-    });
+    readonly initials = computed(() => initialsOf(this.user()?.name));
 }
