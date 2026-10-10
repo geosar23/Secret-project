@@ -35,6 +35,7 @@ import { OfficeService } from "../../../core/services/office.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { PermissionService } from "../../../core/services/permission.service";
 import { BreadcrumbService } from "../../../core/services/breadcrumb.service";
+import { NavigationHistoryService } from "../../../core/services/navigation-history.service";
 import { IUser, IUpdateUserRequest, ILevel, IOffice, IEditUserContext } from "../../../core/interfaces/user.interface";
 import { ICountry } from "../../../core/interfaces/country.interface";
 import { IEmploymentTitle } from "../../../core/interfaces/employment-title.interface";
@@ -103,6 +104,7 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
     private destroyRef = inject(DestroyRef);
     private permissionService = inject(PermissionService);
     private breadcrumbService = inject(BreadcrumbService);
+    private history = inject(NavigationHistoryService);
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private cdr = inject(ChangeDetectorRef);
@@ -426,7 +428,7 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
             }
 
             this.toast.success("User updated successfully");
-            this.router.navigate(["/users"]);
+            this.history.back("/users");
         } catch (err: unknown) {
             const error = err as { error?: { error?: string; message?: string } };
             this.toast.error(error?.error?.error || error?.error?.message || "Failed to update user");
@@ -435,7 +437,7 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
     }
 
     onCancel(): void {
-        this.router.navigate(["/users"]);
+        this.history.back("/users");
     }
 
     addNationality(): void {
@@ -536,9 +538,8 @@ export class EditUserPageComponent implements OnInit, OnDestroy {
         this.userLoading.set(false);
         this.loadCurrentProfileImage();
         this.breadcrumbService.set([
-            { label: "Users", route: "/users" },
-            { label: editContext.user.name },
-            { label: "Edit" },
+            { label: editContext.user.name, route: `/profile/${this.userId}` },
+            { label: "Edit User" },
         ]);
     }
 

@@ -11,7 +11,7 @@ import { MatDatepickerModule } from "@angular/material/datepicker";
 import { MatSlideToggleModule } from "@angular/material/slide-toggle";
 import { MatChipsModule } from "@angular/material/chips";
 import { MatIconModule } from "@angular/material/icon";
-import { Router } from "@angular/router";
+import { NavigationHistoryService } from "../../../core/services/navigation-history.service";
 import { first, map, startWith } from "rxjs";
 import { UsersService } from "../../../core/services/users.service";
 import { PasswordInputComponent } from "../../../shared/components/password-input/password-input.component";
@@ -96,7 +96,7 @@ export class CreateUserPageComponent implements OnInit {
     private levelService = inject(LevelService);
     private officeService = inject(OfficeService);
     private destroyRef = inject(DestroyRef);
-    private router = inject(Router);
+    private history = inject(NavigationHistoryService);
     private toast = inject(ToastService);
     private authService = inject(AuthService);
     private permissionService = inject(PermissionService);
@@ -652,7 +652,7 @@ export class CreateUserPageComponent implements OnInit {
                     const selectedImage = this.selectedProfileImage();
                     if (!selectedImage || !createdUser._id) {
                         this.toast.success("User created successfully");
-                        this.router.navigate(["/users"]);
+                        this.history.back("/users");
                         return;
                     }
 
@@ -668,11 +668,11 @@ export class CreateUserPageComponent implements OnInit {
                                 } else {
                                     this.toast.success("User created successfully");
                                 }
-                                this.router.navigate(["/users"]);
+                                this.history.back("/users");
                             },
                             error: () => {
                                 this.toast.warning("User created but profile image upload failed");
-                                this.router.navigate(["/users"]);
+                                this.history.back("/users");
                             },
                         });
                 },
@@ -700,6 +700,6 @@ export class CreateUserPageComponent implements OnInit {
     }
 
     onCancel(): void {
-        this.router.navigate(["/users"]);
+        this.history.back("/users");
     }
 }

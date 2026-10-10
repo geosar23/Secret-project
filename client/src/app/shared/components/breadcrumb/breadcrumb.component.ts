@@ -23,6 +23,7 @@ import { BreadcrumbService } from "../../../core/services/breadcrumb.service";
                         <li class="breadcrumb-item">
                             <a
                                 [routerLink]="crumb.route ?? null"
+                                [queryParams]="crumb.queryParams"
                                 class="breadcrumb-link"
                                 [class.breadcrumb-current]="last"
                                 [attr.aria-current]="last ? 'page' : null"

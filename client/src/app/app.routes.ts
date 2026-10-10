@@ -50,7 +50,7 @@ export const routes: Routes = [
                     {
                         path: "create",
                         canActivate: [createUserGuard],
-                        data: { breadcrumb: "Create User" },
+                        data: { breadcrumb: "Create User", originAware: true },
                         loadComponent: () =>
                             import("./features/users/create-user/create-user.component").then(
                                 m => m.CreateUserPageComponent,
@@ -60,7 +60,7 @@ export const routes: Routes = [
                         path: ":id/edit",
                         canActivate: [editUserGuard],
                         resolve: { editContext: editUserContextResolver },
-                        data: { breadcrumb: "Edit User" },
+                        data: { breadcrumb: "Edit User", originAware: true },
                         loadComponent: () =>
                             import("./features/users/edit-user/edit-user.component").then(m => m.EditUserPageComponent),
                     },
@@ -78,7 +78,7 @@ export const routes: Routes = [
                     {
                         path: "create",
                         canActivate: [areaWriteGuard("roles")],
-                        data: { breadcrumb: "Create Role" },
+                        data: { breadcrumb: "Create Role", originAware: true },
                         loadComponent: () =>
                             import("./features/roles/role-editor/role-editor.component").then(
                                 m => m.RoleEditorPageComponent,
@@ -87,7 +87,7 @@ export const routes: Routes = [
                     {
                         path: ":id/edit",
                         canActivate: [areaWriteGuard("roles")],
-                        data: { breadcrumb: "Edit Role" },
+                        data: { breadcrumb: "Edit Role", originAware: true },
                         loadComponent: () =>
                             import("./features/roles/role-editor/role-editor.component").then(
                                 m => m.RoleEditorPageComponent,
@@ -149,14 +149,14 @@ export const routes: Routes = [
                     {
                         path: "me",
                         resolve: { profileContext: profileRouteContextResolver },
-                        data: { breadcrumb: "My Profile" },
+                        data: { breadcrumb: "My Profile", originAware: true },
                         loadComponent: () =>
                             import("./features/profile/profile.component").then(m => m.ProfileComponent),
                     },
                     {
                         path: ":id",
                         resolve: { profileContext: profileRouteContextResolver },
-                        data: { breadcrumb: "Profile" },
+                        data: { breadcrumb: "Profile", originAware: true },
                         loadComponent: () =>
                             import("./features/profile/profile.component").then(m => m.ProfileComponent),
                     },

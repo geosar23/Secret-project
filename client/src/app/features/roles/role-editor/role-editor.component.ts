@@ -1,7 +1,8 @@
 import { AppDatePipe } from "../../../shared/pipes/app-date.pipe";
 import { Component, DestroyRef, OnInit, inject } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { ActivatedRoute, Router, RouterModule } from "@angular/router";
+import { ActivatedRoute, RouterModule } from "@angular/router";
+import { NavigationHistoryService } from "../../../core/services/navigation-history.service";
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from "@angular/forms";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { debounceTime, distinctUntilChanged, forkJoin, of } from "rxjs";
@@ -88,7 +89,7 @@ interface RankItem {
 export class RoleEditorPageComponent implements OnInit {
     private fb = inject(FormBuilder);
     private route = inject(ActivatedRoute);
-    private router = inject(Router);
+    private history = inject(NavigationHistoryService);
     private roleService = inject(RoleService);
     private toast = inject(ToastService);
     private destroyRef = inject(DestroyRef);
@@ -348,7 +349,7 @@ export class RoleEditorPageComponent implements OnInit {
     }
 
     back(): void {
-        this.router.navigate(["/roles"]);
+        this.history.back("/roles");
     }
 
     // ── Internals ────────────────────────────────────────────────────────────
