@@ -100,5 +100,7 @@ RequestSchema.index(
 RequestSchema.index({ company: 1, requester: 1, status: 1, createdAt: -1 });
 RequestSchema.index({ company: 1, subject: 1, createdAt: -1 });
 RequestSchema.index({ company: 1, status: 1, needsRouting: 1 });
+// Per-person lookups of one type by status (leave overlap checks and pending quantities)
+RequestSchema.index({ company: 1, type: 1, subject: 1, status: 1 });
 
 export const RequestModel = model<IRequest>("Requests", RequestSchema);

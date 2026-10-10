@@ -26,6 +26,12 @@
             }
         </label>
 
+        @if (canFocusMe()) {
+            <button mat-icon-button type="button" title="Go to me" aria-label="Go to me" (click)="focusMe()">
+                <mat-icon>my_location</mat-icon>
+            </button>
+        }
+
         <button mat-icon-button type="button" title="Fit to screen" aria-label="Fit to screen" (click)="fitToScreen()">
             <mat-icon>fit_screen</mat-icon>
         </button>
@@ -70,6 +76,7 @@
                                 [class.dimmed]="isDimmed(item.node.id)"
                                 [class.highlight]="isHighlighted(item.node.id)"
                                 (click)="select(item.node.id)"
+                                (dblclick)="toggleChildren(item.node)"
                                 (keydown.enter)="select(item.node.id)"
                             >
                                 <div class="card-top">
@@ -81,7 +88,12 @@
                                                 <span class="me-chip">You</span>
                                             }
                                         </div>
-                                        <div class="card-title">{{ item.node.subtitle || "—" }}</div>
+                                        <div class="card-title">
+                                            {{ item.node.subtitle || "—" }}
+                                            @if (item.node.level) {
+                                                · {{ item.node.level }}
+                                            }
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="card-dept">
@@ -123,6 +135,7 @@
                                 [class.dimmed]="isDimmed(item.node.id)"
                                 [class.highlight]="isHighlighted(item.node.id)"
                                 (click)="select(item.node.id)"
+                                (dblclick)="toggleChildren(item.node)"
                                 (keydown.enter)="select(item.node.id)"
                             >
                                 <div class="dept-icon">
@@ -185,7 +198,21 @@
                         }
                     </div>
                     <div class="info-id">
-                        <div class="info-name">{{ node.name }}</div>
+                        <div class="info-name">
+                            @if (node.kind === "person") {
+                                <a
+                                    mat-button
+                                    class="info-name-link"
+                                    [routerLink]="profileLink(node.id)"
+                                    title="Open profile"
+                                >
+                                    {{ node.name }}
+                                    <mat-icon iconPositionEnd>open_in_new</mat-icon>
+                                </a>
+                            } @else {
+                                {{ node.name }}
+                            }
+                        </div>
                         <div class="info-role">{{ node.subtitle }}</div>
                     </div>
                     <button type="button" class="info-close" aria-label="Close details" (click)="closeInfo()">
@@ -194,6 +221,15 @@
                 </div>
                 <div class="info-body">
                     @if (node.kind === "person") {
+                        @if (node.level) {
+                            <div class="info-row">
+                                <mat-icon>military_tech</mat-icon>
+                                <div>
+                                    <div class="info-label">Level</div>
+                                    <div class="info-value">{{ node.level }}</div>
+                                </div>
+                            </div>
+                        }
                         <div class="info-row">
                             <mat-icon>corporate_fare</mat-icon>
                             <div>

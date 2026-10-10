@@ -1,0 +1,67 @@
+:host {
+    display: block;
+}
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
+
+    mat-form-field {
+        min-width: 11rem;
+    }
+
+    .dates {
+        min-width: 17.5rem;
+    }
+}
+
+.table-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+}
+
+table {
+    min-width: 40rem;
+    box-shadow: none;
+    border-radius: 0;
+}
+
+.mat-mdc-row {
+    cursor: pointer;
+
+    &:focus-visible {
+        outline: 2px solid var(--color-primary-500);
+        outline-offset: -2px;
+    }
+}
+
+.name {
+    font-weight: var(--font-weight-medium);
+}
+
+.meta {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+}
+
+.num {
+    font-variant-numeric: tabular-nums;
+}
+
+mat-paginator {
+    margin-top: var(--spacing-md);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+}
+
+@media (max-width: 600px) {
+    .filters mat-form-field,
+    .filters .dates {
+        width: 100%;
+    }
+}

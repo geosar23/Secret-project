@@ -16,6 +16,7 @@ const user = (id: string, managerId: string | null, subDepartmentId: string | nu
     email: `${id}@test.com`,
     managerId,
     title: "Engineer",
+    level: null,
     subDepartmentId,
 });
 

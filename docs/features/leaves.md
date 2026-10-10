@@ -1,8 +1,47 @@
 # Leaves
 
-> **Status: design (not implemented).** This document is the agreed architecture for the Leaves module. It tracks roadmap item _Leaves Module_ and `NEXT_TODOS.md` P0-08. Update it as decisions change.
+> **Status: first slice built (09/10/2026), the rest is design.** This document is the agreed architecture for the Leaves module. It tracks roadmap item _Leaves Module_ and `NEXT_TODOS.md` P0-08 / P0-11C. Section 0 says what is built and where the build differs from the full design below. Update it as decisions change.
 >
 > **Approvals are not owned by this module.** Leave runs on the shared approval engine described in [docs/plans/approval-flows.md](../plans/approval-flows.md): workflow status, steps and approvers live in the shared `Requests` envelope (current approvers in `pendingApprovers`, timeline in `actionsHistory`). This document owns the leave _domain_: duration, policies, pay, balances and the ledger. Where the two meet (sections 9 and 12) the engine plan is authoritative for workflow, and this document is authoritative for leave rules. Reconciled on 07/10/2026.
+
+---
+
+## 0. Built so far (first slice, 09/10/2026)
+
+An employee (or HR / a manager on their behalf) requests leave; the line manager (HR representative as fallback) approves or rejects through the shared engine; the requester or HR can cancel; balances per leave type are reflected through the ledger. The first UI slice is built (10/10/2026): dashboard balances, the Request leave modal and the Requests page. Settings screens and the HR on-behalf fields are not built yet.
+
+### Decisions taken while building (09/10/2026)
+
+| Topic               | Decision                                                                                                                                                                                                                                                                                                                                    |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Leave on the engine | One request type `leave`. Annual, Sick, Unpaid and so on are `LeaveTypes` rows inside it, so they share one workflow, one overlap check and one ledger. Flows can still differ per leave type through `ApprovalFlows.scope.leaveType`.                                                                                                      |
+| Allowances          | Every leave type with a fixed entitlement has **its own allowance**. Unpaid leave has its own (default 30 days) and never touches Annual. A type can be untracked (`entitlement: none`, e.g. Sick): usage is recorded, no balance is checked.                                                                                               |
+| Entitlement storage | **Stored yearly `grant` entries** in the ledger, not computed from the policy on read. A new policy version never rewrites a grant already posted; applying it to the current year is an explicit `adjustment` with a reason. Computing entitlement live would need effective-dated user data (country, hire date) that does not exist yet. |
+| Hire year           | **Per-company setting** `hireYearEntitlement`: `prorated` (default; remaining days of the year, rounded to half a day), `full`, or `none` (nothing until the next year). Changeable at any time; it applies only to grants posted afterwards. Each hire-year grant records the rule used.                                                   |
+| Grant triggers      | One idempotent function, `ensureEntitlements`: the yearly run (`scripts/grantLeaveEntitlements.ts`, cron on 01/01 or on demand), `POST /api/leaves/entitlements/run` (on demand, per company), user creation, and leave creation (safety net). Balance reads never write.                                                                   |
+| Weekends            | **Work schedules** (`workingDays` per user, country or company) replace `countWeekends`; 6-day weeks and Friday + Sunday off are just schedules. Policies count `workingDays` or `calendarDays`.                                                                                                                                            |
+| Creation            | Self-service and on behalf (`onBehalfOf`), with `autoApprove: { reason }` and `overrides: [{ rule, reason }]` for authorized creators (12.2). Nobody can auto-approve their own leave. Overrides exist for `insufficientBalance` and `backdated`; overlap cannot be overridden.                                                             |
+| "Today"             | The UTC date, for backdating and cancel-before-start. Per-country time zones later.                                                                                                                                                                                                                                                         |
+| Leave year          | Calendar year only (ledger `period` such as `"2027"`).                                                                                                                                                                                                                                                                                      |
+
+### What exists
+
+| Collection             | Built shape                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `LeaveTypes`           | `{ name, code (unique per company), color, isActive }`                                                                                                                                                                                                                                                                                                                                                                         |
+| `LeavePolicies`        | `{ leaveType, name, appliesTo: { country? }, effectiveFrom, version, counting: { unit }, entitlement: { type: "fixed", amountPerYear } or { type: "none" }, negativeBalance: { allowed, maxAmount? }, requestRules: { allowBackdated }, createdBy }`. Immutable versions numbered per (leave type, country). Resolution: effective on the date, country beats company-wide, then latest `effectiveFrom`, then highest version. |
+| `WorkSchedules`        | `{ name, country?, workingDays: [0-6], isDefault }`. Resolution: `Users.workSchedule`, then the user's country, then the company default.                                                                                                                                                                                                                                                                                      |
+| `LeaveCompanySettings` | `{ hireYearEntitlement }`, one per company.                                                                                                                                                                                                                                                                                                                                                                                    |
+| `LeaveRequests`        | `{ request, user, leaveType, startDate, endDate, reason, overrides, lines: [{ date, quantity, period, note? }], totals: { quantity }, policy: { policyId, version }, workSchedule, calculatedAt }`. No status, no approver.                                                                                                                                                                                                    |
+| `LeaveLedger`          | `{ user, leaveType, period, kind: grant / usage / usageReversal / adjustment, amount, effectiveDate, request?, policy?, reason?, key?, createdBy }`. Unique `{ company, key }` with keys `grant:{user}:{leaveType}:{year}`, `usage:{requestId}:{year}`, `usageReversal:{requestId}:{year}`.                                                                                                                                    |
+
+Balance per type and year (computed): `granted + adjusted − used`, where `used` is usage net of reversals; `pending` comes live from leaves whose Request is pending; `available = balance − pending`. Creation is checked against `available`, plus `negativeBalance.maxAmount` when overdraft is allowed.
+
+New companies are seeded with a Monday–Friday schedule and three types with company-wide policies: Annual (20 days), Unpaid (30 days), Sick (untracked, backdating allowed). Existing companies: `scripts/setupLeaves.ts`.
+
+### Not built yet (still as designed below)
+
+Half days and hours (`startPart`, `endPart`, hours per weekday), holiday calendars, pay rules and tiers, accrual, carry-over and buckets, leave years other than the calendar year, policy dimensions other than country, eligibility, notice / blackout / probation / maximum length / cover person, coverage limits (9.5), approver availability (`isUnavailable`), change requests (12.1), sickness conversion (12.3), overdrawn / settlement / review / payroll endpoints, and the leave UI.
 
 ---
 
@@ -118,8 +157,8 @@ interface ILeavePolicy {
     negativeBalance: { allowed: boolean; maxAmount?: number }; // in `unit`
 
     counting: {
-        countWeekends: boolean; // calendar-day counting (true) vs working-day counting (false)
-        countPublicHolidays: boolean;
+        unit: "workingDays" | "calendarDays"; // working days come from the work schedule (4.4); replaces countWeekends (09/10/2026)
+        countPublicHolidays: boolean; // not built yet (no holiday calendars)
     };
 
     pay: PayRule; // see section 7
@@ -183,6 +222,8 @@ interface IHoliday {
 Resolution: office calendar → country calendar → none.
 
 ### 4.4 `WorkSchedules`
+
+> **Built (09/10/2026) without hours:** `workingDays: number[]` (0 = Sunday) plus `isDefault`. Hours per weekday arrive with half days and hour-based units.
 
 ```ts
 interface IWorkSchedule {
@@ -290,7 +331,7 @@ interface ILeaveLedgerEntry {
 Indexes:
 
 - `{ company, user, leaveType, leavePeriodStart, effectiveDate }`
-- Unique `{ request, kind, leavePeriodStart }` (partial, where `request` exists): makes approve/cancel retries idempotent.
+- Unique `{ request, kind, leavePeriodStart }` (partial, where `request` exists): makes approve/cancel retries idempotent. **Built as** a single idempotency `key` with a unique partial `{ company, key }` index (`usage:{requestId}:{year}`, `usageReversal:{requestId}:{year}`, `grant:{user}:{leaveType}:{year}`), which also covers grants. Manual adjustments have no key.
 - Unique `{ user, leaveType, leavePeriodStart, kind, accrualKey }` for accruals (see section 8).
 
 Existing models use `autoIndex: false`, so indexes need an explicit creation step.
@@ -439,6 +480,7 @@ Carry-over with an expiry means a balance is not one number but several **bucket
 
 - Accrual entries are facts, posted by an **idempotent** job: `accrueUpTo(date)`. Each accrual entry has an `accrualKey` (e.g. `2026-10`) with a unique index, so re-running or running late never double-posts.
 - The job runs on a schedule **and** lazily: reading balances or creating a request first calls `accrueUpTo(today)` for that user. A missed cron run therefore cannot cause wrong balances.
+- **Built so far (09/10/2026)** for fixed yearly entitlements only: the same idempotent pattern posts `grant` entries, but only on write paths (yearly or on-demand run, user creation, leave creation). Balance reads never write.
 - Pro-rata for a user's first period uses `employmentDate`.
 - A policy version change mid-period: accruals before `effectiveFrom` stay as posted; accruals after use the new rule. If HR wants the new entitlement applied to the current period retroactively, they trigger an explicit **policy-change adjustment** that posts the delta as `adjustment` entries.
 
@@ -657,16 +699,17 @@ Pay moves with the lines: payroll sees the converted days under the sick leave's
 
 New categories, added to both `server/src/enums/permissions.enum.ts` and `client/src/app/core/enums/permissions.enum.ts`:
 
-| Category                  | Actions                    | Scopes                                                                                                             | Gates                                            |
-| ------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
-| `leaves`                  | `read`, `write`, `approve` | `read`: all scopes; `write`: `*`, `self`; `approve`: `*`, `department`, `country`, `department-country`, `managed` | Leave visibility, submission, approval authority |
-| `leaveBalances`           | `read`, `write`            | `read`: all scopes; `write`: `*`                                                                                   | Viewing balances; manual ledger adjustments      |
-| `leaveSettingsManagement` | `read`, `write`            | `*`                                                                                                                | Leave types, policies, calendars, schedules      |
+| Category                  | Actions                    | Scopes                                                                                                                                                                                                           | Gates                                            |
+| ------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `leaves`                  | `read`, `write`, `approve` | `read`: all scopes; `write`: all scopes (09/10/2026: HR per country, or a manager for their team, can enter leave on someone's behalf); `approve`: `*`, `department`, `country`, `department-country`, `managed` | Leave visibility, submission, approval authority |
+| `leaveBalances`           | `read`, `write`            | `read`: all scopes; `write`: `*`                                                                                                                                                                                 | Viewing balances; manual ledger adjustments      |
+| `leaveSettingsManagement` | `read`, `write`            | `*`                                                                                                                                                                                                              | Leave types, policies, calendars, schedules      |
 
 Notes:
 
-- `approve` is a new `PermissionActions` value, so `permission-factory.test.ts`, `rbac-coverage.test.ts` and the Permissions-page matrix (`MATRIX_ACTIONS` in `permission-matrix.ts`) need updating.
-- Default roles (`seed.service.ts`): Employee `leaves:read:self`, `leaves:write:self`, `leaveBalances:read:self`; Manager adds `leaves:read:managed`, `leaves:approve:managed`, `leaveBalances:read:managed`; HR gets `leaves` and `leaveBalances` at `*` and `leaveSettingsManagement`.
+- `approve` is a new `PermissionActions` value (built in both enums).
+- Default roles (`seed.service.ts`, built): Employee `leaves:read:self`, `leaves:write:self`, `leaveBalances:read:self`; Manager adds `leaves:read:managed`, `leaves:approve:managed`, `leaveBalances:read:managed`, `requests:read:managed`; HR gets `leaves`, `leaveBalances` and `leaveSettingsManagement` at `*` plus `requests:read:*`; Admin gets `leaveSettingsManagement` and `requests:read:*`. `scripts/setupLeaves.ts` adds them to the system roles of existing companies.
+- The role editor and the Permissions page show a "Time off" group for `read` and `write`. `approve` is not a matrix column yet; approve keys a role holds are preserved when it is edited.
 - Granting is still limited by `canGrantPermissions`.
 - `leaves:approve:{scope}` is the **authority** checked in `canApprove` at decision time; it is not what puts a request in someone's inbox (that is the flow and its pending approvers). Both are needed.
 - The shared engine adds its own categories (`requests:read`, `approvalFlows:read|write`, and an admin-override permission; see the plan, section 9). The flow builder UI, the Requests page and approval delegations are gated there, not here.
@@ -674,6 +717,8 @@ Notes:
 ---
 
 ## 14. API
+
+> **Built (09/10/2026):** `POST /api/leaves/preview`, `POST /api/leaves`, `GET /api/leaves/:id`, `GET /api/leaves/balances/me`, `GET /api/leaves/balances/:userId`, `POST /api/leaves/balances/:userId/adjust`, `POST /api/leaves/entitlements/run`, and the settings `GET/PUT /api/leave-settings`, `GET/POST/PUT /api/leave-types`, `GET/POST /api/leave-policies`, `GET/POST/PUT /api/work-schedules`. Holiday calendars, coverage rules, change and convert, overdrawn, settlement, review and payroll are not built. See `docs/api-reference.md`.
 
 | Method | Path                                                                                                    | Purpose                                                                                                                          | Permission                                                                |
 | ------ | ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
@@ -795,7 +840,7 @@ Sidebar: a "Time Off" section. Follow the _ui-conventions_ skill (Material first
 - **Attendance dependency**: `perHoursWorked` entitlement and automatic comp-time grants need the Attendance module. Until then comp time is granted manually via `grant` entries.
 - **Attachments and `requiresAttachment`**: the flag is stored on the leave type now; enforcement ships with attachments.
 - **Payroll permissions**: the payroll export is gated provisionally; revisit when the payroll module defines its own.
-- **Time zones**: leave dates are calendar dates, but "today" for notice and backdating checks needs a defined reference (user's country time zone is the proposal).
+- **Time zones**: leave dates are calendar dates, but "today" for notice and backdating checks needs a defined reference. **For now (09/10/2026) it is the UTC date**; the user's country time zone is still the proposal.
 - **Holidays falling inside sick leave** (counted or excluded) varies by country; it is expressed through `counting.countPublicHolidays` per policy, but each country's default needs product input.
 - **Attachments**: deferred. When added, they reuse the Supabase storage used by user documents and attach to the request.
 - **Engine capabilities leave needs that the plan does not yet state** (to confirm with the approval-flows plan):

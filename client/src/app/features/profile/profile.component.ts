@@ -19,15 +19,24 @@ import { ChangePasswordDialogComponent } from "./change-password-dialog/change-p
 import { ResetPasswordDialogComponent } from "./reset-password-dialog/reset-password-dialog.component";
 import { BreadcrumbService } from "../../core/services/breadcrumb.service";
 import { PermissionService } from "../../core/services/permission.service";
+import { OrgChartService } from "../../core/services/org-chart.service";
+import { buildManagerTree, countDescendants, findNode, treeDepth } from "../org-chart/org-chart.layout";
 
 import { ProfileAddressPipe } from "./profile-address.pipe";
+import { ProfileRequestsComponent } from "./profile-requests/profile-requests.component";
 import {
     GENDER_LABELS,
     MARITAL_STATUS_LABELS,
     EMPLOYMENT_TYPE_LABELS,
     DEGREE_LEVEL_LABELS,
 } from "../../core/enums/profile.enum";
-export type ProfileTabId = "overview" | "personal" | "contact" | "employment" | "security";
+export interface TeamStats {
+    direct: number;
+    total: number;
+    depth: number;
+}
+
+export type ProfileTabId = "details" | "requests" | "security";
 
 @Component({
     selector: "app-profile",
@@ -41,6 +50,7 @@ export type ProfileTabId = "overview" | "personal" | "contact" | "employment" | 
         MatProgressSpinnerModule,
         MatIconModule,
         ProfileAddressPipe,
+        ProfileRequestsComponent,
     ],
     templateUrl: "./profile.component.html",
     styleUrls: ["./profile.component.scss"],
@@ -54,6 +64,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private toast = inject(ToastService);
     private breadcrumbService = inject(BreadcrumbService);
     private permissionService = inject(PermissionService);
+    private orgChartService = inject(OrgChartService);
 
     private destroy$ = new Subject<void>();
 
@@ -66,17 +77,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
     profileImageUrl: string | null = null;
     imageLoading = signal(false);
     loading = signal(false);
+    teamStats = signal<TeamStats | null>(null);
     isOwnProfile = true;
     pageTitle = "My Profile";
 
     readonly tabs: { id: ProfileTabId; label: string; icon: string }[] = [
-        { id: "overview", label: "Overview", icon: "dashboard" },
-        { id: "personal", label: "Personal", icon: "badge" },
-        { id: "contact", label: "Contact", icon: "contacts" },
-        { id: "employment", label: "Employment", icon: "work" },
+        { id: "details", label: "Details", icon: "badge" },
+        { id: "requests", label: "Requests", icon: "assignment" },
         { id: "security", label: "Security", icon: "shield" },
     ];
-    activeTab = signal<ProfileTabId>("overview");
+    activeTab = signal<ProfileTabId>("details");
 
     ngOnInit(): void {
         this.route.data.pipe(takeUntil(this.destroy$)).subscribe(data => {
@@ -122,6 +132,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 this.profile = user;
                 if (this.profile?._id) {
                     this.loadProfileImageUrl(this.profile._id);
+                    this.loadTeamStats(this.profile._id);
                 }
                 this.loading.set(false);
                 this.breadcrumbService.set([{ label: user.name ?? "My Profile" }]);
@@ -141,6 +152,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 this.profile = response.data;
                 if (this.profile?._id) {
                     this.loadProfileImageUrl(this.profile._id);
+                    this.loadTeamStats(this.profile._id);
                 }
                 this.loading.set(false);
                 this.breadcrumbService.set([{ label: response.data.name ?? "Profile" }]);
@@ -150,6 +162,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 this.loading.set(false);
             },
         });
+    }
+
+    viewInOrgChart(): void {
+        if (this.profile?._id) {
+            this.router.navigate(["/org-chart"], { queryParams: { focus: this.profile._id } });
+        }
     }
 
     navigateToEdit(): void {
@@ -234,6 +252,24 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     getRoleColor(role: string): string {
         return RoleUtils.getRoleColor(role);
+    }
+
+    private loadTeamStats(userId: string): void {
+        this.teamStats.set(null);
+        this.orgChartService.getOrgChart().subscribe({
+            next: res => {
+                if (!res.success || !res.data) {
+                    return;
+                }
+                const node = findNode(buildManagerTree(res.data, ""), userId);
+                this.teamStats.set(
+                    node
+                        ? { direct: node.children.length, total: countDescendants(node), depth: treeDepth(node) }
+                        : null,
+                );
+            },
+            error: () => this.teamStats.set(null),
+        });
     }
 
     private loadProfileImageUrl(userId: string): void {

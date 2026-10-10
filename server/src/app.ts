@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import "./services/approvals/register-request-types"; // request type behaviour must be registered before any request
 import apiRouter from "./routes";
 import errorMiddleware, { notFoundMiddleware } from "./middleware/error.middleware";
 import { tooManyRequestsError } from "./utils/response.util";

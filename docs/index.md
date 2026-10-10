@@ -11,18 +11,19 @@ Welcome to the HR SaaS project documentation. This index is your starting point 
     - [Permissions & Roles](./features/permissions-roles.md)
     - [HR Entities](./features/hr-entities.md)
     - [File Storage](./features/file-storage.md)
-    - [Leaves](./features/leaves.md) (design)
+    - [Leaves](./features/leaves.md) (first slice built; the rest is design)
 4. [API Reference](./api-reference.md) — full REST endpoint list
 
 ## Other References
 
-| Document                                         | Description                                              |
-| ------------------------------------------------ | -------------------------------------------------------- |
-| [Testing](./testing.md)                          | Test strategy, how to run tests, what is covered         |
-| [Contributing](./contributing.md)                | Coding standards, commit format, PR process              |
-| [Changelog](./changelog.md)                      | History of significant changes                           |
-| [Roadmap](./roadmap.md)                          | Planned features and upcoming work                       |
-| [Approval Flows plan](./plans/approval-flows.md) | Design for requests, approval tasks and the flow builder |
+| Document                                         | Description                                                          |
+| ------------------------------------------------ | -------------------------------------------------------------------- |
+| [Testing](./testing.md)                          | Test strategy, how to run tests, what is covered                     |
+| [Contributing](./contributing.md)                | Coding standards, commit format, PR process                          |
+| [Design System](../design-system/README.md)      | UI tokens, components, how to use and update the design system       |
+| [Changelog](./changelog.md)                      | History of significant changes                                       |
+| [Roadmap](./roadmap.md)                          | Planned features and upcoming work                                   |
+| [Approval Flows plan](./plans/approval-flows.md) | Approval engine: requests, flows, request types and the flow builder |
 
 ## Quick Links
 

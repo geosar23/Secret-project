@@ -6,6 +6,31 @@ Significant changes to the application, most recent first.
 
 ## Current
 
+### Requests page: cards, Team tab and filters (10/10/2026)
+
+- **Requests page** now matches the design: three summary cards (My pending requests, Needs my action with the oldest date, Needs routing) that open the list they count, a **Team** tab, and request type, status (including "Needs routing") and submitted-between filters on every tab. The subtitle is "Review and manage requests".
+- "Needs my action" now also shows for people who oversee a team, not only when something is waiting. The Team tab and the Needs routing card show only when you may read other people's requests.
+- New `GET /api/requests/team`; `/inbox` and `/mine` accept `from`, `to` and `status=needsRouting`; `/summary` adds `oldestPendingForMe`, `needsRouting` and `hasTeam`.
+
+### Leave and Requests UI, first slice (10/10/2026)
+
+- **Dashboard:** the Leave Tracker now shows real balances per leave type (available days, a used and pending bar, untracked types show days used). Clicking a type opens the Request leave modal with it selected. New "My Requests" and, for approvers, "Waiting for you" panels link to the Requests page; the "Leave Days Left" tile is real and "My Leave" is active.
+- **Request leave modal:** leave type, date range (DD/MM/YYYY), optional reason, and a live preview of the days counted and the balance after ("Annual leave balance 12 → 7 days available"). Rule errors from the server (overlap, not enough balance, no working days) show inline.
+- **Requests page** (`/requests?tab=inbox|mine&id=...`): "Needs my action" (shown when something is waiting) and "My requests" tabs, a "New request" menu listing the request types you can start (`GET /api/request-types` filtered by what you are allowed to create; leave today), a status filter, a paginated list and a detail panel with the leave details, the history timeline, and Approve, Reject (comment) and Cancel (reason required) driven by `can`. On narrow screens the list and the detail show one at a time.
+- **Header:** "Requests" is added to the user menu. The notifications bell is unchanged; it is meant to aggregate pending tasks and other notifications later.
+- `GET /api/requests/:id` now returns `people`, a map of user id to name for everyone in the timeline, so the UI can label each step.
+- Not built yet: the Team tab, a date filter, HR on-behalf / approve-now / override fields, a "needs routing" overview, and the leave settings screens.
+
+### Leaves on the approval engine (P0-08, P0-11C)
+
+- Leave is the first request type on the approval engine: employees (or HR / a manager on their behalf) request leave, the line manager approves or rejects (HR representative as fallback), the requester or HR cancels. Server only; the UI comes with the Requests page.
+- New engine HTTP layer for every request type: `/api/requests/inbox`, `/mine`, `/summary`, `/:id`, `/:id/decision`, `/:id/cancel`, and `/api/request-types`.
+- Request types are configured per company (`RequestTypes` collection), and default approval flows are stored in the database. A request is refused when its type is not enabled or no flow is configured.
+- Leave domain: leave types, versioned policies (company-wide or per country), work schedules (any working weekdays), per-day leave lines, and an append-only ledger. Each leave type has its own allowance; yearly grants are stored, pro-rated, given in full, or skipped in the hire year depending on a company setting.
+- New permissions: `requests:read`, `leaves:read|write|approve`, `leaveBalances:read|write`, `leaveSettingsManagement:read|write`, added to the default roles.
+- Business-rule errors (overlap, insufficient balance, backdated...) are returned as soft errors with a readable message and `error.rule`.
+- Scripts: `syncApprovalIndexes.ts` is renamed `syncIndexes.ts` and covers the new collections; `setupLeaves.ts` updates existing companies; `grantLeaveEntitlements.ts` posts the yearly grants (cron on 01/01 or on demand).
+
 ### Transactional email service (P0-23)
 
 - Added `EmailService.send(template, to, data, { company, requestId })` with console and Resend transports, HTML + text templates (test, invitation, password reset) and company branding. See `docs/features/email.md`.

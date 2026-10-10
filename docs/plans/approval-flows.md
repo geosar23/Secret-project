@@ -1,8 +1,10 @@
 # Plan: Configurable Approval Flows
 
-Status: **Phase 1 built** (08/10/2026). Covers roadmap items P0-10 (Requests page) and P0-11 (Request Flow Builder), and the foundation that leaves (P0-08), promotions (P0-14) and every later approval-based module build on.
+Status: **Phases 1 and 2 built** (09/10/2026). Covers roadmap items P0-10 (Requests page) and P0-11 (Request Flow Builder), and the foundation that leaves (P0-08), promotions (P0-14) and every later approval-based module build on.
 
 > **Revision 08/10/2026.** The first draft stored one `ApprovalTask` document per approver. We replaced that with **approvers and timeline stored on the request itself** (`pendingApprovers` and `actionsHistory`). The reasoning, the alternatives and the conditions under which we would reverse the decision are in section 2.1. Who may cancel is a type-level decision (D5).
+>
+> **Revision 09/10/2026.** Request types are configured per company in a **`RequestTypes` collection** (D4), and the **default flow is stored in the database** instead of living in code (D6, 2.2). A request is refused when its type is not enabled for the company or no flow matches. Leave is the first type on the engine (phase 2), with the HTTP layer of section 8.4.
 
 ---
 
@@ -50,7 +52,14 @@ Mixing actionable work with notifications is the most common reason inboxes beco
 
 ### D4. Engine and request types are decoupled by a registry
 
-The `Request` envelope is fixed. Each type registers its payload schema, default flow and effects (section 6).
+The `Request` envelope is fixed. Each type registers its payload schema, flow template and effects (section 6).
+
+**Decided 09/10/2026: types are also configured per company.** The `RequestTypes` collection (section 4.0) is the catalogue a company offers: name, active flag, and a `kind`:
+
+- `system`: the behaviour (payload, rules, effects such as ledger entries or profile changes) lives in code, in the registry. Admins can rename, enable or disable the type and edit its flows, but approval effects need code. Leave is the first; promotion and bank-details change will be system types.
+- `custom`: an admin-defined plain approval with no effect beyond its status (for example "Work from home"). Its form (`fields`) arrives with the flow builder (phase 4); until then the engine refuses custom types.
+
+The engine refuses a request whose type is not active for the company or has no registered behaviour.
 
 ### D5. The engine owns the cancel state rules; the request type owns who may cancel (08/10/2026)
 
@@ -62,7 +71,9 @@ The `Request` envelope is fixed. Each type registers its payload schema, default
 
 ### D6. A request keeps a frozen copy of its flow, not a pointer
 
-The request stores `flow: { flowId, version, steps }`, a copy of the steps it started with. See 2.2 for why a pointer to the flow version alone is not enough.
+The request stores `flow: { flowId, version, steps }`, a copy of the steps it started with. See 2.2 for why we copy.
+
+**Decided 09/10/2026: every flow lives in the database.** When a request type is enabled for a company (company seed, or `scripts/setupLeaves.ts` for existing companies), its company-wide flow is stored as version 1, built from the type's `flowTemplate` in code. The template is only a starting value; it is never read at request time. If no active flow matches, creation is refused ("no approval flow configured"); there is no silent code fallback and no version 0.
 
 ---
 
@@ -136,8 +147,8 @@ The move is additive: the request still exposes "who must act now", so a tasks p
 A request could point at its flow version (`flowId`, `version`) instead of copying the steps.
 
 - **Why not adapt pending requests automatically when a flow changes?** If a step were removed or reordered, `currentStepIndex` and the stored step states would point at the wrong step, an already-approved request could be asked again, and nobody could later answer "which rules was this approved under?". Moving in-flight requests to a newer version is an explicit, audited admin action (section 7), never a side effect of editing.
-- **Why copy rather than point at the version?** Flow versions are immutable, so a pointer would give the same guarantee for _configured_ flows. The copy is needed because a company with no custom flow uses the type's **default flow, which lives in code** (stored as version 0, not persisted). A deploy that changes the code would silently change in-flight requests. The copy also saves a lookup on every step.
-- **Alternative if the duplication bothers us later:** persist default flows as version rows and keep only the pointer.
+- **Why copy rather than point at the version?** The original reason was that default flows lived in code (version 0, not persisted), so a deploy could silently change in-flight requests. Since 09/10/2026 default flows are stored rows (D6), so a pointer would now give the same guarantee. We keep the copy anyway: it saves a lookup on every step, and a request stays readable on its own (audit, export) even if a flow row is ever archived.
+- **Alternative if the duplication bothers us later:** keep only `{ flowId, version }` and load the steps from the immutable flow version.
 
 ---
 
@@ -165,6 +176,15 @@ Takeaways for us:
 ## 4. Data model
 
 All collections are company-scoped (`company` on every document, every repository query filtered by it, consistent with the existing repositories).
+
+### 4.0 `RequestTypes` (per-company catalogue, built 09/10/2026)
+
+```jsonc
+{ "company": "co_1", "key": "leave", "name": "Leave", "kind": "system", "isActive": true, "description": "" }
+// unique { company, key }. Requests.type holds the key.
+```
+
+`custom` types will add `fields` (a simple form schema) with the flow builder.
 
 ### 4.1 `ApprovalFlows` (definitions, versioned)
 
@@ -326,7 +346,7 @@ type NotificationRecipient =
 ### 5.1 Lifecycle
 
 ```
-create → resolve flow (most specific, active, latest version) → freeze flow on request
+create → type enabled for the company? (RequestTypes) → resolve flow (most specific, active, latest version; none → refused) → freeze flow on request
        → activate step 0 → resolve approvers → store pendingApprovers (apply delegation)
        → each decision pulls the approver and appends history → step complete? → activate next step / finish
 finish approved → run type's onApproved effect → status = approved
@@ -370,9 +390,11 @@ Cancel after approval is an explicit, audited transition and only for types whos
 ```ts
 interface RequestTypeDefinition<TPayload> {
     type: string;
+    name: string; // display name used when the type is first seeded into a company's RequestTypes
     version: number;
+    readCategory?: PermissionCategories; // its scoped "read" also grants visibility (leave: "leaves")
     validatePayload(payload: unknown): TPayload; // validated on create; throws BadRequestError
-    defaultFlow: IFlowStep[]; // used when a company has no custom flow
+    flowTemplate: IFlowStep[]; // seeds the company's first stored flow (version 1); never read at request time
     canCreate(companyId, actor, subjectId, payload): Promise<void>; // permission and business-rule checks
     onSubmitted?(request): Promise<void>;
     onApproved(request): Promise<void>; // idempotent
@@ -393,7 +415,7 @@ engine.cancel(requestId, { reason, actor: "system" }); // e.g. a change request'
 
 The detail drawer renders a per-type component keyed by `type`, fed by `detail(request)` (or a type-specific endpoint). `summarize()` is only for lists and notifications.
 
-- Leave registers a payload validator, a default flow of one line-manager step, and `onApproved` posting ledger entries. The leave design's per-day lines and ledger stay in leave-owned collections; `Request.ref` points to them.
+- **Leave (built 09/10/2026)** registers a payload validator, a flow template of one line-manager step (fallback HR representative), `canCreate` (rules), `canApprove` (`leaves:approve:{scope}`), `canApproveOnCreate`, `canCancel`, `allowCancelAfterApproval`, and `onApproved` / `onCanceled` posting and reversing ledger entries. See `docs/features/leaves.md` section 0. The leave design's per-day lines and ledger stay in leave-owned collections; `Request.ref` points to them.
 - Promotion registers a payload (new title, level, department, effective date, reason), a default flow, and `onApproved` that applies the changes and writes an employment-history entry.
 - A type that outgrows payload-only storage moves its data to its own collection; only its handlers change.
 
@@ -432,7 +454,9 @@ Completed steps are never touched. Only the current step of `pending` requests i
 | Requests for a person (HR, manager view) | `{ company, subject: { $in: scopedIds } }`                    | `{ company, subject, createdAt }`                                          |
 | Admin overview, "needs routing"          | `{ company, status: "pending", needsRouting: true }`          | `{ company, status, needsRouting }`                                        |
 
-Home page and login should call **one** summary endpoint returning `{ pendingForMe, myPending, unreadNotifications }`, each a small indexed count.
+Home page and login should call **one** summary endpoint returning `{ pendingForMe, myPending, unreadNotifications }`, each a small indexed count. Built as `GET /api/requests/summary`; `unreadNotifications` is 0 until notifications exist (phase 6).
+
+"My requests" (built) matches requests where the user is the requester **or** the subject, so leave HR entered on someone's behalf shows up for that person too.
 
 ### 8.2 Visibility is separate from approval
 
@@ -442,15 +466,35 @@ Home page and login should call **one** summary endpoint returning `{ pendingFor
 
 ### 8.3 Requests page (P0-10)
 
+Design proposals (desktop, mobile and the empty, loading, error and "Needs my action" states) are in [`designs/requests-page.html`](../../designs/requests-page.html): option A is a table in the existing page layout, option B a list with a detail panel inside the app shell. Both are type-agnostic; leave is only the first request type.
+
 - Tabs: **Needs my action**, **My requests**, **Team/Company** (permission and scope dependent).
 - Filters: type, status, date range, requester, current step. Consistent server-side pagination and sorting.
 - Detail drawer: payload summary via `summarize()`, the step timeline rendered from `actionsHistory` (assigned, decided, reassigned, on behalf of), comments, and Approve/Reject buttons driven by whether the current user is pending, plus Cancel for the requester.
+
+### 8.4 HTTP API (built 09/10/2026)
+
+Shared by every request type. All routes require a token; `companyId` comes from the token only. Approval authority is never a route permission: each handler checks the caller against the request (pending approver plus `canApprove`, the type's `canCancel`, the visibility rule of 8.2).
+
+| Method | Path                         | Purpose                                                                                       |
+| ------ | ---------------------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| GET    | `/api/requests/inbox`        | Pending requests where I am in `pendingApprovers`. Query: `type`, `page`, `limit` (max 100)   |
+| GET    | `/api/requests/mine`         | Requests I raised or that are about me. Query: `type`, `status`, `page`, `limit`              |
+| GET    | `/api/requests/summary`      | `{ pendingForMe, myPending, unreadNotifications }`                                            |
+| GET    | `/api/requests/:id`          | Request, timeline, steps, the type's `detail()`, and `can: { decide, cancel }` for the caller |
+| POST   | `/api/requests/:id/decision` | `{ decision: "approve"                                                                        | "reject", comment? }`. 403 if not pending or authority lost, 409 if already decided |
+| POST   | `/api/requests/:id/cancel`   | `{ reason }` (required). 403 if `canCancel` refuses, 409 if the state does not allow it       |
+| GET    | `/api/request-types`         | Request types the company has enabled                                                         |
+
+`GET /api/requests/:id` also returns `people` (user id to `{ id, name, email }` for the requester, subject, pending approvers and everyone in `actionsHistory`, including step assignees), so a client can label the timeline without extra calls.
+
+Lists return `{ items, total, page, limit, totalPages }`; each item carries `summary` (from `summarize()`), requester and subject names, the current step and `needsRouting`. A business rule the user can act on (for example overlapping leave) is answered as a soft error: HTTP 200, `success: false`, a readable `message` and `error.rule`.
 
 ---
 
 ## 9. Permissions
 
-- `requests:read` with scopes for the Team/Company tab.
+- `requests:read` with scopes `*`, `department`, `country`, `department-country`, `managed` (built). There is no `self` scope: one's own requests need no permission. A type can add its own read category (`readCategory`; leave uses `leaves:read`).
 - `approvalFlows:read` and `approvalFlows:write` for the flow builder (admin).
 - Deciding requires being in `pendingApprovers` (and the type's `canApprove` check, rechecked at decision time). Creating a request is type-specific (`canCreate`).
 - **Cancel** is authorized by the request type's `canCancel` (D5), which typically combines the requester and a scoped permission such as `leaves:write`. Without the hook only the requester may cancel. `"system"` is reserved for engine effects.
@@ -471,13 +515,14 @@ Two mechanisms, deliberately different:
 
 Server (`server/src/`):
 
-- `models/`: `approval-flow.model.ts`, `request.model.ts`, `audit-log.model.ts` (later: `approval-delegation.model.ts`, `notification.model.ts`)
+- `models/`: `approval-flow.model.ts`, `request.model.ts`, `request-type.model.ts`, `audit-log.model.ts` (later: `approval-delegation.model.ts`, `notification.model.ts`)
 - `repositories/`: one company-scoped repository per model
-- `services/approvals/`: `flow.service.ts`, `request.service.ts` (engine), `resolver.service.ts`, `request-type.registry.ts` (later: `effects.service.ts`)
+- `services/approvals/`: `flow.service.ts`, `request.service.ts` (engine), `resolver.service.ts`, `request-type.registry.ts`, `request-type-config.service.ts` (RequestTypes, seeding of default flows), `register-request-types.ts` (registers system types at startup), `request-view.service.ts` (inbox, mine, summary, detail views) (later: `effects.service.ts`)
+- `policies/request.policy.ts`: scoped access helper and the visibility rule (8.2)
 - `services/audit.service.ts`, `config/audited-entities.ts`
-- `scripts/syncApprovalIndexes.ts`: models use `autoIndex: false`, so indexes (including the partial inbox index) exist only after this script runs
-- `requests/types/`: one file per request type registering its `RequestTypeDefinition`
-- `routes/`: `request.routes.ts`, `approval-flow.routes.ts`, `notification.routes.ts`
+- `scripts/syncIndexes.ts` (renamed from `syncApprovalIndexes.ts`): models use `autoIndex: false`, so indexes (including the partial inbox index and the leave ledger's idempotency key) exist only after this script runs. Re-run it whenever these schemas gain an index.
+- Request type definitions live with their module, for example `services/leaves/leave.request-type.ts` (under `services/` so the model-import lint rule applies), instead of a separate `requests/types/` folder
+- `routes/`: `request.routes.ts` (built); later `approval-flow.routes.ts`, `notification.routes.ts`
 
 Client (`client/src/app/`): `features/requests/` (page, detail drawer), `features/approval-flows/` (builder), `shared/components/pending-badge/`.
 
@@ -489,7 +534,7 @@ Client (`client/src/app/`): `features/requests/` (page, detail drawer), `feature
 | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | 0     | Agree this plan; reconcile with `docs/features/leaves.md` section 9 (see section 14).                                                                                                                                               | Both documents describe the same approval model.                                                        |
 | 1     | **Built (08/10/2026).** Engine core: models, resolver service, create/decide/cancel, registry, embedded approvers and timeline, idempotency, opt-in audit. Single-step flows run; multi-step and `any`/`all` already work in tests. | Integration tests cover create, approve, reject, cancel, double-decide, self-approval, missing manager. |
-| 2     | Leave as the first type on the engine (default one-step flow). Inbox endpoint and pending summary endpoint.                                                                                                                         | Leave approval works end to end through `pendingApprovers`.                                             |
+| 2     | **Built (09/10/2026).** Leave as the first type on the engine (stored default one-step flow), `RequestTypes`, inbox, my requests, summary, detail, decide and cancel endpoints.                                                     | Leave approval works end to end through `pendingApprovers`.                                             |
 | 3     | Requests page (P0-10): needs-my-action, my requests, team tab, detail timeline.                                                                                                                                                     | Users and managers can find and act on everything from one page.                                        |
 | 4     | Multi-step flows in the builder, resolver kinds (`managerChain`, `departmentHead`), flow versioning UI, flow builder UI (list of steps).                                                                                            | An admin builds a 2-step flow; in-flight requests keep their frozen flow.                               |
 | 5     | Effects: manager change, deactivation, manual reassign, delegation, reconciliation job, reminder job.                                                                                                                               | Org change tests show pending approvers replaced and recorded; completed steps untouched.               |
@@ -555,3 +600,5 @@ One cost to keep in mind: leave records no longer carry a status, so overlap and
 7. ~~**Notifications**~~ **Decided (08/10/2026):** in-app always, email optional and configurable per request type, step, event and recipient (section 4.6).
 8. ~~**Where does "who must act" live?**~~ **Decided (08/10/2026): embedded on the request** (`pendingApprovers` plus `actionsHistory`), no separate tasks collection. Alternatives, reasons and the conditions for reversing are in section 2.1.
 9. ~~**Cancelling an approved request on someone else's behalf**~~ **Decided (08/10/2026): the request type decides** through the `canCancel` hook (D5). The engine enforces the state rules and the default is requester only. Leave defines its own rule: the requester for their own pending leave and for approved leave before the start date, and `leaves:write` beyond `self` (HR) after the start date and for a leaver's future leaves.
+10. ~~**Where do request types and default flows live?**~~ **Decided (09/10/2026): in the database, per company.** A `RequestTypes` collection with `kind: "system" | "custom"` (D4), and every flow stored as a versioned row; the type's code template only seeds version 1 (D6). No flow configured means creation is refused.
+11. ~~**Promotion effective dates**~~ **Decided (09/10/2026):** approval does not change the profile. The approved promotion is scheduled and a job applies it on the effective date (P0-14).

@@ -101,7 +101,7 @@ describe("GET /api/users/org-chart", () => {
 
     it("only exposes non-sensitive fields", async () => {
         const res = await request(app).get("/api/users/org-chart").set("Authorization", `Bearer ${employee.token}`);
-        const allowed = ["_id", "name", "email", "managerId", "title", "subDepartmentId"];
+        const allowed = ["_id", "name", "email", "managerId", "title", "level", "subDepartmentId"];
         for (const user of res.body.data.users) {
             expect(Object.keys(user).sort()).toEqual([...allowed].sort());
         }

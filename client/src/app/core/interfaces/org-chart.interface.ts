@@ -4,6 +4,7 @@ export interface IOrgChartUser {
     email: string;
     managerId: string | null;
     title: string | null;
+    level: string | null;
     subDepartmentId: string | null;
 }
 

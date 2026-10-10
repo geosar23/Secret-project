@@ -78,19 +78,28 @@
 
         <!-- KPI STRIP (sample data) -->
         <div class="kpi-grid">
-            @for (kpi of kpis; track kpi.label) {
-                <div class="kpi">
-                    <div class="kpi-ico" [class]="kpi.tone">
-                        <mat-icon>{{ kpi.icon }}</mat-icon>
+            @for (kpi of kpis(); track kpi.label) {
+                @if (kpi.route) {
+                    <a class="kpi kpi-link" [routerLink]="kpi.route" [queryParams]="kpi.queryParams">
+                        <ng-container [ngTemplateOutlet]="kpiBody" [ngTemplateOutletContext]="{ $implicit: kpi }" />
+                    </a>
+                } @else {
+                    <div class="kpi">
+                        <ng-container [ngTemplateOutlet]="kpiBody" [ngTemplateOutletContext]="{ $implicit: kpi }" />
                     </div>
-                    <div>
-                        <div class="kpi-val">{{ kpi.value }}</div>
-                        <div class="kpi-lbl">{{ kpi.label }}</div>
-                        <div class="kpi-sub">{{ kpi.hint }}</div>
-                    </div>
-                </div>
+                }
             }
         </div>
+        <ng-template #kpiBody let-kpi>
+            <div class="kpi-ico" [class]="kpi.tone">
+                <mat-icon>{{ kpi.icon }}</mat-icon>
+            </div>
+            <div>
+                <div class="kpi-val">{{ kpi.value }}</div>
+                <div class="kpi-lbl">{{ kpi.label }}</div>
+                <div class="kpi-sub">{{ kpi.hint }}</div>
+            </div>
+        </ng-template>
         <p class="sample-note">
             <mat-icon>info</mat-icon> Figures above and below marked "Sample data" are placeholders.
         </p>
@@ -120,33 +129,176 @@
                 </div>
             </div>
 
-            <!-- LEAVE TRACKER (sample data) -->
-            <div>
-                <h3 class="sec-title">Leave Tracker <span class="sample-badge">Sample data</span></h3>
-                <div class="panel">
-                    @for (leave of leaveBalances; track leave.label) {
-                        <div class="leave-row">
-                            <span class="leave-dot" [style.background]="leave.color"></span>
-                            <span class="leave-name">{{ leave.label }}</span>
-                            <div class="leave-bar-wrap">
+            <!-- LEAVE TRACKER + MY REQUESTS (real data) -->
+            <div class="leave-col">
+                <div>
+                    <h3 class="sec-title">Leave Tracker</h3>
+                    <div class="panel">
+                        @if (!canSeeBalances()) {
+                            <p class="panel-note">Leave balances are not available for your role.</p>
+                        } @else if (balancesState() === "loading") {
+                            <div class="panel-state">
+                                <mat-spinner diameter="28"></mat-spinner>
+                                <span>Loading your balances…</span>
+                            </div>
+                        } @else if (balancesState() === "error") {
+                            <div class="panel-state" role="alert">
+                                <mat-icon>error_outline</mat-icon>
+                                <span>Your balances did not load.</span>
+                                <button mat-button color="primary" type="button" (click)="loadBalances()">
+                                    Try again
+                                </button>
+                            </div>
+                        } @else if (balances().length === 0) {
+                            <p class="panel-note">Your leave allowance appears once it is set up for you.</p>
+                        } @else {
+                            @for (leave of balances(); track leave.leaveType.id) {
+                                @if (canRequestLeave()) {
+                                    <button
+                                        type="button"
+                                        class="leave-row leave-row-btn"
+                                        (click)="openRequestLeave(leave.leaveType.id)"
+                                        [attr.aria-label]="'Request ' + leave.leaveType.name"
+                                    >
+                                        <ng-container
+                                            [ngTemplateOutlet]="balanceRow"
+                                            [ngTemplateOutletContext]="{ $implicit: leave }"
+                                        />
+                                    </button>
+                                } @else {
+                                    <div class="leave-row">
+                                        <ng-container
+                                            [ngTemplateOutlet]="balanceRow"
+                                            [ngTemplateOutletContext]="{ $implicit: leave }"
+                                        />
+                                    </div>
+                                }
+                            }
+                        }
+                        @if (canRequestLeave()) {
+                            <button
+                                mat-stroked-button
+                                color="primary"
+                                class="req-btn"
+                                type="button"
+                                (click)="openRequestLeave()"
+                            >
+                                <mat-icon>add</mat-icon>
+                                Request Leave
+                            </button>
+                        }
+                    </div>
+                    <ng-template #balanceRow let-leave>
+                        <span
+                            class="leave-dot"
+                            [style.background]="leave.leaveType.color || 'var(--color-primary-700)'"
+                        ></span>
+                        <span class="leave-name">{{ leave.leaveType.name }}</span>
+                        @if (leave.tracked) {
+                            <div
+                                class="leave-bar-wrap"
+                                role="progressbar"
+                                [attr.aria-label]="
+                                    leave.leaveType.name +
+                                    ': ' +
+                                    leave.used +
+                                    ' used and ' +
+                                    leave.pending +
+                                    ' pending of ' +
+                                    (leave.granted + leave.adjusted)
+                                "
+                            >
                                 <div
                                     class="leave-bar"
-                                    [style.width]="barWidth(leave)"
-                                    [style.background]="leave.color"
+                                    [style.width.%]="usedPercent(leave)"
+                                    [style.background]="leave.leaveType.color || 'var(--color-primary-700)'"
+                                ></div>
+                                <div
+                                    class="leave-bar leave-bar-pending"
+                                    [style.width.%]="pendingPercent(leave)"
+                                    [style.background]="leave.leaveType.color || 'var(--color-primary-700)'"
                                 ></div>
                             </div>
-                            <span class="leave-count">{{ leave.used }}/{{ leave.total }}</span>
-                        </div>
-                    }
-                    <button mat-stroked-button color="primary" class="req-btn" type="button" disabled>
-                        <mat-icon>add</mat-icon>
-                        Request Leave
-                    </button>
+                            <span class="leave-count">{{ leave.available }} left</span>
+                        } @else {
+                            <span class="leave-untracked">Not tracked</span>
+                            <span class="leave-count">{{ leave.used }} used</span>
+                        }
+                    </ng-template>
+                </div>
+
+                <div>
+                    <h3 class="sec-title">
+                        My Requests
+                        <a class="sec-link" routerLink="/requests" [queryParams]="{ tab: 'mine' }">View all</a>
+                    </h3>
+                    <div class="panel">
+                        @if (myRequestsState() === "loading") {
+                            <div class="panel-state">
+                                <mat-spinner diameter="28"></mat-spinner>
+                                <span>Loading your requests…</span>
+                            </div>
+                        } @else if (myRequestsState() === "error") {
+                            <div class="panel-state" role="alert">
+                                <mat-icon>error_outline</mat-icon>
+                                <span>Your requests did not load.</span>
+                                <button mat-button color="primary" type="button" (click)="loadRequests()">
+                                    Try again
+                                </button>
+                            </div>
+                        } @else if (myRequests().length === 0) {
+                            <p class="panel-note">No requests yet. Your requests and their status will show up here.</p>
+                        } @else {
+                            @for (item of myRequests(); track item.id) {
+                                <a
+                                    class="list-item req-link"
+                                    routerLink="/requests"
+                                    [queryParams]="{ tab: 'mine', id: item.id }"
+                                >
+                                    <div class="req-main">
+                                        <div class="item-title">{{ item.summary.title }}</div>
+                                        <div class="item-sub">
+                                            Submitted {{ item.createdAt | appDate }}
+                                            @if (item.status === "pending" && item.currentStep) {
+                                                · Waiting for {{ item.currentStep.name }}
+                                            }
+                                        </div>
+                                    </div>
+                                    <app-request-status-badge [status]="item.status" />
+                                </a>
+                            }
+                        }
+                    </div>
                 </div>
             </div>
 
             <!-- RIGHT COLUMN (sample data) -->
             <div class="right-col">
+                @if (pendingForMe() > 0) {
+                    <div>
+                        <h3 class="sec-title">
+                            Waiting for you
+                            <a class="sec-link" routerLink="/requests" [queryParams]="{ tab: 'inbox' }">
+                                See all {{ pendingForMe() }}
+                            </a>
+                        </h3>
+                        <div class="panel">
+                            @for (item of waiting(); track item.id) {
+                                <a
+                                    class="list-item req-link"
+                                    routerLink="/requests"
+                                    [queryParams]="{ tab: 'inbox', id: item.id }"
+                                >
+                                    <div class="req-main">
+                                        <div class="item-title">{{ item.subject.name }}</div>
+                                        <div class="item-sub">{{ item.summary.title }}</div>
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+
                 <div>
                     <h3 class="sec-title">Upcoming <span class="sample-badge">Sample data</span></h3>
                     <div class="panel">

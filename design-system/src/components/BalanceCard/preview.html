@@ -1,0 +1,54 @@
+<!-- @dsCard group="Leaves" height=230 subtitle="Proposed pattern" -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<!-- ds:base -->
+<style>
+    .g {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+    .big {
+        font-size: 30px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+    }
+    .bar {
+        height: 8px;
+        border-radius: 9999px;
+        background: var(--color-gray-200);
+        overflow: hidden;
+        display: flex;
+        margin: 12px 0;
+    }
+    .bar i {
+        display: block;
+        height: 100%;
+    }
+    .m {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--color-text-secondary);
+        font-variant-numeric: tabular-nums;
+    }
+</style>
+<div class="g">
+    <div class="card">
+        <div class="card-body">
+            <div class="sec">Annual leave</div>
+            <div class="big">15 <span class="sec" style="font-size: 14px; font-weight: 400">days available</span></div>
+            <div class="bar">
+                <i style="width: 50%; background: var(--color-primary-500)"></i
+                ><i style="width: 12.5%; background: var(--color-primary-200)"></i>
+            </div>
+            <div class="m"><span>Granted 24</span><span>Used 12</span><span>Pending 3</span></div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <div class="sec">Sick leave</div>
+            <div class="big">4 <span class="sec" style="font-size: 14px; font-weight: 400">days used</span></div>
+            <div class="m" style="margin-top: 12px"><span class="badge badge-gray">Not tracked</span></div>
+        </div>
+    </div>
+</div>

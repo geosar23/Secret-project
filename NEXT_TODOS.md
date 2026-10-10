@@ -325,17 +325,19 @@ we should always fetch only the active ones for selection
 
 ### P0-08 Leaves Module (Single-Step Manager Approval)
 
-- Note: design is being discussed with another agent. Build it as the first request type on the P0-11 engine (see architecture notes there) and make it audit-ready.
+- Note: built as the first request type on the P0-11 engine (09/10/2026, branch `feat/leaves-on-engine`), server side. What is built and what is still design: [docs/features/leaves.md](docs/features/leaves.md) section 0. The UI comes with P0-11D.
 - Priority: P0
 - Owner: You
 - Estimate: 2-3 days
-- Status: [ ]
+- Status: [~] (server done; UI pending)
 - Goal: deliver a usable leave request workflow with one manager approval step.
 - Acceptance criteria:
-    - [ ] Employees can create, view, and cancel leave requests.
-    - [ ] Managers can approve/reject leave requests in one step.
-    - [ ] Leave status lifecycle is tracked (pending, approved, rejected, canceled).
-    - [ ] Basic leave balances are reflected/updated correctly.
+    - [x] Employees can create, view, and cancel leave requests (API; HR can also enter leave on someone's behalf).
+    - [x] Managers can approve/reject leave requests in one step.
+    - [x] Leave status lifecycle is tracked (pending, approved, rejected, canceled) on the shared Request.
+    - [x] Basic leave balances are reflected/updated correctly (stored yearly grants, usage on approval, reversal on cancel; Unpaid has its own allowance; hire-year rule per company).
+    - [ ] Leave UI (request dialog, balances), with the Requests page (P0-11D).
+- Follow-ups (design in leaves.md): half days, holiday calendars, pay tiers, accrual and carry-over, notice / blackout / probation, coverage limits, change requests, sickness conversion, payroll export.
 
 ### P0-09 Recruiting Module (MVP)
 
@@ -407,7 +409,7 @@ Open before phase 4: confirm the flow-scope precedence rule (most matching dimen
 - Status: [~]
 - Goal: a tested engine that runs single-step flows on a multi-step-ready schema.
 - Acceptance criteria:
-    - [x] Models and repositories (company-scoped): `Requests` (live approvers in `pendingApprovers`, timeline in `actionsHistory`), `ApprovalFlows` (versioned), with a partial inbox index on pending requests. The separate `ApprovalTasks` collection was dropped (decided 08/10/2026). Indexes are created by `server/src/scripts/syncApprovalIndexes.ts` (models use `autoIndex: false`).
+    - [x] Models and repositories (company-scoped): `Requests` (live approvers in `pendingApprovers`, timeline in `actionsHistory`), `ApprovalFlows` (versioned), with a partial inbox index on pending requests. The separate `ApprovalTasks` collection was dropped (decided 08/10/2026). Indexes are created by `server/src/scripts/syncIndexes.ts` (renamed from `syncApprovalIndexes.ts` on 09/10/2026; models use `autoIndex: false`).
     - [x] Request type registry (payload schema, default flow, `canCreate`, `canApprove`, `onApproved`, `onRejected`, `onCanceled`, `summarize`, `detail`).
     - [x] Resolver service for the first resolver kinds (line manager, role, user) with fallback and "needs routing" handling.
     - [x] Engine operations: create, decide, cancel (type-level `canCancel`, default requester only; plan D5), cancel-after-approval (opt-in per type), system-initiated `engine.cancel` for effects.
@@ -421,12 +423,14 @@ Open before phase 4: confirm the flow-scope precedence rule (most matching dimen
 
 - Priority: P0
 - Depends on: P0-11B, P0-08
-- Status: [ ]
+- Status: [x] (09/10/2026, branch `feat/leaves-on-engine`)
 - Acceptance criteria:
-    - [ ] Leave registers as a request type with a default one-step line-manager flow and ledger effects.
-    - [ ] Inbox endpoint (pending requests for the current user via `pendingApprovers`, filter by type, paginated; `listPendingFor` exists).
-    - [ ] One summary endpoint for login/home: `{ pendingForMe, myPending, unreadNotifications }`.
-    - [ ] Tests cover the leave approve/reject/cancel path end to end through the engine.
+    - [x] Leave registers as a request type with a default one-step line-manager flow and ledger effects.
+    - [x] Inbox endpoint (pending requests for the current user via `pendingApprovers`, filter by type, paginated).
+    - [x] One summary endpoint for login/home: `{ pendingForMe, myPending, unreadNotifications }` (`unreadNotifications` is 0 until P0-11G).
+    - [x] Tests cover the leave approve/reject/cancel path end to end through the engine.
+    - [x] Also built: `RequestTypes` collection per company (system / custom kinds), default flows stored in the DB (no code fallback), my requests / detail / decide / cancel endpoints, `requests:*` and `leaves:*` permissions. See [docs/plans/approval-flows.md](docs/plans/approval-flows.md) sections 8.4 and 16.
+- After merging: run `server/src/scripts/syncIndexes.ts`, then `server/src/scripts/setupLeaves.ts` for existing companies.
 
 ##### P0-11D Requests Page (Phase 3, = P0-10)
 

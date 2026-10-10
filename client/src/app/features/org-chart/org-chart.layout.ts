@@ -8,6 +8,8 @@ export interface OrgNode {
     name: string;
     /** person: job title; dept: "N employees" */
     subtitle: string;
+    /** person: level name, when the employee has one */
+    level?: string;
     /** person: department name */
     department: string;
     email: string;
@@ -98,6 +100,7 @@ export function buildManagerTree(data: IOrgChartData, companyName: string): OrgN
             kind: "person",
             name: user.name,
             subtitle: user.title ?? "",
+            level: user.level ?? undefined,
             department: department?.name ?? UNASSIGNED,
             email: user.email,
             icon: "person",
@@ -184,6 +187,11 @@ export function countDescendants(node: OrgNode): number {
     return node.children.reduce((sum, child) => sum + 1 + countDescendants(child), 0);
 }
 
+/** Number of management levels below a node (0 for someone with no reports). */
+export function treeDepth(node: OrgNode): number {
+    return node.children.length ? 1 + Math.max(...node.children.map(treeDepth)) : 0;
+}
+
 export function findNode(root: OrgNode | null, id: string): OrgNode | null {
     if (!root) {
         return null;
@@ -258,13 +266,4 @@ export function layoutTree(root: OrgNode, collapsed: ReadonlySet<string>): OrgLa
             maxY: Math.max(...ys) + DEPT_H / 2,
         },
     };
-}
-
-export function initialsOf(name: string): string {
-    return name
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map(w => w[0].toUpperCase())
-        .join("");
 }

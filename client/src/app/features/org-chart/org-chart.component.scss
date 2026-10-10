@@ -145,9 +145,8 @@
     top: 0;
     left: 0;
     transform-origin: 0 0;
-    will-change: transform;
-
     &.animating {
+        will-change: transform;
         transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
 }
@@ -566,6 +565,15 @@
     font-size: var(--font-size-sm-plus);
     font-weight: var(--font-weight-bold);
     color: var(--color-text-on-primary);
+}
+
+.info-name-link {
+    --mat-button-text-label-text-color: var(--color-text-on-primary);
+    --mat-button-text-state-layer-color: var(--color-text-on-primary);
+    --mat-button-text-container-height: auto;
+    margin: calc(var(--spacing-xs) * -4);
+    font: inherit;
+    letter-spacing: normal;
 }
 
 .info-role {

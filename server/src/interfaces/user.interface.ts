@@ -56,6 +56,8 @@ export interface IUser {
     level?: Types.ObjectId;
     office?: Types.ObjectId;
     hrRepresentative?: Types.ObjectId;
+    /** Optional personal work schedule; otherwise the country default, then the company default. */
+    workSchedule?: Types.ObjectId;
 
     // Identity
     legalName?: string;

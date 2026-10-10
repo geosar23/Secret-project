@@ -61,19 +61,23 @@ Categories may use dot notation for sub-categories (e.g. `userProfile.identity`)
 
 ### Permission categories
 
-| Category                   | Actions available | Purpose                                                                  |
-| -------------------------- | ----------------- | ------------------------------------------------------------------------ |
-| `usersManagement`          | `read`, `write`   | List/view users (`read`); open Edit User page (`write`)                  |
-| `userCreate`               | `write`           | Create new users; scopes which country/dept/manager the actor may assign |
-| `userProfile`              | `read`, `write`   | Parent category for all profile sections                                 |
-| `userProfile.identity`     | `read`, `write`   | Identity fields on the Edit User profile                                 |
-| `userProfile.contact`      | `read`, `write`   | Contact fields                                                           |
-| `userProfile.employment`   | `read`, `write`   | Employment fields                                                        |
-| `userProfile.education`    | `read`, `write`   | Education fields                                                         |
-| `userProfile.compensation` | `read`, `write`   | Compensation fields                                                      |
-| `countriesManagement`      | `read`, `write`   | Countries CRUD                                                           |
-| `rolesManagement`          | `read`, `write`   | Roles CRUD                                                               |
-| `resetPassword`            | `write`           | Reset another user's password                                            |
+| Category                   | Actions available          | Purpose                                                                                                                                              |
+| -------------------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `usersManagement`          | `read`, `write`            | List/view users (`read`); open Edit User page (`write`)                                                                                              |
+| `userCreate`               | `write`                    | Create new users; scopes which country/dept/manager the actor may assign                                                                             |
+| `userProfile`              | `read`, `write`            | Parent category for all profile sections                                                                                                             |
+| `userProfile.identity`     | `read`, `write`            | Identity fields on the Edit User profile                                                                                                             |
+| `userProfile.contact`      | `read`, `write`            | Contact fields                                                                                                                                       |
+| `userProfile.employment`   | `read`, `write`            | Employment fields                                                                                                                                    |
+| `userProfile.education`    | `read`, `write`            | Education fields                                                                                                                                     |
+| `userProfile.compensation` | `read`, `write`            | Compensation fields                                                                                                                                  |
+| `countriesManagement`      | `read`, `write`            | Countries CRUD                                                                                                                                       |
+| `rolesManagement`          | `read`, `write`            | Roles CRUD                                                                                                                                           |
+| `resetPassword`            | `write`                    | Reset another user's password                                                                                                                        |
+| `requests`                 | `read`                     | View other people's requests (no `self` scope: own requests need no permission)                                                                      |
+| `leaves`                   | `read`, `write`, `approve` | See leave (`read`), submit leave for self or on someone's behalf (`write`), approval authority checked at decision time (`approve`, no `self` scope) |
+| `leaveBalances`            | `read`, `write`            | View balances (`read`); manual adjustments and the yearly grant run (`write:*`)                                                                      |
+| `leaveSettingsManagement`  | `read`, `write`            | Leave types, policies, work schedules and company leave settings (`*` only)                                                                          |
 
 ### Scopes
 

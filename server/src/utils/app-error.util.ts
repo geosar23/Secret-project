@@ -51,6 +51,19 @@ export class BadRequestError extends AppError {
     }
 }
 
+/**
+ * A business rule the user can act on (overlapping leave, insufficient balance...). Unlike other AppErrors its
+ * message is meant for the user: the error middleware answers with a soft error carrying `publicMessage` and `rule`.
+ */
+export class RuleViolationError extends BadRequestError {
+    constructor(
+        readonly rule: string,
+        readonly publicMessage: string,
+    ) {
+        super(`${rule}: ${publicMessage}`);
+    }
+}
+
 export class UnauthorizedError extends AppError {
     constructor(internalMessage?: string) {
         super(ErrorCode.UNAUTHORIZED, internalMessage);

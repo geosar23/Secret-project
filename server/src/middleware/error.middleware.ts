@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from "express";
 import { MulterError } from "multer";
 import { config } from "../config/env";
-import { AppError, ErrorCode } from "../utils/app-error.util";
-import { sendError } from "../utils/response.util";
+import { AppError, ErrorCode, RuleViolationError } from "../utils/app-error.util";
+import { sendError, softErrorRes } from "../utils/response.util";
 
 const STATUS_TO_CODE: Record<number, ErrorCode> = {
     400: ErrorCode.BAD_REQUEST,
@@ -48,6 +48,11 @@ export const notFoundMiddleware = (_req: Request, res: Response): void => {
 const errorMiddleware: ErrorRequestHandler = (err: unknown, req: Request, res: Response, next: NextFunction) => {
     if (res.headersSent) {
         return next(err);
+    }
+
+    if (err instanceof RuleViolationError) {
+        softErrorRes(res, err.publicMessage, { rule: err.rule });
+        return;
     }
 
     const code = resolveErrorCode(err);

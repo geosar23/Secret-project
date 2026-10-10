@@ -55,6 +55,16 @@ export const AREA_GROUPS: { label: string; categories: PermissionCategories[] }[
         ],
     },
     { label: "Access", categories: [PermissionCategories.ROLES_MANAGEMENT] },
+    {
+        // `leaves:approve:*` keys are not a matrix column yet; the editors keep them as extra permissions.
+        label: "Time off",
+        categories: [
+            PermissionCategories.REQUESTS,
+            PermissionCategories.LEAVES,
+            PermissionCategories.LEAVE_BALANCES,
+            PermissionCategories.LEAVE_SETTINGS_MANAGEMENT,
+        ],
+    },
 ];
 
 /** category → action → scopes that exist for it, derived from the permission key map. */

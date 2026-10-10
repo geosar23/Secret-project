@@ -11,6 +11,7 @@ import {
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
+import { ActivatedRoute, RouterLink } from "@angular/router";
 import { take } from "rxjs";
 import { AuthService } from "../../core/services/auth.service";
 import { CompanyService } from "../../core/services/company.service";
@@ -28,9 +29,9 @@ import {
     countDescendants,
     findNode,
     flattenNodes,
-    initialsOf,
     layoutTree,
 } from "./org-chart.layout";
+import { initialsOf } from "../../core/utils/name.utils";
 
 const MIN_SCALE = 0.2;
 const MAX_SCALE = 2.5;
@@ -44,7 +45,7 @@ interface Point {
 @Component({
     selector: "app-org-chart",
     standalone: true,
-    imports: [MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+    imports: [MatButtonModule, MatIconModule, MatProgressSpinnerModule, RouterLink],
     templateUrl: "./org-chart.component.html",
     styleUrls: ["./org-chart.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,6 +55,7 @@ export class OrgChartComponent implements OnInit {
     private companyService = inject(CompanyService);
     private authService = inject(AuthService);
     private currentUser = inject(CurrentUserService);
+    private route = inject(ActivatedRoute);
 
     private canvasWrap = viewChild<ElementRef<HTMLElement>>("canvasWrap");
 
@@ -74,6 +76,12 @@ export class OrgChartComponent implements OnInit {
     readonly animating = signal(false);
 
     readonly myId = computed(() => this.currentUser.user()?._id ?? null);
+
+    /** True when the logged-in user has a node in the current view (the department view has none). */
+    readonly canFocusMe = computed(() => {
+        const myId = this.myId();
+        return !!myId && !!findNode(this.root(), myId);
+    });
 
     private root = computed<OrgNode | null>(() => {
         const data = this.data();
@@ -140,7 +148,20 @@ export class OrgChartComponent implements OnInit {
                     this.data.set(res.data);
                 }
                 this.loading.set(false);
-                this.fitSoon();
+                const focusId = this.route.snapshot.queryParamMap.get("focus");
+                if (focusId && findNode(this.root(), focusId)) {
+                    this.selectedId.set(focusId);
+                    this.focusSoon(focusId);
+                } else {
+                    // No explicit target: centre on the logged-in user when they're in the chart.
+                    const myId = this.myId();
+                    if (myId && findNode(this.root(), myId)) {
+                        this.focusSoon(myId);
+                        this.selectedId.set(myId);
+                    } else {
+                        this.fitSoon();
+                    }
+                }
             },
             error: err => {
                 this.error.set(err.error?.message || "Failed to load the org chart");
@@ -170,6 +191,10 @@ export class OrgChartComponent implements OnInit {
             });
     }
 
+    profileLink(id: string): string[] {
+        return ["/profile", id === this.myId() ? "me" : id];
+    }
+
     initials(name: string): string {
         return initialsOf(name);
     }
@@ -190,6 +215,17 @@ export class OrgChartComponent implements OnInit {
 
     toggleCollapse(event: Event, id: string): void {
         event.stopPropagation();
+        this.toggleCollapsed(id);
+    }
+
+    /** Double-click on a node: expand/collapse its children (no-op for leaves). */
+    toggleChildren(node: OrgNode): void {
+        if (node.children.length) {
+            this.toggleCollapsed(node.id);
+        }
+    }
+
+    private toggleCollapsed(id: string): void {
         this.collapsed.update(current => {
             const next = new Set(current);
             if (!next.delete(id)) {
@@ -249,6 +285,34 @@ export class OrgChartComponent implements OnInit {
         this.panX.set(rect.width / 2 - ((minX + maxX) / 2) * scale);
         this.panY.set(rect.height / 2 - ((minY + maxY) / 2) * scale);
         setTimeout(() => this.animating.set(false), 420);
+    }
+
+    /** Centre the canvas on one node at a readable zoom. */
+    private focusOn(id: string): void {
+        const wrap = this.canvasWrap()?.nativeElement;
+        const item = this.layout()?.nodes.find(n => n.node.id === id);
+        if (!wrap || !item) {
+            return;
+        }
+        const rect = wrap.getBoundingClientRect();
+        const scale = Math.min(Math.max(this.scale(), 0.8), 1);
+        this.animating.set(true);
+        this.scale.set(scale);
+        this.panX.set(rect.width / 2 - item.x * scale);
+        this.panY.set(rect.height / 2 - item.y * scale);
+        setTimeout(() => this.animating.set(false), 420);
+    }
+
+    focusMe(): void {
+        const myId = this.myId();
+        if (myId) {
+            this.focusOn(myId);
+            this.selectedId.set(myId);
+        }
+    }
+
+    private focusSoon(id: string): void {
+        setTimeout(() => this.focusOn(id), 50);
     }
 
     /** Fit once the new layout has been rendered. */

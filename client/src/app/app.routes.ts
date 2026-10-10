@@ -24,6 +24,11 @@ export const routes: Routes = [
                 loadComponent: () => import("./features/dashboard/dashboard.component").then(m => m.DashboardComponent),
             },
             {
+                path: "requests",
+                data: { breadcrumb: "Requests" },
+                loadComponent: () => import("./features/requests/requests.component").then(m => m.RequestsComponent),
+            },
+            {
                 path: "org-chart",
                 data: { breadcrumb: "Org Chart" },
                 loadComponent: () => import("./features/org-chart/org-chart.component").then(m => m.OrgChartComponent),

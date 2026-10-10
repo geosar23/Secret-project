@@ -585,3 +585,120 @@
         }
     }
 }
+
+// ── Leave: real data (tracker, my requests, waiting for you) ──
+
+.leave-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    min-width: 0;
+}
+
+.sec-link {
+    margin-left: auto;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-primary-700);
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.kpi-link {
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+
+    &:focus-visible {
+        outline: 2px solid var(--color-primary-300);
+        outline-offset: 2px;
+    }
+}
+
+.leave-row-btn {
+    width: 100%;
+    font: inherit;
+    text-align: left;
+    color: inherit;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--color-primary-50);
+    cursor: pointer;
+
+    &:hover .leave-name {
+        color: var(--color-primary-700);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-primary-300);
+        outline-offset: 2px;
+    }
+}
+
+.leave-bar-wrap {
+    display: flex;
+
+    .leave-bar {
+        flex: none;
+    }
+
+    .leave-bar-pending {
+        opacity: 0.4;
+    }
+}
+
+.leave-untracked {
+    flex: 1;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+}
+
+.panel-note {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.panel-state {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+
+    mat-icon {
+        color: var(--color-error);
+    }
+}
+
+.req-link {
+    align-items: center;
+    justify-content: space-between;
+    color: inherit;
+    text-decoration: none;
+
+    &:hover .item-title {
+        color: var(--color-primary-700);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-primary-300);
+        outline-offset: 2px;
+    }
+
+    .req-main {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .item-title {
+        font-size: var(--font-size-sm);
+    }
+
+    .item-sub {
+        font-size: var(--font-size-xs);
+    }
+}

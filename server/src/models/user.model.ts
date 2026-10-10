@@ -53,6 +53,7 @@ const UserSchema = new Schema<IUser>(
         level: { type: Schema.Types.ObjectId, ref: "Levels" },
         office: { type: Schema.Types.ObjectId, ref: "Offices" },
         hrRepresentative: { type: Schema.Types.ObjectId, ref: "Users" },
+        workSchedule: { type: Schema.Types.ObjectId, ref: "WorkSchedules" },
 
         // Identity
         legalName: { type: String, trim: true },

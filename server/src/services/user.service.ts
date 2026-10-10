@@ -5,6 +5,7 @@ import { IProfileImageMetadata, IUser, IUserPopulated, IUsersQueryParams } from 
 import { FilterQuery } from "mongoose";
 import bcrypt from "bcryptjs";
 import { decryptString } from "../utils/encryption.util";
+import { LeaveLedgerService } from "./leaves/leave-ledger.service";
 
 export const UserService = {
     getUsers: async (params: IUsersQueryParams = {}, companyId: string, permissionsFilter?: FilterQuery<IUser>) => {
@@ -105,8 +106,9 @@ export const UserService = {
         const [users, departments, subDepartments] = await Promise.all([
             userRepository(companyId)
                 .find({ isActive: true })
-                .select("name email manager employmentTitle primarySubDepartment")
+                .select("name email manager employmentTitle level primarySubDepartment")
                 .populate({ path: "employmentTitle", select: "name" })
+                .populate({ path: "level", select: "name" })
                 .sort({ name: 1 })
                 .lean(),
             departmentRepository(companyId).find({ isActive: true }).select("name").sort({ name: 1 }).lean(),
@@ -120,12 +122,14 @@ export const UserService = {
         return {
             users: users.map(user => {
                 const title = user.employmentTitle as unknown as { name?: string } | undefined;
+                const level = user.level as unknown as { name?: string } | undefined;
                 return {
                     _id: String(user._id),
                     name: user.name,
                     email: user.email,
                     managerId: user.manager ? String(user.manager) : null,
                     title: title?.name ?? null,
+                    level: level?.name ?? null,
                     subDepartmentId: user.primarySubDepartment ? String(user.primarySubDepartment) : null,
                 };
             }),
@@ -184,13 +188,18 @@ export const UserService = {
     },
     getByEmail: (email: string) =>
         userIdentityRepository().findByEmail(email).populate("role", "role name").populate("company").lean(),
-    create: (data: Omit<IUser, "_id">, companyId: string) => {
+    create: async (data: Omit<IUser, "_id">, companyId: string) => {
         if (!companyId) {
             throw new Error("Company ID is required for creating user");
         }
 
         const repo = userRepository(String(companyId));
-        return repo.create(data as Partial<IUser>);
+        const created = await repo.create(data as Partial<IUser>);
+        // This year's leave grants (pro-rated by hire date); idempotent, so a later yearly run does not double them
+        await LeaveLedgerService.ensureEntitlements(String(companyId), String(new Date().getUTCFullYear()), {
+            userIds: [String(created._id)],
+        });
+        return created;
     },
 
     delete: (id: string, companyId: string) => {

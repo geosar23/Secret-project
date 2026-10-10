@@ -64,6 +64,11 @@ export class HeaderComponent implements OnInit {
             route: "/dashboard",
         },
         {
+            label: "Requests",
+            icon: "inbox",
+            route: "/requests",
+        },
+        {
             label: "Org Chart",
             icon: "account_tree",
             route: "/org-chart",

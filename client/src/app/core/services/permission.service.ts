@@ -1,7 +1,12 @@
 import { Injectable, inject } from "@angular/core";
 import { AuthService } from "./auth.service";
 import { IUser } from "../interfaces/user.interface";
-import { PermissionKeys } from "../enums/permissions.enum";
+import {
+    LEAVE_BALANCES_READ_PERMISSIONS,
+    LEAVES_PERMISSIONS,
+    PermissionActions,
+    PermissionKeys,
+} from "../enums/permissions.enum";
 import { hasAnyPermission, hasPermission } from "../utils/permission.utils";
 import { AREA_PERMISSIONS, ManagementArea } from "../utils/permission-areas";
 
@@ -15,6 +20,18 @@ export class PermissionService {
     hasAny(keys: readonly string[]): boolean {
         const user = this.authService.getLocalUser();
         return !!user && hasAnyPermission(this.computeEffective(user), keys);
+    }
+
+    /** Can the actor submit leave at all (own leave, or on behalf of others in a scope)? */
+    canRequestLeave(): boolean {
+        return this.hasAny(
+            Object.values(LEAVES_PERMISSIONS).filter(key => key.includes(`:${PermissionActions.WRITE}:`)),
+        );
+    }
+
+    /** Can the actor read their own leave balances? Any scope of leaveBalances:read is enough. */
+    canReadLeaveBalances(): boolean {
+        return this.hasAny(Object.values(LEAVE_BALANCES_READ_PERMISSIONS));
     }
 
     /** Can the actor open the management page for this area (any read or write permission)? */
