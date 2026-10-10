@@ -77,6 +77,12 @@ export class OrgChartComponent implements OnInit {
 
     readonly myId = computed(() => this.currentUser.user()?._id ?? null);
 
+    /** True when the logged-in user has a node in the current view (the department view has none). */
+    readonly canFocusMe = computed(() => {
+        const myId = this.myId();
+        return !!myId && !!findNode(this.root(), myId);
+    });
+
     private root = computed<OrgNode | null>(() => {
         const data = this.data();
         if (!data) {
@@ -280,6 +286,14 @@ export class OrgChartComponent implements OnInit {
         this.panX.set(rect.width / 2 - item.x * scale);
         this.panY.set(rect.height / 2 - item.y * scale);
         setTimeout(() => this.animating.set(false), 420);
+    }
+
+    focusMe(): void {
+        const myId = this.myId();
+        if (myId) {
+            this.focusOn(myId);
+            this.selectedId.set(myId);
+        }
     }
 
     private focusSoon(id: string): void {

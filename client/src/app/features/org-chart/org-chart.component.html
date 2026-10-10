@@ -26,6 +26,12 @@
             }
         </label>
 
+        @if (canFocusMe()) {
+            <button mat-icon-button type="button" title="Go to me" aria-label="Go to me" (click)="focusMe()">
+                <mat-icon>my_location</mat-icon>
+            </button>
+        }
+
         <button mat-icon-button type="button" title="Fit to screen" aria-label="Fit to screen" (click)="fitToScreen()">
             <mat-icon>fit_screen</mat-icon>
         </button>
