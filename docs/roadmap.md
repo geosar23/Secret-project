@@ -6,18 +6,22 @@ Status legend: `[ ]` Not started · `[~]` In progress · `[x]` Done
 
 ---
 
+Last reviewed: 10/10/2026 against the code, `NEXT_TODOS.md`, the [approval flows plan](./plans/approval-flows.md) and [leaves](./features/leaves.md).
+
 ## P0 — Core Product (In Progress)
 
 ### Employee Profile — UI & Validation
 
-- `[~]` Admin user form and employee profile page reorganised into labelled sections: Identity, Contact, Employment, Education
+- `[x]` Admin user form and employee profile page reorganised into labelled sections: Identity, Contact, Employment, Education
 - `[x]` Field-level validation (format / range / required rules)
 - `[x]` Sensitive fields (especially salary) behind role-based visibility/edit permissions
 
 ### Leaves Module (Single-Step Manager Approval)
 
-- `[~]` Employees can create, view, and cancel leave requests (API built 09/10/2026; dashboard, Request leave modal and Requests page built 10/10/2026)
+- `[x]` Employees can create, view, and cancel leave requests (API 09/10/2026; dashboard balances, Request leave modal and Requests page 10/10/2026)
 - `[x]` Managers can approve/reject in one step (shared approval engine)
+- `[ ]` Leave settings screens (types, policies, work schedules, company settings) and HR on-behalf / approve-now / override fields in the UI (server API exists)
+- `[ ]` Follow-ups: half days, holiday calendars, pay tiers, accrual and carry-over, notice/blackout rules, coverage limits, change requests (see [leaves](./features/leaves.md))
 - `[x]` Leave status lifecycle: pending → approved / rejected / canceled
 - `[x]` Basic leave balance tracking (per leave type, stored yearly grants)
 
@@ -30,15 +34,19 @@ Status legend: `[ ]` Not started · `[~]` In progress · `[x]` Done
 
 ### Requests Page (Unified Employee Requests)
 
-- `[ ]` Dedicated page listing all requests with filters by type / status / date
-- `[ ]` Users see their own requests; managers/admins see scoped requests
-- `[ ]` Consistent pagination and sorting
+- `[x]` Dedicated page with filters by type / status / date (tabs: Needs my action, My requests, Team; summary cards; detail panel with timeline and Approve / Reject / Cancel)
+- `[x]` Users see their own requests; managers/admins see scoped requests
+- `[~]` Consistent pagination and sorting (paginated; sorting and requester / current-step filters not done)
+- `[ ]` Pending-requests badge in the header (summary endpoint exists)
 
 ### Configurable Request Flow Builder
 
-- `[ ]` Admin defines approval flow per request type (step order + approver role)
-- `[ ]` Engine resolves next approver based on configured flow
-- `[ ]` Requests page reflects current step, pending approver, and final status
+- `[x]` Engine core: request type registry, per-company `RequestTypes`, versioned flows stored in the DB, resolver (line manager, role, user), multi-step schema, audit timeline
+- `[x]` Requests page reflects status, pending approvers and history timeline (single-step flows in use)
+- `[ ]` Admin flow builder UI (ordered steps) and multi-step resolver kinds (manager chain, department head, HR representative)
+- `[ ]` Confirm flow-scope precedence rule (country / department / leave type)
+- `[ ]` Effects and delegation: manager change, deactivation, manual reassign, reconciliation job
+- `[ ]` Notifications with configurable email rules (in-app list + `NotificationRules`)
 
 ### Payroll Foundation
 
@@ -48,13 +56,13 @@ Status legend: `[ ]` Not started · `[~]` In progress · `[x]` Done
 
 ### Attendance + Audit Trail
 
-- `[ ]` Basic attendance records per employee/day
-- `[ ]` Attendance data usable by leaves and payroll modules
-- `[ ]` Audit logs for critical changes: user, role, salary, leave approvals
+- `[ ]` Basic attendance records per employee/day (deferred, no design yet)
+- `[ ]` Attendance data usable by leaves and payroll modules (deferred)
+- `[~]` Audit logs for critical changes: `AuditLog` model and `AuditService` exist (opt-in registry in `config/audited-entities.ts`) and requests keep their own timeline; not yet wired into user, role or salary changes
 
 ### Promotion Module
 
-- `[ ]` Create promotion requests with effective date and reason
+- `[ ]` Create promotion requests with effective date and reason (planned as the second request type on the engine; a job applies the approved change on the effective date)
 - `[ ]` Approval updates employee role/title/department
 - `[ ]` Promotion history stored and visible on employee profile
 
@@ -64,9 +72,16 @@ Status legend: `[ ]` Not started · `[~]` In progress · `[x]` Done
 - `[ ]` Managers submit ratings and written feedback per employee
 - `[ ]` Employees view finalised reviews and acknowledgement status
 
-### Email Integration for (notifications, forgot password flow)
+### Email Integration
 
-### SMS Integration for (notifications, OTPs, auth)
+- `[x]` Transactional email service (console + Resend transports, templates, company branding). See [Email](./features/email.md)
+- `[ ]` Invite + account activation (the `activate-account` route is still commented out)
+- `[ ]` Forgot / reset password flow
+- `[ ]` Request notifications by email
+
+### SMS Integration (notifications, OTPs, auth)
+
+- `[ ]` Deferred, promised for later; not in the MVP
 
 ---
 
@@ -74,8 +89,8 @@ Status legend: `[ ]` Not started · `[~]` In progress · `[x]` Done
 
 - `[ ]` Create/edit user form: required fields should show a single `*` marker, not double `**`
 - `[ ]` When creating a user as a cross-tenant admin and selecting a company, all related dropdowns (manager, department, employment title, etc.) must be filtered to that selected company
-- `[ ]` Date display format should be DD/MM/YYYY consistently across all UI (selectors, tables, forms)
-- `[ ]` Failed sign-in should trigger a toast notification with the server error message
+- `[x]` Date display format is DD/MM/YYYY across the UI (centralised in `core/utils/date-format.ts`)
+- `[x]` Failed sign-in triggers a toast with the server error message
 
 ### Seeding / Onboarding
 
@@ -88,6 +103,7 @@ Status legend: `[ ]` Not started · `[~]` In progress · `[x]` Done
 
 ### Structured Logging + Request Correlation
 
+- `[~]` Typed errors, central error middleware and client error interceptors are done
 - `[ ]` Each request logs method, route, status, and latency
 - `[ ]` Request ID included and propagated
 - `[ ]` Error logs do not leak sensitive data

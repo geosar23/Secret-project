@@ -329,14 +329,15 @@ we should always fetch only the active ones for selection
 - Priority: P0
 - Owner: You
 - Estimate: 2-3 days
-- Status: [~] (server done; UI pending)
+- Status: [~] (server and first UI slice done 10/10/2026; settings screens and HR on-behalf fields pending)
 - Goal: deliver a usable leave request workflow with one manager approval step.
 - Acceptance criteria:
     - [x] Employees can create, view, and cancel leave requests (API; HR can also enter leave on someone's behalf).
     - [x] Managers can approve/reject leave requests in one step.
     - [x] Leave status lifecycle is tracked (pending, approved, rejected, canceled) on the shared Request.
     - [x] Basic leave balances are reflected/updated correctly (stored yearly grants, usage on approval, reversal on cancel; Unpaid has its own allowance; hire-year rule per company).
-    - [ ] Leave UI (request dialog, balances), with the Requests page (P0-11D).
+    - [x] Leave UI (request dialog, balances), with the Requests page (P0-11D).
+    - [ ] Leave settings screens and HR on-behalf / approve-now / override fields in the UI.
 - Follow-ups (design in leaves.md): half days, holiday calendars, pay tiers, accrual and carry-over, notice / blackout / probation, coverage limits, change requests, sickness conversion, payroll export.
 
 ### P0-09 Recruiting Module (MVP)
@@ -436,11 +437,11 @@ Open before phase 4: confirm the flow-scope precedence rule (most matching dimen
 
 - Priority: P0
 - Depends on: P0-11C
-- Status: [ ]
+- Status: [~] (built 10/10/2026 except the items below)
 - Acceptance criteria:
-    - [ ] Tabs: Needs my action, My requests, Team/Company (scope-dependent).
-    - [ ] Filters by type, status, date range, requester, current step; consistent pagination and sorting.
-    - [ ] Detail drawer: per-type renderer, step timeline (assigned, decided, reassigned, on behalf of), actions driven by what the user may do.
+    - [x] Tabs: Needs my action, My requests, Team (scope-dependent).
+    - [~] Filters by type, status, date range done; requester and current step, sorting not done.
+    - [x] Detail panel: leave details, step timeline, actions driven by what the user may do.
     - [ ] Pending badge in the header using the summary endpoint.
     - [ ] Follows the `ui-conventions` skill.
 
