@@ -34,7 +34,7 @@ Significant changes to the application, most recent first.
 ### Transactional email service (P0-23)
 
 - Added `EmailService.send(template, to, data, { company, requestId })` with console and Resend (official SDK) providers, HTML + text templates (test-email, invitation, password-reset, password-reset-notice) and company branding. See `docs/features/email.md`.
-- **Password reset notice:** when an administrator resets a user's password, that user now gets a security email (no password, no link). It is sent in the background and never changes the API response.
+- **Password reset notice:** when an administrator resets a user's password, that user now gets an email with the temporary password (no link). The password appears only in the message body, never in logs; the console provider prints bodies in `development` only. It is sent in the background and never changes the API response.
 - Env var `EMAIL_TRANSPORT` is now `EMAIL_PROVIDER`. New script `npm run email:test -- you@example.com` (in `server/`) sends a test email with the configured provider.
 - Production now fails fast at boot if email config is missing or invalid.
 

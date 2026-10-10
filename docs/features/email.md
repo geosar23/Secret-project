@@ -35,7 +35,7 @@ npm run email:test -- you@example.com
 await EmailService.send(
     "password-reset-notice",
     user.email,
-    { recipientName: user.name, resetAt: new Date() },
+    { recipientName: user.name, resetAt: new Date(), temporaryPassword },
     { company: brandingFromCompany(user.company), companyId: String(user.company._id), requestId },
 );
 ```
@@ -52,12 +52,12 @@ optional `logoUrl` and `primaryColor`; the Company model only stores a private s
 used). Every interpolated value is HTML-escaped, links must be http(s), subjects and names lose line breaks, dates print as
 `DD/MM/YYYY HH:mm UTC`.
 
-| Template                | Data                                    | Purpose                                                  |
-| ----------------------- | --------------------------------------- | -------------------------------------------------------- |
-| `test-email`            | none                                    | Smoke test                                               |
-| `password-reset-notice` | `recipientName`, `resetAt`              | Admin reset the user's password; no password and no link |
-| `invitation`            | name, inviter?, `activationLink`, hours | P0-24                                                    |
-| `password-reset`        | name, `resetLink`, minutes              | P0-25                                                    |
+| Template                | Data                                            | Purpose                                                                  |
+| ----------------------- | ----------------------------------------------- | ------------------------------------------------------------------------ |
+| `test-email`            | none                                            | Smoke test                                                               |
+| `password-reset-notice` | `recipientName`, `resetAt`, `temporaryPassword` | Admin reset the user's password; carries the temporary password, no link |
+| `invitation`            | name, inviter?, `activationLink`, hours         | P0-24                                                                    |
+| `password-reset`        | name, `resetLink`, minutes                      | P0-25                                                                    |
 
 To add one: add its data type to `EmailTemplateDataMap` (`email.types.ts`), add a renderer to `renderers` in
 `email.templates.ts` using `layout(...)`, and add a test (rendering, escaping, no secret in logs).

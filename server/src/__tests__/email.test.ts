@@ -67,7 +67,10 @@ describe("EmailService", () => {
         const brand = { companyName: "Acme", primaryColor: "#112233", logoUrl: "https://cdn.example.com/logo.png" };
         for (const [name, data] of [
             ["test-email", {}],
-            ["password-reset-notice", { recipientName: "Eve", resetAt: new Date("2026-10-10T14:05:00Z") }],
+            [
+                "password-reset-notice",
+                { recipientName: "Eve", resetAt: new Date("2026-10-10T14:05:00Z"), temporaryPassword: "Tmp#1" },
+            ],
             ["invitation", invitation],
             ["password-reset", { recipientName: "Eve", resetLink: SECRET_LINK, expiresInMinutes: 30 }],
         ] as const) {

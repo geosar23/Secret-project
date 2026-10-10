@@ -45,8 +45,8 @@ export interface EmailTemplateDataMap {
     "test-email": Record<string, never>;
     invitation: { recipientName: string; inviterName?: string; activationLink: string; expiresInHours: number };
     "password-reset": { recipientName: string; resetLink: string; expiresInMinutes: number };
-    /** Security notice after an administrator resets someone's password. Carries no secret and no link. */
-    "password-reset-notice": { recipientName: string; resetAt: Date };
+    /** Sent after an administrator resets someone's password. Carries the TEMPORARY password (never logged), no link. */
+    "password-reset-notice": { recipientName: string; resetAt: Date; temporaryPassword: string };
 }
 
 export type EmailTemplateName = keyof EmailTemplateDataMap;

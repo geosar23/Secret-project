@@ -9,10 +9,10 @@ interface NotifiableUser {
 }
 
 /**
- * Tells a user an administrator reset their password. Fire-and-forget: returns immediately, never throws,
- * and never delays or alters the caller's response. Contains no password and no link.
+ * Emails a user the temporary password an administrator just set for them. Fire-and-forget: returns immediately, never throws,
+ * and never delays or alters the caller's response. The password appears only in the message body, never in logs.
  */
-export function notifyPasswordResetByAdmin(user: NotifiableUser, requestId?: string): void {
+export function notifyPasswordResetByAdmin(user: NotifiableUser, temporaryPassword: string, requestId?: string): void {
     try {
         const company = user.company;
         if (!company?.name) {
@@ -22,7 +22,7 @@ export function notifyPasswordResetByAdmin(user: NotifiableUser, requestId?: str
         void EmailService.send(
             "password-reset-notice",
             user.email,
-            { recipientName: user.name, resetAt: new Date() },
+            { recipientName: user.name, resetAt: new Date(), temporaryPassword },
             { company: brandingFromCompany({ name: company.name }), companyId: String(company._id), requestId },
         ).catch(() => undefined);
     } catch {
