@@ -8,6 +8,8 @@ export interface OrgNode {
     name: string;
     /** person: job title; dept: "N employees" */
     subtitle: string;
+    /** person: level name, when the employee has one */
+    level?: string;
     /** person: department name */
     department: string;
     email: string;
@@ -98,6 +100,7 @@ export function buildManagerTree(data: IOrgChartData, companyName: string): OrgN
             kind: "person",
             name: user.name,
             subtitle: user.title ?? "",
+            level: user.level ?? undefined,
             department: department?.name ?? UNASSIGNED,
             email: user.email,
             icon: "person",

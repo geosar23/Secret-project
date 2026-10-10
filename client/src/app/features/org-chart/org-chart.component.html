@@ -81,7 +81,12 @@
                                                 <span class="me-chip">You</span>
                                             }
                                         </div>
-                                        <div class="card-title">{{ item.node.subtitle || "—" }}</div>
+                                        <div class="card-title">
+                                            {{ item.node.subtitle || "—" }}
+                                            @if (item.node.level) {
+                                                · {{ item.node.level }}
+                                            }
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="card-dept">
@@ -194,6 +199,15 @@
                 </div>
                 <div class="info-body">
                     @if (node.kind === "person") {
+                        @if (node.level) {
+                            <div class="info-row">
+                                <mat-icon>military_tech</mat-icon>
+                                <div>
+                                    <div class="info-label">Level</div>
+                                    <div class="info-value">{{ node.level }}</div>
+                                </div>
+                            </div>
+                        }
                         <div class="info-row">
                             <mat-icon>corporate_fare</mat-icon>
                             <div>

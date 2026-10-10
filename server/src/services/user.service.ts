@@ -106,8 +106,9 @@ export const UserService = {
         const [users, departments, subDepartments] = await Promise.all([
             userRepository(companyId)
                 .find({ isActive: true })
-                .select("name email manager employmentTitle primarySubDepartment")
+                .select("name email manager employmentTitle level primarySubDepartment")
                 .populate({ path: "employmentTitle", select: "name" })
+                .populate({ path: "level", select: "name" })
                 .sort({ name: 1 })
                 .lean(),
             departmentRepository(companyId).find({ isActive: true }).select("name").sort({ name: 1 }).lean(),
@@ -121,12 +122,14 @@ export const UserService = {
         return {
             users: users.map(user => {
                 const title = user.employmentTitle as unknown as { name?: string } | undefined;
+                const level = user.level as unknown as { name?: string } | undefined;
                 return {
                     _id: String(user._id),
                     name: user.name,
                     email: user.email,
                     managerId: user.manager ? String(user.manager) : null,
                     title: title?.name ?? null,
+                    level: level?.name ?? null,
                     subDepartmentId: user.primarySubDepartment ? String(user.primarySubDepartment) : null,
                 };
             }),
