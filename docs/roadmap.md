@@ -115,6 +115,27 @@ Status legend: `[ ]` Not started · `[~]` In progress · `[x]` Done
 - `[ ]` Rollback procedure documented and tested
 - `[ ]` Smoke test checklist
 
+### Domain & Hosting Topology (decided 10/10/2026)
+
+Domain: `worktaxis.com` (registered at Squarespace). Nothing is deployed yet; this records the plan.
+
+**Pilot — Option 1: single address, path-based**
+
+- `[ ]` Serve everything from `app.worktaxis.com` (root `worktaxis.com` stays free for a marketing page or redirect)
+- `[ ]` `/` serves the Angular app, `/api/*` is proxied to the Express backend (nginx `location /api/` → `backend:3000`), or Express serves the built client statically
+- `[ ]` Client calls relative `/api/...` URLs (no hard-coded `localhost:3000` in environment files)
+- `[ ]` `CLIENT_URL`/CORS and cookie settings match the single origin
+- `[ ]` Transactional email sent from a subdomain (`notify.worktaxis.com`) with SPF, DKIM and DMARC configured
+- Why: one domain, one certificate, no CORS or cross-site cookie issues, least work for a single pilot customer
+
+**Proper SaaS — Option 2: separate subdomains (revisit when moving beyond the pilot)**
+
+- `[ ]` Re-evaluate topology at that point (subdomains vs. staying path-based vs. other options) rather than assuming this is final
+- `[ ]` Candidate layout: `app.worktaxis.com` (frontend), `api.worktaxis.com` (backend), `*.worktaxis.com` (per-tenant subdomains such as `acme.worktaxis.com`)
+- `[ ]` Needs: CORS allow-list per origin, cookie `SameSite`/`Domain` review, wildcard DNS + wildcard TLS cert, reserved subdomains (`app`, `api`, `docs`, `status`, `mail`, `notify`) blocked from tenant claims
+- `[ ]` DNS: Squarespace may not support wildcard records. Plan to point nameservers to Cloudflare (free) while keeping Squarespace as registrar
+- Why: independent frontend/backend deploys and scaling, per-tenant URLs and branding
+
 ---
 
 ## P2 — Nice to Have
