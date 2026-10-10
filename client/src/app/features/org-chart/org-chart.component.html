@@ -198,7 +198,21 @@
                         }
                     </div>
                     <div class="info-id">
-                        <div class="info-name">{{ node.name }}</div>
+                        <div class="info-name">
+                            @if (node.kind === "person") {
+                                <a
+                                    mat-button
+                                    class="info-name-link"
+                                    [routerLink]="profileLink(node.id)"
+                                    title="Open profile"
+                                >
+                                    {{ node.name }}
+                                    <mat-icon iconPositionEnd>open_in_new</mat-icon>
+                                </a>
+                            } @else {
+                                {{ node.name }}
+                            }
+                        </div>
                         <div class="info-role">{{ node.subtitle }}</div>
                     </div>
                     <button type="button" class="info-close" aria-label="Close details" (click)="closeInfo()">

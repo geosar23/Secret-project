@@ -567,6 +567,15 @@
     color: var(--color-text-on-primary);
 }
 
+.info-name-link {
+    --mat-button-text-label-text-color: var(--color-text-on-primary);
+    --mat-button-text-state-layer-color: var(--color-text-on-primary);
+    --mat-button-text-container-height: auto;
+    margin: calc(var(--spacing-xs) * -4);
+    font: inherit;
+    letter-spacing: normal;
+}
+
 .info-role {
     font-size: var(--font-size-xs);
     color: rgba(var(--color-white-rgb), 0.78);

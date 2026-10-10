@@ -11,7 +11,7 @@ import {
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
 import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, RouterLink } from "@angular/router";
 import { take } from "rxjs";
 import { AuthService } from "../../core/services/auth.service";
 import { CompanyService } from "../../core/services/company.service";
@@ -45,7 +45,7 @@ interface Point {
 @Component({
     selector: "app-org-chart",
     standalone: true,
-    imports: [MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+    imports: [MatButtonModule, MatIconModule, MatProgressSpinnerModule, RouterLink],
     templateUrl: "./org-chart.component.html",
     styleUrls: ["./org-chart.component.scss"],
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -189,6 +189,10 @@ export class OrgChartComponent implements OnInit {
                     /* keep the default label */
                 },
             });
+    }
+
+    profileLink(id: string): string[] {
+        return ["/profile", id === this.myId() ? "me" : id];
     }
 
     initials(name: string): string {
