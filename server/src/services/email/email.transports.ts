@@ -1,57 +1,72 @@
+import { Resend } from "resend";
+import { maskEmail } from "./email.mask";
 import { EmailMessage, EmailTransport, EmailTransportError } from "./email.types";
 
-/** Logs instead of sending. Message bodies (which hold links/tokens) are printed only when `logBody` is set. */
+/** Logs a redacted summary instead of sending. Message bodies (which may hold links) are printed only when `logBody` is set. */
 export class ConsoleTransport implements EmailTransport {
     readonly name = "console";
 
     constructor(private readonly logBody = false) {}
 
     async send(message: EmailMessage): Promise<void> {
-        console.info(`[email:console] To: ${message.to} | Subject: ${message.subject}`);
+        console.info(`[email:console] To: ${maskEmail(message.to)} | Subject: ${message.subject}`);
         if (this.logBody) {
             console.info(`[email:console] (dev only)\n${message.text}`);
         }
     }
 }
 
+/** Resend error names that mean "retrying will not help" even though the status is 429. */
+const NON_RETRYABLE_RATE_LIMITS = new Set(["daily_quota_exceeded", "monthly_quota_exceeded"]);
+
+/** Decides whether an error returned by Resend is worth retrying. */
+export function isRetryableResendError(error: { name?: string; statusCode: number | null }): boolean {
+    const { statusCode, name } = error;
+    if (statusCode === null || statusCode === undefined) {
+        return true; // network failure inside the SDK (reported as application_error without a status)
+    }
+    if (statusCode === 429) {
+        return !NON_RETRYABLE_RATE_LIMITS.has(name ?? "");
+    }
+    // 409 concurrent_idempotent_requests: the first attempt is still in flight, so retrying is safe.
+    return statusCode === 408 || statusCode === 409 || statusCode >= 500;
+}
+
 export class ResendTransport implements EmailTransport {
     readonly name = "resend";
+    private readonly client: Resend;
 
-    constructor(
-        private readonly apiKey: string,
-        private readonly timeoutMs = 10_000,
-    ) {}
+    constructor(apiKey: string, client?: Pick<Resend, "emails">) {
+        this.client = (client ?? new Resend(apiKey)) as Resend;
+    }
 
     async send(message: EmailMessage): Promise<void> {
-        let response: Response;
+        let result;
         try {
-            response = await fetch("https://api.resend.com/emails", {
-                method: "POST",
-                headers: {
-                    Authorization: `Bearer ${this.apiKey}`,
-                    "Content-Type": "application/json",
-                    "Idempotency-Key": message.idempotencyKey,
-                },
-                body: JSON.stringify({
+            result = await this.client.emails.send(
+                {
                     from: message.from,
                     to: [message.to],
                     subject: message.subject,
                     html: message.html,
                     text: message.text,
-                    ...(message.replyTo ? { reply_to: message.replyTo } : {}),
-                }),
-                signal: AbortSignal.timeout(this.timeoutMs),
-            });
+                    ...(message.replyTo ? { replyTo: message.replyTo } : {}),
+                },
+                message.idempotencyKey ? { idempotencyKey: message.idempotencyKey } : undefined,
+            );
         } catch {
-            // Network failure or timeout: retryable. The underlying error is not propagated (may embed request details).
+            // The SDK normally returns { error }, but guard against throws. The cause is not propagated (may embed request details).
             throw new EmailTransportError("Resend request failed (network/timeout)", true);
         }
 
-        if (response.ok) {
-            return;
+        // The SDK does not throw on API errors: they come back as { data: null, error }.
+        if (result.error) {
+            const { name, statusCode } = result.error;
+            throw new EmailTransportError(
+                `Resend error ${name}${statusCode ? ` (HTTP ${statusCode})` : ""}`,
+                isRetryableResendError(result.error),
+                statusCode ?? undefined,
+            );
         }
-
-        const retryable = response.status === 408 || response.status === 429 || response.status >= 500;
-        throw new EmailTransportError(`Resend responded with HTTP ${response.status}`, retryable, response.status);
     }
 }

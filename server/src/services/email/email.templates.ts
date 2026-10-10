@@ -39,6 +39,16 @@ function safeColor(value?: string): string {
     return value && /^#[0-9a-fA-F]{6}$/.test(value) ? value : DEFAULT_COLOR;
 }
 
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/** DD/MM/YYYY HH:mm UTC. */
+export function formatUtc(date: Date): string {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+        throw new Error("Invalid date");
+    }
+    return `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}/${date.getUTCFullYear()} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())} UTC`;
+}
+
 interface Body {
     subject: string;
     heading: string;
@@ -80,7 +90,7 @@ function layout(brand: EmailBranding, body: Body): RenderedEmail {
 type Renderer<K extends EmailTemplateName> = (brand: EmailBranding, data: EmailTemplateDataMap[K]) => RenderedEmail;
 
 const renderers: { [K in EmailTemplateName]: Renderer<K> } = {
-    test: brand => {
+    "test-email": brand => {
         const company = toSingleLine(brand.companyName);
         return layout(brand, {
             subject: `Test email from ${company}`,
@@ -104,6 +114,20 @@ const renderers: { [K in EmailTemplateName]: Renderer<K> } = {
                 `This link expires in ${Number(data.expiresInHours)} hours and can be used once.`,
             ],
             action: { label: "Activate account", url: assertHttpUrl(data.activationLink, "activationLink") },
+        });
+    },
+
+    "password-reset-notice": (brand, data) => {
+        const company = toSingleLine(brand.companyName);
+        const name = toSingleLine(data.recipientName);
+        return layout(brand, {
+            subject: `Your ${company} password was reset`,
+            heading: "Your password was reset",
+            paragraphs: [
+                `Hi ${name},`,
+                `An administrator at ${company} reset your password on ${formatUtc(data.resetAt)}. Use the new password you were given by your administrator to sign in.`,
+                "If you did not expect this, contact your HR team or administrator right away. We will never ask you for your password by email.",
+            ],
         });
     },
 

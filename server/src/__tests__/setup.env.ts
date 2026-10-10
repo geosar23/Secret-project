@@ -8,3 +8,4 @@ process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-role-key";
 process.env.SUPABASE_STORAGE_BUCKET = "test-bucket";
 process.env.SALARY_ENCRYPTION_KEY = "0000000000000000000000000000000000000000000000000000000000000000";
 process.env.NODE_ENV = "test";
+process.env.EMAIL_PROVIDER = "console"; // tests never hit a real mail provider

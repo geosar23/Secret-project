@@ -32,7 +32,7 @@ SUPABASE_STORAGE_BUCKET=hrms-saas
 SALARY_ENCRYPTION_KEY=64-char-hex-string
 CLIENT_URL=http://localhost:4200,http://localhost
 # Email (optional in development; the console transport is used by default)
-EMAIL_TRANSPORT=console
+EMAIL_PROVIDER=console
 ```
 
 ### Variable notes
@@ -47,7 +47,7 @@ EMAIL_TRANSPORT=console
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes         | Server-side only; never expose to the client                                           |
 | `SUPABASE_STORAGE_BUCKET`   | Yes         | Must match the bucket name in your Supabase project                                    |
 | `SALARY_ENCRYPTION_KEY`     | Yes         | 64-char hex string — generate with `openssl rand -hex 32`                              |
-| `EMAIL_TRANSPORT`           | Prod: yes   | `console` (default in dev/test, logs only) or `resend`. Must be `resend` in production |
+| `EMAIL_PROVIDER`            | Prod: yes   | `console` (default in dev/test, logs only) or `resend`. Must be `resend` in production |
 | `EMAIL_FROM`                | Prod: yes   | Sender, e.g. `HRMS <no-reply@your-domain.com>`; domain verified at the provider        |
 | `RESEND_API_KEY`            | If `resend` | Server-side only                                                                       |
 | `EMAIL_REPLY_TO`            | No          | Optional Reply-To address                                                              |
