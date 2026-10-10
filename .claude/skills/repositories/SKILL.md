@@ -1,65 +1,101 @@
 ---
 name: repositories
-description: Rules for server data access. Use whenever you create or edit a model, repository, service or controller under server/src, write any code that reads or writes MongoDB, or add a new collection. Services and controllers never import a Mongoose model; they go through a company-scoped repository.
+description: >
+    Domain knowledge for server database access. USE WHEN: writing or changing any server code that
+    reads or writes MongoDB (services, controllers, middleware, policies, scripts used by the app),
+    adding a model or collection, adding a query, counting/checking existence, seeding data, or
+    anything involving tenant (company) isolation. Covers: repositories, the companyModel factory,
+    role scoping, the unscoped company/identity repositories, and the lint rule that forbids importing
+    models outside repositories.
 ---
 
-# Server data access: repositories only
+# Database Access via Repositories
 
-**Never use a Mongoose model directly in a service, controller, middleware, policy or util.** All database access goes through a repository from `server/src/repositories/`. A repository is a thin wrapper (`companyModel`) that injects `company: <companyId>` into every query, which is how tenant isolation is enforced. A direct `UserModel.find(...)` can leak another company's data.
+## The rule
 
-Models are imported only by:
+**Every database query goes through a repository in `server/src/repositories/`.**
+Services, controllers, middleware, policies, routes and utils **never import a Mongoose model** and never call
+`SomeModel.find/findOne/create/countDocuments/exists/...`.
 
-- `server/src/repositories/*.repository.ts`
-- seed or migration scripts in `server/src/scripts/`
-- tests (to seed data)
+ESLint enforces this (`no-restricted-imports` on `**/models/*` in `server/src/{services,controllers,middleware,policies,routes,utils}`).
+Models may only be imported by repositories, other models, tests and one-off maintenance scripts in `server/src/scripts/`.
 
-## Layer responsibilities
+Why: repositories wrap the model with company isolation, so a forgotten `{ company }` filter cannot leak data across tenants.
 
-| Layer      | Does                                                      | Never                                |
-| ---------- | --------------------------------------------------------- | ------------------------------------ |
-| Controller | Parse request, call a service, shape the response         | Business logic, models, repositories |
-| Service    | Business logic; gets repositories with `req.user` company | Import a `*Model`                    |
-| Repository | `companyModel(Model, companyId)`; all queries             | Business logic                       |
-| Model      | Schema, indexes                                           | Be used outside repositories         |
+## Key Files
 
-## Adding a new collection
+| Purpose                           | File                                                  |
+| --------------------------------- | ----------------------------------------------------- |
+| Company-scoping factory           | `server/src/models/company.model.ts` (`companyModel`) |
+| Scoped repositories               | `server/src/repositories/<entity>.repository.ts`      |
+| Roles (company OR system scope)   | `server/src/repositories/role.repository.ts`          |
+| Tenant root (unscoped, by design) | `server/src/repositories/company.repository.ts`       |
+| Identity lookups (unscoped)       | `userIdentityRepository` in `user.repository.ts`      |
+| Lint rule                         | `eslint.config.js`                                    |
 
-1. Model in `server/src/models/<name>.model.ts`. It **must** have a required `company` field (ObjectId ref to Companies) and an index starting with `company`.
-2. Interface in `server/src/interfaces/<name>.interface.ts`.
-3. Repository in `server/src/repositories/<name>.repository.ts`, exactly this shape:
+## Using a repository
+
+A scoped repository is created per request with the actor's company id and injects `company` into every operation:
+
+```ts
+const repo = userRepository(companyId); // throws if companyId is empty
+await repo.find({ isActive: true }).populate("role").lean();
+await repo.findById(id);
+await repo.findOne({ email });
+await repo.create(data); // company is set for you
+await repo.insertMany(items); // company is set on every item
+await repo.updateOne({ _id: id }, patch);
+await repo.deleteOne({ _id: id });
+await repo.count({ isActive: true });
+```
+
+- Always take `companyId` from the verified token (`req.decoded.companyId`), never from the request body.
+- Reads return Mongoose queries, so keep chaining `.populate()`, `.sort()`, `.select()`, `.lean()`.
+- Filters on ObjectId fields accept string ids; cast with `as FilterQuery<IEntity>` when TypeScript objects.
+
+## Adding a query that does not exist yet
+
+1. Check whether `companyModel` already offers it (`find`, `findOne`, `findById`, `create`, `insertMany`, `updateOne`, `deleteOne`, `count`).
+2. If not, add the method to `companyModel` so **every** repository gets it, always applying `withCompany(...)`.
+3. Never work around a missing method by importing the model in a service.
+
+## Adding a new entity
+
+1. Model in `server/src/models/<entity>.model.ts` with a required `company` field.
+2. Repository `server/src/repositories/<entity>.repository.ts`:
 
 ```ts
 import { companyModel } from "../models/company.model";
-import { DepartmentModel } from "../models/department.model";
+import { EntityModel } from "../models/entity.model";
 
-export function departmentRepository(companyId: string) {
-    return companyModel(DepartmentModel, companyId);
+export function entityRepository(companyId: string) {
+    return companyModel(EntityModel, companyId);
 }
 ```
 
-4. Service calls it with the company from the authenticated user:
+3. Service calls only `entityRepository(companyId)`.
+4. Add a test that a user from another company cannot read or change the record (see `company-isolation.test.ts`, `repository-contract.test.ts`).
 
-```ts
-const departments = await departmentRepository(companyId).find({ isActive: true });
-```
+## Intentional exceptions (keep them minimal)
 
-5. Add an isolation test (see `__tests__/company-isolation.test.ts` and `__tests__/repository-contract.test.ts`): data seeded in company A must be invisible to company B, and the factory must throw without a `companyId`.
+| Repository                  | Why it is not company-scoped                             | Allowed use                          |
+| --------------------------- | -------------------------------------------------------- | ------------------------------------ |
+| `companyRepository()`       | Companies are the tenant root                            | Lookup the actor's own company, seed |
+| `userIdentityRepository()`  | Login resolves the company from a globally unique email  | `findByEmail`, `emailExists` only    |
+| `roleRepository(companyId)` | Returns the company's roles plus roles without a company | Always pass `companyId`              |
 
-## What the wrapper offers
+Do not add more unscoped methods without a strong reason. If a controller needs a cross-tenant query, that is a design problem to raise, not to solve with a model import.
 
-`find`, `findOne`, `findById`, `create`, `insertMany`, `updateOne`, `findOneAndUpdate` (atomic, returns the new doc, `null` if the guard no longer matches), `updateMany`, `deleteOne`, `count`. All inject `company`.
+## Seeding and scripts
 
-## Gotchas
+- Application code that seeds (for example `seed.service.ts`) uses repositories like everything else.
+- Files in `server/src/scripts/` are operator tools that may span tenants and may use models directly.
+  Do not import script code from the app.
 
-- **Need a query the wrapper lacks** (aggregate, `exists`, bulk ops, transactions)? Add the method to `companyModel` in `server/src/models/company.model.ts`, or a named method on that repository, and make sure it adds the `company` scope (for aggregate, a leading `$match: { company }`). Do not bypass the repository from the service.
-- **`updateOne` bypasses Mongoose document hooks.** Side effects (org-change effects, audit) must be called from the service layer, not model hooks.
-- **Populate** stays on the returned query (`.populate(...)`), but populated models belong to the same company; do not populate across tenants.
-- **Documents from the body are not trusted**: never pass `company` from request input; the wrapper overrides it on create, but do not rely on that for filters you build yourself.
-- **Intentional exceptions** are rare and must be explicit, named, commented and kept in the repository file. Example: `userIdentityRepository()` in `user.repository.ts` looks users up by globally unique email at login, before a company is known. Do not add new unscoped repositories without asking.
-- Never accept `companyId` from the request. Take it from `req.user` (the verified token).
+## Checklist before finishing a change
 
-## Quick self-check before finishing
-
-- `grep -rn "models/" server/src/services server/src/controllers` returns nothing.
-- Every new repository is `companyModel(...)` or has a documented reason not to be.
-- A new isolation test exists for any new collection.
+- [ ] No `import ... from "../models/..."` outside repositories, models, tests, scripts.
+- [ ] Every repository call receives the company id from the token.
+- [ ] New query helpers live in `companyModel` or a repository, not in a service.
+- [ ] An isolation test covers new company-scoped data.
+- [ ] `npx eslint "server/src/**/*.ts"` reports no restricted-import errors.

@@ -65,9 +65,9 @@ Common types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `style`, `perf
 
 ### Skill file (required)
 
-Every new feature must ship with a **Copilot skill file** so the AI assistant has accurate domain knowledge when working on that feature in the future.
+Every new feature must ship with a **skill file** so the AI assistant has accurate domain knowledge when working on that feature in the future.
 
-Create `.github/skills/<feature-name>/SKILL.md` with this structure:
+Create `.claude/skills/<feature-name>/SKILL.md` with this structure:
 
 ```markdown
 ---
@@ -115,14 +115,15 @@ description: >
 
 **Tips for a good skill:**
 
-- The `description` field is what Copilot reads to decide whether to load the skill. Make the `USE WHEN:` list specific and exhaustive — include component names, file names, and action verbs (editing, adding, debugging).
+- The `description` field is what the assistant reads to decide whether to load the skill. Make the `USE WHEN:` list specific and exhaustive — include component names, file names, and action verbs (editing, adding, debugging).
 - Keep the body accurate: file paths must be real, interfaces must match the actual code.
 - Update the skill whenever the feature's model, files, or rules change significantly.
 
 **Existing skills for reference:**
 
-- `.github/skills/permissions/SKILL.md`
-- `.github/skills/roles/SKILL.md`
+- `.claude/skills/permissions/SKILL.md`
+- `.claude/skills/roles/SKILL.md`
+- `.claude/skills/repositories/SKILL.md`
 
 ---
 

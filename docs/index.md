@@ -30,5 +30,5 @@ Welcome to the HR SaaS project documentation. This index is your starting point 
 - Backend source: `server/src/`
 - Frontend source: `client/src/app/`
 - Integration tests: `server/src/__tests__/`
-- Copilot skills: `.github/skills/`
+- Skills (Claude Code and Copilot): `.claude/skills/`
 - Environment variables: [Getting Started → Environment Setup](./getting-started.md#environment-setup)
