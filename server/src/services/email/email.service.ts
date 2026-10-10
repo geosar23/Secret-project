@@ -1,7 +1,6 @@
 import { randomUUID } from "crypto";
 import { config } from "../../config/env";
 import { ConsoleTransport, ResendTransport } from "./email.transports";
-import { maskEmail } from "./email.mask";
 import { renderTemplate, toSingleLine } from "./email.templates";
 import {
     EmailTemplateDataMap,
@@ -27,7 +26,7 @@ const EMAIL_PATTERN = /^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$/;
 
 const defaultSleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
 
-/** Structured log line. Never include tokens, links, bodies or full addresses (masked only). */
+/** Structured log line. Never include tokens, links, bodies or API keys. */
 function log(level: "info" | "warn" | "error", fields: Record<string, unknown>): void {
     console[level](JSON.stringify({ scope: "email", ...fields }));
 }
@@ -61,7 +60,6 @@ export function createEmailService(options: EmailServiceOptions) {
                 log("error", { ...logContext, event: "email.invalid_recipient" });
                 return { ok: false, attempts: 0 };
             }
-            const recipientMasked = maskEmail(recipient);
 
             let rendered;
             try {
@@ -70,7 +68,7 @@ export function createEmailService(options: EmailServiceOptions) {
                 // Message only names the invalid field, never the value.
                 log("error", {
                     ...logContext,
-                    recipientMasked,
+                    recipient,
                     event: "email.render_failed",
                     reason: err instanceof Error ? err.message : "unknown",
                 });
@@ -88,7 +86,7 @@ export function createEmailService(options: EmailServiceOptions) {
             for (let attempt = 1; attempt <= maxAttempts; attempt++) {
                 try {
                     await transport.send(message);
-                    log("info", { ...logContext, recipientMasked, event: "email.sent", attempt });
+                    log("info", { ...logContext, recipient, event: "email.sent", attempt });
                     return { ok: true, attempts: attempt };
                 } catch (err) {
                     const retryable = err instanceof EmailTransportError ? err.retryable : true;
@@ -96,7 +94,7 @@ export function createEmailService(options: EmailServiceOptions) {
                     const willRetry = retryable && attempt < maxAttempts;
                     log(willRetry ? "warn" : "error", {
                         ...logContext,
-                        recipientMasked,
+                        recipient,
                         event: willRetry ? "email.attempt_failed" : "email.failed",
                         attempt,
                         status,

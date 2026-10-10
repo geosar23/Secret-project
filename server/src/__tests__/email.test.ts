@@ -154,8 +154,7 @@ describe("EmailService", () => {
         expect(all).toContain("email.failed");
         expect(all).not.toContain("SUPER-SECRET-TOKEN");
         expect(all).not.toContain("hunter2");
-        expect(all).not.toContain("eve@example.com");
-        expect(all).toContain("e***@example.com");
+        expect(all).toContain("eve@example.com");
         expect(all).not.toContain("<script>");
         expect(all).not.toContain("Eve");
     });

@@ -1,15 +1,14 @@
 import { Resend } from "resend";
-import { maskEmail } from "./email.mask";
 import { EmailMessage, EmailTransport, EmailTransportError } from "./email.types";
 
-/** Logs a redacted summary instead of sending. Message bodies (which may hold links) are printed only when `logBody` is set. */
+/** Logs a summary instead of sending. Message bodies (which may hold links) are printed only when `logBody` is set. */
 export class ConsoleTransport implements EmailTransport {
     readonly name = "console";
 
     constructor(private readonly logBody = false) {}
 
     async send(message: EmailMessage): Promise<void> {
-        console.info(`[email:console] To: ${maskEmail(message.to)} | Subject: ${message.subject}`);
+        console.info(`[email:console] To: ${message.to} | Subject: ${message.subject}`);
         if (this.logBody) {
             console.info(`[email:console] (dev only)\n${message.text}`);
         }

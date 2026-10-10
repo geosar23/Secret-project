@@ -9,10 +9,10 @@ Resend through its official SDK (`resend`). Providers sit behind the `EmailTrans
 (`email.types.ts`: `send({ from, to, subject, html, text, replyTo?, idempotencyKey? })`); switching to SMTP, Brevo or SES
 means adding one transport class in `email.transports.ts` and a value for `EMAIL_PROVIDER`.
 
-| `EMAIL_PROVIDER` | Use                                                                                                                                         |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `console`        | Default in development and test. Logs a redacted summary (masked recipient, subject). The body is printed only when `NODE_ENV=development`. |
-| `resend`         | Required in production                                                                                                                      |
+| `EMAIL_PROVIDER` | Use                                                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `console`        | Default in development and test. Logs recipient and subject. The body is printed only when `NODE_ENV=development`. |
+| `resend`         | Required in production                                                                                             |
 
 The Resend SDK returns `{ data, error }` instead of throwing on API errors; `ResendTransport` converts `error` into an
 `EmailTransportError` carrying `retryable` and the HTTP status.
@@ -72,7 +72,7 @@ email, and there is no outbox or queue. Flows that must not silently lose mail n
 ## Logging
 
 JSON lines with template, provider, outcome, attempt, status, companyId, requestId (the `x-request-id` header when
-present) and the masked recipient (`j***@domain.com`). Never the full address, body, tokens, links or API key.
+present) and the recipient address. Never the body, tokens, links or API key.
 
 ## Setup outside the code
 

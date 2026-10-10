@@ -1,7 +1,6 @@
 import { createEmailService } from "../services/email/email.service";
 import { ResendTransport, isRetryableResendError } from "../services/email/email.transports";
 import { renderTemplate } from "../services/email/email.templates";
-import { maskEmail } from "../services/email/email.mask";
 import { getEmailConfigErrors } from "../config/env";
 
 describe("password-reset-notice template", () => {
@@ -35,13 +34,6 @@ describe("password-reset-notice template", () => {
                 { recipientName: "Eve", resetAt: new Date("nope") },
             ),
         ).toThrow();
-    });
-});
-
-describe("maskEmail", () => {
-    it("keeps only the first character and the domain", () => {
-        expect(maskEmail("jane.doe@acme.com")).toBe("j***@acme.com");
-        expect(maskEmail("garbage")).toBe("***");
     });
 });
 

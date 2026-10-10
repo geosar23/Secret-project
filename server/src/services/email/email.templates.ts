@@ -125,7 +125,7 @@ const renderers: { [K in EmailTemplateName]: Renderer<K> } = {
             heading: "Your password was reset",
             paragraphs: [
                 `Hi ${name},`,
-                `An administrator at ${company} reset your password on ${formatUtc(data.resetAt)}. Use the new password you were given by your administrator to sign in.`,
+                `An administrator at ${company} reset your password on ${formatUtc(data.resetAt)}.`,
                 "If you did not expect this, contact your HR team or administrator right away. We will never ask you for your password by email.",
             ],
         });
