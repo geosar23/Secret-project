@@ -12,12 +12,12 @@ const REQUIRED_VARS = [
 
 type EnvLike = Record<string, string | undefined>;
 
-const EMAIL_TRANSPORTS = ["console", "resend"] as const;
-export type EmailTransportName = (typeof EMAIL_TRANSPORTS)[number];
+const EMAIL_PROVIDERS = ["console", "resend"] as const;
+export type EmailProviderName = (typeof EMAIL_PROVIDERS)[number];
 
-/** Transport in use: explicit EMAIL_TRANSPORT, else "console" (production must set it explicitly). */
-export function resolveEmailTransport(env: EnvLike = process.env): string {
-    return (env.EMAIL_TRANSPORT ?? "console").trim().toLowerCase();
+/** Provider in use: explicit EMAIL_PROVIDER, else "console" (production must set it explicitly). */
+export function resolveEmailProvider(env: EnvLike = process.env): string {
+    return (env.EMAIL_PROVIDER ?? "console").trim().toLowerCase();
 }
 
 /**
@@ -27,23 +27,23 @@ export function resolveEmailTransport(env: EnvLike = process.env): string {
 export function getEmailConfigErrors(env: EnvLike = process.env): string[] {
     const errors: string[] = [];
     const isProduction = env.NODE_ENV === "production";
-    const transport = resolveEmailTransport(env);
+    const provider = resolveEmailProvider(env);
     const from = (env.EMAIL_FROM ?? "").trim();
 
-    if (!(EMAIL_TRANSPORTS as readonly string[]).includes(transport)) {
-        errors.push(`EMAIL_TRANSPORT must be one of: ${EMAIL_TRANSPORTS.join(", ")}, got: "${transport}"`);
+    if (!(EMAIL_PROVIDERS as readonly string[]).includes(provider)) {
+        errors.push(`EMAIL_PROVIDER must be one of: ${EMAIL_PROVIDERS.join(", ")}, got: "${provider}"`);
     }
-    if (isProduction && transport === "console") {
-        errors.push(`EMAIL_TRANSPORT=console is not allowed in production (emails would never be delivered)`);
+    if (isProduction && provider === "console") {
+        errors.push(`EMAIL_PROVIDER=console is not allowed in production (emails would never be delivered)`);
     }
-    if (isProduction || from) {
+    if (isProduction || provider === "resend" || from) {
         // "Name <a@b.com>" or "a@b.com"
         if (!/^(?:[^<>\r\n]+<)?[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+>?$/.test(from)) {
             errors.push(`EMAIL_FROM must be a valid sender address (e.g. "HRMS <no-reply@your-domain.com>")`);
         }
     }
-    if (transport === "resend" && !(env.RESEND_API_KEY ?? "").trim()) {
-        errors.push(`RESEND_API_KEY is required when EMAIL_TRANSPORT=resend`);
+    if (provider === "resend" && !(env.RESEND_API_KEY ?? "").trim()) {
+        errors.push(`RESEND_API_KEY is required when EMAIL_PROVIDER=resend`);
     }
     return errors;
 }
@@ -103,7 +103,7 @@ export const config = {
     SALARY_ENCRYPTION_KEY: process.env.SALARY_ENCRYPTION_KEY as string,
     CLIENT_URL: (process.env.CLIENT_URL ?? "http://localhost:4200").split(",").map(u => u.trim()),
     NODE_ENV: process.env.NODE_ENV ?? "development",
-    EMAIL_TRANSPORT: resolveEmailTransport(),
+    EMAIL_PROVIDER: resolveEmailProvider(),
     EMAIL_FROM: (process.env.EMAIL_FROM ?? "HRMS <no-reply@localhost>").trim(),
     EMAIL_REPLY_TO: process.env.EMAIL_REPLY_TO?.trim() || undefined,
     RESEND_API_KEY: process.env.RESEND_API_KEY?.trim() || undefined,

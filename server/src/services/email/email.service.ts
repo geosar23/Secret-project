@@ -26,7 +26,7 @@ const EMAIL_PATTERN = /^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$/;
 
 const defaultSleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
 
-/** Structured log line. Never include tokens, links, bodies or full addresses (domain only). */
+/** Structured log line. Never include tokens, links, bodies or API keys. */
 function log(level: "info" | "warn" | "error", fields: Record<string, unknown>): void {
     console[level](JSON.stringify({ scope: "email", ...fields }));
 }
@@ -50,7 +50,7 @@ export function createEmailService(options: EmailServiceOptions) {
         ): Promise<SendResult> {
             const logContext = {
                 template,
-                transport: transport.name,
+                provider: transport.name,
                 companyId: context.companyId,
                 requestId: context.requestId,
             };
@@ -60,7 +60,6 @@ export function createEmailService(options: EmailServiceOptions) {
                 log("error", { ...logContext, event: "email.invalid_recipient" });
                 return { ok: false, attempts: 0 };
             }
-            const recipientDomain = recipient.split("@")[1];
 
             let rendered;
             try {
@@ -69,7 +68,7 @@ export function createEmailService(options: EmailServiceOptions) {
                 // Message only names the invalid field, never the value.
                 log("error", {
                     ...logContext,
-                    recipientDomain,
+                    recipient,
                     event: "email.render_failed",
                     reason: err instanceof Error ? err.message : "unknown",
                 });
@@ -81,13 +80,13 @@ export function createEmailService(options: EmailServiceOptions) {
                 replyTo,
                 to: recipient,
                 ...rendered,
-                idempotencyKey: randomUUID(),
+                idempotencyKey: context.idempotencyKey ?? randomUUID(),
             };
 
             for (let attempt = 1; attempt <= maxAttempts; attempt++) {
                 try {
                     await transport.send(message);
-                    log("info", { ...logContext, recipientDomain, event: "email.sent", attempt });
+                    log("info", { ...logContext, recipient, event: "email.sent", attempt });
                     return { ok: true, attempts: attempt };
                 } catch (err) {
                     const retryable = err instanceof EmailTransportError ? err.retryable : true;
@@ -95,7 +94,7 @@ export function createEmailService(options: EmailServiceOptions) {
                     const willRetry = retryable && attempt < maxAttempts;
                     log(willRetry ? "warn" : "error", {
                         ...logContext,
-                        recipientDomain,
+                        recipient,
                         event: willRetry ? "email.attempt_failed" : "email.failed",
                         attempt,
                         status,
@@ -117,7 +116,7 @@ export type EmailServiceInstance = ReturnType<typeof createEmailService>;
 
 /** Builds the transport selected by configuration. */
 export function createTransportFromConfig(): EmailTransport {
-    if (config.EMAIL_TRANSPORT === "resend") {
+    if (config.EMAIL_PROVIDER === "resend") {
         return new ResendTransport(config.RESEND_API_KEY as string);
     }
     return new ConsoleTransport(config.NODE_ENV === "development");

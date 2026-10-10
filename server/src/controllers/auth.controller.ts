@@ -12,6 +12,7 @@ import {
     forbiddenError,
 } from "../utils/response.util";
 import { canActorAccessSubject } from "../middleware/permission.middleware";
+import { notifyPasswordResetByAdmin } from "../services/email/email.notifications";
 import { PermissionCategories, PermissionActions } from "../enums/permissions.enum";
 
 export const AuthController = {
@@ -93,6 +94,9 @@ export const AuthController = {
             }
 
             await UserService.resetPasswordForUser(userId, newPassword, payload.companyId);
+
+            // Security notice to the subject user; fire-and-forget so mail problems never affect the response.
+            notifyPasswordResetByAdmin(subjectUser, req.get("x-request-id"));
 
             res.json(success({ message: "Password reset successfully" }));
         } catch (err: any) {

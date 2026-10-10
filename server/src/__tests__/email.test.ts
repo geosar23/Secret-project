@@ -66,7 +66,8 @@ describe("EmailService", () => {
     it("renders all templates with HTML + text and branding", () => {
         const brand = { companyName: "Acme", primaryColor: "#112233", logoUrl: "https://cdn.example.com/logo.png" };
         for (const [name, data] of [
-            ["test", {}],
+            ["test-email", {}],
+            ["password-reset-notice", { recipientName: "Eve", resetAt: new Date("2026-10-10T14:05:00Z") }],
             ["invitation", invitation],
             ["password-reset", { recipientName: "Eve", resetLink: SECRET_LINK, expiresInMinutes: 30 }],
         ] as const) {
@@ -83,7 +84,7 @@ describe("EmailService", () => {
         expect(() =>
             renderTemplate("invitation", company, { ...invitation, activationLink: "javascript:alert(1)" }),
         ).toThrow();
-        const out = renderTemplate("test", { companyName: "A", primaryColor: "red;x" }, {});
+        const out = renderTemplate("test-email", { companyName: "A", primaryColor: "red;x" }, {});
         expect(out.html).toContain("#2563eb");
     });
 
@@ -92,7 +93,7 @@ describe("EmailService", () => {
         send.mockRejectedValueOnce(new EmailTransportError("x", true, 503)).mockRejectedValueOnce(new Error("net"));
         const { service, sleep } = build(transport);
 
-        const result = await service.send("test", "eve@example.com", {}, ctx);
+        const result = await service.send("test-email", "eve@example.com", {}, ctx);
 
         expect(result).toEqual({ ok: true, attempts: 3 });
         expect(sleep.mock.calls.map(c => c[0])).toEqual([500, 1000]);
@@ -106,7 +107,10 @@ describe("EmailService", () => {
         });
         const { service } = build(transport);
 
-        await expect(service.send("test", "eve@example.com", {}, ctx)).resolves.toEqual({ ok: false, attempts: 3 });
+        await expect(service.send("test-email", "eve@example.com", {}, ctx)).resolves.toEqual({
+            ok: false,
+            attempts: 3,
+        });
         expect(send).toHaveBeenCalledTimes(3);
     });
 
@@ -116,7 +120,10 @@ describe("EmailService", () => {
         });
         const { service, sleep } = build(transport);
 
-        await expect(service.send("test", "eve@example.com", {}, ctx)).resolves.toEqual({ ok: false, attempts: 1 });
+        await expect(service.send("test-email", "eve@example.com", {}, ctx)).resolves.toEqual({
+            ok: false,
+            attempts: 1,
+        });
         expect(send).toHaveBeenCalledTimes(1);
         expect(sleep).not.toHaveBeenCalled();
     });
@@ -125,7 +132,7 @@ describe("EmailService", () => {
         const { transport, send } = mockTransport();
         const { service } = build(transport);
 
-        expect((await service.send("test", "not-an-email", {}, ctx)).ok).toBe(false);
+        expect((await service.send("test-email", "not-an-email", {}, ctx)).ok).toBe(false);
         expect((await service.send("invitation", "a@b.com", { ...invitation, activationLink: "nope" }, ctx)).ok).toBe(
             false,
         );
@@ -147,7 +154,7 @@ describe("EmailService", () => {
         expect(all).toContain("email.failed");
         expect(all).not.toContain("SUPER-SECRET-TOKEN");
         expect(all).not.toContain("hunter2");
-        expect(all).not.toContain("eve@example.com");
+        expect(all).toContain("eve@example.com");
         expect(all).not.toContain("<script>");
         expect(all).not.toContain("Eve");
     });
@@ -177,7 +184,7 @@ describe("ConsoleTransport", () => {
 describe("email config validation", () => {
     const prodBase = {
         NODE_ENV: "production",
-        EMAIL_TRANSPORT: "resend",
+        EMAIL_PROVIDER: "resend",
         EMAIL_FROM: "HRMS <no-reply@example.com>",
         RESEND_API_KEY: "re_key",
     };
@@ -194,8 +201,8 @@ describe("email config validation", () => {
         expect(getEmailConfigErrors({ ...prodBase, EMAIL_FROM: "nope" })).toEqual([
             expect.stringContaining("EMAIL_FROM"),
         ]);
-        expect(getEmailConfigErrors({ ...prodBase, EMAIL_TRANSPORT: "smtp" })).toEqual([
-            expect.stringContaining("EMAIL_TRANSPORT"),
+        expect(getEmailConfigErrors({ ...prodBase, EMAIL_PROVIDER: "smtp" })).toEqual([
+            expect.stringContaining("EMAIL_PROVIDER"),
         ]);
     });
 

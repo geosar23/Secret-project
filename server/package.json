@@ -8,6 +8,7 @@
         "dev:watch": "npx nodemon src/server.ts",
         "build": "tsc -p tsconfig.build.json",
         "start": "node dist/server.js",
+        "email:test": "ts-node src/scripts/sendTestEmail.ts",
         "seed:demo": "ts-node src/scripts/seedDemoCompany.ts",
         "test": "jest",
         "test:coverage": "jest --coverage",
@@ -26,6 +27,7 @@
         "mongoose": "^7.8.7",
         "morgan": "^1.10.1",
         "multer": "^2.1.1",
+        "resend": "^6.32.1",
         "xlsx": "^0.18.5"
     },
     "devDependencies": {
