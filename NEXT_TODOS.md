@@ -712,7 +712,7 @@ Open before phase 4: confirm the flow-scope precedence rule (most matching dimen
 - Goal: users can recover access without an admin.
 - Acceptance criteria:
     - [x] `POST /api/auth/forgot-password` always returns the same response (no account enumeration) and sends a reset link.
-    - [x] Single-use, short-lived, hashed reset token; JWTs issued before the reset are revoked (`tra` claim vs `tokensRevokedAt`).
+    - [x] Single-use, short-lived, hashed reset token; JWTs issued before the reset are revoked (`jtr` claim vs `jwtTokenRevokedAt`).
     - [x] Client "forgot password" and "password setup" pages linked from login.
     - [x] Strict rate limiting on both endpoints (per IP, plus 3 links per account per hour).
     - [x] Tests for expiry, reuse, unknown email, tampering, wrong purpose, concurrency, tenant scoping and logs.
@@ -735,9 +735,9 @@ Open before phase 4: confirm the flow-scope precedence rule (most matching dimen
 - Priority: P1 (low)
 - Status: [ ]
 - Goal: admin "sign out everywhere" (revoke all of a user's JWTs) and, if ever needed, per-device tokens.
-- Notes: `tokensRevokedAt = now` already revokes every token; this adds the admin action and UI. A token-tracking collection is only needed for per-device revoke.
+- Notes: `jwtTokenRevokedAt = now` already revokes every token; this adds the admin action and UI. A token-tracking collection is only needed for per-device revoke.
 - Acceptance criteria:
-    - [ ] Admin action that sets `tokensRevokedAt` for a user (audited).
+    - [ ] Admin action that sets `jwtTokenRevokedAt` for a user (audited).
     - [ ] Decide whether per-device tokens are needed.
 
 ### P1-25c Auth hardening leftovers (Low)

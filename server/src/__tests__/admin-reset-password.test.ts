@@ -23,7 +23,7 @@ const reset = (as: SeededUser, body: Record<string, unknown>) =>
     request(app).post("/api/auth/reset-password").set(bearer(as.token)).send(body);
 const flush = () => new Promise(resolve => setImmediate(resolve));
 const login = (email: string, password: string) => request(app).post("/api/auth/login").send({ email, password });
-/** A JWT issued before any revocation (no tra claim), like every token issued before the reset. */
+/** A JWT issued before any revocation (no jtr claim), like every token issued before the reset. */
 const oldTokenFor = (user: SeededUser) =>
     jwt.sign({ id: String(user._id), companyId: String(user.companyId) }, config.JWT_SECRET, { expiresIn: "1h" });
 const lastTemporaryPassword = () => (sendSpy.mock.calls.at(-1)?.[2] as { temporaryPassword: string }).temporaryPassword;

@@ -15,8 +15,8 @@ export interface AuthResponse {
 export interface tokenPayload {
     id: string;
     companyId: string;
-    /** JWT revocation marker: epoch ms of the user's tokensRevokedAt at sign-in, 0 when never revoked. */
-    tra?: number;
+    /** JWT revocation marker: epoch ms of the user's jwtTokenRevokedAt at sign-in, 0 when never revoked. */
+    jtr?: number;
 }
 
 export interface AuthenticatedRequest extends Request {

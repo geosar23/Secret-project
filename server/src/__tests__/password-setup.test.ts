@@ -90,7 +90,7 @@ let infoSpy: jest.SpyInstance;
 beforeEach(async () => {
     resetAuthRateLimits();
     await OneTimeTokenModel.deleteMany({});
-    await UserModel.updateMany({}, { password: await bcrypt.hash("Test@Company1", 4), tokensRevokedAt: null });
+    await UserModel.updateMany({}, { password: await bcrypt.hash("Test@Company1", 4), jwtTokenRevokedAt: null });
     sendSpy.mockReset();
     sendSpy.mockResolvedValue({ ok: true, attempts: 1 });
     infoSpy = jest.spyOn(console, "info").mockImplementation(() => undefined);
@@ -352,7 +352,7 @@ describe("no secrets in logs", () => {
 });
 
 describe("JWTs issued before this feature", () => {
-    it("still accepts JWTs issued before this feature existed (no tra claim, never revoked)", async () => {
+    it("still accepts JWTs issued before this feature existed (no jtr claim, never revoked)", async () => {
         const legacy = jwt.sign({ id: String(alice._id), companyId: String(COMPANY_A_ID) }, config.JWT_SECRET, {
             expiresIn: "1h",
         });

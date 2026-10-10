@@ -103,7 +103,7 @@ const UserSchema = new Schema<IUser>(
         isActive: { type: Boolean, default: true },
 
         // Credential / JWT revocation state
-        tokensRevokedAt: { type: Date, default: null },
+        jwtTokenRevokedAt: { type: Date, default: null },
         mustChangePassword: { type: Boolean, default: false },
         temporaryPasswordExpiresAt: { type: Date, default: null },
     },

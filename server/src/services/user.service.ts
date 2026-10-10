@@ -234,7 +234,7 @@ export const UserService = {
             { _id: userId },
             {
                 password: await bcrypt.hash(temporaryPassword, 10),
-                tokensRevokedAt: now,
+                jwtTokenRevokedAt: now,
                 mustChangePassword: true,
                 temporaryPasswordExpiresAt: new Date(now.getTime() + policy.temporaryPasswordHours * 60 * 60 * 1000),
             },
@@ -264,7 +264,7 @@ export const UserService = {
             { _id: id },
             {
                 password: await bcrypt.hash(newPassword, 10),
-                tokensRevokedAt: new Date(),
+                jwtTokenRevokedAt: new Date(),
                 mustChangePassword: false,
                 temporaryPasswordExpiresAt: null,
             },

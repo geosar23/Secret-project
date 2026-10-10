@@ -98,8 +98,8 @@ export interface IUser {
 
     isActive?: boolean;
 
-    /** JWTs issued before this moment are rejected (password change, forced logout); matched against the JWT `tra` claim. */
-    tokensRevokedAt?: Date | null;
+    /** JWTs issued before this moment are rejected (password change, forced logout); matched against the JWT `jtr` claim. */
+    jwtTokenRevokedAt?: Date | null;
     /** Set while the user holds an admin-issued temporary password; only changing it is allowed. */
     mustChangePassword?: boolean;
     /** The temporary password stops working for sign-in after this moment. */

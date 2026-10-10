@@ -29,7 +29,7 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
         // One small read per request: it is what lets a password change (or a forced logout) end older JWTs.
         const user = await userRepository(decoded.companyId)
             .findById(decoded.id)
-            .select("tokensRevokedAt mustChangePassword")
+            .select("jwtTokenRevokedAt mustChangePassword")
             .lean();
         if (!user) {
             return unauthorizedError(res);
@@ -37,8 +37,8 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
 
         // The token carries the revocation marker it was issued under; any later revocation makes it differ.
         // (An exact match, unlike comparing iat, has no one-second blind spot.)
-        const currentMarker = user.tokensRevokedAt ? user.tokensRevokedAt.getTime() : 0;
-        if ((decoded.tra ?? 0) !== currentMarker) {
+        const currentMarker = user.jwtTokenRevokedAt ? user.jwtTokenRevokedAt.getTime() : 0;
+        if ((decoded.jtr ?? 0) !== currentMarker) {
             return unauthorizedError(res);
         }
 
