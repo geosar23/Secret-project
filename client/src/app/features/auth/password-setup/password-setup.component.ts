@@ -137,7 +137,7 @@ export class PasswordSetupComponent {
                     return;
                 }
                 this.toast.success("Password changed. Sign in with your new password.");
-                this.authService.logout(); // changing the password ends every session, including this one
+                this.authService.logout(); // changing the password revokes every JWT, including the current one
             },
             error: error => {
                 this.loading.set(false);

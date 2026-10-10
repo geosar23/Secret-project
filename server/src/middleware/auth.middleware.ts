@@ -6,7 +6,7 @@ import { config } from "../config/env";
 import { userRepository } from "../repositories/user.repository";
 import { passwordChangeRequiredError, unauthorizedError } from "../utils/response.util";
 
-// While a temporary password is in use, the user may only read their own session and change the password.
+// While a temporary password is in use, the user may only read their own profile and change the password.
 const ALLOWED_WHILE_PASSWORD_CHANGE_REQUIRED = [
     { method: "GET", path: /^\/api\/auth\/me$/ },
     { method: "PUT", path: /^\/api\/users\/[^/]+\/change-password$/ },
@@ -26,10 +26,10 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
             return unauthorizedError(res);
         }
 
-        // One small read per request: it is what lets a password change (or a forced logout) end older sessions.
+        // One small read per request: it is what lets a password change (or a forced logout) end older JWTs.
         const user = await userRepository(decoded.companyId)
             .findById(decoded.id)
-            .select("sessionsRevokedAt mustChangePassword")
+            .select("tokensRevokedAt mustChangePassword")
             .lean();
         if (!user) {
             return unauthorizedError(res);
@@ -37,8 +37,8 @@ export const authMiddleware = async (req: AuthenticatedRequest, res: Response, n
 
         // The token carries the revocation marker it was issued under; any later revocation makes it differ.
         // (An exact match, unlike comparing iat, has no one-second blind spot.)
-        const currentMarker = user.sessionsRevokedAt ? user.sessionsRevokedAt.getTime() : 0;
-        if ((decoded.sra ?? 0) !== currentMarker) {
+        const currentMarker = user.tokensRevokedAt ? user.tokensRevokedAt.getTime() : 0;
+        if ((decoded.tra ?? 0) !== currentMarker) {
             return unauthorizedError(res);
         }
 

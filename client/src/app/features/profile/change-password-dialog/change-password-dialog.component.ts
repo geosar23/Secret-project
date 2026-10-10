@@ -72,7 +72,7 @@ export class ChangePasswordDialogComponent {
                 }
                 this.toast.success("Password changed. Please sign in again.");
                 this.dialogRef.close(true);
-                this.authService.logout(); // the change ends every session, including this one
+                this.authService.logout(); // the change revokes every JWT, including the current one
             },
             error: error => {
                 this.toast.error(error.error?.error || "Failed to change password");

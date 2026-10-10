@@ -11,9 +11,9 @@ Significant changes to the application, most recent first.
 - **Forgot password:** "Forgot password?" on the login page opens `/forgot-password`. The user gets an email with a 30-minute, single-use link to `/password-setup`. The request always gets the same answer, so it cannot be used to find out which emails have accounts.
 - **Password setup page** (`/password-setup`) serves the emailed link and the first sign-in with a temporary password, with clear messages for expired, used and invalid links. The token is removed from the address bar immediately.
 - **Admin reset changed:** the admin no longer types a password. `POST /api/auth/reset-password` takes only `userId`; the user is emailed a random temporary password that works for 24 hours and must be replaced at first sign-in.
-- **Sessions end on password change:** forgot-reset, admin reset and change-password revoke every older session. After changing their own password a user has to sign in again. Tokens carry a new `sra` claim; the auth middleware now reads the user on each request.
+- **JWTs are revoked on password change:** forgot-reset, admin reset and change-password revoke every older JWT. After changing their own password a user has to sign in again. Tokens carry a new `tra` claim; the auth middleware now reads the user on each request.
 - New endpoints `POST /api/auth/forgot-password` and `POST /api/auth/password-setup` (rate limited per IP; max 3 links per account per hour). New `OneTimeTokens` collection (hashed tokens, TTL) and a `password-changed` confirmation email; `password-reset-notice` is replaced by `temporary-password`.
-- New user fields `sessionsRevokedAt`, `mustChangePassword`, `temporaryPasswordExpiresAt`. Token lifetimes and limits sit behind `getSecurityPolicy(companyId)` (defaults for every company for now).
+- New user fields `tokensRevokedAt`, `mustChangePassword`, `temporaryPasswordExpiresAt`. Token lifetimes and limits sit behind `getSecurityPolicy(companyId)` (defaults for every company for now).
 - **Manual steps:** run `npx ts-node src/scripts/syncIndexes.ts` once; set `TRUST_PROXY` and optionally `APP_URL` in production. See `docs/features/auth.md`.
 
 ### Requests page: cards, Team tab and filters (10/10/2026)

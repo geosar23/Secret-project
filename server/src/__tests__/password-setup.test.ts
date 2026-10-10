@@ -90,7 +90,7 @@ let infoSpy: jest.SpyInstance;
 beforeEach(async () => {
     resetAuthRateLimits();
     await OneTimeTokenModel.deleteMany({});
-    await UserModel.updateMany({}, { password: await bcrypt.hash("Test@Company1", 4), sessionsRevokedAt: null });
+    await UserModel.updateMany({}, { password: await bcrypt.hash("Test@Company1", 4), tokensRevokedAt: null });
     sendSpy.mockReset();
     sendSpy.mockResolvedValue({ ok: true, attempts: 1 });
     infoSpy = jest.spyOn(console, "info").mockImplementation(() => undefined);
@@ -185,10 +185,10 @@ describe("POST /api/auth/forgot-password", () => {
 });
 
 describe("POST /api/auth/password-setup", () => {
-    it("sets the new password, ends older sessions, audits it and confirms by email", async () => {
+    it("sets the new password, revokes older JWTs, audits it and confirms by email", async () => {
         const raw = await requestToken(alice.email);
-        const oldSession = (await login(alice.email, "Test@Company1")).body.data.token as string;
-        expect((await request(app).get("/api/auth/me").set("Authorization", `Bearer ${oldSession}`)).status).toBe(200);
+        const oldToken = (await login(alice.email, "Test@Company1")).body.data.token as string;
+        expect((await request(app).get("/api/auth/me").set("Authorization", `Bearer ${oldToken}`)).status).toBe(200);
 
         const res = await setup(raw);
         expect(res.body.success).toBe(true);
@@ -199,7 +199,7 @@ describe("POST /api/auth/password-setup", () => {
         expect(fresh.status).toBe(200);
         expect(fresh.body.data.mustChangePassword).toBe(false);
 
-        expect((await request(app).get("/api/auth/me").set("Authorization", `Bearer ${oldSession}`)).status).toBe(401);
+        expect((await request(app).get("/api/auth/me").set("Authorization", `Bearer ${oldToken}`)).status).toBe(401);
         const freshMe = await request(app).get("/api/auth/me").set("Authorization", `Bearer ${fresh.body.data.token}`);
         expect(freshMe.status).toBe(200);
 
@@ -351,8 +351,8 @@ describe("no secrets in logs", () => {
     });
 });
 
-describe("existing sessions and tokens", () => {
-    it("still accepts sessions issued before this feature existed (no sra claim, never revoked)", async () => {
+describe("JWTs issued before this feature", () => {
+    it("still accepts JWTs issued before this feature existed (no tra claim, never revoked)", async () => {
         const legacy = jwt.sign({ id: String(alice._id), companyId: String(COMPANY_A_ID) }, config.JWT_SECRET, {
             expiresIn: "1h",
         });

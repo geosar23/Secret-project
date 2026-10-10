@@ -234,7 +234,7 @@ export const UserService = {
             { _id: userId },
             {
                 password: await bcrypt.hash(temporaryPassword, 10),
-                sessionsRevokedAt: now,
+                tokensRevokedAt: now,
                 mustChangePassword: true,
                 temporaryPasswordExpiresAt: new Date(now.getTime() + policy.temporaryPasswordHours * 60 * 60 * 1000),
             },
@@ -259,12 +259,12 @@ export const UserService = {
             throw new Error("Current password is incorrect");
         }
 
-        // Existing sessions end, so the user signs in again with the new password.
+        // Existing JWTs stop working, so the user signs in again with the new password.
         await repo.updateOne(
             { _id: id },
             {
                 password: await bcrypt.hash(newPassword, 10),
-                sessionsRevokedAt: new Date(),
+                tokensRevokedAt: new Date(),
                 mustChangePassword: false,
                 temporaryPasswordExpiresAt: null,
             },

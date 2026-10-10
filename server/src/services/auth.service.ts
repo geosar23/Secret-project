@@ -37,7 +37,7 @@ export const AuthService = {
             {
                 id: user._id.toString(),
                 companyId: user.company?._id.toString(),
-                sra: user.sessionsRevokedAt ? user.sessionsRevokedAt.getTime() : 0,
+                tra: user.tokensRevokedAt ? user.tokensRevokedAt.getTime() : 0,
             },
             JWT_SECRET,
             { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions,

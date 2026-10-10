@@ -174,7 +174,7 @@ export const PasswordSetupService = {
                 { _id: userId },
                 {
                     password: hashed,
-                    sessionsRevokedAt: now,
+                    tokensRevokedAt: now,
                     mustChangePassword: false,
                     temporaryPasswordExpiresAt: null,
                 },

@@ -14,7 +14,7 @@ The application uses **JWT (JSON Web Token)** based authentication. There are no
 4. On success, the server signs a JWT containing:
     - `id` — user's MongoDB `_id`
     - `companyId` — company's MongoDB `_id`
-    - `sra` — session revocation marker (see Password recovery)
+    - `tra` — JWT revocation marker (see Password recovery)
     - `iat` / `exp` — issued-at / expiry (added automatically by the JWT library)
 5. The token is returned to the client.
 
@@ -35,7 +35,7 @@ Every protected Express route passes through `auth.middleware.ts`:
 
 1. Extracts the `Bearer` token from the `Authorization` header.
 2. Verifies the signature using `JWT_SECRET`.
-3. Loads the user (company-scoped, two fields) and compares the token's `sra` claim with the user's `sessionsRevokedAt`; a mismatch is `401`.
+3. Loads the user (company-scoped, two fields) and compares the token's `tra` claim with the user's `tokensRevokedAt`; a mismatch is `401`.
 4. While the user has `mustChangePassword`, only `GET /api/auth/me` and `PUT /api/users/:id/change-password` pass; everything else is `403 PASSWORD_CHANGE_REQUIRED`.
 5. Attaches the decoded payload to the request and calls `next()`, or responds with `401` if the token is missing, malformed, expired or revoked.
 
@@ -71,14 +71,14 @@ exist (models use `autoIndex: false`).
 **Redeeming.** `POST /api/auth/password-setup` checks the token (purpose, used, expired), then the password policy, then consumes the
 token with one atomic `findOneAndUpdate` (`usedAt: null`), so of two concurrent requests exactly one wins. The password is hashed once
 with bcrypt and written through the company-scoped user repository (the pre-save hook is not involved). If that write fails the
-token is released so the user can retry. Success ends all sessions, clears `mustChangePassword`, voids the user's other links,
+token is released so the user can retry. Success revokes all of the user's JWTs, clears `mustChangePassword`, voids the user's other links,
 writes an audit entry (`password_reset`, password redacted) and sends a `password-changed` confirmation. A too-short password does
 not burn the link.
 
-**Sessions.** JWTs carry `sra`, the user's `sessionsRevokedAt` (epoch ms, 0 if never) at sign-in. The middleware requires it to equal
-the current value, so setting `sessionsRevokedAt = now` revokes every earlier token exactly (no one-second blind spot, unlike
-comparing `iat`). Forgot-reset, admin reset and change-password all set it. Tokens issued before this feature have no `sra` and stay
-valid until the first revocation. The same write is the hook for a future "force logout".
+**JWT revocation.** JWTs carry `tra`, the user's `tokensRevokedAt` (epoch ms, 0 if never) at sign-in. The middleware requires it to equal
+the current value, so setting `tokensRevokedAt = now` revokes every earlier token exactly (no one-second blind spot, unlike
+comparing `iat`). Forgot-reset, admin reset and change-password all set it. Tokens issued before this feature have no `tra` and stay
+valid until the first revocation. The same write is the hook for a future admin "revoke all tokens" action.
 
 **Admin reset.** The temporary password is generated server-side, shown to nobody, and only appears in the email. Signing in with
 it works until `temporaryPasswordExpiresAt`; the client then forces `/password-setup`, where the temporary password is the current

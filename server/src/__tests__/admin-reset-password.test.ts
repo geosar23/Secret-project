@@ -23,8 +23,8 @@ const reset = (as: SeededUser, body: Record<string, unknown>) =>
     request(app).post("/api/auth/reset-password").set(bearer(as.token)).send(body);
 const flush = () => new Promise(resolve => setImmediate(resolve));
 const login = (email: string, password: string) => request(app).post("/api/auth/login").send({ email, password });
-/** A session started before any revocation (no sra claim), like every token issued before the reset. */
-const oldSessionFor = (user: SeededUser) =>
+/** A JWT issued before any revocation (no tra claim), like every token issued before the reset. */
+const oldTokenFor = (user: SeededUser) =>
     jwt.sign({ id: String(user._id), companyId: String(user.companyId) }, config.JWT_SECRET, { expiresIn: "1h" });
 const lastTemporaryPassword = () => (sendSpy.mock.calls.at(-1)?.[2] as { temporaryPassword: string }).temporaryPassword;
 
@@ -152,13 +152,13 @@ describe("POST /api/auth/reset-password (admin) - temporary password", () => {
 });
 
 describe("temporary password lifecycle", () => {
-    it("ends sessions from before the reset and flags the forced change at sign-in", async () => {
+    it("rejects JWTs issued before the reset and flags the forced change at sign-in", async () => {
         await reset(admin, { userId: String(target._id) });
         await flush();
         const temp = lastTemporaryPassword();
 
-        const oldSession = oldSessionFor(target);
-        expect((await request(app).get("/api/auth/me").set(bearer(oldSession))).status).toBe(401);
+        const oldToken = oldTokenFor(target);
+        expect((await request(app).get("/api/auth/me").set(bearer(oldToken))).status).toBe(401);
 
         const res = await login(target.email, temp);
         expect(res.status).toBe(200);
@@ -183,7 +183,7 @@ describe("temporary password lifecycle", () => {
             .send({ currentPassword: temp, newPassword: "My#Own-Pass9" });
         expect(changed.body.success).toBe(true);
 
-        // The session that changed the password ends too.
+        // The JWT used to change the password stops working too.
         expect((await request(app).get("/api/auth/me").set(bearer(token))).status).toBe(401);
 
         expect((await login(target.email, temp)).status).toBe(401);

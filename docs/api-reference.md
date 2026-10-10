@@ -20,9 +20,9 @@ All endpoints are prefixed with `/api`. All protected endpoints require a `Autho
 | GET    | `/api/auth/me`              | Yes                          | Returns the currently authenticated user's context                                                                                                                                                             |
 | POST   | `/api/auth/forgot-password` | No                           | Body `{ email }`. Always answers `200` with the same message; emails a reset link when the account is active. 5 requests / 15 min per IP                                                                       |
 | POST   | `/api/auth/password-setup`  | No                           | Body `{ token, newPassword }`. Sets a password from an emailed link. Failures are `200` with `success: false` and `error.code` of `invalid`, `expired`, `used` or `weak_password`. 10 requests / 15 min per IP |
-| POST   | `/api/auth/reset-password`  | Yes (`RESET_PASSWORD` write) | Admin action. Body `{ userId }`. Emails the user a random temporary password (valid 24 h) and ends their sessions. The password is never returned                                                              |
+| POST   | `/api/auth/reset-password`  | Yes (`RESET_PASSWORD` write) | Admin action. Body `{ userId }`. Emails the user a random temporary password (valid 24 h) and revokes their existing JWTs. The password is never returned                                                      |
 
-`POST /api/auth/login` also returns `mustChangePassword`. While it is true, every call except `GET /api/auth/me` and `PUT /api/users/:id/change-password` answers `403` with `code: PASSWORD_CHANGE_REQUIRED`. Changing a password (self, admin reset or link) ends all existing sessions; the next call with an old token answers `401`.
+`POST /api/auth/login` also returns `mustChangePassword`. While it is true, every call except `GET /api/auth/me` and `PUT /api/users/:id/change-password` answers `403` with `code: PASSWORD_CHANGE_REQUIRED`. Changing a password (self, admin reset or link) revokes all existing JWTs; the next call with an old token answers `401`.
 
 ---
 

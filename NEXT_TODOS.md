@@ -712,7 +712,7 @@ Open before phase 4: confirm the flow-scope precedence rule (most matching dimen
 - Goal: users can recover access without an admin.
 - Acceptance criteria:
     - [x] `POST /api/auth/forgot-password` always returns the same response (no account enumeration) and sends a reset link.
-    - [x] Single-use, short-lived, hashed reset token; sessions issued before the reset are invalidated (`sra` claim vs `sessionsRevokedAt`).
+    - [x] Single-use, short-lived, hashed reset token; JWTs issued before the reset are revoked (`tra` claim vs `tokensRevokedAt`).
     - [x] Client "forgot password" and "password setup" pages linked from login.
     - [x] Strict rate limiting on both endpoints (per IP, plus 3 links per account per hour).
     - [x] Tests for expiry, reuse, unknown email, tampering, wrong purpose, concurrency, tenant scoping and logs.
@@ -730,15 +730,15 @@ Open before phase 4: confirm the flow-scope precedence rule (most matching dimen
     - [ ] Configurable: token lifetimes, temporary password lifetime, links per account per hour, per-IP limits where company is known.
     - [ ] Configurable password policy (length, character classes), enforced by every place that sets a password, with matching client validation.
 
-### P1-25b Sessions and force logout (Low, follow-up of P0-25)
+### P1-25b Admin revoke-all-tokens (Low, follow-up of P0-25)
 
 - Priority: P1 (low)
 - Status: [ ]
-- Goal: admin "sign out everywhere" and, if wanted, a device/session list.
-- Notes: `sessionsRevokedAt = now` already revokes every token; this adds the admin action and UI. A `Sessions` collection is only needed for per-device revoke.
+- Goal: admin "sign out everywhere" (revoke all of a user's JWTs) and, if ever needed, per-device tokens.
+- Notes: `tokensRevokedAt = now` already revokes every token; this adds the admin action and UI. A token-tracking collection is only needed for per-device revoke.
 - Acceptance criteria:
-    - [ ] Admin action that sets `sessionsRevokedAt` for a user (audited).
-    - [ ] Decide whether per-device sessions are needed.
+    - [ ] Admin action that sets `tokensRevokedAt` for a user (audited).
+    - [ ] Decide whether per-device tokens are needed.
 
 ### P1-25c Auth hardening leftovers (Low)
 
