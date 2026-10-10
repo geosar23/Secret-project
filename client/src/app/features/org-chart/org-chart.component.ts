@@ -147,7 +147,14 @@ export class OrgChartComponent implements OnInit {
                     this.selectedId.set(focusId);
                     this.focusSoon(focusId);
                 } else {
-                    this.fitSoon();
+                    // No explicit target: centre on the logged-in user when they're in the chart.
+                    const myId = this.myId();
+                    if (myId && findNode(this.root(), myId)) {
+                        this.focusSoon(myId);
+                        this.selectedId.set(myId);
+                    } else {
+                        this.fitSoon();
+                    }
                 }
             },
             error: err => {
