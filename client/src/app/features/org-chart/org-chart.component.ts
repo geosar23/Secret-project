@@ -211,6 +211,17 @@ export class OrgChartComponent implements OnInit {
 
     toggleCollapse(event: Event, id: string): void {
         event.stopPropagation();
+        this.toggleCollapsed(id);
+    }
+
+    /** Double-click on a node: expand/collapse its children (no-op for leaves). */
+    toggleChildren(node: OrgNode): void {
+        if (node.children.length) {
+            this.toggleCollapsed(node.id);
+        }
+    }
+
+    private toggleCollapsed(id: string): void {
         this.collapsed.update(current => {
             const next = new Set(current);
             if (!next.delete(id)) {
