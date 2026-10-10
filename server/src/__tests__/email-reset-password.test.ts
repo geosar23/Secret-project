@@ -68,7 +68,7 @@ beforeEach(() => {
 afterEach(() => logSpy.mockRestore());
 
 describe("POST /api/auth/reset-password — security notice", () => {
-    it("sends exactly one notice to the subject user with their own company branding and no secret", async () => {
+    it("sends exactly one notice to the subject user with their own company branding and the temporary password", async () => {
         const res = await reset(admin, { userId: String(target._id), newPassword: "Brand-New#Pass1" });
 
         expect(res.status).toBe(200);
@@ -81,7 +81,8 @@ describe("POST /api/auth/reset-password — security notice", () => {
         expect(to).toBe("reset-target@acme.test");
         expect(ctx.company.companyName).toBe("Acme <b>Ltd</b>");
         expect(ctx.companyId).toBe(String(COMPANY_A_ID));
-        expect(JSON.stringify([data, ctx])).not.toContain("Brand-New#Pass1");
+        expect(data).toMatchObject({ recipientName: "Tara Target", temporaryPassword: "Brand-New#Pass1" });
+        expect(JSON.stringify(ctx)).not.toContain("Brand-New#Pass1");
     });
 
     it("sends nothing when the actor is not allowed (403)", async () => {

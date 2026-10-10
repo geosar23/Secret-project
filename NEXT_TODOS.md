@@ -688,7 +688,7 @@ Open before phase 4: confirm the flow-scope precedence rule (most matching dimen
     - [x] Template system (HTML + text) with company branding hooks.
     - [x] Failures are logged (no sensitive data) and do not break the calling request; retry strategy defined.
     - [x] Basic tests with a mocked transport.
-    - [x] First real use: password-reset security notice to the user when an admin resets their password (fire-and-forget, tested).
+    - [x] First real use: admin password reset emails the user the temporary password (fire-and-forget, tested). Still to do: a must-change-password flag on the user and a prompt to set a new password on first login.
     - [ ] Provider account: Resend account, sending domain verified (SPF/DKIM/DMARC), API key and `EMAIL_*` set in production, DPA signed.
 - Unblocks: P0-24, P0-25, leave and request notifications.
 

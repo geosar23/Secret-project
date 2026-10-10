@@ -95,8 +95,8 @@ export const AuthController = {
 
             await UserService.resetPasswordForUser(userId, newPassword, payload.companyId);
 
-            // Security notice to the subject user; fire-and-forget so mail problems never affect the response.
-            notifyPasswordResetByAdmin(subjectUser, req.get("x-request-id"));
+            // Email the temporary password to the subject user; fire-and-forget so mail problems never affect the response.
+            notifyPasswordResetByAdmin(subjectUser, newPassword, req.get("x-request-id"));
 
             res.json(success({ message: "Password reset successfully" }));
         } catch (err: any) {

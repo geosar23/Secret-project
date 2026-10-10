@@ -55,6 +55,8 @@ interface Body {
     /** Paragraphs as plain strings; they are escaped for HTML, used as-is for text. */
     paragraphs: string[];
     action?: { label: string; url: string };
+    /** Value shown in a boxed monospace block (e.g. a temporary password). Escaped for HTML. */
+    highlight?: { label: string; value: string };
 }
 
 function layout(brand: EmailBranding, body: Body): RenderedEmail {
@@ -64,6 +66,10 @@ function layout(brand: EmailBranding, body: Body): RenderedEmail {
         ? `<img src="${escapeHtml(assertHttpUrl(brand.logoUrl, "logoUrl"))}" alt="${escapeHtml(company)}" height="40" style="display:block;margin-bottom:12px">`
         : "";
     const paragraphs = body.paragraphs.map(p => `<p style="margin:0 0 16px">${escapeHtml(p)}</p>`).join("");
+    const highlight = body.highlight
+        ? `<p style="margin:0 0 6px;font-size:13px;color:#6b7280">${escapeHtml(body.highlight.label)}</p>` +
+          `<p style="margin:0 0 16px;padding:12px 16px;background:#f3f4f6;border-radius:6px;font-family:Consolas,Menlo,monospace;font-size:16px;letter-spacing:0.5px;word-break:break-all">${escapeHtml(body.highlight.value)}</p>`
+        : "";
     const button = body.action
         ? `<p style="margin:24px 0"><a href="${escapeHtml(body.action.url)}" style="background:${color};color:#ffffff;padding:12px 20px;border-radius:6px;text-decoration:none;display:inline-block">${escapeHtml(body.action.label)}</a></p>` +
           `<p style="margin:0 0 16px;font-size:12px;color:#6b7280">If the button does not work, copy this link into your browser:<br>${escapeHtml(body.action.url)}</p>`
@@ -72,7 +78,7 @@ function layout(brand: EmailBranding, body: Body): RenderedEmail {
     const html =
         `<!doctype html><html><body style="margin:0;padding:24px;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#111827">` +
         `<div style="max-width:560px;margin:0 auto;background:#ffffff;padding:32px;border-radius:8px;border-top:4px solid ${color}">` +
-        `${logo}<h1 style="font-size:20px;margin:0 0 16px">${escapeHtml(body.heading)}</h1>${paragraphs}${button}` +
+        `${logo}<h1 style="font-size:20px;margin:0 0 16px">${escapeHtml(body.heading)}</h1>${paragraphs}${highlight}${button}` +
         `<p style="margin:24px 0 0;font-size:12px;color:#6b7280">Sent by ${escapeHtml(company)} via HRMS</p>` +
         `</div></body></html>`;
 
@@ -80,6 +86,7 @@ function layout(brand: EmailBranding, body: Body): RenderedEmail {
         body.heading,
         "",
         ...body.paragraphs.flatMap(p => [p, ""]),
+        ...(body.highlight ? [`${body.highlight.label}: ${body.highlight.value}`, ""] : []),
         ...(body.action ? [`${body.action.label}: ${body.action.url}`, ""] : []),
         `Sent by ${company} via HRMS`,
     ].join("\n");
@@ -125,9 +132,10 @@ const renderers: { [K in EmailTemplateName]: Renderer<K> } = {
             heading: "Your password was reset",
             paragraphs: [
                 `Hi ${name},`,
-                `An administrator at ${company} reset your password on ${formatUtc(data.resetAt)}.`,
-                "If you did not expect this, contact your HR team or administrator right away. We will never ask you for your password by email.",
+                `An administrator at ${company} reset your password on ${formatUtc(data.resetAt)}. Use the temporary password below to sign in, then change it to one only you know.`,
+                "If you did not expect this, contact your HR team or administrator right away.",
             ],
+            highlight: { label: "Temporary password", value: data.temporaryPassword },
         });
     },
 

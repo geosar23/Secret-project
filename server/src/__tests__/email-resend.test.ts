@@ -1,25 +1,35 @@
 import { createEmailService } from "../services/email/email.service";
+import { EmailTransportError } from "../services/email/email.types";
 import { ResendTransport, isRetryableResendError } from "../services/email/email.transports";
 import { renderTemplate } from "../services/email/email.templates";
 import { getEmailConfigErrors } from "../config/env";
 
 describe("password-reset-notice template", () => {
     const resetAt = new Date("2026-10-10T14:05:00Z");
+    const temporaryPassword = "Tmp#<b>Pass&1";
 
-    it("states when it happened (DD/MM/YYYY), tells the user what to do, and has no link or secret", () => {
-        const out = renderTemplate("password-reset-notice", { companyName: "Acme" }, { recipientName: "Eve", resetAt });
+    it("shows the temporary password, when it happened (DD/MM/YYYY) and what to do, with no link", () => {
+        const out = renderTemplate(
+            "password-reset-notice",
+            { companyName: "Acme" },
+            { recipientName: "Eve", resetAt, temporaryPassword },
+        );
         expect(out.subject).toBe("Your Acme password was reset");
+        expect(out.text).toContain("Temporary password: Tmp#<b>Pass&1");
+        expect(out.html).toContain("Tmp#&lt;b&gt;Pass&amp;1");
+        expect(out.html).not.toContain("<b>Pass");
         expect(out.text).toContain("10/10/2026 14:05 UTC");
         expect(out.text).toContain("contact your HR team or administrator");
+        expect(out.subject).not.toContain("Tmp#");
         expect(out.html).not.toMatch(/href=/);
-        expect(out.html + out.text).not.toMatch(/https?:\/\//);
+        expect(out.html + out.text).not.toContain("http");
     });
 
     it("escapes a malicious name and company name", () => {
         const out = renderTemplate(
             "password-reset-notice",
             { companyName: "<img src=x onerror=alert(1)>Co" },
-            { recipientName: "<script>alert(1)</script>", resetAt },
+            { recipientName: "<script>alert(1)</script>", resetAt, temporaryPassword },
         );
         expect(out.html).not.toContain("<script>");
         expect(out.html).not.toContain("<img src=x");
@@ -31,9 +41,35 @@ describe("password-reset-notice template", () => {
             renderTemplate(
                 "password-reset-notice",
                 { companyName: "Acme" },
-                { recipientName: "Eve", resetAt: new Date("nope") },
+                { recipientName: "Eve", resetAt: new Date("nope"), temporaryPassword },
             ),
         ).toThrow();
+    });
+
+    it("never writes the temporary password to logs, even when sending fails", async () => {
+        const logs: string[] = [];
+        const capture = (...args: unknown[]) => void logs.push(args.map(String).join(" "));
+        jest.spyOn(console, "info").mockImplementation(capture);
+        jest.spyOn(console, "warn").mockImplementation(capture);
+        jest.spyOn(console, "error").mockImplementation(capture);
+        const send = jest.fn().mockRejectedValue(new EmailTransportError("down", true, 503));
+        const service = createEmailService({
+            transport: { name: "mock", send },
+            from: "HRMS <no-reply@example.com>",
+            sleep: async () => undefined,
+        });
+
+        const result = await service.send(
+            "password-reset-notice",
+            "eve@example.com",
+            { recipientName: "Eve", resetAt, temporaryPassword: "S3cret-Temp-Pw" },
+            { company: { companyName: "Acme" } },
+        );
+
+        expect(result).toEqual({ ok: false, attempts: 3 });
+        expect(send.mock.calls[0][0].text).toContain("S3cret-Temp-Pw");
+        expect(logs.join(" ")).not.toContain("S3cret-Temp-Pw");
+        jest.restoreAllMocks();
     });
 });
 
