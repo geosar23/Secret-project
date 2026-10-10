@@ -100,13 +100,14 @@ export class AuthService {
                 }
 
                 this.setToken(loginRes.data.token);
+                const mustChangePassword = !!loginRes.data.mustChangePassword;
 
                 return this.refreshCurrentUser().pipe(
                     map(
                         user =>
                             ({
                                 success: true,
-                                data: { user },
+                                data: { user: { ...user, mustChangePassword } },
                             }) as JsonResponse<IUserResponse>,
                     ),
                 );
@@ -117,6 +118,16 @@ export class AuthService {
                 data: meRes.data?.user,
             })),
         );
+    }
+
+    /** Public: asks for a reset link. The server answers the same way whether or not the account exists. */
+    forgotPassword(email: string): Observable<JsonResponse<{ message: string }>> {
+        return this.apiService.post<JsonResponse<{ message: string }>>("auth/forgot-password", { email });
+    }
+
+    /** Public: sets a new password with the token from an emailed link. */
+    setupPassword(token: string, newPassword: string): Observable<JsonResponse<{ message: string }>> {
+        return this.apiService.post<JsonResponse<{ message: string }>>("auth/password-setup", { token, newPassword });
     }
 
     getMe(): Observable<JsonResponse<IUserResponse>> {

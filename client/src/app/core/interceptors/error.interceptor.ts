@@ -1,9 +1,11 @@
 import { HttpErrorResponse, HttpInterceptorFn } from "@angular/common/http";
 import { Injector, inject } from "@angular/core";
+import { Router } from "@angular/router";
 import { catchError, throwError } from "rxjs";
 import { AuthService } from "../services/auth.service";
 import { ToastService } from "../services/toast.service";
 
+const PASSWORD_CHANGE_REQUIRED_CODE = "PASSWORD_CHANGE_REQUIRED";
 const LOGIN_URL_SUFFIX = "/auth/login";
 
 const MESSAGES = {
@@ -87,7 +89,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
                 authService.logout();
             }
 
-            if (isGloballyToasted(error.status, isLoginRequest)) {
+            // Signed in with a temporary password: send the user to choose their own instead of toasting.
+            if (error.status === 403 && error.error?.code === PASSWORD_CHANGE_REQUIRED_CODE) {
+                void injector.get(Router).navigate(["/password-setup"]);
+            } else if (isGloballyToasted(error.status, isLoginRequest)) {
                 injector.get(ToastService).error(message);
             }
 

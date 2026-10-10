@@ -14,6 +14,11 @@ import { config } from "./config/env";
 
 const app = express();
 
+// Behind a reverse proxy, trust its forwarded client IP so per-IP rate limits see the real client.
+if (config.TRUST_PROXY > 0) {
+    app.set("trust proxy", config.TRUST_PROXY);
+}
+
 const limiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minute
     max: 100, // limit each IP to 100 requests per 1 minute

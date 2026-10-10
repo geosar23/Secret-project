@@ -23,11 +23,21 @@ export const AuthService = {
             throw new Error("Invalid credentials");
         }
 
+        // An admin-issued temporary password is only good until it expires.
+        if (
+            user.mustChangePassword &&
+            user.temporaryPasswordExpiresAt &&
+            user.temporaryPasswordExpiresAt.getTime() <= Date.now()
+        ) {
+            throw new Error("Invalid credentials");
+        }
+
         // Generate JWT token
         const token = jwt.sign(
             {
                 id: user._id.toString(),
                 companyId: user.company?._id.toString(),
+                sra: user.sessionsRevokedAt ? user.sessionsRevokedAt.getTime() : 0,
             },
             JWT_SECRET,
             { expiresIn: JWT_EXPIRES_IN } as jwt.SignOptions,
@@ -35,6 +45,7 @@ export const AuthService = {
 
         return {
             token,
+            mustChangePassword: !!user.mustChangePassword,
         };
     },
 

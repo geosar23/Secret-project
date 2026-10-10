@@ -3,12 +3,12 @@ import { ResendTransport, isRetryableResendError } from "../services/email/email
 import { renderTemplate } from "../services/email/email.templates";
 import { getEmailConfigErrors } from "../config/env";
 
-describe("password-reset-notice template", () => {
-    const resetAt = new Date("2026-10-10T14:05:00Z");
+describe("password-changed template", () => {
+    const changedAt = new Date("2026-10-10T14:05:00Z");
 
     it("states when it happened (DD/MM/YYYY), tells the user what to do, and has no link or secret", () => {
-        const out = renderTemplate("password-reset-notice", { companyName: "Acme" }, { recipientName: "Eve", resetAt });
-        expect(out.subject).toBe("Your Acme password was reset");
+        const out = renderTemplate("password-changed", { companyName: "Acme" }, { recipientName: "Eve", changedAt });
+        expect(out.subject).toBe("Your password was changed");
         expect(out.text).toContain("10/10/2026 14:05 UTC");
         expect(out.text).toContain("contact your HR team or administrator");
         expect(out.html).not.toMatch(/href=/);
@@ -17,9 +17,9 @@ describe("password-reset-notice template", () => {
 
     it("escapes a malicious name and company name", () => {
         const out = renderTemplate(
-            "password-reset-notice",
+            "password-changed",
             { companyName: "<img src=x onerror=alert(1)>Co" },
-            { recipientName: "<script>alert(1)</script>", resetAt },
+            { recipientName: "<script>alert(1)</script>", changedAt },
         );
         expect(out.html).not.toContain("<script>");
         expect(out.html).not.toContain("<img src=x");
@@ -29,9 +29,40 @@ describe("password-reset-notice template", () => {
     it("rejects an invalid date instead of printing garbage", () => {
         expect(() =>
             renderTemplate(
-                "password-reset-notice",
+                "password-changed",
                 { companyName: "Acme" },
-                { recipientName: "Eve", resetAt: new Date("nope") },
+                { recipientName: "Eve", changedAt: new Date("nope") },
+            ),
+        ).toThrow();
+    });
+});
+
+describe("temporary-password template", () => {
+    it("shows the password and its expiry, escapes markup, and only links the sign-in page", () => {
+        const out = renderTemplate(
+            "temporary-password",
+            { companyName: "Acme" },
+            {
+                recipientName: "<b>Eve</b>",
+                temporaryPassword: "Ab3#<x>9",
+                expiresInHours: 24,
+                loginUrl: "https://app.example.com/login",
+            },
+        );
+        expect(out.subject).toBe("Your temporary Acme password");
+        expect(out.text).toContain("Ab3#<x>9");
+        expect(out.text).toContain("24 hours");
+        expect(out.html).toContain("Ab3#&lt;x&gt;9");
+        expect(out.html).not.toContain("<b>Eve</b>");
+        expect(out.html).toContain("https://app.example.com/login");
+    });
+
+    it("rejects a non-http sign-in link", () => {
+        expect(() =>
+            renderTemplate(
+                "temporary-password",
+                { companyName: "Acme" },
+                { recipientName: "Eve", temporaryPassword: "x", expiresInHours: 1, loginUrl: "javascript:alert(1)" },
             ),
         ).toThrow();
     });

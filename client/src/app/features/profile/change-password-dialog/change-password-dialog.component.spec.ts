@@ -3,6 +3,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import { of, throwError } from "rxjs";
 import { ChangePasswordDialogComponent } from "./change-password-dialog.component";
 import { UsersService } from "../../../core/services/users.service";
+import { AuthService } from "../../../core/services/auth.service";
 import { ToastService } from "../../../core/services/toast.service";
 
 describe("ChangePasswordDialogComponent", () => {
@@ -11,11 +12,13 @@ describe("ChangePasswordDialogComponent", () => {
     let usersServiceSpy: jasmine.SpyObj<UsersService>;
     let dialogRefSpy: jasmine.SpyObj<MatDialogRef<ChangePasswordDialogComponent, boolean>>;
     let toastSpy: jasmine.SpyObj<ToastService>;
+    let authServiceSpy: jasmine.SpyObj<AuthService>;
 
     beforeEach(async () => {
         usersServiceSpy = jasmine.createSpyObj("UsersService", ["changePassword"]);
         dialogRefSpy = jasmine.createSpyObj("MatDialogRef", ["close"]);
         toastSpy = jasmine.createSpyObj("ToastService", ["error", "success", "warning"]);
+        authServiceSpy = jasmine.createSpyObj("AuthService", ["logout"]);
 
         await TestBed.configureTestingModule({
             imports: [ChangePasswordDialogComponent],
@@ -23,6 +26,7 @@ describe("ChangePasswordDialogComponent", () => {
                 { provide: UsersService, useValue: usersServiceSpy },
                 { provide: MatDialogRef, useValue: dialogRefSpy },
                 { provide: ToastService, useValue: toastSpy },
+                { provide: AuthService, useValue: authServiceSpy },
                 { provide: MAT_DIALOG_DATA, useValue: { userId: "test-user-id" } },
             ],
         }).compileComponents();
@@ -120,8 +124,9 @@ describe("ChangePasswordDialogComponent", () => {
             currentPassword: "oldpass",
             newPassword: "newpass1",
         });
-        expect(toastSpy.success).toHaveBeenCalledWith("Password changed successfully");
+        expect(toastSpy.success).toHaveBeenCalledWith("Password changed. Please sign in again.");
         expect(dialogRefSpy.close).toHaveBeenCalledWith(true);
+        expect(authServiceSpy.logout).toHaveBeenCalled();
     });
 
     it("shows toast error and stops loading on changePassword failure", () => {

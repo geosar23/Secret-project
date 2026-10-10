@@ -7,6 +7,7 @@ import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
 import { ChangePasswordDialogData } from "../../../core/interfaces/profile.interface";
 import { UsersService } from "../../../core/services/users.service";
 import { PasswordInputComponent } from "../../../shared/components/password-input/password-input.component";
+import { AuthService } from "../../../core/services/auth.service";
 import { ToastService } from "../../../core/services/toast.service";
 import { JsonResponse } from "../../../core/interfaces/generics.interface";
 import { passwordMatchValidator } from "../../../core/validators/generic.validators";
@@ -29,6 +30,7 @@ export class ChangePasswordDialogComponent {
     private fb = inject(FormBuilder);
     private usersService = inject(UsersService);
     private toast = inject(ToastService);
+    private authService = inject(AuthService);
     private dialogRef = inject(MatDialogRef<ChangePasswordDialogComponent, boolean>);
     data = inject<ChangePasswordDialogData>(MAT_DIALOG_DATA);
 
@@ -68,8 +70,9 @@ export class ChangePasswordDialogComponent {
                     this.loading = false;
                     return;
                 }
-                this.toast.success("Password changed successfully");
+                this.toast.success("Password changed. Please sign in again.");
                 this.dialogRef.close(true);
+                this.authService.logout(); // the change ends every session, including this one
             },
             error: error => {
                 this.toast.error(error.error?.error || "Failed to change password");

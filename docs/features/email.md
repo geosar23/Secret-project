@@ -33,15 +33,15 @@ npm run email:test -- you@example.com
 
 ```ts
 await EmailService.send(
-    "password-reset-notice",
+    "password-changed",
     user.email,
-    { recipientName: user.name, resetAt: new Date() },
+    { recipientName: user.name, changedAt: new Date() },
     { company: brandingFromCompany(user.company), companyId: String(user.company._id), requestId },
 );
 ```
 
 `send` never throws; it returns `{ ok, attempts }`. For a request path, do not `await` it (see
-`notifyPasswordResetByAdmin` in `email.notifications.ts`, which is fire-and-forget and skips silently when the user has
+`notifyPasswordChanged` in `email.notifications.ts`, which is fire-and-forget and skips silently when the user has
 no populated company). Use the user's **own** company for the branding so no email carries another tenant's data.
 Callers must not put tokens in logs, and should return the same response regardless of the result (no account enumeration).
 
@@ -52,12 +52,13 @@ optional `logoUrl` and `primaryColor`; the Company model only stores a private s
 used). Every interpolated value is HTML-escaped, links must be http(s), subjects and names lose line breaks, dates print as
 `DD/MM/YYYY HH:mm UTC`.
 
-| Template                | Data                                    | Purpose                                                  |
-| ----------------------- | --------------------------------------- | -------------------------------------------------------- |
-| `test-email`            | none                                    | Smoke test                                               |
-| `password-reset-notice` | `recipientName`, `resetAt`              | Admin reset the user's password; no password and no link |
-| `invitation`            | name, inviter?, `activationLink`, hours | P0-24                                                    |
-| `password-reset`        | name, `resetLink`, minutes              | P0-25                                                    |
+| Template             | Data                                          | Purpose                                                    |
+| -------------------- | --------------------------------------------- | ---------------------------------------------------------- |
+| `test-email`         | none                                          | Smoke test                                                 |
+| `temporary-password` | name, `temporaryPassword`, hours, `loginUrl?` | Admin reset; the only place the temporary password appears |
+| `password-changed`   | `recipientName`, `changedAt`                  | Confirmation after a password was set; no secret, no link  |
+| `invitation`         | name, inviter?, `activationLink`, hours       | P0-24                                                      |
+| `password-reset`     | name, `resetLink`, minutes                    | Forgot password (P0-25)                                    |
 
 To add one: add its data type to `EmailTemplateDataMap` (`email.types.ts`), add a renderer to `renderers` in
 `email.templates.ts` using `layout(...)`, and add a test (rendering, escaping, no secret in logs).

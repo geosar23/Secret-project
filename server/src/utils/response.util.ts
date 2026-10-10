@@ -34,6 +34,7 @@ export const badRequestError = (res: Response): void => sendError(res, ErrorCode
 export const unauthorizedError = (res: Response): void => sendError(res, ErrorCode.UNAUTHORIZED);
 export const forbiddenError = (res: Response): void => sendError(res, ErrorCode.FORBIDDEN);
 export const conflictError = (res: Response): void => sendError(res, ErrorCode.CONFLICT);
+export const passwordChangeRequiredError = (res: Response): void => sendError(res, ErrorCode.PASSWORD_CHANGE_REQUIRED);
 export const tooManyRequestsError = (res: Response): void => sendError(res, ErrorCode.TOO_MANY_REQUESTS);
 
 export const responseUtil = {

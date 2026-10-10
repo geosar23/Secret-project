@@ -708,14 +708,46 @@ Open before phase 4: confirm the flow-scope precedence rule (most matching dimen
 ### P0-25 Forgot / Reset Password (High, depends on P0-23)
 
 - Priority: P0 (high)
-- Status: [ ]
+- Status: [~] (code done; production steps below pending)
 - Goal: users can recover access without an admin.
 - Acceptance criteria:
-    - [ ] `POST /api/auth/forgot-password` always returns the same response (no account enumeration) and sends a reset link.
-    - [ ] Single-use, short-lived, hashed reset token; sessions issued before the reset are invalidated if feasible.
-    - [ ] Client "forgot password" and "reset password" pages linked from login.
-    - [ ] Strict rate limiting on both endpoints.
-    - [ ] Tests for expiry, reuse, and unknown email.
+    - [x] `POST /api/auth/forgot-password` always returns the same response (no account enumeration) and sends a reset link.
+    - [x] Single-use, short-lived, hashed reset token; sessions issued before the reset are invalidated (`sra` claim vs `sessionsRevokedAt`).
+    - [x] Client "forgot password" and "password setup" pages linked from login.
+    - [x] Strict rate limiting on both endpoints (per IP, plus 3 links per account per hour).
+    - [x] Tests for expiry, reuse, unknown email, tampering, wrong purpose, concurrency, tenant scoping and logs.
+    - [x] Admin reset now emails a random temporary password (24 h) that must be changed at first sign-in.
+    - [ ] Production: run `npx ts-node src/scripts/syncIndexes.ts` once (OneTimeTokens unique + TTL indexes); set `TRUST_PROXY` (and optionally `APP_URL`).
+- Reuse for P0-24: issue an `invite` row in `OneTimeTokens` (`oneTimeTokenRepository`, `generateRawToken`, `hashToken`), add `"invite"` to `SETUP_PURPOSES` in `password-setup.service.ts` (and activate the user there), email the link to `/password-setup?token=`.
+
+### P1-25a Per-company security settings (Low, follow-up of P0-25)
+
+- Priority: P1 (low)
+- Status: [ ]
+- Goal: each company sets its own values; today every company gets the defaults in `config/security-policy.ts`.
+- Acceptance criteria:
+    - [ ] A settings collection (slug/name, company, data) read by `getSecurityPolicy(companyId)`.
+    - [ ] Configurable: token lifetimes, temporary password lifetime, links per account per hour, per-IP limits where company is known.
+    - [ ] Configurable password policy (length, character classes), enforced by every place that sets a password, with matching client validation.
+
+### P1-25b Sessions and force logout (Low, follow-up of P0-25)
+
+- Priority: P1 (low)
+- Status: [ ]
+- Goal: admin "sign out everywhere" and, if wanted, a device/session list.
+- Notes: `sessionsRevokedAt = now` already revokes every token; this adds the admin action and UI. A `Sessions` collection is only needed for per-device revoke.
+- Acceptance criteria:
+    - [ ] Admin action that sets `sessionsRevokedAt` for a user (audited).
+    - [ ] Decide whether per-device sessions are needed.
+
+### P1-25c Auth hardening leftovers (Low)
+
+- Priority: P1 (low)
+- Status: [ ]
+- Acceptance criteria:
+    - [ ] Shared rate-limit store (for example Redis) if the API runs on more than one instance.
+    - [ ] Equalise login timing for unknown emails (a bcrypt compare is skipped today).
+    - [ ] Emails are matched exactly as typed (case-sensitive), like login; decide on normalising to lowercase.
 
 ### P0-26 Company Onboarding + Seed + Data Import (Medium)
 

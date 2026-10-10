@@ -97,6 +97,14 @@ export interface IUser {
     profileImage?: IProfileImageMetadata;
 
     isActive?: boolean;
+
+    /** Sessions started before this moment are rejected (password change, forced logout); matched against the JWT `sra` claim. */
+    sessionsRevokedAt?: Date | null;
+    /** Set while the user holds an admin-issued temporary password; only changing it is allowed. */
+    mustChangePassword?: boolean;
+    /** The temporary password stops working for sign-in after this moment. */
+    temporaryPasswordExpiresAt?: Date | null;
+
     createdAt?: Date;
     updatedAt?: Date;
 }

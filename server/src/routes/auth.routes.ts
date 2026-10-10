@@ -3,6 +3,7 @@ import { AuthController as AuthControllerRaw } from "../controllers/auth.control
 import { authMiddleware } from "../middleware/auth.middleware";
 import { userHasPermissionCategory } from "../middleware/permission.middleware";
 import { PermissionCategories } from "../enums/permissions.enum";
+import { forgotPasswordLimiter, passwordSetupLimiter } from "../middleware/rate-limit.middleware";
 import { wrapController } from "../utils/async-handler.util";
 
 const router = Router();
@@ -10,6 +11,8 @@ const AuthController = wrapController(AuthControllerRaw);
 
 // Public authentication routes
 router.post("/login", AuthController.login);
+router.post("/forgot-password", forgotPasswordLimiter, AuthController.forgotPassword); // request a reset link
+router.post("/password-setup", passwordSetupLimiter, AuthController.passwordSetup); // set a password from an emailed link
 
 // Protected routes (require authentication)
 router.get("/me", authMiddleware as RequestHandler, AuthController.me);
@@ -21,8 +24,6 @@ router.post(
     AuthController.resetPassword as RequestHandler,
 );
 
-// TODO: Add these employee-facing endpoints:
-// router.post("/activate-account", AuthController.activateAccount); // Employee sets password after invitation
-// router.post("/forgot-password", AuthController.forgotPassword);   // Request password reset
+// TODO (P0-24): POST /activate-account reuses the one-time token mechanics behind /password-setup.
 
 export default router;

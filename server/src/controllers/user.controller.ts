@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Response } from "express";
+import { DEFAULT_SECURITY_POLICY, getSecurityPolicy } from "../config/security-policy";
 import { UserService } from "../services/user.service";
 import { AuthenticatedRequest, tokenPayload } from "../interfaces/auth.interface";
 import {
@@ -266,7 +267,13 @@ export class UserController {
             const USER_CREATE_REQUIRED_FIELDS: UserFieldMap = {
                 name: { type: "string", targetField: "name", required: true },
                 email: { type: "string", targetField: "email", required: true, isEmail: true },
-                password: { type: "string", targetField: "password", required: true, minLength: 6, toBeHashed: true },
+                password: {
+                    type: "string",
+                    targetField: "password",
+                    required: true,
+                    minLength: DEFAULT_SECURITY_POLICY.minPasswordLength,
+                    toBeHashed: true,
+                },
                 role: { type: "string", targetField: "role", isPointer: true, pointerClass: "Roles", required: true },
             };
 
@@ -615,8 +622,9 @@ export class UserController {
                 return;
             }
 
-            if (newPassword.length < 6) {
-                res.json(softError("New password must be at least 6 characters"));
+            const { minPasswordLength } = await getSecurityPolicy(actorTokenData.companyId);
+            if (newPassword.length < minPasswordLength) {
+                res.json(softError(`New password must be at least ${minPasswordLength} characters`));
                 return;
             }
 

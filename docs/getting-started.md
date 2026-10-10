@@ -37,21 +37,23 @@ EMAIL_PROVIDER=console
 
 ### Variable notes
 
-| Variable                    | Required    | Notes                                                                                  |
-| --------------------------- | ----------- | -------------------------------------------------------------------------------------- |
-| `PORT`                      | No          | Defaults to `3000`                                                                     |
-| `MONGO_URI`                 | Yes         | MongoDB connection string                                                              |
-| `JWT_SECRET`                | Yes         | Long random string; keep secret                                                        |
-| `NODE_ENV`                  | No          | `development` or `production`                                                          |
-| `SUPABASE_URL`              | Yes         | Must be the HTTPS project URL, **not** a Postgres connection string                    |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes         | Server-side only; never expose to the client                                           |
-| `SUPABASE_STORAGE_BUCKET`   | Yes         | Must match the bucket name in your Supabase project                                    |
-| `SALARY_ENCRYPTION_KEY`     | Yes         | 64-char hex string — generate with `openssl rand -hex 32`                              |
-| `EMAIL_PROVIDER`            | Prod: yes   | `console` (default in dev/test, logs only) or `resend`. Must be `resend` in production |
-| `EMAIL_FROM`                | Prod: yes   | Sender, e.g. `HRMS <no-reply@your-domain.com>`; domain verified at the provider        |
-| `RESEND_API_KEY`            | If `resend` | Server-side only                                                                       |
-| `EMAIL_REPLY_TO`            | No          | Optional Reply-To address                                                              |
-| `CLIENT_URL`                | No          | Comma-separated CORS origins. Defaults to `http://localhost:4200`                      |
+| Variable                    | Required    | Notes                                                                                                      |
+| --------------------------- | ----------- | ---------------------------------------------------------------------------------------------------------- |
+| `PORT`                      | No          | Defaults to `3000`                                                                                         |
+| `MONGO_URI`                 | Yes         | MongoDB connection string                                                                                  |
+| `JWT_SECRET`                | Yes         | Long random string; keep secret                                                                            |
+| `NODE_ENV`                  | No          | `development` or `production`                                                                              |
+| `SUPABASE_URL`              | Yes         | Must be the HTTPS project URL, **not** a Postgres connection string                                        |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes         | Server-side only; never expose to the client                                                               |
+| `SUPABASE_STORAGE_BUCKET`   | Yes         | Must match the bucket name in your Supabase project                                                        |
+| `SALARY_ENCRYPTION_KEY`     | Yes         | 64-char hex string — generate with `openssl rand -hex 32`                                                  |
+| `EMAIL_PROVIDER`            | Prod: yes   | `console` (default in dev/test, logs only) or `resend`. Must be `resend` in production                     |
+| `EMAIL_FROM`                | Prod: yes   | Sender, e.g. `HRMS <no-reply@your-domain.com>`; domain verified at the provider                            |
+| `RESEND_API_KEY`            | If `resend` | Server-side only                                                                                           |
+| `EMAIL_REPLY_TO`            | No          | Optional Reply-To address                                                                                  |
+| `CLIENT_URL`                | No          | Comma-separated CORS origins. Defaults to `http://localhost:4200`                                          |
+| `APP_URL`                   | No          | Public client URL used in email links. Defaults to the first `CLIENT_URL` origin                           |
+| `TRUST_PROXY`               | No          | Number of reverse proxies in front of the API (e.g. `1`); makes rate limits use the client IP. Default `0` |
 
 > **Security:** `.env` is in `.gitignore`. Never commit it.
 

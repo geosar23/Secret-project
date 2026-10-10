@@ -117,16 +117,32 @@ const renderers: { [K in EmailTemplateName]: Renderer<K> } = {
         });
     },
 
-    "password-reset-notice": (brand, data) => {
+    "temporary-password": (brand, data) => {
         const company = toSingleLine(brand.companyName);
         const name = toSingleLine(data.recipientName);
         return layout(brand, {
-            subject: `Your ${company} password was reset`,
+            subject: `Your temporary ${company} password`,
             heading: "Your password was reset",
             paragraphs: [
                 `Hi ${name},`,
-                `An administrator at ${company} reset your password on ${formatUtc(data.resetAt)}.`,
-                "If you did not expect this, contact your HR team or administrator right away. We will never ask you for your password by email.",
+                `An administrator at ${company} reset your password. Sign in with this temporary password and you will be asked to choose your own:`,
+                toSingleLine(data.temporaryPassword),
+                `It stops working after ${Number(data.expiresInHours)} hours. If you did not expect this, contact your HR team or administrator right away.`,
+            ],
+            ...(data.loginUrl ? { action: { label: "Sign in", url: assertHttpUrl(data.loginUrl, "loginUrl") } } : {}),
+        });
+    },
+
+    "password-changed": (brand, data) => {
+        const company = toSingleLine(brand.companyName);
+        const name = toSingleLine(data.recipientName);
+        return layout(brand, {
+            subject: "Your password was changed",
+            heading: "Your password was changed",
+            paragraphs: [
+                `Hi ${name},`,
+                `The password for your ${company} account was changed on ${formatUtc(data.changedAt)}.`,
+                "If this was not you, contact your HR team or administrator right away. We will never ask you for your password by email.",
             ],
         });
     },

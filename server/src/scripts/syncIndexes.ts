@@ -1,5 +1,5 @@
 /**
- * Create the indexes of the approval engine and leave collections.
+ * Create the indexes of the approval engine and leave collections and the one-time (email link) tokens.
  *
  * Models use `autoIndex: false`, so indexes declared in the schemas (the partial inbox index on pending requests,
  * the unique idempotency key of the leave ledger, unique codes and versions) only exist after this script has run.
@@ -23,6 +23,7 @@ import { LeavePolicyModel } from "../models/leave-policy.model";
 import { WorkScheduleModel } from "../models/work-schedule.model";
 import { LeaveRequestModel } from "../models/leave-request.model";
 import { LeaveLedgerModel } from "../models/leave-ledger.model";
+import { OneTimeTokenModel } from "../models/one-time-token.model";
 import { LeaveCompanySettingsModel } from "../models/leave-company-settings.model";
 
 const INDEXED_MODELS = [
@@ -36,6 +37,7 @@ const INDEXED_MODELS = [
     LeaveRequestModel,
     LeaveLedgerModel,
     LeaveCompanySettingsModel,
+    OneTimeTokenModel,
 ];
 
 async function run(): Promise<void> {

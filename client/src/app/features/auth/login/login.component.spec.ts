@@ -14,7 +14,6 @@ describe("LoginComponent", () => {
 
     beforeEach(async () => {
         authServiceSpy = jasmine.createSpyObj("AuthService", ["login", "isAuthenticated", "getLocalUser"]);
-        routerSpy = jasmine.createSpyObj("Router", ["navigate"]);
         toastSpy = jasmine.createSpyObj("ToastService", ["error", "success", "warning"]);
 
         authServiceSpy.isAuthenticated.and.returnValue(false);
@@ -25,11 +24,12 @@ describe("LoginComponent", () => {
             providers: [
                 provideRouter([]),
                 { provide: AuthService, useValue: authServiceSpy },
-                { provide: Router, useValue: routerSpy },
                 { provide: ToastService, useValue: toastSpy },
             ],
         }).compileComponents();
 
+        // The real router stays in place because the template uses routerLink.
+        routerSpy = { navigate: spyOn(TestBed.inject(Router), "navigate").and.resolveTo(true) } as never;
         fixture = TestBed.createComponent(LoginComponent);
         component = fixture.componentInstance;
         fixture.detectChanges();
@@ -72,6 +72,20 @@ describe("LoginComponent", () => {
 
         expect(authServiceSpy.login).toHaveBeenCalledWith({ email: "user@test.com", password: "password123" });
         expect(routerSpy.navigate).toHaveBeenCalledWith(["/dashboard"]);
+    });
+
+    it("sends users with a temporary password to the password setup page", () => {
+        authServiceSpy.login.and.returnValue(of({ success: true, data: { mustChangePassword: true } }) as never);
+        component.loginForm.setValue({ email: "user@test.com", password: "password123" });
+
+        component.onSubmit();
+
+        expect(routerSpy.navigate).toHaveBeenCalledWith(["/password-setup"]);
+    });
+
+    it("links to the forgot password page", () => {
+        const link = (fixture.nativeElement as HTMLElement).querySelector('a[href="/forgot-password"]');
+        expect(link?.textContent).toContain("Forgot password?");
     });
 
     it("sets errorMessage and calls toast.error on login failure", () => {

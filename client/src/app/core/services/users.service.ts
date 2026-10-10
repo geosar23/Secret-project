@@ -84,8 +84,9 @@ export class UsersService {
         return this.apiService.put<JsonResponse<void>>(`users/${userId}/change-password`, payload);
     }
 
-    resetPasswordForUser(userId: string, newPassword: string): Observable<JsonResponse<void>> {
-        return this.apiService.post<JsonResponse<void>>("auth/reset-password", { userId, newPassword });
+    /** Admin action: the server emails the user a temporary password. */
+    resetPasswordForUser(userId: string): Observable<JsonResponse<void>> {
+        return this.apiService.post<JsonResponse<void>>("auth/reset-password", { userId });
     }
 
     uploadProfileImage(userId: string, file: File): Observable<JsonResponse<IUserResponse>> {

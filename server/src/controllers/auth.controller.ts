@@ -12,8 +12,20 @@ import {
     forbiddenError,
 } from "../utils/response.util";
 import { canActorAccessSubject } from "../middleware/permission.middleware";
-import { notifyPasswordResetByAdmin } from "../services/email/email.notifications";
+import { notifyTemporaryPassword } from "../services/email/email.notifications";
+import { AuditService } from "../services/audit.service";
+import { PasswordSetupError, PasswordSetupService, runInBackground } from "../services/password-setup.service";
+import { authLog } from "../utils/auth-log.util";
 import { PermissionCategories, PermissionActions } from "../enums/permissions.enum";
+
+const FORGOT_PASSWORD_MESSAGE = "If an account exists for that email, a reset link is on its way.";
+
+const PASSWORD_SETUP_MESSAGES: Record<PasswordSetupError["code"], (minLength?: number) => string> = {
+    invalid: () => "This link is not valid. Request a new one.",
+    expired: () => "This link has expired. Request a new one.",
+    used: () => "This link has already been used. Request a new one if you still need it.",
+    weak_password: minLength => `Password must be at least ${minLength} characters.`,
+};
 
 export const AuthController = {
     login: async (req: Request, res: Response) => {
@@ -60,12 +72,13 @@ export const AuthController = {
         }
     },
 
+    /** Admin action: emails the user a random temporary password they must change on first sign-in. */
     resetPassword: async (req: AuthenticatedRequest, res: Response) => {
         try {
-            const { userId, newPassword } = req.body;
+            const { userId } = req.body;
 
-            if (!userId || !newPassword) {
-                return res.json(softError("userId and newPassword are required"));
+            if (!userId) {
+                return res.json(softError("userId is required"));
             }
 
             const payload = req.decoded as tokenPayload;
@@ -93,14 +106,51 @@ export const AuthController = {
                 return forbiddenError(res);
             }
 
-            await UserService.resetPasswordForUser(userId, newPassword, payload.companyId);
+            const { temporaryPassword, expiresInHours } = await UserService.issueTemporaryPassword(
+                userId,
+                payload.companyId,
+            );
 
-            // Security notice to the subject user; fire-and-forget so mail problems never affect the response.
-            notifyPasswordResetByAdmin(subjectUser, req.get("x-request-id"));
+            authLog("password_reset.by_admin", { actorId: payload.id, userId, companyId: payload.companyId });
+            await AuditService.record(payload.companyId, {
+                actor: payload.id,
+                entity: "user",
+                entityId: userId,
+                action: "password_reset_by_admin",
+                before: { password: "previous" },
+                after: { password: "temporary" },
+            }).catch(() => authLog("password_reset.audit_failed", { userId, companyId: payload.companyId }));
 
-            res.json(success({ message: "Password reset successfully" }));
+            // The only place the temporary password leaves the server; fire-and-forget so mail problems never affect the response.
+            notifyTemporaryPassword(subjectUser, temporaryPassword, expiresInHours, req.get("x-request-id"));
+
+            res.json(success({ message: "A temporary password was emailed to the user" }));
         } catch (err: any) {
             console.log("Error in AuthController.resetPassword:", err);
+            return hardError(res);
+        }
+    },
+
+    /** Public. Same response for every input; the real work happens after it is sent. */
+    forgotPassword: async (req: Request, res: Response) => {
+        const email = typeof req.body?.email === "string" ? req.body.email.trim() : "";
+        res.json(success({ message: FORGOT_PASSWORD_MESSAGE }));
+        if (email && email.length <= 254) {
+            runInBackground(PasswordSetupService.requestReset(email, req.get("x-request-id")));
+        }
+    },
+
+    /** Public. Redeems a link token and sets the new password. */
+    passwordSetup: async (req: Request, res: Response) => {
+        try {
+            const { token, newPassword } = req.body ?? {};
+            await PasswordSetupService.redeem(token, newPassword, req.get("x-request-id"));
+            res.json(success({ message: "Password updated. You can now sign in." }));
+        } catch (err: any) {
+            if (err instanceof PasswordSetupError) {
+                return res.json(softError(PASSWORD_SETUP_MESSAGES[err.code](err.minLength), { code: err.code }));
+            }
+            console.log("Error in AuthController.passwordSetup:", err);
             return hardError(res);
         }
     },

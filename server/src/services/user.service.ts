@@ -5,6 +5,8 @@ import { IProfileImageMetadata, IUser, IUserPopulated, IUsersQueryParams } from 
 import { FilterQuery } from "mongoose";
 import bcrypt from "bcryptjs";
 import { decryptString } from "../utils/encryption.util";
+import { getSecurityPolicy } from "../config/security-policy";
+import { generateTemporaryPassword } from "../utils/one-time-token.util";
 import { LeaveLedgerService } from "./leaves/leave-ledger.service";
 
 export const UserService = {
@@ -210,20 +212,34 @@ export const UserService = {
         return repo.deleteOne({ _id: id });
     },
 
-    resetPasswordForUser: async (userId: string, newPassword: string, companyId: string) => {
+    /**
+     * Admin reset: sets a random temporary password that only works until it expires and must be changed on first
+     * sign-in. Returns the plain password once so the caller can email it; it is never stored or logged.
+     */
+    issueTemporaryPassword: async (userId: string, companyId: string) => {
         if (!companyId) {
             throw new Error("Company ID is required for resetting password");
         }
 
         const repo = userRepository(companyId);
         const user = await repo.findById(userId).select("_id").lean();
-
         if (!user) {
             throw new Error("User not found");
         }
 
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await repo.updateOne({ _id: userId }, { password: hashedPassword });
+        const policy = await getSecurityPolicy(companyId);
+        const now = new Date();
+        const temporaryPassword = generateTemporaryPassword();
+        await repo.updateOne(
+            { _id: userId },
+            {
+                password: await bcrypt.hash(temporaryPassword, 10),
+                sessionsRevokedAt: now,
+                mustChangePassword: true,
+                temporaryPasswordExpiresAt: new Date(now.getTime() + policy.temporaryPasswordHours * 60 * 60 * 1000),
+            },
+        );
+        return { temporaryPassword, expiresInHours: policy.temporaryPasswordHours };
     },
 
     changePassword: async (id: string, currentPassword: string, newPassword: string, companyId: string) => {
@@ -243,8 +259,16 @@ export const UserService = {
             throw new Error("Current password is incorrect");
         }
 
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await repo.updateOne({ _id: id }, { password: hashedPassword });
+        // Existing sessions end, so the user signs in again with the new password.
+        await repo.updateOne(
+            { _id: id },
+            {
+                password: await bcrypt.hash(newPassword, 10),
+                sessionsRevokedAt: new Date(),
+                mustChangePassword: false,
+                temporaryPasswordExpiresAt: null,
+            },
+        );
     },
 
     grantPermission: async (id: string, permissionKey: string, companyId: string) => {

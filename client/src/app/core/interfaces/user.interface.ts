@@ -58,6 +58,8 @@ export interface IOrgRef {
 
 export interface IUser {
     _id?: string;
+    /** Only set on the user returned by sign-in. */
+    mustChangePassword?: boolean;
     name: string;
     email: string;
     password: string;

@@ -78,6 +78,17 @@ export function validateEnv(): void {
         invalid.push(`PORT must be a positive number, got: "${port}"`);
     }
 
+    const appUrl = (process.env.APP_URL ?? "").trim();
+    if (appUrl && !/^https?:\/\/[^\s/]+/.test(appUrl)) {
+        invalid.push(`APP_URL must be an http(s) URL, got: "${appUrl}"`);
+    }
+    const trustProxy = process.env.TRUST_PROXY;
+    if (trustProxy !== undefined && trustProxy !== "" && !/^\d+$/.test(trustProxy)) {
+        invalid.push(
+            `TRUST_PROXY must be the number of reverse proxies in front of the server (0, 1, 2, ...), got: "${trustProxy}"`,
+        );
+    }
+
     invalid.push(...getEmailConfigErrors());
 
     const errors = [...missing.map(k => `  - ${k} is required but not set`), ...invalid.map(msg => `  - ${msg}`)];
@@ -102,9 +113,18 @@ export const config = {
     SUPABASE_STORAGE_BUCKET: process.env.SUPABASE_STORAGE_BUCKET as string,
     SALARY_ENCRYPTION_KEY: process.env.SALARY_ENCRYPTION_KEY as string,
     CLIENT_URL: (process.env.CLIENT_URL ?? "http://localhost:4200").split(",").map(u => u.trim()),
+    /** Public client URL used in email links. Falls back to the first CLIENT_URL origin. */
+    APP_URL: process.env.APP_URL?.trim() || undefined,
+    /** Number of reverse proxies in front of the server (Express "trust proxy"); unset = none. */
+    TRUST_PROXY: process.env.TRUST_PROXY && Number(process.env.TRUST_PROXY) > 0 ? Number(process.env.TRUST_PROXY) : 0,
     NODE_ENV: process.env.NODE_ENV ?? "development",
     EMAIL_PROVIDER: resolveEmailProvider(),
     EMAIL_FROM: (process.env.EMAIL_FROM ?? "HRMS <no-reply@localhost>").trim(),
     EMAIL_REPLY_TO: process.env.EMAIL_REPLY_TO?.trim() || undefined,
     RESEND_API_KEY: process.env.RESEND_API_KEY?.trim() || undefined,
 };
+
+/** Origin used to build links in emails: APP_URL if set, otherwise the first CLIENT_URL entry. No trailing slash. */
+export function clientBaseUrl(): string {
+    return (config.APP_URL ?? config.CLIENT_URL[0]).replace(/\/+$/, "");
+}

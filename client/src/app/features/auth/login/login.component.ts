@@ -1,6 +1,6 @@
 import { Component, inject } from "@angular/core";
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from "@angular/forms";
-import { Router } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { CommonModule } from "@angular/common";
 import { MatCardModule } from "@angular/material/card";
 import { MatFormFieldModule } from "@angular/material/form-field";
@@ -23,6 +23,7 @@ import { PasswordInputComponent } from "../../../shared/components/password-inpu
         MatButtonModule,
         MatProgressSpinnerModule,
         PasswordInputComponent,
+        RouterLink,
     ],
     templateUrl: "./login.component.html",
     styleUrl: "./login.component.scss",
@@ -61,7 +62,8 @@ export class LoginComponent {
                     this.loading = false;
                     return;
                 }
-                this.router.navigate(["/dashboard"]);
+                // An admin-issued temporary password must be replaced before anything else.
+                this.router.navigate([response.data?.mustChangePassword ? "/password-setup" : "/dashboard"]);
             },
             error: error => {
                 const errMsg = error.error?.message || "Login failed. Please try again.";
