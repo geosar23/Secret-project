@@ -306,17 +306,13 @@
     color: var(--color-text-secondary);
 }
 
-.card-dept {
-    align-self: flex-start;
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    max-width: 100%;
-    padding: var(--spacing-3xs) var(--spacing-sm);
+// Small rounded labels
+.card-dept,
+.card-reports,
+.chip {
     border-radius: var(--radius-pill);
     background: var(--color-primary-50);
     font-size: var(--font-size-xxs);
-    font-weight: var(--font-weight-semibold);
     color: var(--color-primary-700);
 
     mat-icon {
@@ -325,6 +321,16 @@
         height: 0.75rem;
         font-size: 0.75rem;
     }
+}
+
+.card-dept {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    max-width: 100%;
+    padding: var(--spacing-3xs) var(--spacing-sm);
+    font-weight: var(--font-weight-semibold);
 
     span {
         overflow: hidden;
@@ -358,17 +364,7 @@
     gap: var(--spacing-2xs);
     flex-shrink: 0;
     padding: var(--spacing-3xs) var(--spacing-xs-plus);
-    border-radius: var(--radius-pill);
-    background: var(--color-primary-50);
-    font-size: var(--font-size-xxs);
     font-weight: var(--font-weight-bold);
-    color: var(--color-primary-700);
-
-    mat-icon {
-        width: 0.75rem;
-        height: 0.75rem;
-        font-size: 0.75rem;
-    }
 }
 
 .dept-card {
@@ -655,11 +651,7 @@
 
 .chip {
     padding: var(--spacing-3xs) var(--spacing-sm);
-    border-radius: var(--radius-pill);
-    background: var(--color-primary-50);
-    font-size: var(--font-size-xxs);
     font-weight: var(--font-weight-semibold);
-    color: var(--color-primary-700);
 }
 
 @media (max-width: 640px) {
